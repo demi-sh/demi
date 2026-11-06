@@ -2,7 +2,7 @@
 //!
 //! Each family says how its entries authenticate and builds the provider of one
 //! entry and account from the entry's decoded configuration. The backend starts
-//! with its built-in families (`demi_backend::families`). A test registers
+//! with its built-in families (`demi_core::builtins`). A test registers
 //! scripted ones beside them.
 //!
 //! The terms:
@@ -91,7 +91,8 @@ pub trait ProviderFamily: Send + Sync + 'static {
 
     /// Whether the family's entries make text: false for the family of the
     /// vendors that make media alone, whose entries have no text models
-    /// and are never in the model menu (`crates/backend/src/families.rs`).
+    /// and are never in the model menu
+    /// (`crates/core/src/builtins/families.rs`).
     fn makes_text(&self) -> bool {
         true
     }

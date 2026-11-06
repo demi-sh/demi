@@ -1,5 +1,6 @@
 //! The core: everything Demi does for one principal's agents, on one
-//! thread. The server runs one core per user; a program runs one of its own.
+//! thread. The server runs one core per user; a program's process runs the
+//! cores the program opens.
 //!
 //! A core holds:
 //!
@@ -95,6 +96,7 @@
 
 mod adoption;
 pub(crate) mod agent_profiles;
+pub mod builtins;
 pub mod conversation;
 pub mod cores;
 pub(crate) mod credential_commands;
@@ -112,12 +114,14 @@ pub(crate) mod notify_commands;
 mod permissions;
 mod plugins;
 mod policy;
+pub mod pool;
 pub mod port_forwards;
 pub(crate) mod provider_commands;
 pub mod provider_settings;
 pub mod schedules;
 pub mod services;
 pub mod settings;
+pub mod start_passes;
 pub mod starter;
 pub mod storage;
 pub mod subagents;
@@ -187,6 +191,9 @@ pub struct Core {
     commands: CommandRouter,
     /// Every task the core spawns, which its close waits for.
     tasks: TaskTracker,
+    /// The pages' synchronization channels, which the core's close ends
+    /// first, so none reads what the close changes.
+    channels: TaskTracker,
     /// Cancelled when the core starts closing: it takes no new runner.
     closing: CancellationToken,
     /// The user's conversation trees.
@@ -348,6 +355,7 @@ impl Core {
             Rc::new(plugins::CorePort {
                 core: core.clone(),
                 services: services.clone(),
+                key: store.key().clone(),
                 web,
             }),
             Rc::new(store.clone()),
@@ -379,6 +387,7 @@ impl Core {
             pipes: Pipes::new(ARRIVAL),
             commands: CommandRouter::default(),
             tasks: TaskTracker::new(),
+            channels: TaskTracker::new(),
             closing: CancellationToken::new(),
             agent,
             titles,
@@ -508,6 +517,12 @@ impl Core {
         &self.tasks
     }
 
+    /// The pages' synchronization channels: each holds a token while it
+    /// lives.
+    pub fn channels(&self) -> &TaskTracker {
+        &self.channels
+    }
+
     /// The Claude Code machine, through the master's core; none in a
     /// backend whose cores never started.
     pub(crate) fn claude_machine(&self) -> Option<ClaudeMachine> {
@@ -588,6 +603,8 @@ impl Core {
     ///   still save.
     pub async fn close(&self) {
         self.closing.cancel();
+        self.channels.close();
+        closed("the channels ended", self.channels.wait()).await;
         closed("the starter's work ended", self.starter.closing()).await;
         self.services.sync.forget(self.user());
         self.stop_idle_watches();

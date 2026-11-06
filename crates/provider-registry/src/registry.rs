@@ -40,7 +40,7 @@ use crate::families::{
 };
 use crate::vendors::{VendorCatalog, sort_by_name};
 
-/// The family of the vendors that make media and no text (`crates/backend/src/families.rs`).
+/// The family of the vendors that make media and no text (`crates/core/src/builtins/families.rs`).
 pub const MEDIA_FAMILY: &str = "media";
 use crate::entry::{EntryCredential, ProviderEntry};
 use crate::quotas::{AccountQuotas, ResetRead};
@@ -291,7 +291,7 @@ impl ProviderRegistry {
     /// - models.dev's vendors.
     /// - The media catalog's vendors of media alone whose shapes the `media`
     ///   family builds, each with the endpoint the catalog names
-    ///   (`crates/backend/src/families.rs`).
+    ///   (`crates/core/src/builtins/families.rs`).
     ///
     /// A media vendor whose shapes are not built yet, such as Stability AI's,
     /// is not offered.
@@ -349,7 +349,7 @@ impl ProviderRegistry {
 
     /// Whether `entry` makes text, as every family but `media` does: an
     /// entry of media alone has no text models and is never in the model
-    /// menu (`crates/backend/src/families.rs`).
+    /// menu (`crates/core/src/builtins/families.rs`).
     pub fn makes_text(&self, entry: &ProviderEntry) -> bool {
         self.families.get(&entry.family).is_none_or(|family| family.makes_text())
     }

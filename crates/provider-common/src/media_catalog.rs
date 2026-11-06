@@ -72,7 +72,8 @@ pub fn branch_url(branch: Option<&str>) -> Option<Url> {
 pub struct Catalog {
     pub updated: Timestamp,
     /// The vendors that make media and no text, which models.dev, a
-    /// catalog of text models, does not list (`crates/backend/src/families.rs`).
+    /// catalog of text models, does not list
+    /// (`crates/core/src/builtins/families.rs`).
     #[serde(default)]
     pub vendors: Vec<CatalogVendor>,
     pub models: Vec<MediaModel>,

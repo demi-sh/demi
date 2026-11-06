@@ -6,7 +6,6 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use bytes::Bytes;
 use demi_backend_accounts::email_change::{AccountMail, CodeKey, EmailChanges};
 use demi_backend_accounts::login_limiter::LoginLimiter;
 use demi_backend_accounts::passwords::{HashError, PasswordHasher};
@@ -17,48 +16,23 @@ use demi_backend_cloud::CloudServices;
 use demi_core_store::StorageError;
 use demi_backend_database::control::ControlService;
 use demi_backend_database::core_stores::CoreStores;
-use demi_core_store::conversations::ConversationBlobs;
-use demi_core_store::schema::ReadBlob;
 use demi_backend_database::server_log::ServerLog;
-use demi_shared_types::BlobRef;
 use demi_web_api_protocol::ids::UserId;
-use demi_core_device_access::stream::UserStreams;
-use demi_core_sync::SyncRegistry;
-use demi_plugin_host::{Registry, RegistryError};
-use demi_provider_registry::registry::ProviderRegistry;
-use demi_provider_registry::catalog_cache::ModelCatalogCache;
-use demi_provider_claude_code::releases::ClaudeReleases;
-use demi_provider_registry::families::FamilyRegistry;
-use demi_provider_registry::vendors::VendorCatalog;
 use demi_backend_database::schema::ControlSteps;
-use demi_core_providers::vault::entries::{SeededAccount, Vault, VaultReseal, VaultStores};
+use demi_core_providers::vault::entries::{SeededAccount, VaultReseal, VaultStores};
 use demi_core_store::store::CoreStore;
 use demi_web_api_protocol::ids::ProviderId;
 use demi_web_api_protocol::settings::InstanceMode;
 use futures_util::future::BoxFuture;
-use demi_core_providers::vault::logins::{LoginFlows, LoginTiming};
-use demi_core_providers::vault::operations::ProviderOperations;
-use demi_provider_registry::quotas::AccountQuotas;
-use demi_provider_registry::store::RegistryStore;
-use demi_core_providers::vault::seal::VaultKey;
+use demi_core_store::seal::VaultKey;
 use demi_backend_runners::claims::PendingClaims;
-use demi_core_devices::devices::Returning;
-use demi_backend_runners::native::{NativeCatalog, ServedPackages};
-use demi_core_devices::packages::Packages;
+use demi_backend_runners::native::NativeCatalog;
 use demi_backend_runners::install::RunnerReleases;
 use demi_backend_runners::prefetch::Prefetches;
-use demi_core_devices::public_url::PublicUrl;
-use demi_runner_protocol::direct::StunUrl;
-use demi_plugin_interface::PluginFactory;
-use demi_provider_common::media_catalog::MediaCatalog;
-use demi_provider_common::models_dev::ModelsDevClient;
 use demi_shared_types::Clock;
 use object_store::ObjectStore;
 
-use demi_core::conversation::claude_cli::{CliInstalls, MachineSlot};
-use demi_core::services::CoreServices;
-use demi_core::tuning::{ConversationTuning, LifecycleTuning, MediaTuning, RunnerTuning};
-use crate::tuning::PageTuning;
+use demi_core::services::{CoreServices, CoreServicesError, CoreSettings, MigrationBlobs};
 
 const CONTROL_DATABASE: &str = "control.sqlite";
 
@@ -89,8 +63,6 @@ pub struct Services {
     pub data_dir: std::path::PathBuf,
     /// What the server keeps, as last measured (`crates/backend-user-shard/src/server_storage.rs`).
     pub server_storage: crate::server_storage::ServerStorage,
-    /// How the sockets to a page are timed.
-    pub pages: PageTuning,
     /// The command packages each core's catalog is built from.
     pub native: NativeCatalog,
     /// The machine manager's client, the Cloud capacity across users and
@@ -118,62 +90,31 @@ impl std::ops::Deref for Services {
     }
 }
 
-/// What the provider services start with.
-pub struct ProviderSetup {
-    pub families: FamilyRegistry,
-    pub models_dev_url: url::Url,
-    /// Where LiteLLM's model table is read.
-    pub model_shutdowns_url: url::Url,
-    /// The media catalog of the build's branch; none keeps the release's
-    /// copy (`crates/provider-common/src/media_catalog.rs`).
-    pub media_catalog_url: Option<url::Url>,
-    /// The media catalog the release carries, or a test's.
-    pub media_catalog: Arc<demi_provider_common::media_catalog::Catalog>,
-    /// The Claude Code distribution.
-    pub claude_releases: url::Url,
-    /// Where the Claude Code machine is, which the master's core puts there
-    /// as it starts and the Claude Code family reads too.
-    pub claude_machine: MachineSlot,
-    pub logins: LoginTiming,
-    pub clock: Arc<dyn Clock>,
-    /// The account the master account's entry of its family holds.
-    pub master_account: Option<SeededAccount>,
-}
-
 /// The keys the services seal and hash under, which the executable derives
 /// from its instance secret.
 pub struct ServiceKeys {
-    /// The key provider credentials are sealed under.
-    pub vault: VaultKey,
     /// The key email-change codes are hashed under.
     pub email_codes: CodeKey,
     /// The VAPID key push messages are signed with.
     pub push: PushKey,
 }
 
-/// What the services are configured with besides storage, the keys and the
-/// providers.
+/// What the server's own services are configured with besides storage and
+/// the keys.
 pub struct ServiceSettings {
-    /// Where the backend is reached, once it listens.
-    pub public_url: PublicUrl,
     pub shared_subscriptions: bool,
+    /// The account the master account's entry of its family holds.
+    pub master_account: Option<SeededAccount>,
     pub log: ServerLog,
     /// The directory that holds the databases.
     pub data_dir: std::path::PathBuf,
     /// The build of the web app the backend serves, if it serves one.
     pub web_build: Option<String>,
     pub runner_releases: RunnerReleases,
-    pub stun: Vec<StunUrl>,
     pub mail: Option<Arc<dyn AccountMail>>,
-    pub runners: RunnerTuning,
-    pub conversations: ConversationTuning,
-    pub pages: PageTuning,
-    pub media_tuning: MediaTuning,
+    /// The command packages the server's release published.
     pub native: NativeCatalog,
-    /// The plugins, in their order of registration.
-    pub plugins: Vec<Box<dyn PluginFactory>>,
     pub cloud: CloudServices,
-    pub lifecycle: LifecycleTuning,
     /// The file an administrator's update is requested in; none on a
     /// server that offers no updates.
     pub upgrade_request: Option<std::path::PathBuf>,
@@ -191,9 +132,9 @@ pub enum ServicesError {
     Hashing(#[from] HashError),
     #[error("the HTTP client cannot start: {0}")]
     Http(reqwest::Error),
-    #[error("the plugins cannot start: {0}")]
-    Plugins(#[from] RegistryError),
-    #[error("the devices the last shutdown disconnected cannot be read: {0}")]
+    #[error(transparent)]
+    Core(#[from] CoreServicesError),
+    #[error("the server's records cannot be read: {0}")]
     Storage(#[from] StorageError),
 }
 
@@ -205,8 +146,6 @@ pub struct Storage {
     pub blobs: BlobStores,
 }
 
-/// The blobs a conversation database's migration reads: those of its user's
-/// namespace.
 /// What the control database's migrations ask: the data directory, and the
 /// vault's key that seals a value again.
 struct ServerReseal {
@@ -266,29 +205,6 @@ impl VaultStores for ServerVaultStores {
     }
 }
 
-/// The blobs a conversation database's migration reads: those of its user.
-struct MigrationBlobs {
-    blobs: demi_core_blobs::blobs::UserBlobs,
-    /// The backend's runtime, which the reads run on.
-    runtime: tokio::runtime::Handle,
-}
-
-impl MigrationBlobs {
-    fn new(blobs: demi_core_blobs::blobs::UserBlobs, runtime: tokio::runtime::Handle) -> Arc<ConversationBlobs> {
-        Arc::new(Self { blobs, runtime })
-    }
-}
-
-impl ReadBlob for MigrationBlobs {
-    fn read(&self, blob: &BlobRef) -> Result<Option<Bytes>, String> {
-        // A migration runs on its database's thread, outside the runtime,
-        // and its transaction waits for the read: it blocks on it there.
-        self.runtime
-            .block_on(self.blobs.get(blob))
-            .map_err(|error| error.to_string())
-    }
-}
-
 /// A database that did not close.
 #[derive(Debug, thiserror::Error)]
 pub enum CloseError {
@@ -305,8 +221,9 @@ impl Storage {
         demi_backend_database::update::due(&data_dir.join(CONTROL_DATABASE), data_dir)
     }
 
-    /// The databases in `data_dir`, beside the object store `objects`; an
-    /// earlier control database's sealed values are migrated under `vault`.
+    /// The databases in `data_dir`, beside the object store `objects`, whose
+    /// cores seal under `vault`, which an earlier control database's sealed
+    /// values are migrated under too.
     pub async fn open(
         data_dir: &Path,
         clock: Arc<dyn Clock>,
@@ -317,7 +234,7 @@ impl Storage {
             &data_dir.join(CONTROL_DATABASE),
             clock.clone(),
             Arc::new(ServerReseal {
-                vault: VaultReseal::new(vault),
+                vault: VaultReseal::new(vault.clone()),
                 data_directory: data_dir.to_owned(),
             }),
         )
@@ -328,6 +245,7 @@ impl Storage {
         let read = blobs.clone();
         let stores = CoreStores::new(
             data_dir.to_owned(),
+            vault,
             clock.clone(),
             Arc::new(move |user: &UserId| MigrationBlobs::new(read.for_user(user), runtime.clone())),
         );
@@ -353,11 +271,12 @@ impl Storage {
 
 impl Services {
     /// Starts the services on the edge's runtime, which the ones that spawn
-    /// work of their own run it on.
+    /// work of their own run it on: the cores' over the users' stores, then
+    /// the server's own.
     pub async fn start(
         storage: Storage,
         keys: ServiceKeys,
-        providers: ProviderSetup,
+        core: CoreSettings,
         settings: ServiceSettings,
     ) -> Result<Self, ServicesError> {
         let Storage {
@@ -365,148 +284,47 @@ impl Services {
             stores,
             blobs,
         } = storage;
-        let packages: Arc<dyn Packages> = Arc::new(ServedPackages {
-            native: settings.native.clone(),
-            backend: settings.public_url.clone(),
-        });
-        let plugins = Registry::new(settings.plugins, |operation| {
-            packages.serves(&operation.package, &[operation.operation.as_str()])
-        })?;
         let hasher = PasswordHasher::new().await?;
-        let clock = providers.clock.clone();
-        let cores: Vec<CoreStore> = stores.all(&control).await?.into_iter().map(|(_, store)| store).collect();
-        let returning = Arc::new(Returning::take(&cores).await?);
-        let edge = tokio::runtime::Handle::current();
-        // The shared services' own client; each shard thread builds its own.
-        let http = reqwest::Client::builder()
-            .build()
-            .map_err(ServicesError::Http)?;
-        let sync = SyncRegistry::default();
-        let upgrades = crate::upgrades::Upgrades::start(
-            settings.upgrade_request.clone(),
-            settings.upgrade_channel,
-            control.clone(),
-            sync.clone(),
-            settings.update.clone(),
-            clock.clone(),
-        )
-        .await?;
-        let public_push = || -> Result<Arc<dyn PushTransport>, ServicesError> {
-            Ok(Arc::new(PublicPushTransport::new().map_err(ServicesError::Http)?))
-        };
-        let push_transport = public_push()?;
-        let push = Pusher::new(control.clone(), keys.push, push_transport);
         // The log opened before the database, and trims from now on.
         settings.log.set_limits(control.log_retention().await?.into());
+        let clock = core.clock.clone();
         let mode = control.instance_mode().await?;
-        let vault = Vault::new(
+        let core = CoreServices::start(
+            core,
             Arc::new(ServerVaultStores {
                 control: control.clone(),
                 stores: stores.clone(),
             }),
-            keys.vault,
             mode,
             settings.shared_subscriptions,
-            sync.clone(),
+            blobs,
         )
         .await?;
+        let cores: Vec<CoreStore> = stores.all(&control).await?.into_iter().map(|(_, store)| store).collect();
+        core.returning.take(&cores).await?;
         // A data directory that predates the development sign-in, or holds
         // an earlier one, is brought to the current one before anything
         // infers with it.
-        if let Some(account) = &providers.master_account
+        if let Some(account) = &settings.master_account
             && let Some(master) = control.master().await?
         {
-            vault.seed(master, account, clock.now()).await?;
+            core.vault.seed(master, account, clock.now()).await?;
         }
-        let models_dev = ModelsDevClient::new(
-            http.clone(),
-            providers.models_dev_url,
-            providers.clock.clone(),
-            &providers.families.effort_vendors(),
-        );
-        let shutdowns = demi_provider_registry::shutdowns::ModelShutdowns::new(
-            http.clone(),
-            providers.model_shutdowns_url,
-            providers.clock.clone(),
-        );
-        shutdowns.start(&edge);
-        let media = MediaCatalog::new(http.clone(), providers.media_catalog_url, providers.media_catalog);
-        media.start(&edge);
-        // A new catalog describes every user's media models anew: their
-        // pages read them again. The task ends with the catalog, whose last
-        // owner drops the sender.
-        let mut catalogs = media.subscribe();
-        let announced = sync.clone();
-        edge.spawn(async move {
-            while catalogs.changed().await.is_ok() {
-                announced.mark_everyone(&demi_core_sync::Part::Providers);
-            }
-        });
-        let claude_releases =
-            ClaudeReleases::new(&providers.claude_releases, edge.clone(), clock.clone())
-                .map_err(ServicesError::Http)?;
-        let store: Arc<dyn RegistryStore> = Arc::new(vault.clone());
-        let provider_registry = ProviderRegistry::new(
-            store.clone(),
-            providers.families,
-            AccountQuotas::new(store.clone(), edge.clone(), providers.clock.clone()),
-            ModelCatalogCache::new(store, providers.clock.clone(), edge),
-            VendorCatalog::new(models_dev, shutdowns),
-            http,
-            providers.clock,
-            media.clone(),
-        );
-        // A source's new model list changes the catalog of every user who
-        // infers with its entry: their pages hear of it. The task ends with
-        // the cache, whose last owner drops the sender.
-        let mut models = provider_registry.catalogs().subscribe();
-        let announced = sync.clone();
-        tokio::spawn(async move {
-            while models.changed().await.is_ok() {
-                announced.mark_everyone(&demi_core_sync::Part::Models);
-            }
-        });
-        let operations = Arc::new(ProviderOperations::default());
-        let logins = LoginFlows::new(
-            vault.clone(),
-            provider_registry.clone(),
-            operations.clone(),
-            providers.logins,
-            clock.clone(),
-            sync.clone(),
-        );
-        let core = Arc::new(CoreServices {
-            public_url: settings.public_url,
+        let upgrades = crate::upgrades::Upgrades::start(
+            settings.upgrade_request.clone(),
+            settings.upgrade_channel,
+            control.clone(),
+            core.sync.clone(),
+            settings.update.clone(),
             clock,
-            blobs,
-            vault,
-            provider_registry,
-            media,
-            claude_releases,
-            cli_installs: CliInstalls::default(),
-            claude_machine: providers.claude_machine,
-            operations,
-            logins,
-            hook_limits: demi_core::schedules::HookLimits::default(),
-            runners: settings.runners,
-            conversation_tuning: settings.conversations,
-            media_tuning: settings.media_tuning,
-            user_streams: UserStreams::new(
-                plugins
-                    .streams()
-                    .map(|stream| (stream.name.as_str(), &stream.operation)),
-                packages.as_ref(),
-            ),
-            packages,
-            plugins: Arc::new(plugins),
-            stun: settings.stun,
-            run: uuid::Uuid::new_v4().to_string(),
-            lifecycle: settings.lifecycle,
-            sync,
-            returning,
-        });
+        )
+        .await?;
+        let push_transport: Arc<dyn PushTransport> =
+            Arc::new(PublicPushTransport::new().map_err(ServicesError::Http)?);
+        let push = Pusher::new(control.clone(), keys.push, push_transport);
+        let claims_per_minute = core.runners.claims_per_minute;
         Ok(Self {
-            core,
+            core: Arc::new(core),
             sessions: WebSessions::new(control.clone()),
             limiter: LoginLimiter::new(),
             email: EmailChanges::new(
@@ -518,14 +336,13 @@ impl Services {
             ),
             push,
             hasher,
-            claims: PendingClaims::new(control.clone(), settings.runners.claims_per_minute),
+            claims: PendingClaims::new(control.clone(), claims_per_minute),
             control,
             stores,
-            master_account: providers.master_account,
+            master_account: settings.master_account,
             log: settings.log,
             data_dir: settings.data_dir,
             server_storage: crate::server_storage::ServerStorage::default(),
-            pages: settings.pages,
             native: settings.native,
             cloud: Arc::new(settings.cloud),
             lent: Default::default(),
@@ -550,14 +367,4 @@ impl Services {
     pub fn download_changed(&self) {
         self.sync.mark_everyone(&demi_core_sync::Part::CloudIsolation);
     }
-
-    /// Cancels the logins, drains the catalog refreshes and quota
-    /// writes, before storage closes.
-    pub async fn close_providers(&self) {
-        self.logins.close().await;
-        self.provider_registry.close().await;
-        self.media.close();
-    }
-
-
 }

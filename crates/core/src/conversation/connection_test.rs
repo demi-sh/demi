@@ -34,7 +34,7 @@ impl Core {
     /// - Reading its vendor's list of its media models, as ElevenLabs'
     ///   `GET /v1/models` does.
     /// - A request the vendor refuses for its body, as ByteDance's
-    ///   (`crates/backend/src/families.rs`).
+    ///   (`crates/core/src/builtins/families.rs`).
     ///
     /// It needs only the key. A passed test names the first model the maker
     /// answers, or the entry when it answers none, and a refused key fails in

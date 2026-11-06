@@ -6,7 +6,7 @@ const ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz'
 /**
  * A request ID as the backend gives one, `req_` and 16 lowercase base-32
  * characters, for a specimen that stands for a failed request
- * (`crates/backend-http/src/request_id.rs`). The same words give the same
+ * (`crates/core-api/src/request_id.rs`). The same words give the same
  * ID, so a specimen looks the same each time it is shown.
  */
 export function simulatedRequestId(seed: string): string {
@@ -43,7 +43,7 @@ export function refusal(code: string, params: Readonly<Record<string, string | n
 
 /**
  * A refusal the user corrects in the form they filled, such as a wrong
- * password: it names no request (`crates/backend-http/src/request_id.rs`).
+ * password: it names no request (`crates/core-api/src/request_id.rs`).
  */
 export function correction(message: string): ShownError {
   return { message, requestId: null }

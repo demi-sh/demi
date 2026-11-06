@@ -3,7 +3,7 @@ import { z } from 'zod'
 /**
  * What of a received value did not read with its schema, in words that
  * carry no value of it, as the page reports its own failures
- * (`crates/backend-http/src/request_id.rs`).
+ * (`crates/core-api/src/request_id.rs`).
  *
  * It names each issue's path with what was expected, and for a wrong type
  * the type that came. zod's own messages name types, and a schema's limits

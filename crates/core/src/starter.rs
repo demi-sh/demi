@@ -1,5 +1,5 @@
 //! What whoever runs a core gives it: a server for each of its users' cores,
-//! a program for its one core.
+//! a program for each core it opens.
 //!
 //! The core decides; the starter delivers what only it can: a Cloud it wakes,
 //! the pairing of a runner, the browsers a notification goes to, and the
@@ -14,12 +14,12 @@ use demi_core_store::devices::DeviceRecord;
 use demi_provider_registry::entry::ProviderEntry;
 use demi_runner_client::DeviceLog;
 use demi_shared_types::ScheduleId;
-use demi_web_api_protocol::auth::UserDto;
 use demi_web_api_protocol::devices::{DeviceDto, InstallCommands};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId};
 use demi_web_api_protocol::push::PushMessage;
 use demi_web_api_protocol::conversations::ConversationShares;
 use futures_util::future::LocalBoxFuture;
+use url::Url;
 
 /// What a notification did as it was sent: counted then, delivered after.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -59,6 +59,11 @@ pub trait Starter {
     /// while nothing serves the installers.
     fn install_commands(&self) -> Option<InstallCommands>;
 
+    /// Where the core's routes are reached from outside: the URL they are
+    /// under `/api` of, which a plugin's OAuth redirect starts with; none
+    /// while it is not known.
+    fn public_url(&self) -> Option<Url>;
+
     /// Where the runner lines of `device` are kept; none to keep none.
     fn device_log(&self, device: &DeviceId) -> Option<Rc<dyn DeviceLog>>;
 
@@ -83,10 +88,6 @@ pub trait Starter {
 
     /// How a notification reaches the user now.
     fn reach(&self) -> LocalBoxFuture<'_, Result<Reach, StorageError>>;
-
-    /// The user the core serves, with the role that decides which provider
-    /// entries they configure.
-    fn principal(&self) -> LocalBoxFuture<'_, Result<UserDto, StorageError>>;
 
     /// Whether the agent's notifications reach the user now.
     fn agent_reaches(&self) -> LocalBoxFuture<'_, Result<bool, StorageError>>;

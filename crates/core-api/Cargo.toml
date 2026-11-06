@@ -1,0 +1,72 @@
+[package]
+name = "demi-core-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+# No doc examples.
+test = false
+doctest = false
+bench = false
+
+# The process a program runs its cores in (`src/process/mod.rs`).
+[[bin]]
+name = "demi-core"
+path = "src/main.rs"
+test = false
+
+[dependencies]
+demi-command-protocol = { path = "../command-protocol" }
+demi-provider-claude-code = { path = "../provider-claude-code" }
+demi-provider-relay = { path = "../provider-relay" }
+demi-shared-artifacts = { path = "../shared-artifacts" }
+demi-shared-cli = { path = "../shared-cli" }
+demi-core-devices = { path = "../core-devices" }
+demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
+demi-agent-store = { path = "../agent-store" }
+demi-core-device-access = { path = "../core-device-access" }
+demi-core-blobs = { path = "../core-blobs" }
+demi-core-providers = { path = "../core-providers" }
+demi-core = { path = "../core" }
+demi-core-store = { path = "../core-store" }
+demi-core-sync = { path = "../core-sync" }
+demi-core-permissions = { path = "../core-permissions" }
+demi-plugin-host = { path = "../plugin-host" }
+demi-plugin-interface = { path = "../plugin-interface" }
+demi-shared-types = { path = "../shared-types" }
+demi-runner-client = { path = "../runner-client", features = ["edge"] }
+demi-provider-common = { path = "../provider-common" }
+demi-provider-registry = { path = "../provider-registry" }
+demi-runner-protocol = { path = "../runner-protocol" }
+demi-shared-lanes = { path = "../shared-lanes" }
+demi-device-interface = { path = "../device-interface" }
+demi-web-api-protocol = { path = "../web-api-protocol" }
+axum = { version = "0.8", features = ["ws"] }
+axum-extra = { version = "0.12", features = ["typed-header"] }
+bytes.workspace = true
+# Request IDs: 80 random bits in lowercase Crockford base-32.
+data-encoding = "2"
+rand = "0.9"
+futures-util.workspace = true
+garde.workspace = true
+mime = "0.3"
+percent-encoding = "2"
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+# The program's connection: HTTP/2 over the process's standard input and
+# output, WebSockets by extended CONNECT.
+hyper = { version = "1", features = ["http2", "server"] }
+hyper-util = { version = "0.1", features = ["tokio", "service"] }
+tokio = { workspace = true, features = ["io-std"] }
+tokio-util.workspace = true
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["trace"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+typed-path = "0.12"
+uuid = { version = "1", features = ["v4"] }
+url = "2"
+rust-i18n = "4.2.4"

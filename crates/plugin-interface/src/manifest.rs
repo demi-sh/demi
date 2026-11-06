@@ -256,7 +256,7 @@ pub struct Page {
     #[serde(default)]
     pub methods: Vec<Method>,
     /// The tab kinds whose tabs the backend keeps and the plugin
-    /// takes part in (`crates/backend-http/src/work.rs`).
+    /// takes part in (`crates/core-api/src/work.rs`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tab_kinds: Vec<String>,
     /// The reasons the page may be told a failure with, one closed set of
@@ -275,7 +275,7 @@ pub struct Page {
 /// A block of the reply a plugin's page draws: its line's tag, and whether
 /// it has an HTML document ([`crate::Request::ReplyBlockDocument`]), which
 /// the backend serves as a page of its own in an opaque origin
-/// (`crates/backend-http/src/blocks.rs`) for the component to frame.
+/// (`crates/core-api/src/blocks.rs`) for the component to frame.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ReplyBlock {
@@ -361,7 +361,7 @@ pub struct State {
     pub operations: Vec<NativeOperation>,
     /// The plugin holds this state between reads and keeps it as its device says
     /// it changes, so the backend sends what it holds with the conversation's
-    /// work (`crates/backend-http/src/work.rs`) and the page shows both
+    /// work (`crates/core-api/src/work.rs`) and the page shows both
     /// at once, with no read of its own by the page. A plugin that holds none
     /// reads it only for a conversation whose work has tabs of its kind.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]

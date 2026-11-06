@@ -19,9 +19,10 @@ use demi_web_api_protocol::storage::{
     DeviceStorageReport, LogRetention, ServerStorage, Storage, StorageAction, StorageRules,
 };
 
+use demi_core_api::body::JsonBody;
+use demi_core_api::error::ApiError;
+
 use super::AppState;
-use super::body::JsonBody;
-use super::error::ApiError;
 use super::gate::{AdminUser, AuthUser};
 
 /// What the server and each of the caller's devices keep, and the rules. An
@@ -29,6 +30,7 @@ use super::gate::{AdminUser, AuthUser};
 pub(super) async fn read(State(state): State<AppState>, AuthUser(user): AuthUser) -> Result<Json<Storage>, ApiError> {
     let administrator = user.role.outranks(Role::User);
     let core = state
+        .api
         .shards
         .of(&user.id)
         .call(move |core, _| async move { core.storage().await })
@@ -78,6 +80,7 @@ pub(super) async fn set_rules(
     JsonBody(rules): JsonBody<StorageRules>,
 ) -> Result<Json<StorageRules>, ApiError> {
     let rules = state
+        .api
         .shards
         .of(&user.id)
         .call(move |core, _| async move { core.set_storage_rules(rules).await })
@@ -105,6 +108,7 @@ pub(super) async fn device(
     JsonBody(action): JsonBody<StorageAction>,
 ) -> Result<Json<DeviceStorageReport>, ApiError> {
     let answered = state
+        .api
         .shards
         .of(&user.id)
         // The caller's core holds only the caller's devices, so another

@@ -117,6 +117,7 @@ pub mod running_jobs;
 pub mod saved;
 pub mod schedules;
 pub mod schema;
+pub mod seal;
 pub mod search;
 mod selection;
 pub mod sequences;

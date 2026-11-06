@@ -317,7 +317,7 @@ pub enum ServerFrame {
         diagnostics: Option<ProviderErrorDiagnostics>,
         /// The request ID of the socket's upgrade, which the socket gives
         /// every `error` frame it sends
-        /// (`crates/backend-http/src/request_id.rs`); the agent's frames
+        /// (`crates/core-api/src/request_id.rs`); the agent's frames
         /// leave it to the socket.
         #[serde(
             default,

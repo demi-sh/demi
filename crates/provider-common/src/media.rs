@@ -291,7 +291,7 @@ pub trait MediaMaker: Send + Sync {
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>>;
 
     /// Checks the key of an entry of media alone, as Test Connection does
-    /// (`crates/backend/src/families.rs`), and answers its models.
+    /// (`crates/core/src/builtins/families.rs`), and answers its models.
     ///
     /// It reads the vendor's list of them, unless the vendor lists none to the
     /// key, as ByteDance's do not, and checks it another way.

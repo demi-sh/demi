@@ -57,7 +57,7 @@ const SESSION_POLICY: SessionPolicy = SessionPolicy {
 
 /// The policy of a look that never renews and is no activity: a
 /// synchronization channel's, which only requests renew
-/// (`crates/backend-user-shard/src/sync/mod.rs`).
+/// (`crates/backend-http/src/session_caller.rs`).
 const WITHOUT_RENEWAL: SessionPolicy = SessionPolicy {
     renew_below: SignedDuration::ZERO,
     activity_every: None,

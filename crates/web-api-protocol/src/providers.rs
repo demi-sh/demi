@@ -722,7 +722,7 @@ pub struct NewShareKey {
 pub struct TestRequest {
     /// The text model the test sends its message to; absent for an entry
     /// of media alone, whose key is checked through its vendor's list of
-    /// models (`crates/backend/src/families.rs`).
+    /// models (`crates/core/src/builtins/families.rs`).
     #[serde(default, with = "unwrap_or_skip")]
     #[schemars(with = "String")]
     #[garde(inner(length(min = 1)))]

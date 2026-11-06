@@ -88,7 +88,7 @@ pub enum Request {
         conversation: Option<ConversationId>,
     },
     /// The user removed a tab of one of the plugin's tab kinds; the backend applied the change
-    /// and answered the page (`crates/backend-http/src/work.rs`). `tab` is the tab as it was when
+    /// and answered the page (`crates/core-api/src/work.rs`). `tab` is the tab as it was when
     /// it was removed. The user creates no tab of a plugin's kind: the plugin does.
     TabClosed {
         user: UserId,

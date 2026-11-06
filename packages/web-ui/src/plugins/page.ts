@@ -231,7 +231,7 @@ export interface PageHost {
   pages(): readonly AnyPluginPage[]
   /**
    * Where `plugin`'s reply block `tag` of `id` loads as a page of its own, its
-   * document in a sandboxed frame (`crates/backend-http/src/blocks.rs`).
+   * document in a sandboxed frame (`crates/core-api/src/blocks.rs`).
    */
   blockDocument(plugin: string, tag: string, id: string): string
   /** The plugin's user state as the product state holds it, read reactively; undefined while there is none. */

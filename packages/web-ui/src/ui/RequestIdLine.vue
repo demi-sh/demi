@@ -7,7 +7,7 @@ import { t } from './locales/text'
  * req_…* and a Copy button.
  *
  * The user can paste the ID into a message to whoever runs the server, who finds the
- * request's lines in the server log by it (`crates/backend-http/src/request_id.rs`).
+ * request's lines in the server log by it (`crates/core-api/src/request_id.rs`).
  * Its color is the place's secondary text, which the caller gives.
  */
 defineProps<{

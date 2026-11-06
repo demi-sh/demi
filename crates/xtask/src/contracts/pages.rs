@@ -23,7 +23,7 @@ pub const SCOPE: &str = "@demicodes/";
 /// with its page, in registration order.
 pub fn pages() -> Vec<(Manifest, Page)> {
     // The manifests alone are read: no plugin keeps data in the directory.
-    demi_backend::plugins::builtin(&std::env::temp_dir().join("demi-contracts"))
+    demi_core::builtins::plugins(&std::env::temp_dir().join("demi-contracts"))
         .iter()
         .filter_map(|factory| {
             let manifest = factory.manifest();

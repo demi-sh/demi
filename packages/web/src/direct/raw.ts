@@ -130,7 +130,7 @@ export function contentHeaders(path: string, download: boolean): Record<string, 
  * The headers every raw answer carries: private to the signed-in user,
  * revalidated on each use unless the request named the `versioned` bytes,
  * which can only be that version's, and never transformed by a proxy, as the
- * relay's say (`raw_file_headers` in `crates/backend-http/src/files.rs`).
+ * relay's say (`raw_file_headers` in `crates/core-api/src/files.rs`).
  */
 export function rawFileHeaders(versioned: boolean): Record<string, string> {
   return {

@@ -3,7 +3,12 @@
 use std::rc::{Rc, Weak};
 use std::sync::Arc;
 
+use demi_backend_cloud::CloudSide;
 use demi_backend_cloud::user_core::UserCloud;
+use demi_core::extensions::Extensions;
+use demi_core::pool::Opener;
+use demi_core_api::schedules::ScheduleOwners;
+use demi_core_store::store::CoreStore;
 use demi_core_device_access::cloud::CloudDevice;
 use demi_core_store::StorageError;
 use demi_core_store::devices::DeviceRecord;
@@ -12,20 +17,46 @@ use demi_backend_runners::install::install_commands;
 use demi_provider_registry::entry::ProviderEntry;
 use demi_runner_client::DeviceLog;
 use demi_shared_types::ScheduleId;
-use demi_web_api_protocol::auth::UserDto;
 use demi_web_api_protocol::devices::{DeviceDto, InstallCommands};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 use demi_web_api_protocol::push::PushMessage;
 use demi_web_api_protocol::conversations::ConversationShares;
 use demi_web_api_protocol::shares::ConversationShare;
-use tokio_util::task::TaskTracker;
-use futures_util::future::LocalBoxFuture;
+use futures_util::future::{BoxFuture, LocalBoxFuture};
 
 use crate::page_notifications::PageNotifications;
 use crate::services::Services;
 use demi_core::Core;
 use crate::lent_media::LentJobs;
 use demi_core::starter::{Notified, Reach, Starter};
+
+/// What the server gives its pool: each user's store, opened at the user's
+/// first call, and the server's starter and side for each user's core.
+pub struct ServerOpener(pub Arc<Services>);
+
+impl Opener for ServerOpener {
+    fn store<'a>(&'a self, user: &'a UserId) -> BoxFuture<'a, Result<Option<CoreStore>, StorageError>> {
+        Box::pin(async move { self.0.stores.of(user).await.map(Some) })
+    }
+
+    fn starter(&self, user: &UserId, core: Weak<Core>) -> Rc<dyn Starter> {
+        Rc::new(ServerStarter::new(user.clone(), self.0.clone(), core))
+    }
+
+    fn extensions(&self, _: &UserId) -> Extensions {
+        Extensions::default()
+            .with(ServerSide::new(self.0.clone()))
+            .with(CloudSide::new(self.0.control.clone(), self.0.cloud.clone()))
+    }
+}
+
+/// A schedule's URL reaches the core the server recorded as its owner when
+/// the schedule took a URL (`ServerStarter::schedule_called_at_url`).
+impl ScheduleOwners for Services {
+    fn owner<'a>(&'a self, id: &'a ScheduleId) -> BoxFuture<'a, Result<Option<UserId>, StorageError>> {
+        Box::pin(self.control.schedule_owner(id.clone()))
+    }
+}
 
 /// What the server gives one user's core.
 pub struct ServerStarter {
@@ -49,8 +80,6 @@ pub struct ServerSide {
     pub(crate) pages: PageNotifications,
     /// The media jobs of the user's entries lent to other servers.
     pub(crate) lent_jobs: LentJobs,
-    /// The tasks of the user's pages' synchronization channels.
-    pub(crate) sync_channels: TaskTracker,
 }
 
 impl ServerSide {
@@ -59,7 +88,6 @@ impl ServerSide {
             services,
             pages: PageNotifications::default(),
             lent_jobs: LentJobs::default(),
-            sync_channels: TaskTracker::new(),
         }
     }
 
@@ -109,6 +137,10 @@ impl Starter for ServerStarter {
     fn install_commands(&self) -> Option<InstallCommands> {
         let backend = self.services.public_url.get()?;
         Some(install_commands(backend.url()))
+    }
+
+    fn public_url(&self) -> Option<url::Url> {
+        Some(self.services.public_url.get()?.url().clone())
     }
 
     fn device_log(&self, device: &DeviceId) -> Option<Rc<dyn DeviceLog>> {
@@ -177,14 +209,9 @@ impl Starter for ServerStarter {
     }
 
     fn closing(&self) -> LocalBoxFuture<'_, ()> {
-        Box::pin(async move {
-            let Some(core) = self.core.upgrade() else {
-                return;
-            };
-            let channels = &ServerSide::of(&core).sync_channels;
-            channels.close();
-            channels.wait().await;
-        })
+        // The server keeps no work of its own on a core that outlives the
+        // core's close.
+        Box::pin(std::future::ready(()))
     }
 
     fn reach(&self) -> LocalBoxFuture<'_, Result<Reach, StorageError>> {
@@ -196,17 +223,6 @@ impl Starter for ServerStarter {
                     .iter()
                     .filter(|subscription| subscription.events.agent_notifies)
                     .count(),
-            })
-        })
-    }
-
-    fn principal(&self) -> LocalBoxFuture<'_, Result<UserDto, StorageError>> {
-        Box::pin(async move {
-            let account = self.services.control.account(self.user.clone()).await?;
-            account.map(|account| account.user).ok_or_else(|| StorageError::Corrupt {
-                table: "users",
-                column: "id",
-                reason: format!("the account of the core's user {} is gone", self.user),
             })
         })
     }

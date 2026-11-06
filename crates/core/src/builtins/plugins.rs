@@ -1,0 +1,36 @@
+//! The built-in plugins, one per plugin crate, in their order of registration.
+//!
+//! This is the list the server and a program's process register. A plugin
+//! leaves a release by leaving this list.
+
+use std::path::Path;
+
+use demi_plugin_audio::Audio;
+use demi_plugin_browser::Browser;
+use demi_plugin_changes::Changes;
+use demi_plugin_file::File;
+use demi_plugin_file_browser::FileBrowser;
+use demi_plugin_image::Image;
+use demi_plugin_video::Video;
+use demi_plugin_interface::PluginFactory;
+use demi_plugin_mobile::Mobile;
+use demi_plugin_skills::Skills;
+use demi_plugin_web::Web;
+use demi_plugin_widget::Widgets;
+
+/// The built-in plugins, whose data is under `data_dir`.
+pub fn plugins(data_dir: &Path) -> Vec<Box<dyn PluginFactory>> {
+    vec![
+        Box::new(File::new()),
+        Box::new(Browser::new()),
+        Box::new(Mobile::new()),
+        Box::new(Skills::new(data_dir.join("tmp/skill-fetches"))),
+        Box::new(Web::new()),
+        Box::new(Image::new()),
+        Box::new(Video::new()),
+        Box::new(Audio::new()),
+        Box::new(Widgets::new()),
+        Box::new(Changes::new()),
+        Box::new(FileBrowser::new()),
+    ]
+}

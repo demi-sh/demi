@@ -2,7 +2,7 @@
 /**
  * A widget's page, filling the box it is in: a frame sandboxed with
  * `HTML_SANDBOX`, an opaque origin, which loads the widget's document as a
- * page of its own, served by the backend (`crates/backend-http/src/blocks.rs`),
+ * page of its own, served by the backend (`crates/core-api/src/blocks.rs`),
  * so the policy of the page around it never reaches its scripts. The reply's
  * block shows a widget through it, as does a widget's share.
  *

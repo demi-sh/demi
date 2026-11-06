@@ -22,16 +22,23 @@ impl dyn DeviceCore + '_ {
     /// `to` with its directory as typed, as a new conversation starts there.
     /// The Cloud's directory of a conversation, a Fork's source's or a Cloud
     /// project's is one the backend made and names as it is, and a project's
-    /// is its own.
+    /// is its own. The Cloud is a destination only where whoever runs the
+    /// core runs one, as a device is only while it exists.
     pub async fn resolved_destination(
         &self,
         to: ConversationTarget,
     ) -> Result<ConversationTarget, ChangeRefusal> {
-        let ConversationTarget::Device { device_id, path } = to else {
-            return Ok(to);
-        };
-        let path = self.device_directory(&device_id, &path).await?;
-        Ok(ConversationTarget::Device { device_id, path })
+        match to {
+            ConversationTarget::Device { device_id, path } => {
+                let path = self.device_directory(&device_id, &path).await?;
+                Ok(ConversationTarget::Device { device_id, path })
+            }
+            ConversationTarget::Cloud { .. } => {
+                crate::cloud::cloud_of(self)?;
+                Ok(to)
+            }
+            ConversationTarget::Project { .. } => Ok(to),
+        }
     }
 
     /// `path` on the user's paired device `device_id` as typed.
@@ -79,7 +86,10 @@ impl dyn DeviceCore + '_ {
                 let path = typed_directory(&device, &path)?;
                 Ok(ConversationTarget::Cloud { path: Some(path) })
             }
-            ConversationTarget::Cloud { path: None } => Ok(ConversationTarget::Cloud { path: None }),
+            ConversationTarget::Cloud { path: None } => {
+                crate::cloud::cloud_of(self)?;
+                Ok(ConversationTarget::Cloud { path: None })
+            }
         }
     }
 }

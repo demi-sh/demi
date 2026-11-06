@@ -246,7 +246,7 @@ function detailOf(error: unknown): string {
  * A refusal whose `code` is one of `corrections`' is one the user corrects there,
  * such as a wrong current password or an address already taken. It names no
  * request, since nothing about it needs tracing
- * (`crates/backend-http/src/request_id.rs`), and says the words `corrections`
+ * (`crates/core-api/src/request_id.rs`), and says the words `corrections`
  * gives its code, or its own when that is null.
  *
  * Any other failure names its request.

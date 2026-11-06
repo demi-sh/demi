@@ -429,7 +429,7 @@ export function fileReads(
     ...(textEndpoint
       ? {
           // The browser asks again on each read and keeps the text while the
-          // file has the version it holds (`crates/backend-http/src/revalidate.rs`).
+          // file has the version it holds (`crates/core-api/src/revalidate.rs`).
           async readText(path: string): ReturnType<NonNullable<FileReads['readText']>> {
             try {
               const response = await apiRequest(`${textEndpoint}?${new URLSearchParams({ path })}`)
