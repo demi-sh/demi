@@ -214,7 +214,7 @@ pub fn device_group(core: Weak<dyn DeviceCore>) -> GroupBuilder {
                 .input::<ShellArgs>()
                 .positionals(["script"])
                 .brings_device("device")
-                .failure_output("writes the reason to stderr and exits non-zero (127 when the device cannot run bash)")
+                .failure("writes the reason to stderr and exits non-zero (127 when the device cannot run bash)")
                 .bind(TypedRpc::new(verb(core.clone(), shell))),
         )
         .leaf(
