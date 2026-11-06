@@ -6,14 +6,14 @@
 //! one message and one answer.
 //!
 //! A plugin linked into the backend passes the messages as Rust values. A
-//! plugin process would carry the same messages over a wire, and every plugin's
-//! tests run through the JSON loopback in [`testing`] to keep the two the same.
+//! program's plugin takes the same messages as JSON over a lane of each core's
+//! connection, each numbered by its request ([`wire`]).
 //!
 //! ```text
 //!                  Request, Reply, port messages (this crate's types)
 //! plugin host  <------------------------------------------------>  plugin
-//!              in process: a call of the trait, messages as Rust values
-//!              as a process (later): the same messages, encoded, over its stdio
+//!              linked in: a call of the trait, messages as Rust values
+//!              a program's: the same messages as JSON, on a lane
 //! ```
 //!
 //! # Messages only
@@ -22,8 +22,8 @@
 //! object: no device handle, no callback into the backend, no reference to a
 //! session or a core. That is:
 //!
-//! - what keeps a plugin written with a TypeScript SDK possible without
-//!   embedding the Rust runtime (no such SDK is built);
+//! - what lets a program's plugin, in any language, take the same messages
+//!   over a lane;
 //! - why a plugin's values change by versioned compare-and-set rather than by a
 //!   callback inside a transaction;
 //! - why a plugin names the directories a device must hold instead of writing to
@@ -35,7 +35,7 @@
 //!
 //! - Every message type is serializable and has a JSON Schema (serde and
 //!   schemars), so a type that could not cross a wire does not compile into the
-//!   contract.
+//!   contract, and a program's side of it is generated (`bun run contracts`).
 //! - A plugin crate depends on this crate and on contract crates, never on a
 //!   backend crate, so it cannot reach past the port.
 //! - A service joins the port when a plugin needs it, as devices did, and never
@@ -52,6 +52,7 @@ mod port;
 mod providers;
 mod request;
 mod web;
+pub mod wire;
 
 pub use manifest::{
     Commands, Constant, DEMI_ROOT, DEMI_SUMMARY, EXECUTION_SOURCE, Feature, Manifest, Method, OAuth, Page,
@@ -64,7 +65,7 @@ pub use web::{
 pub use plugin::{CommandPlugin, NoRequests, Plugin, PluginFactory, PluginFile, PortHandled};
 pub use port::{
     CallKind, DirectoryFile, DirectoryPath, DeviceDirectory, PluginPort, PluginTransport, PortAnswer, PortFailure, PortMessage, PortRefusal,
-    WorkspaceName, Workspaces, DeviceName, GitEntry, GitFile, GitRefusal, GitTree,
+    WorkspaceName, UserWorkspaces, DeviceName, GitEntry, GitFile, GitRefusal, GitTree,
     StoredReport, StoredValue,
 };
 pub use providers::{
@@ -77,3 +78,5 @@ pub use request::{PluginError, Reply, Request};
 /// What a project search names to watch (`Reply::Project`).
 pub use demi_web_api_protocol::files::SubscriptionKind;
 pub use demi_web_api_protocol::workflows::WatchSubject;
+/// Whose core an instance serves (`PluginFactory::instance`).
+pub use demi_web_api_protocol::ids::UserId;
