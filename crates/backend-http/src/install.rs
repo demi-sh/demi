@@ -15,18 +15,17 @@ use std::sync::atomic::AtomicBool;
 use axum::body::Body;
 use axum::extract::{Path, State};
 use axum::http::header::{
-    ACCEPT_RANGES, CACHE_CONTROL, CONTENT_ENCODING, CONTENT_LENGTH, CONTENT_RANGE, CONTENT_TYPE, HOST,
+    CACHE_CONTROL, CONTENT_ENCODING, CONTENT_LENGTH, CONTENT_TYPE, HOST,
 };
 use axum::http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
-use std::ops::Bound;
 
 use axum_extra::TypedHeader;
 use axum_extra::headers::Range;
 use bytes::Bytes;
 use demi_core_devices::devices::Download;
 
-use super::runners::TokenDevice;
+use demi_core_api::runners::{RunnerDevice, beyond, download_from, range_start};
 use demi_backend_runners::native::StoredBytes;
 use futures_util::stream::{BoxStream, StreamExt as _, TryStreamExt as _};
 use demi_backend_runners::install::{
@@ -231,7 +230,7 @@ pub(super) async fn artifact(
 
 /// `stored`, whose bytes count as `device`'s download as they are served:
 /// its core hears of each, until the download ends (`crates/runner/src/update.rs`). Without a device, nothing counts.
-async fn counted(state: &AppState, device: Option<TokenDevice>, stored: Stored) -> Stored {
+async fn counted(state: &AppState, device: Option<RunnerDevice>, stored: Stored) -> Stored {
     let Some(device) = device else {
         return stored;
     };
@@ -286,24 +285,6 @@ pub(super) async fn native_artifact(
     }
 }
 
-/// Where a download from a byte on starts, as one that broke off resumes; a
-/// range with an end, or several, is answered with the whole, as HTTP
-/// allows.
-pub(super) fn range_start(range: &Range) -> u64 {
-    match range.satisfiable_ranges(u64::MAX).collect::<Vec<_>>()[..] {
-        [(Bound::Included(from), Bound::Unbounded)] => from,
-        _ => 0,
-    }
-}
-
-/// The answer to a range that starts past the stored `size` bytes.
-fn beyond(size: u64) -> Response {
-    (
-        StatusCode::RANGE_NOT_SATISFIABLE,
-        [(CONTENT_RANGE, format!("bytes */{size}"))],
-    )
-        .into_response()
-}
 
 /// What a stored artifact's download stands for.
 #[derive(Clone, Copy)]
@@ -353,20 +334,7 @@ fn stored_download(
             );
         }
     }
-    headers.insert(ACCEPT_RANGES, HeaderValue::from_static("bytes"));
-    let range = stored.range.clone();
-    let size = stored.meta.size;
-    headers.insert(CONTENT_LENGTH, HeaderValue::from(range.end - range.start));
-    let status = if range.start > 0 {
-        let whole = format!("bytes {}-{}/{size}", range.start, range.end.saturating_sub(1));
-        headers.insert(
-            CONTENT_RANGE,
-            HeaderValue::from_str(&whole).map_err(|error| ApiError::internal_message(error.to_string()))?,
-        );
-        StatusCode::PARTIAL_CONTENT
-    } else {
-        StatusCode::OK
-    };
+    let status = download_from(&mut headers, stored.range.start, stored.meta.size)?;
     let coding = match form {
         Form::Coded => stored
             .attributes

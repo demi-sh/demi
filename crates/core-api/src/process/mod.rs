@@ -19,40 +19,39 @@
 //! closes, as the server's stop closes its users' cores.
 
 mod cores;
+mod devices;
+mod packages;
 mod program;
+mod stream;
 
 use std::net::SocketAddr;
 use std::num::NonZeroUsize;
 use std::path::PathBuf;
-use std::rc::Rc;
 use std::sync::Arc;
 
 use axum::extract::{OriginalUri, Path, Request, State};
 use axum::http::{StatusCode, Uri};
 use axum::middleware;
 use axum::response::{IntoResponse, Response};
-use axum::routing::{any, delete, get, post};
+use axum::routing::{any, connect, delete, get, post};
 use axum::{Extension, Json, Router};
-use demi_command_protocol::{ArtifactLocation, PackageArtifact, PackageDescriptor};
 use demi_core::builtins::{self, RelayFamily};
 use demi_core::conversation::claude_cli::MachineSlot;
 use demi_core::pool::{ShardPlacement, ShardPool};
 use demi_core::services::{CoreServices, CoreServicesError, CoreSettings};
 use demi_core::tuning::{ConversationTuning, LifecycleTuning, MediaTuning, RunnerTuning};
 use demi_core_blobs::blobs::BlobStores;
-use demi_core_devices::packages::Packages;
+use demi_core_devices::packages::ReleaseError;
 use demi_core_devices::public_url::PublicUrl;
 use demi_core_providers::vault::logins::LoginTiming;
 use demi_provider_claude_code::releases::DEFAULT_RELEASES_URL;
 use demi_provider_common::media_catalog;
 use demi_provider_common::models_dev::ModelsDevClient;
-use demi_runner_client::{ArtifactResolver, CommandCatalog};
 use demi_shared_types::{Clock, SystemClock};
 use demi_web_api_protocol::connection::CONNECT_ROUTE;
 use demi_web_api_protocol::cores::{OpenCore, OpenedCore};
 use demi_web_api_protocol::ids::UserId;
 use demi_web_api_protocol::settings::InstanceMode;
-use futures_util::future::LocalBoxFuture;
 use hyper_util::rt::{TokioExecutor, TokioIo};
 use hyper_util::service::TowerToHyperService;
 use tokio::io::{AsyncRead, AsyncWrite};
@@ -62,6 +61,7 @@ use tower_http::trace::TraceLayer;
 use url::Url;
 
 use self::cores::{OpenCores, ProcessOpener, not_open};
+use self::packages::{ReleaseFiles, ServedPackages};
 use self::program::ProgramCaller;
 use crate::api::Api;
 use crate::body::JsonBody;
@@ -76,6 +76,8 @@ pub enum ProcessError {
     Services(#[from] CoreServicesError),
     #[error("the cores' threads did not start: {0}")]
     Threads(std::io::Error),
+    #[error(transparent)]
+    Release(#[from] ReleaseError),
 }
 
 /// What the routes of the process reach.
@@ -90,11 +92,13 @@ struct ProcessState {
 /// Runs the process over `io`, the program's connection, until it ends,
 /// then closes every core. `public_url` is where the program's server
 /// forwards the process's routes; without one, the cores offer neither a
-/// plugin's OAuth nor a schedule's URL.
-pub async fn run<IO>(io: IO, public_url: Option<Url>) -> Result<(), ProcessError>
+/// plugin's OAuth nor a schedule's URL. `release` is the release whose
+/// command packages the cores' runners run; without one, they run none.
+pub async fn run<IO>(io: IO, public_url: Option<Url>, release: Option<PathBuf>) -> Result<(), ProcessError>
 where
     IO: AsyncRead + AsyncWrite + Send + Unpin + 'static,
 {
+    let release = Arc::new(ReleaseFiles::read(release).await?);
     let cores = Arc::new(OpenCores::new(public_url.clone()));
     let public = PublicUrl::default();
     if let Some(url) = &public_url {
@@ -111,7 +115,7 @@ where
         // The process keeps no directory of its own, and several may run on
         // one machine: each takes a directory of its own for its plugins.
         plugins: builtins::plugins(&std::env::temp_dir().join(format!("demi-core-{}", std::process::id()))),
-        packages: Arc::new(NoPackages),
+        packages: Arc::new(ServedPackages(release.clone())),
         models_dev_url: ModelsDevClient::DEFAULT_URL
             .parse()
             .expect("the models.dev address parses"),
@@ -161,7 +165,7 @@ where
         schedule_owners: cores.clone(),
     };
     let closing = CancellationToken::new();
-    let app = routes(api.clone(), cores.clone(), closing.clone());
+    let app = routes(api.clone(), cores.clone(), release, closing.clone());
     tracing::info!(event = "process.serving", "the process serves its program");
     let served = hyper::server::conn::http2::Builder::new(TokioExecutor::new())
         .enable_connect_protocol()
@@ -179,7 +183,7 @@ where
 }
 
 /// The process's routes.
-fn routes(api: Api, cores: Arc<OpenCores>, closing: CancellationToken) -> Router {
+fn routes(api: Api, cores: Arc<OpenCores>, release: Arc<ReleaseFiles>, closing: CancellationToken) -> Router {
     let core_routes = crate::routes()
         .route("/state", get(crate::state::read))
         // The reads' caching (`revalidate.rs`): the routes' answers only.
@@ -189,8 +193,13 @@ fn routes(api: Api, cores: Arc<OpenCores>, closing: CancellationToken) -> Router
             any(crate::connection::connect).layer(Extension(Closing(closing))),
         )
         .merge(crate::public_routes())
+        .route("/devices", post(devices::create))
+        .route("/devices/{id}/runner", connect(devices::channel))
         .fallback(no_route)
-        .with_state(api.clone());
+        .with_state(api.clone())
+        .layer(Extension(release))
+        // Each stream is its request's connection.
+        .layer(middleware::from_fn(stream::stream_peer));
     let state = ProcessState {
         api,
         cores,
@@ -265,41 +274,11 @@ async fn hook(State(state): State<ProcessState>, id: Path<String>, request: Requ
     crate::schedules::hook(State(state.api), id, request).await
 }
 
-async fn no_route(request: Request) -> Response {
+pub(super) async fn no_route(request: Request) -> Response {
     // The core's routes see their own path; the program called the whole.
     let path = match request.extensions().get::<OriginalUri>() {
         Some(OriginalUri(uri)) => uri.path().to_owned(),
         None => request.uri().path().to_owned(),
     };
     ApiError::no_route(request.method(), &path).into_response()
-}
-
-/// The command packages of the process's cores: none until the process
-/// serves its release's packages to the runners its program connects.
-struct NoPackages;
-
-impl Packages for NoPackages {
-    fn package(&self, _: &str) -> Option<&PackageDescriptor> {
-        None
-    }
-
-    fn resolver(&self) -> Rc<dyn ArtifactResolver> {
-        Rc::new(NoPackages)
-    }
-
-    fn catalog(&self) -> CommandCatalog {
-        CommandCatalog::new(Vec::new(), self.resolver()).expect("an empty catalog is valid")
-    }
-}
-
-impl ArtifactResolver for NoPackages {
-    fn resolve(
-        &self,
-        _: &PackageArtifact,
-        target: &str,
-        _: CancellationToken,
-    ) -> LocalBoxFuture<'static, Result<ArtifactLocation, String>> {
-        let message = format!("no command package is served for {target}");
-        Box::pin(async move { Err(message) })
-    }
 }
