@@ -664,7 +664,7 @@ impl<H: DeviceResolver> Connection<H> {
                 let result = session.abort().await;
                 // Every command of the conversation whose start waits for
                 // its device ends and never runs, whichever turn left it,
-                // though started commands run on (`crates/backend-device-access/src/access.rs`).
+                // though started commands run on (`crates/core-device-access/src/access.rs`).
                 tree.stop_waiting().await;
                 self.send(ServerFrame::AbortResult { result });
                 return true;

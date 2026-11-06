@@ -1,5 +1,5 @@
 //! A conversation's Workflow menu
-//! (`crates/backend-user-shard/src/conversation/workflows.rs`):
+//! (`crates/core/src/conversation/workflows.rs`):
 //!
 //! - The conversation's metadata carries the workflows of its working
 //!   directory as the backend last read them, with when, under their
@@ -69,7 +69,7 @@ pub struct ConversationWorkflowList {
     pub list: KeptWorkflowList,
     /// The workflows of the linked worktree the conversation works in, while
     /// they differ from the project's; null otherwise
-    /// (`crates/backend-database/src/selection.rs` § Worktrees).
+    /// (`crates/core-store/src/selection.rs` § Worktrees).
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<KeptWorkflowList>")]
     #[garde(skip)]

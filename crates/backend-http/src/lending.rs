@@ -19,7 +19,7 @@ use axum_extra::headers::Authorization;
 use axum_extra::headers::authorization::Bearer;
 use demi_backend_user_shard::provider_sharing::Borrowing;
 use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::lent_media::Unlent;
+use demi_backend_user_shard::lent_media::Unlent;
 use demi_provider_common::media::channel::Call;
 use demi_provider_relay::wire::media::{Frames, KEEP_ALIVE, MAKES_NONE, frame, keep_alive};
 use demi_provider_relay::wire::{
@@ -34,6 +34,8 @@ use super::body::read_within;
 use super::error::ApiError;
 use super::gate::AuthUser;
 use super::providers::refused;
+use demi_backend_user_shard::lent_media::LentMedia;
+use demi_backend_user_shard::provider_sharing::ProviderSharing;
 
 /// `GET /providers/:id/share-keys`.
 pub(super) async fn list(
@@ -119,7 +121,7 @@ pub(super) async fn provider(
     let lent = state
         .shards
         .of(&user)
-        .call(move |shard, _| async move { shard.lent(borrowing).await })
+        .call(move |core, _| async move { core.lent(borrowing).await })
         .await;
     match lent {
         Ok(Ok(lent)) => Json(lent).into_response(),
@@ -177,7 +179,7 @@ pub(super) async fn media(
     let taken = state
         .shards
         .of(&user)
-        .call(move |shard, _| async move { shard.lent_media(borrowing, kind, call).await })
+        .call(move |core, _| async move { core.lent_media(borrowing, kind, call).await })
         .await;
     let mut reply = match taken {
         Ok(Ok(reply)) => reply,
@@ -211,7 +213,7 @@ pub(super) async fn media(
 }
 
 /// `WS /api/relay/socket`: one borrowed session, which the key's maker's
-/// shard serves until the socket closes or the key is revoked. A frame that
+/// core serves until the socket closes or the key is revoked. A frame that
 /// is no message of the wire closes it.
 pub(super) async fn socket(
     State(state): State<AppState>,
@@ -243,10 +245,10 @@ pub(super) async fn socket(
                 future::ready(encoded(&message).map(Message::Binary).ok_or_else(|| axum::Error::new("a relay message does not cross")))
             });
             let user = borrowing.key.created_by.clone();
-            // A closing shard takes no session: the socket drops.
+            // A closing core takes no session: the socket drops.
             let _ = shards
                 .of(&user)
-                .adopt(move |shard| shard.lend(borrowing, Box::pin(incoming), Box::pin(outgoing)))
+                .adopt(move |core| core.lend(borrowing, Box::pin(incoming), Box::pin(outgoing)))
                 .await;
         })
 }

@@ -93,7 +93,7 @@ pub trait DeviceAccess {
     ) -> LocalBoxFuture<'a, Option<Box<dyn std::any::Any>>>;
 }
 
-/// How a job whose start may wait for its device (`crates/backend-device-access/src/access.rs`) shows it: waiting for the device it names, and no
+/// How a job whose start may wait for its device (`crates/core-device-access/src/access.rs`) shows it: waiting for the device it names, and no
 /// longer waiting with `None`, which the wait awaits before it goes on.
 #[derive(Clone, Copy)]
 pub struct JobWaiting<'a> {
@@ -108,7 +108,7 @@ pub trait CommandKeeper {
     /// Records that `command` runs as the job `job` on the environment's device,
     /// before the job starts, so that a backend that starts again takes it up,
     /// its reports name it by its title, and an interrupted call's command
-    /// keeps whether it is a service (`crates/backend-database/src/command_outputs.rs`). A
+    /// keeps whether it is a service (`crates/core-store/src/command_outputs.rs`). A
     /// record of it as not yet sent becomes one of it as sent.
     ///
     /// A failure to record it is the keeper's to log: the command runs all the
@@ -118,7 +118,7 @@ pub trait CommandKeeper {
     /// Records that `command` waits to start as the job `job` until its
     /// device, a paired device whose runner is away, is back, with what it
     /// will send then, so a backend that starts again keeps it waiting and
-    /// sends it once the runner connects (`crates/backend-device-access/src/access.rs`). A failure to record it is the keeper's to log.
+    /// sends it once the runner connects (`crates/core-device-access/src/access.rs`). A failure to record it is the keeper's to log.
     fn waiting<'a>(
         &'a self,
         command: &'a CommandId,
@@ -153,7 +153,7 @@ pub trait CommandKeeper {
     /// Records that the model has seen `command`'s output as far as `seen`,
     /// in its record as running, so that a backend that starts again shows
     /// only what it has not seen
-    /// (`crates/backend-database/src/command_outputs.rs`). A failure to
+    /// (`crates/core-store/src/command_outputs.rs`). A failure to
     /// record it is the keeper's to log.
     fn looked<'a>(&'a self, command: &'a CommandId, seen: Seen) -> LocalBoxFuture<'a, ()>;
 
@@ -405,7 +405,7 @@ impl RemoteShellEnvironment {
     /// seen. Its runner's next hello says whether it went on, ended or was
     /// lost. One whose start was never sent waits for its device again and is
     /// sent once its runner connects
-    /// (`crates/backend-device-access/src/access.rs`). A command the environment
+    /// (`crates/core-device-access/src/access.rs`). A command the environment
     /// holds already stays as it is.
     pub fn adopt(&self, taken: TakenUp) {
         let TakenUp {

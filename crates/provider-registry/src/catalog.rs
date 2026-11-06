@@ -131,7 +131,7 @@ impl ProviderRegistry {
             EntryCredential::ApiKey(config) => {
                 // The model menu's are the text models; an image model of
                 // the list is `demi image`'s
-                // (`crates/backend-user-shard/src/provider_settings.rs`).
+                // (`crates/core/src/provider_settings.rs`).
                 if let Some(models) = &config.models {
                     let text = models.0.iter().filter(|model| model.kind == ModelKind::Text);
                     return unfetched(text.map(configured_model).collect(), Vec::new());
@@ -252,7 +252,7 @@ impl ProviderRegistry {
     }
 
     /// The prices `model` of the entry is priced at as its calls' rows are
-    /// written (`crates/backend-database/src/usage.rs`).
+    /// written (`crates/core-store/src/usage.rs`).
     ///
     /// - The entry's catalog gives them.
     /// - For a subscription, whose catalog has none, they are the same model's
@@ -410,7 +410,7 @@ impl ProviderRegistry {
 /// The digest a catalog record is kept under: the SHA-256 of the RFC 8785
 /// form of the entry's family, configuration and active account, so a
 /// changed entry starts from an empty cache
-/// (`crates/backend-database/src/columns.rs`).
+/// (`crates/core-store/src/columns.rs`).
 fn catalog_key(entry: &ProviderEntry) -> String {
     let config = match &entry.credential {
         EntryCredential::ApiKey(config) => serde_json::to_value(config),

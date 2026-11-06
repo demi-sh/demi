@@ -56,7 +56,7 @@ export interface TerminalRecord {
   stopping?: boolean
   /**
    * While it runs: its start waits for its device, the paired device this
-   * names, to come back (`crates/backend-device-access/src/access.rs`), as
+   * names, to come back (`crates/core-device-access/src/access.rs`), as
    * a live frame said.
    */
   waitingFor?: string

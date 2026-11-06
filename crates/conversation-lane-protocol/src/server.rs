@@ -14,12 +14,12 @@ use serde_with::rust::unwrap_or_skip;
 use crate::{AgentEntry, CacheChart, ClientFrameKind, Followed, TranscriptPatch, Version};
 
 /// What the providers read out of the error blocks a frame carries, by block
-/// id (`crates/backend-user-shard/src/conversation/failure_facts.rs`).
+/// id (`crates/core/src/conversation/failure_facts.rs`).
 /// Attached when the frame is sent, never stored.
 pub type Failures = BTreeMap<BlockId, ProviderFailureFacts>;
 
 /// An attachment of the conversation as a reply shows it
-/// (`crates/backend-device-access/src/attachment_commands.rs`): what its card
+/// (`crates/core-device-access/src/attachment_commands.rs`): what its card
 /// or its picture needs before its bytes. It never changes.
 ///
 /// A frame or a page that carries blocks carries the attachments their texts
@@ -572,7 +572,7 @@ pub enum ShellStatus {
         #[garde(skip)]
         stopping: bool,
         /// The name of the paired device whose runner its start waits for
-        /// (`crates/backend-device-access/src/access.rs`): the pages show
+        /// (`crates/core-device-access/src/access.rs`): the pages show
         /// *Waiting for MacBook Pro*. Present only then.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[garde(skip)]

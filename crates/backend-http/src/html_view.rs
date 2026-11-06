@@ -25,7 +25,7 @@ use axum::http::header::{
 use axum::http::{HeaderMap, HeaderValue, Method, StatusCode};
 use axum::response::{IntoResponse, Response};
 use demi_backend_database::accounts::TokenHash;
-use demi_backend_device_access::transfer::{Download, DownloadPath, DownloadRequest};
+use demi_core_device_access::transfer::{Download, DownloadPath, DownloadRequest};
 use demi_shared_types::{HTML_SANDBOX, html_view_media_type};
 use demi_web_api_protocol::files::{HtmlRequest, HtmlUrl};
 use demi_web_api_protocol::ids::ConversationId;
@@ -128,9 +128,9 @@ pub(super) async fn grant(
     let place = state
         .shards
         .of(&user.id)
-        .call(move |shard, cancel| async move {
-            shard
-                .device_shard()
+        .call(move |core, cancel| async move {
+            core
+                .device_core()
                 .html_place(&asked, path.as_str(), &cancel)
                 .await
         })
@@ -196,9 +196,9 @@ async fn answer(
         let download = state
             .shards
             .of(&session.user.id)
-            .call(move |shard, cancel| async move {
-                shard
-                    .device_shard()
+            .call(move |core, cancel| async move {
+                core
+                    .device_core()
                     .open_download(&conversation, request, &cancel)
                     .await
             })

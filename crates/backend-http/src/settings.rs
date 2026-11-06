@@ -6,11 +6,11 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_accounts::settings;
+use demi_core::settings;
 use demi_backend_cloud::client::MachinesError;
 use demi_backend_cloud::isolation;
 use demi_backend_cloud::network::{self, AllowedError};
-use demi_backend_page_sync::Part;
+use demi_core_sync::Part;
 use demi_web_api_protocol::auth::Role;
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::settings::{
@@ -149,7 +149,7 @@ pub(super) async fn preferences(
     State(services): State<Arc<Services>>,
     AuthUser(user): AuthUser,
 ) -> Result<Json<UserPreferences>, ApiError> {
-    let preferences = services.control.preferences(user.id).await?;
+    let preferences = services.stores.of(&user.id).await?.preferences().await?;
     Ok(Json(UserPreferences { preferences }))
 }
 
@@ -163,9 +163,7 @@ pub(super) async fn patch_preferences(
     let patch =
         settings::check(patch).map_err(|error| ApiError::invalid_body(error.to_string()))?;
     let merge = move |saved| settings::merge(saved, patch);
-    let preferences = services
-        .control
-        .patch_preferences(user.id.clone(), merge)
+    let preferences = services.stores.of(&user.id).await?.patch_preferences(merge)
         .await?;
     services.sync.mark(&user.id, Part::Preferences);
     Ok(Json(UserPreferences { preferences }))

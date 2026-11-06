@@ -49,7 +49,7 @@ pub use download::{
 pub use lock::InstallLock;
 pub use publish::{
     Mode, Permissions, Publication, Staged, publish, publish_bytes, publish_bytes_blocking,
-    publish_directory,
+    publish_directory, sync_directory,
 };
 pub use release::{ReleaseFile, ReleaseRecord, publish_release};
 /// The build version, which every program reports and a server release is

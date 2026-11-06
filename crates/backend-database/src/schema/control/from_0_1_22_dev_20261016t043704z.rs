@@ -4,7 +4,7 @@
 //! First, [`CONTROL_FROM_0_1_22_DEV_20261016T043704Z`]:
 //!
 //! - The usage ledger keeps a row per vendor call
-//!   (`crates/backend-database/src/usage.rs`).
+//!   (`crates/core-store/src/usage.rs`).
 //! - A managed device says which managed machine it is.
 //! - A Claude Code account may hold no secret.
 //!
@@ -31,19 +31,19 @@
 
 use rusqlite::{OptionalExtension, Transaction, params};
 
-use super::super::{Migration, ReadBlob, corrupt_text};
+use super::super::{Migration, ControlSteps, corrupt_text};
 
 pub(super) const MIGRATION: Migration = Migration::Code(control_from_0_1_22_dev_20261016t043704z);
 
-fn control_from_0_1_22_dev_20261016t043704z(transaction: &Transaction<'_>, blobs: &dyn ReadBlob) -> rusqlite::Result<()> {
+fn control_from_0_1_22_dev_20261016t043704z(transaction: &Transaction<'_>, seals: &dyn ControlSteps) -> rusqlite::Result<()> {
     transaction.execute_batch(CONTROL_FROM_0_1_22_DEV_20261016T043704Z)?;
-    control_by_directory(transaction, blobs)
+    control_by_directory(transaction, seals)
 }
 
 /// The usage ledger's step of [`control_from_0_1_22_dev_20261016t043704z`], to the
 /// ledger that keeps a row per vendor call with its agent, turn, purpose,
 /// account, ids, outcome, observed quota and times
-/// (`crates/backend-database/src/usage.rs`).
+/// (`crates/core-store/src/usage.rs`).
 ///
 /// A row written before keeps null for what it lacked; its `created_at`, written
 /// as its response ended, is its `ended_at`. A call's counts are null when the
@@ -122,7 +122,7 @@ CREATE UNIQUE INDEX provider_credentials_identity ON provider_credentials (provi
 
 /// The projects-by-directory step of
 /// [`control_from_0_1_22_dev_20261016t043704z`].
-fn control_by_directory(transaction: &Transaction<'_>, _: &dyn ReadBlob) -> rusqlite::Result<()> {
+fn control_by_directory(transaction: &Transaction<'_>, _: &dyn ControlSteps) -> rusqlite::Result<()> {
     transaction.execute_batch(
         "
 ALTER TABLE devices ADD COLUMN home TEXT;

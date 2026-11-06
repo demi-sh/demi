@@ -165,6 +165,7 @@ The following table shows how each part reaches the new release, and when:
 | A paired device's runner | The runner updates itself when the backend names another runner release (`crates/runner/src/update.rs`) | Its next connection |
 | A paired device's command programs | The backend's catalog names the new packages, and the runner downloads each the first time it needs it (`crates/runner-command-packages/src/cache.rs`) | Each program's next use |
 | Control database | Migrated as the backend starts (`crates/backend-database/src/lib.rs`) | During the upgrade |
+| Each user's core database | Migrated as the user's core store opens, at its first use (`crates/backend-database/src/core_stores.rs`) | On use |
 | Conversation databases | Each migrated when its conversation is next opened | On use |
 | Machine manager state | Migrated as the manager starts, when a release changes its format (`crates/machine-manager/src/main.rs`) | During the upgrade |
 | Object store | Nothing: objects are immutable, and a release never rewrites one or changes what a key means | Never |

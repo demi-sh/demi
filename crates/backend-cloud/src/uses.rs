@@ -47,11 +47,11 @@
 
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
+use demi_core_store::StorageError;
 use demi_web_api_protocol::ids::ConversationId;
 
 use crate::machine::CloudError;
-use crate::{CloudShard, ConversationHold};
+use crate::{CloudCore, ConversationHold};
 
 /// How a conversation uses the Cloud.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,16 +60,13 @@ pub(crate) enum Role {
     Attached,
 }
 
-impl dyn CloudShard {
+impl dyn CloudCore {
     /// Each of the user's conversations that uses the Cloud, with its
     /// strongest role.
     pub(crate) async fn cloud_uses(&self) -> Result<Vec<(ConversationId, Role)>, StorageError> {
-        let control = self.control();
-        let cloud = control
-            .managed_device(self.user().clone())
-            .await?
-            .map(|device| device.id);
-        let conversations = control.cloud_uses(self.user().clone(), cloud).await?;
+        let store = self.store();
+        let cloud = store.managed_device().await?.map(|device| device.id);
+        let conversations = store.cloud_uses(cloud).await?;
         Ok(conversations
             .into_iter()
             .filter_map(|conversation| {

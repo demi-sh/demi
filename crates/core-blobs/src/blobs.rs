@@ -1,0 +1,462 @@
+//! Attachment and transcript media: each user's bytes under `blobs/<user>/`,
+//! named by their SHA-256 in lowercase hexadecimal.
+//!
+//! A name identifies bytes only within its user's namespace, so knowing another
+//! user's hash reaches nothing of theirs.
+//!
+//! A collection of the namespace lists it and deletes the blobs nothing names
+//! (`crates/core-store/src/deletions.rs`). Every put of a blob the
+//! namespace holds already is remembered for a day, since it writes nothing
+//! that would show its age.
+//!
+//! A content a device holds is read into the namespace once
+//! ([`UserBlobs::fetch_once`]): a read of the same content that comes while one
+//! is under way waits for it, as Docker's transfer manager joins a transfer
+//! already running for the same layer, and the day of grace keeps it for the
+//! next read.
+//!
+//! A blob is published before any row or frame that names it:
+//!
+//! - An upload, before a message can name it.
+//! - A fitted image, before its message reaches the session.
+//! - A tool's medium, before its result enters the transcript.
+//! - An edit copy, before the block that lists it.
+//! - A command's output, before its record.
+//!
+//! No transaction spans SQLite and the object store, so a database failure can
+//! leave an unreferenced blob, which the collection removes later. It never
+//! leaves a committed row that names unpublished bytes.
+
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex, PoisonError};
+
+use bytes::Bytes;
+use demi_agent_store::StoreError;
+use demi_agent_store::media::BlobStore;
+use demi_shared_types::{B64Bytes, BlobRef, Clock, Timestamp};
+use demi_web_api_protocol::ids::UserId;
+use futures_util::StreamExt as _;
+use futures_util::future::LocalBoxFuture;
+use object_store::path::Path;
+use object_store::{GetOptions, ObjectStore, ObjectStoreExt as _, PutMode, PutOptions, PutPayload};
+
+use crate::ObjectError;
+
+/// The most bytes of a blob read for what its opening tells.
+///
+/// The media type its bytes show and a text file's snippet both come from a
+/// file's first bytes, and a blob may be far larger than they are.
+pub const OPENING_BYTES: u64 = 64 * 1024;
+
+/// A blob's first [`OPENING_BYTES`], or all of a smaller one, and its size.
+#[derive(Debug, Clone)]
+pub struct BlobOpening {
+    pub bytes: Bytes,
+    pub size: u64,
+}
+
+/// A blob of a namespace, as its listing finds it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StoredBlob {
+    pub blob: BlobRef,
+    /// When its object was written. A put of a blob the namespace holds
+    /// writes nothing, so this is when its bytes were first stored.
+    pub written: Timestamp,
+}
+
+/// How long a blob stays whatever names it, in milliseconds: a day after its
+/// object was written or it was put again
+/// (`crates/core-store/src/deletions.rs`). A blob is stored before the
+/// row that names it, and the day covers the wait.
+pub const GRACE_MS: i64 = 24 * 60 * 60 * 1000;
+
+/// Every user's blob namespace, with the puts of blobs that existed already
+/// and the contents being read in.
+#[derive(Clone)]
+pub struct BlobStores {
+    objects: Arc<dyn ObjectStore>,
+    again: Arc<PutAgain>,
+    fetching: Arc<Mutex<HashMap<UserId, Arc<Fetching>>>>,
+}
+
+/// A user's contents being read into the namespace, each with how its read
+/// ended once it has: none while it goes on, or why it failed.
+type Fetching = Mutex<HashMap<BlobRef, tokio::sync::watch::Receiver<Option<Result<(), String>>>>>;
+
+/// Why a content was not read into the namespace.
+#[derive(Debug, thiserror::Error)]
+pub enum FetchError<E> {
+    #[error(transparent)]
+    Store(#[from] ObjectError),
+    /// The caller's own read failed.
+    #[error("{0}")]
+    Read(E),
+    /// The read the caller waited for failed, for this reason.
+    #[error("{0}")]
+    Waited(String),
+    /// The bytes read are not the content's: the file changed since it was
+    /// hashed.
+    #[error("the file changed while it was read")]
+    Changed,
+}
+
+impl BlobStores {
+    /// The bytes each user's namespace holds, by the user's id: one listing of
+    /// every namespace, which on S3 is one request per 1,000 objects.
+    pub async fn bytes_by_user(&self) -> Result<HashMap<String, u64>, ObjectError> {
+        let mut listing = self.objects.list(Some(&Path::from("blobs")));
+        let mut bytes: HashMap<String, u64> = HashMap::new();
+        while let Some(object) = listing.next().await {
+            let object = object?;
+            let Some(user) = object.location.parts().nth(1) else {
+                continue;
+            };
+            *bytes.entry(user.as_ref().to_owned()).or_default() += object.size;
+        }
+        Ok(bytes)
+    }
+
+    /// The namespaces in `objects`, whose puts are timed by `clock`.
+    pub fn new(objects: Arc<dyn ObjectStore>, clock: Arc<dyn Clock>) -> Self {
+        Self {
+            objects,
+            again: Arc::new(PutAgain {
+                clock,
+                users: Mutex::new(HashMap::new()),
+            }),
+            fetching: Arc::default(),
+        }
+    }
+
+    /// `user`'s namespace: the signed-in user's for uploads and downloads,
+    /// the conversation owner's for transcript media.
+    pub fn for_user(&self, user: &UserId) -> UserBlobs {
+        UserBlobs {
+            objects: self.objects.clone(),
+            namespace: Path::from_iter(["blobs", user.as_str()]),
+            clock: self.again.clock.clone(),
+            puts: self.again.of(user),
+            fetching: self
+                .fetching
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .entry(user.clone())
+                .or_default()
+                .clone(),
+        }
+    }
+}
+
+/// Each user's puts of blobs that existed already, behind one lock per user.
+/// It lives with the process: a restart forgets it, and with it only
+/// references the stopped process had not written and never will.
+struct PutAgain {
+    clock: Arc<dyn Clock>,
+    /// A `std` mutex: uploads at the edge and the shard threads share it, and
+    /// each section only looks up or inserts a user's entry. An entry stays
+    /// while the process runs, one per user who put a blob.
+    users: Mutex<HashMap<UserId, Arc<UserPuts>>>,
+}
+
+/// When each of a user's blobs that existed already was last put again, within
+/// the grace.
+///
+/// Its lock is held across two pairs of steps:
+///
+/// - A put's question whether the blob exists, and the record of its answer.
+/// - A collection's last check of a blob, and its deletion.
+///
+/// So a put again comes either before that check, which then keeps the blob, or
+/// after the deletion, and then finds no blob and writes its bytes again. The
+/// lock is held for those steps alone, never across a collection's listing or
+/// its reading of the records.
+type UserPuts = tokio::sync::Mutex<HashMap<BlobRef, Timestamp>>;
+
+impl PutAgain {
+    /// `user`'s puts, made on the first use.
+    fn of(&self, user: &UserId) -> Arc<UserPuts> {
+        // No section panics while it holds the lock, so a poisoned one still
+        // holds a whole map.
+        self.users
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .entry(user.clone())
+            .or_default()
+            .clone()
+    }
+}
+
+/// Forgets the puts in `puts` past the grace at `now`.
+fn forget_old(puts: &mut HashMap<BlobRef, Timestamp>, now: Timestamp) {
+    let cutoff = now.as_millisecond() - GRACE_MS;
+    puts.retain(|_, at| at.as_millisecond() >= cutoff);
+}
+
+/// One user's blobs.
+#[derive(Clone)]
+pub struct UserBlobs {
+    objects: Arc<dyn ObjectStore>,
+    namespace: Path,
+    clock: Arc<dyn Clock>,
+    puts: Arc<UserPuts>,
+    fetching: Arc<Fetching>,
+}
+
+impl UserBlobs {
+    /// The bytes `blob` names: the namespace's, or once another caller's read
+    /// of them ended, or `read`'s, stored under `blob`. Only one read of a
+    /// content goes at a time; one that ends without its bytes, such as a
+    /// read that was cancelled, leaves the next caller to read them.
+    ///
+    /// Bytes `read` answers that are not `blob`'s fail: the file changed
+    /// since it was hashed.
+    pub async fn fetch_once<F, Fut, E>(&self, blob: &BlobRef, read: F) -> Result<Bytes, FetchError<E>>
+    where
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = Result<Bytes, E>>,
+        E: std::fmt::Display,
+    {
+        let mut read = Some(read);
+        loop {
+            if let Some(bytes) = self.get(blob).await? {
+                return Ok(bytes);
+            }
+            let (ended, waiting) = {
+                let mut fetching = self.fetching.lock().unwrap_or_else(PoisonError::into_inner);
+                match fetching.get(blob) {
+                    Some(ended) => (None, Some(ended.clone())),
+                    None => {
+                        let (ended, waiting) = tokio::sync::watch::channel(None);
+                        fetching.insert(blob.clone(), waiting);
+                        (Some(ended), None)
+                    }
+                }
+            };
+            if let Some(mut waiting) = waiting {
+                // A read that went away without an outcome lets this one try.
+                if let Ok(outcome) = waiting.wait_for(Option::is_some).await
+                    && let Some(Err(reason)) = &*outcome
+                {
+                    return Err(FetchError::Waited(reason.clone()));
+                }
+                continue;
+            }
+            let ended = ended.expect("a read that does not wait reads");
+            let _reading = Reading {
+                fetching: &self.fetching,
+                blob,
+            };
+            let Some(read) = read.take() else {
+                unreachable!("a caller reads at most once, and only when it does not wait");
+            };
+            let fetched = async {
+                let bytes = read().await.map_err(FetchError::Read)?;
+                if !self.put_named(bytes.clone(), blob).await? {
+                    return Err(FetchError::Changed);
+                }
+                Ok(bytes)
+            }
+            .await;
+            ended.send_replace(Some(fetched.as_ref().map(|_| ()).map_err(ToString::to_string)));
+            return fetched;
+        }
+    }
+
+    /// Stores `bytes` and answers their name.
+    ///
+    /// A name always names the same bytes, so a blob the namespace holds
+    /// already is success. The put asks first whether the blob exists, and
+    /// sends its bytes only when it does not, so repeated uploads of one file
+    /// store it once and send it once.
+    ///
+    /// On S3 a new blob costs a HEAD and a PUT, one round trip more than the
+    /// PUT alone. A blob that exists costs the HEAD alone, where a conditional
+    /// PUT would send the whole body, up to the upload cap, before S3 refused
+    /// it.
+    pub async fn put(&self, bytes: Bytes) -> Result<BlobRef, ObjectError> {
+        let (bytes, blob) = with_name(bytes).await?;
+        self.store(&blob, bytes).await?;
+        Ok(blob)
+    }
+
+    /// [`UserBlobs::put`] of bytes the caller names by their SHA-256: false,
+    /// and nothing stored, when they do not have it.
+    pub async fn put_named(&self, bytes: Bytes, named: &BlobRef) -> Result<bool, ObjectError> {
+        let (bytes, blob) = with_name(bytes).await?;
+        if blob != *named {
+            return Ok(false);
+        }
+        self.store(&blob, bytes).await?;
+        Ok(true)
+    }
+
+    /// Stores `bytes` under `blob`, their name.
+    async fn store(&self, blob: &BlobRef, bytes: Bytes) -> Result<(), ObjectError> {
+        let location = self.location(blob);
+        {
+            let mut puts = self.puts.lock().await;
+            match self.objects.head(&location).await {
+                Ok(_) => {
+                    self.put_again(&mut puts, blob);
+                    return Ok(());
+                }
+                Err(object_store::Error::NotFound { .. }) => {}
+                Err(error) => return Err(error.into()),
+            }
+        }
+        let create = PutOptions {
+            mode: PutMode::Create,
+            ..PutOptions::default()
+        };
+        match self
+            .objects
+            .put_opts(&location, PutPayload::from_bytes(bytes), create)
+            .await
+        {
+            Ok(_) => Ok(()),
+            // A put of the same bytes created it since the HEAD.
+            Err(object_store::Error::AlreadyExists { .. }) => {
+                let mut puts = self.puts.lock().await;
+                self.put_again(&mut puts, blob);
+                Ok(())
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    /// The bytes `blob` names, or `None` when this namespace does not hold
+    /// them.
+    pub async fn get(&self, blob: &BlobRef) -> Result<Option<Bytes>, ObjectError> {
+        match self.objects.get(&self.location(blob)).await {
+            Ok(object) => Ok(Some(object.bytes().await?)),
+            Err(object_store::Error::NotFound { .. }) => Ok(None),
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    /// The opening of `blob`, read as one range of the stored object, or
+    /// `None` when this namespace does not hold it.
+    pub async fn opening(&self, blob: &BlobRef) -> Result<Option<BlobOpening>, ObjectError> {
+        let options = GetOptions::new().with_range(Some(0..OPENING_BYTES));
+        match self.objects.get_opts(&self.location(blob), options).await {
+            Ok(object) => {
+                let size = object.meta.size;
+                let bytes = object.bytes().await?;
+                Ok(Some(BlobOpening { bytes, size }))
+            }
+            Err(object_store::Error::NotFound { .. }) => Ok(None),
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    /// Every blob the namespace holds, with when its object was written.
+    ///
+    /// It is one listing, which on S3 is one request per 1,000 objects. An
+    /// object whose name is no blob's is left out: no record can name it, and a
+    /// collection never deletes what it does not know.
+    pub async fn list(&self) -> Result<Vec<StoredBlob>, ObjectError> {
+        let mut listing = self.objects.list(Some(&self.namespace));
+        let mut blobs = Vec::new();
+        while let Some(object) = listing.next().await {
+            let object = object?;
+            let Some(name) = object.location.filename() else {
+                continue;
+            };
+            let Ok(blob) = BlobRef::try_from(name.to_owned()) else {
+                continue;
+            };
+            let written = Timestamp::from_millisecond(object.last_modified.timestamp_millis())
+                .map_err(|error| ObjectError::Corrupt {
+                    location: object.location.to_string(),
+                    field: "last modified time",
+                    reason: error.to_string(),
+                })?;
+            blobs.push(StoredBlob { blob, written });
+        }
+        Ok(blobs)
+    }
+
+    /// Records that `blob`, which the namespace held already, was put
+    /// again now.
+    fn put_again(&self, puts: &mut HashMap<BlobRef, Timestamp>, blob: &BlobRef) {
+        let now = self.clock.now();
+        forget_old(puts, now);
+        puts.insert(blob.clone(), now);
+    }
+
+    /// A collection's last step for `blob`, which the listing found older than
+    /// the grace and no record names.
+    ///
+    /// It deletes the blob unless it was put again within the grace, and
+    /// answers whether it did. The blob's age needs no second look: a put of a
+    /// blob that exists writes nothing, and only a collection, one at a time
+    /// per user, deletes one. A blob the namespace no longer holds is deleted
+    /// already.
+    pub async fn delete_unless_put_again(&self, blob: &BlobRef) -> Result<bool, ObjectError> {
+        let mut puts = self.puts.lock().await;
+        forget_old(&mut puts, self.clock.now());
+        if puts.contains_key(blob) {
+            return Ok(false);
+        }
+        match self.objects.delete(&self.location(blob)).await {
+            Ok(()) | Err(object_store::Error::NotFound { .. }) => Ok(true),
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    fn location(&self, blob: &BlobRef) -> Path {
+        self.namespace.clone().join(blob.as_str())
+    }
+}
+
+/// A read into the namespace under way: its entry goes once it ended, also
+/// when its caller went away.
+struct Reading<'a> {
+    fetching: &'a Fetching,
+    blob: &'a BlobRef,
+}
+
+impl Drop for Reading<'_> {
+    fn drop(&mut self) {
+        self.fetching
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .remove(self.blob);
+    }
+}
+
+/// `bytes` with their name. Hashing an upload of 25 MiB takes tens of
+/// milliseconds, which would hold an async thread that long.
+async fn with_name(bytes: Bytes) -> Result<(Bytes, BlobRef), ObjectError> {
+    let named = tokio::task::spawn_blocking(move || {
+        let blob = BlobRef::of(&bytes);
+        (bytes, blob)
+    })
+    .await?;
+    Ok(named)
+}
+
+/// The namespace as a session reaches it through its tree store: the
+/// conversation owner's, where a tool's medium is stored as its result enters
+/// the transcript and the replayed media are read back.
+impl BlobStore for UserBlobs {
+    fn put(&self, bytes: B64Bytes) -> LocalBoxFuture<'_, Result<BlobRef, StoreError>> {
+        Box::pin(async move {
+            UserBlobs::put(self, bytes.into_bytes())
+                .await
+                .map_err(|error| StoreError::Failed(error.to_string()))
+        })
+    }
+
+    fn get<'a>(
+        &'a self,
+        blob: &'a BlobRef,
+    ) -> LocalBoxFuture<'a, Result<Option<B64Bytes>, StoreError>> {
+        Box::pin(async move {
+            let bytes = UserBlobs::get(self, blob)
+                .await
+                .map_err(|error| StoreError::Failed(error.to_string()))?;
+            Ok(bytes.map(B64Bytes::from))
+        })
+    }
+}

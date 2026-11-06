@@ -1,39 +1,27 @@
-//! Machine access (`crates/backend-device-access/src/lib.rs`): the user's Cloud
+//! Machine access (`crates/core-device-access/src/lib.rs`): the user's Cloud
 //! itself, for work that needs it rather than a conversation's files on it,
 //! such as making a Cloud project's directory.
 //!
 //! It takes the Cloud's admission, which wakes a stopped Cloud or waits for a
 //! running reset, and no conversation's file gate.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::devices::{DeviceRecord, ManagedMachine};
-use demi_backend_page_sync::Part;
-use demi_runner_client::RemoteDevice;
+use demi_core_store::StorageError;
+use demi_core_store::devices::{DeviceRecord, ManagedMachine};
+use demi_core_sync::Part;
 
-use crate::CloudShard;
-use crate::machine::{CloudAdmission, CloudError};
+use crate::CloudCore;
+use crate::machine::CloudError;
+use demi_core_device_access::cloud::MachineAccess;
 
-/// The user's Cloud, running, and a device on it that starts in its home;
-/// the Cloud stays admitted while this is held.
-pub struct MachineAccess {
-    pub device: DeviceRecord,
-    pub remote: RemoteDevice,
-    /// The home directory the Cloud's runner reported.
-    pub home: String,
-    _admission: CloudAdmission,
-}
-
-impl dyn CloudShard {
+impl dyn CloudCore {
     /// The user's Cloud device, made on its first use, which the user's
     /// pages then show among the devices and as the Cloud.
     pub async fn cloud_device(&self) -> Result<DeviceRecord, StorageError> {
-        let control = self.control();
-        if let Some(device) = control.managed_device(self.user().clone()).await? {
+        let store = self.store();
+        if let Some(device) = store.managed_device().await? {
             return Ok(device);
         }
-        let device = control
-            .managed_device_or_create(self.user().clone())
-            .await?;
+        let device = store.managed_device_or_create().await?;
         let marks = self.marks();
         marks.mark(Part::Devices);
         marks.mark(Part::Cloud);
@@ -47,12 +35,12 @@ impl dyn CloudShard {
     }
 
     /// The Claude Code machine, made on its first use and woken when it is
-    /// stopped, for the shard of the instance's master, whose record it
+    /// stopped, for the core of the instance's master, whose record it
     /// is.
     pub async fn claude_code_access(&self) -> Result<MachineAccess, CloudError> {
         let device = self
-            .control()
-            .managed_machine_or_create(self.user().clone(), ManagedMachine::ClaudeCode)
+            .store()
+            .managed_machine_or_create(ManagedMachine::ClaudeCode)
             .await?;
         self.access(device).await
     }
@@ -66,11 +54,6 @@ impl dyn CloudShard {
         let remote =
             self.devices()
                 .machine_device(&device.id, home.clone(), admission.per_operation.clone());
-        Ok(MachineAccess {
-            device,
-            remote,
-            home,
-            _admission: admission,
-        })
+        Ok(MachineAccess::new(device, remote, home, admission))
     }
 }

@@ -1,16 +1,16 @@
 //! The caller's subagent settings: the Subagents switch, the limits and the
 //! profiles.
 //!
-//! The caller's shard checks a profile's name, texts and model, as it does for
+//! The caller's core checks a profile's name, texts and model, as it does for
 //! `demi agent profiles`, and writes. The change reaches the caller's pages as
 //! the `subagents` part.
 
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::subagents::ProfileRefusal as Stored;
-use demi_backend_device_access::transition::ChangeRefusal;
-use demi_backend_user_shard::shard::subagents::ProfileRefusal;
+use demi_core_store::subagents::ProfileRefusal as Stored;
+use demi_core_device_access::transition::ChangeRefusal;
+use demi_core::subagents::ProfileRefusal;
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::ids::ProfileId;
 use demi_web_api_protocol::subagents::{NewProfile, ProfileAnswer, ProfilePatch, SubagentSettings, SubagentsPatch};
@@ -25,7 +25,7 @@ pub(super) async fn read(
     State(state): State<AppState>,
     AuthUser(user): AuthUser,
 ) -> Result<Json<SubagentSettings>, ApiError> {
-    Ok(Json(state.services.control.subagent_settings(user.id).await?))
+    Ok(Json(state.services.stores.of(&user.id).await?.subagent_settings().await?))
 }
 
 /// `PUT /subagents`: any of `{ enabled, maxLive, maxDepth }`; a limit
@@ -38,7 +38,7 @@ pub(super) async fn switch(
     state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.patch_subagents(patch).await })
+        .call(move |core, _| async move { core.patch_subagents(patch).await })
         .await??;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -52,7 +52,7 @@ pub(super) async fn create(
     let profile = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.create_profile(profile, true).await })
+        .call(move |core, _| async move { core.create_profile(profile, true).await })
         .await?
         .map_err(refused)?;
     Ok((StatusCode::CREATED, Json(ProfileAnswer { profile })))
@@ -69,7 +69,7 @@ pub(super) async fn patch(
     let profile = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.patch_profile(id, patch).await })
+        .call(move |core, _| async move { core.patch_profile(id, patch).await })
         .await?
         .map_err(refused)?;
     Ok(Json(ProfileAnswer { profile }))
@@ -85,7 +85,7 @@ pub(super) async fn delete(
     state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.delete_profile(id).await })
+        .call(move |core, _| async move { core.delete_profile(id).await })
         .await?
         .map_err(refused)?;
     Ok(StatusCode::NO_CONTENT)

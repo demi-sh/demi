@@ -1,11 +1,11 @@
 //! The caller's personal instructions.
 //!
-//! The edge checks the text. The caller's shard writes it, and the change
+//! The edge checks the text. The caller's core writes it, and the change
 //! reaches the caller's pages as the `instructions` part.
 
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_accounts::instructions::personal_instructions;
+use demi_core::instructions::personal_instructions;
 use axum::Json;
 use demi_web_api_protocol::instructions::{InstructionsAnswer, InstructionsBody};
 
@@ -20,7 +20,7 @@ pub(super) async fn read(
     State(state): State<AppState>,
     AuthUser(user): AuthUser,
 ) -> Result<Json<InstructionsAnswer>, ApiError> {
-    let instructions = state.services.control.instructions(user.id).await?;
+    let instructions = state.services.stores.of(&user.id).await?.instructions().await?;
     Ok(Json(InstructionsAnswer { instructions }))
 }
 
@@ -34,7 +34,7 @@ pub(super) async fn replace(
     state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.set_instructions(text).await })
+        .call(move |core, _| async move { core.set_instructions(text).await })
         .await??;
     Ok(StatusCode::NO_CONTENT)
 }

@@ -12,7 +12,7 @@ use demi_provider_registry::families::{
     ProviderFamily,
 };
 use demi_provider_anthropic_api::{AnthropicConfig, AnthropicProvider};
-use demi_backend_user_shard::conversation::claude_cli::MachineSlot;
+use demi_core::conversation::claude_cli::MachineSlot;
 use demi_provider_claude_code::{AccountMachine, ClaudeCodeConfig, ClaudeCodeProvider};
 use demi_provider_codex::{CodexConfig, CodexProvider, CodexReleases};
 use demi_provider_common::credentials::SubscriptionAccounts;
@@ -27,7 +27,7 @@ use demi_provider_minimax::{MinimaxConfig, MinimaxProvider, Region};
 use demi_provider_openai_api::{OpenAiConfig, OpenAiProvider};
 use demi_provider_relay::borrow::{Borrowed, server_name};
 use demi_provider_relay::key::ShareKey;
-use demi_backend_runners::public_url::PublicUrl;
+use demi_core_devices::public_url::PublicUrl;
 use demi_shared_types::{AudioShape, CacheTtl, ImageShape, VideoShape, WireApi};
 use demi_web_api_protocol::providers::CredentialKind;
 
@@ -482,7 +482,7 @@ impl ProviderFamily for GrokBuildFamily {
 /// CLI's own login, whose requests run the CLI on the Claude Code machine.
 pub struct ClaudeCodeFamily {
     /// The machine a sign-in and a usage probe run on, once the backend's
-    /// shards started; a session's processes reach it through their shard.
+    /// shards started; a session's processes reach it through their core.
     machine: MachineSlot,
 }
 

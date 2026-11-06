@@ -24,7 +24,7 @@ const props = defineProps<{
   save: (text: string) => Promise<void>
 }>()
 
-/** The most characters the backend takes (`crates/backend-accounts/src/subagents.rs`), which the page states before saving. */
+/** The most characters the backend takes (`crates/core/src/subagents.rs`), which the page states before saving. */
 const LIMIT = 65_536
 
 const draft = ref(props.text)

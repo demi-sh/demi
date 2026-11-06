@@ -9,7 +9,7 @@
 //! - A run records the repeat's task that started it: each run of a daily
 //!   schedule's, its one task.
 //! - Each conversation keeps its cost as its ledger rows are written, and each
-//!   turn call its number and its cache miss (`crates/backend-database/src/usage.rs`
+//!   turn call its number and its cache miss (`crates/core-store/src/usage.rs`
 //!   § A conversation's cost): the rows written before are numbered, judged and
 //!   added up in the order they were written, as writing them now would.
 //! - The backend keeps each Host directory's workflows as it reads them
@@ -17,12 +17,12 @@
 
 use rusqlite::Transaction;
 
-use super::super::{Migration, ReadBlob, corrupt};
+use super::super::{Migration, ControlSteps, corrupt};
 use super::shared::{named_timing};
 
 pub(super) const MIGRATION: Migration = Migration::Code(control_from_0_1_37);
 
-fn control_from_0_1_37(transaction: &Transaction<'_>, _: &dyn ReadBlob) -> rusqlite::Result<()> {
+fn control_from_0_1_37(transaction: &Transaction<'_>, _: &dyn ControlSteps) -> rusqlite::Result<()> {
     transaction.execute_batch("ALTER TABLE automation_runs ADD COLUMN task_id TEXT;")?;
     transaction.execute_batch(CONTROL_FROM_0_1_37)?;
     super::ledger::keep_costs(transaction)?;

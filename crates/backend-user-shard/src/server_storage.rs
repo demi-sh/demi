@@ -11,6 +11,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use demi_backend_database::core_stores::USER_DATA;
+use demi_core_store::store::{CONVERSATION_DATABASES, SEARCH_INDEX};
 use demi_machine_manager_protocol::DiskUsageParams;
 use demi_shared_types::Timestamp;
 use tokio::sync::Mutex;
@@ -84,15 +86,24 @@ struct Files {
 }
 
 impl Files {
+    /// The files of every user's core, under `users/<id>/`.
     fn read(data: &Path) -> Self {
         let mut conversations: HashMap<String, u64> = HashMap::new();
-        for (name, bytes) in sizes(&data.join(crate::services::CONVERSATION_DATABASES)) {
-            // `<id>.sqlite` and its `-wal` and `-shm` beside it.
-            if let Some((id, _)) = name.split_once(".sqlite") {
-                *conversations.entry(id.to_owned()).or_default() += bytes;
+        let mut search = 0;
+        let users = std::fs::read_dir(data.join(USER_DATA)).into_iter().flatten().flatten();
+        for user in users {
+            let core = user.path();
+            for (name, bytes) in sizes(&core.join(CONVERSATION_DATABASES)) {
+                // `<id>.sqlite` and its `-wal` and `-shm` beside it.
+                if let Some((id, _)) = name.split_once(".sqlite") {
+                    *conversations.entry(id.to_owned()).or_default() += bytes;
+                }
             }
+            search += sizes(&core)
+                .filter(|(name, _)| name.starts_with(SEARCH_INDEX))
+                .map(|(_, bytes)| bytes)
+                .sum::<u64>();
         }
-        let search = sizes(&data.join(crate::services::SEARCH_INDEXES)).map(|(_, bytes)| bytes).sum();
         Self { disk: volume(data), conversations, search }
     }
 }

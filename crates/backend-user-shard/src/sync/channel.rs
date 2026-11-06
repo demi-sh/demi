@@ -1,4 +1,4 @@
-//! A page's synchronization channel in the user's shard.
+//! A page's synchronization channel in the user's core.
 //!
 //! The channel:
 //!
@@ -6,7 +6,7 @@
 //!    what it shows by its routes, and its first message, `open`, names each
 //!    value it follows with the version it holds.
 //! 2. Follows a value: the product state from a version, whose log of
-//!    changes (`backend-page-sync`) says which parts changed since, or a
+//!    changes (`core-sync`) says which parts changed since, or a
 //!    settings list from the entity tag the page holds, which the channel
 //!    compares with the list as it reads it. A version the log no longer
 //!    reaches is answered `stale`.
@@ -31,15 +31,17 @@ use std::convert::Infallible;
 use std::rc::Rc;
 
 use axum::extract::ws::close_code;
-use demi_backend_page_sync::{Part, Registration, StateVersion};
+use demi_core_sync::{Part, Registration, StateVersion};
 use demi_conversation_lane_protocol::{Held, Version};
 use demi_web_api_protocol::auth::Role;
 use demi_web_api_protocol::ids::ConversationId;
 use demi_web_api_protocol::state::{PageMessage, SyncEvent, SyncFollow, SyncFollowed};
 
-use crate::conversation::notifications::OpenPage;
-use crate::shard::lane::PageSession;
-use crate::shard::{Lane, LaneClose, LaneEnd, LaneGone, LaneMessage, LaneReader, Shard};
+use crate::page_notifications::OpenPage;
+use crate::server_starter::ServerSide;
+use crate::sync::StateReads;
+use demi_core::lane::PageSession;
+use demi_core::{Lane, LaneClose, LaneEnd, LaneGone, LaneMessage, LaneReader, Core};
 
 /// How a channel ended.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -76,30 +78,44 @@ enum Woke {
     Stale,
 }
 
-impl Shard {
+/// The pages' synchronization channels, on the user's core.
+#[expect(
+    async_fn_in_trait,
+    reason = "a core runs on one thread: its futures are never sent to another"
+)]
+pub trait SyncChannel {
     /// Serves a page's synchronization channel on its lane until the page
-    /// leaves or the shard closes.
-    pub async fn serve_sync_channel(
+    /// leaves or the core closes.
+    async fn serve_sync_channel(
+        self: Rc<Self>,
+        page: Lane,
+        from_page: LaneReader,
+        session: PageSession,
+    );
+}
+
+impl SyncChannel for Core {
+    async fn serve_sync_channel(
         self: Rc<Self>,
         mut page: Lane,
         mut from_page: LaneReader,
         session: PageSession,
     ) {
-        // Counted before any wait, so the shard's close waits for this
+        // Counted before any wait, so the core's close waits for this
         // channel; one adopted as the close begins ends at once.
-        let _channel = self.sync_channels().token();
+        let _channel = ServerSide::of(&self).sync_channels.token();
         let end = if self.is_closing() {
             End::BackendClosing
         } else {
             // What the page shows and its use count for the session's
             // notifications until the channel ends.
-            let open_page = self.notifications().page(session.id.clone());
+            let open_page = ServerSide::of(&self).pages.page(session.id.clone());
             let registration = self.services().sync.watch(self.user());
             let follows = Follows::default();
             let mut channel = Channel {
                 registration: &registration,
                 follows: &follows,
-                shard: &self,
+                core: &self,
                 page: &mut page,
                 session,
             };
@@ -237,7 +253,7 @@ struct Channel<'a> {
     /// registration on reach it.
     registration: &'a Registration,
     follows: &'a Follows,
-    shard: &'a Shard,
+    core: &'a Core,
     page: &'a mut Lane,
     session: PageSession,
 }
@@ -327,7 +343,7 @@ impl Channel<'_> {
     /// Reads `part` now, as the message that carries it; none when the
     /// page is sent nothing of it.
     async fn read_part(&mut self, part: &Part) -> Result<Option<SyncEvent>, End> {
-        self.shard
+        self.core
             .read_part(part, &self.session.user, &self.session.token)
             .await
             .map_err(|error| {

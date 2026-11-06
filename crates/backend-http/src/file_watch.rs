@@ -5,13 +5,13 @@
 //! - The opens of a conversation's watch and of a device's folder dialog's,
 //!   lanes of the page connection.
 //! - The relay of the devices' reports to the page, and of the page's
-//!   `subscribe`, `unsubscribe` and `renew` messages to the shard, which holds
+//!   `subscribe`, `unsubscribe` and `renew` messages to the core, which holds
 //!   the devices' subscriptions.
 //!
 //! Only a conversation's watch takes a subscription that names a device.
 
-use demi_backend_device_access::file_watch::{FileWatchChannel, OpenedWatch};
-use demi_backend_user_shard::shard::lane::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader};
+use demi_core_device_access::file_watch::{FileWatchChannel, OpenedWatch};
+use demi_core::lane::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader};
 use demi_web_api_protocol::files::{ConversationWatchRequest, FileWatchMessage, FileWatchRequest};
 use demi_web_api_protocol::ids::UserId;
 use garde::Validate;
@@ -31,7 +31,7 @@ pub(super) async fn open(state: &AppState, user: &UserId, id: &str) -> Result<Op
     let channel = state
         .shards
         .of(user)
-        .call(move |shard, _| async move { shard.device_shard().open_file_watch(&record.id).await })
+        .call(move |core, _| async move { core.device_core().open_file_watch(&record.id).await })
         .await??;
     // A lane that never opens drops the channel, which ends the watch.
     Ok(Opened {
@@ -41,7 +41,7 @@ pub(super) async fn open(state: &AppState, user: &UserId, id: &str) -> Result<Op
 }
 
 /// A device's folder dialog's watch, through device access
-/// (`crates/backend-device-access/src/lib.rs`). A device that is not the
+/// (`crates/core-device-access/src/lib.rs`). A device that is not the
 /// caller's paired device is refused; one whose runner is not connected is
 /// answered on the lane, with `offline`.
 pub(super) async fn open_device(state: &AppState, user: &UserId, id: &str) -> Result<Opened, ApiError> {
@@ -53,7 +53,7 @@ pub(super) async fn open_device(state: &AppState, user: &UserId, id: &str) -> Re
         state
             .shards
             .of(user)
-            .call(move |shard, _| async move { shard.device_shard().open_device_watch(&device).await })
+            .call(move |core, _| async move { core.device_core().open_device_watch(&device).await })
             .await?
     };
     Ok(Opened {
@@ -113,7 +113,7 @@ async fn offline(mut page: Lane, page_in: LaneReader) {
 }
 
 /// Relays an open watch until either side ends it or a transition does;
-/// dropping the lease then ends it in the shard. `read` reads a page's message as
+/// dropping the lease then ends it in the core. `read` reads a page's message as
 /// the watch's route takes it.
 async fn relay(
     mut page: Lane,

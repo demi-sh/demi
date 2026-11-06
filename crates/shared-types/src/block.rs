@@ -555,7 +555,7 @@ pub enum InstructionEntry {
         path: String,
     },
     /// The instructions of the workflow the conversation chose
-    /// (`crates/backend-user-shard/src/conversation/workflows.rs`): its name, and its file's
+    /// (`crates/core/src/conversation/workflows.rs`): its name, and its file's
     /// path on the device.
     Workflow {
         #[garde(skip)]
@@ -729,7 +729,7 @@ pub enum StoppedBy {
 }
 
 /// How a command ended, as the conversation's record of its output keeps
-/// it (`crates/backend-database/src/command_outputs.rs`).
+/// it (`crates/core-store/src/command_outputs.rs`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, garde::Validate)]
 #[serde(
     tag = "kind",

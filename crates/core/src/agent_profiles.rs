@@ -1,0 +1,324 @@
+//! What the profile changes of `demi agent profiles` need of the user's core
+//! (`crates/agent-server/src/server/tree/profiles.rs`).
+//!
+//! - A command's change is resolved into the body the settings page sends,
+//!   written by the same path with the same checks and the same words.
+//! - The user's entries come with their catalogs, which `demi providers` lists
+//!   too.
+
+use demi_agent_tools::{
+    EFFORT_OFF, ModelChoice, ModelEdit, NewProfileDraft, ProfileEdit, TIER_DEFAULT,
+};
+use crate::subagents::ContextRefusal;
+use demi_core_store::StorageError;
+use demi_provider_registry::entry::ProviderEntry;
+use demi_shared_types::{ContextChoice, THINKING_OFF};
+use demi_web_api_protocol::conversations::ModelSettings;
+use demi_web_api_protocol::ids::ProviderId;
+use demi_web_api_protocol::providers::{Availability, CatalogProvider};
+use demi_web_api_protocol::settings::Preferences;
+use demi_web_api_protocol::subagents::{NewProfile, ProfilePatch, SubagentProfile};
+
+use super::Core;
+
+/// The user's provider entries with their catalogs, and the preferences
+/// that hide some of them, read together.
+pub(crate) struct Scope {
+    pub(crate) entries: Vec<ProviderEntry>,
+    pub(crate) catalog: Vec<CatalogProvider>,
+    pub(crate) preferences: Preferences,
+}
+
+impl Scope {
+    /// Whether the menu offers the entry of `catalog`: the user has it on
+    /// and its models can be used now.
+    fn offers(&self, catalog: &CatalogProvider) -> bool {
+        !self.preferences.hides_provider(&catalog.provider_id)
+            && matches!(catalog.availability, Availability::Available {})
+    }
+
+    /// The catalog of `entry`, read with the entries.
+    pub(crate) fn catalog_of(&self, entry: &ProviderEntry) -> Option<&CatalogProvider> {
+        self.catalog
+            .iter()
+            .find(|catalog| catalog.provider_id == entry.id)
+    }
+
+    fn entry(&self, catalog: &CatalogProvider) -> Option<&ProviderEntry> {
+        self.entries
+            .iter()
+            .find(|entry| entry.id == catalog.provider_id)
+    }
+}
+
+impl Core {
+    /// Creates the profile a `create` command gives.
+    pub(crate) async fn create_drafted_profile(
+        &self,
+        draft: NewProfileDraft,
+    ) -> Result<SubagentProfile, String> {
+        let model = match draft.model {
+            Some(choice) => Some(self.chosen_model(choice, None).await?),
+            None => None,
+        };
+        let context_limit = match draft.context {
+            Some(choice) => self.context_tokens(choice, model.as_ref()).await?,
+            None => None,
+        };
+        let profile = NewProfile {
+            name: draft.name,
+            description: draft.description,
+            model,
+            context_limit,
+            instructions: draft.instructions,
+            can_spawn: draft.can_spawn,
+        };
+        self.create_profile(profile, draft.enabled)
+            .await
+            .map_err(|refusal| refusal.to_string())
+    }
+
+    /// Applies the change an `edit` command gives to the profile `name`.
+    pub(crate) async fn edit_named_profile(
+        &self,
+        name: &str,
+        edit: ProfileEdit,
+    ) -> Result<SubagentProfile, String> {
+        let stored = self.named_profile(name).await?;
+        let model = match edit.model {
+            None => None,
+            Some(ModelEdit::Parent) => Some(None),
+            Some(ModelEdit::Choose(choice)) => {
+                Some(Some(self.chosen_model(choice, stored.model.as_ref()).await?))
+            }
+        };
+        let context_limit = match edit.context {
+            Some(choice) => {
+                // The model the profile has once the edit is made.
+                let after = match &model {
+                    Some(model) => model.as_ref(),
+                    None => stored.model.as_ref(),
+                };
+                Some(self.context_tokens(choice, after).await?)
+            }
+            None => None,
+        };
+        let patch = ProfilePatch {
+            name: edit.name,
+            description: edit.description,
+            model,
+            context_limit,
+            instructions: edit.instructions,
+            can_spawn: edit.can_spawn,
+            enabled: edit.enabled,
+        };
+        self.patch_profile(stored.id, patch)
+            .await
+            .map_err(|refusal| refusal.to_string())
+    }
+
+    /// Deletes the profile `name`.
+    pub(crate) async fn delete_named_profile(&self, name: &str) -> Result<(), String> {
+        let stored = self.named_profile(name).await?;
+        self.delete_profile(stored.id)
+            .await
+            .map_err(|refusal| refusal.to_string())
+    }
+
+    /// The tokens a profile on `model`, none for the parent's, stores for
+    /// the `--context` choice `choice`: `full` is the model's window, read
+    /// from its catalog now. The save path checks the result as it checks
+    /// the settings page's.
+    async fn context_tokens(
+        &self,
+        choice: ContextChoice,
+        model: Option<&ModelSettings>,
+    ) -> Result<Option<u32>, String> {
+        match choice {
+            ContextChoice::Default => Ok(None),
+            ContextChoice::Limit(tokens) => Ok(Some(tokens)),
+            ContextChoice::Full => {
+                let model = model.ok_or_else(|| ContextRefusal::NoModel.to_string())?;
+                let (_, window) = self
+                    .profile_model(model)
+                    .await
+                    .map_err(|refusal| refusal.to_string())?;
+                Ok(Some(window))
+            }
+        }
+    }
+
+    /// The user's profile `name`, enabled or not.
+    async fn named_profile(&self, name: &str) -> Result<SubagentProfile, String> {
+        let settings = self
+            .store().subagent_settings()
+            .await
+            .map_err(|error| error.to_string())?;
+        settings
+            .profiles
+            .into_iter()
+            .find(|profile| profile.name == name)
+            .ok_or_else(|| format!("No such subagent profile \"{name}\""))
+    }
+
+    /// The model settings `choice` names: of the model it names, which the
+    /// menu offers, or of `current`, the profile's own, when it names only
+    /// an effort or a tier. The save path then checks them against the
+    /// entry's catalog as it checks the settings page's.
+    pub(crate) async fn chosen_model(
+        &self,
+        choice: ModelChoice,
+        current: Option<&ModelSettings>,
+    ) -> Result<ModelSettings, String> {
+        let effort = choice.effort.map(|effort| {
+            if effort == EFFORT_OFF {
+                THINKING_OFF.to_owned()
+            } else {
+                effort
+            }
+        });
+        let tier = choice.tier.map(|tier| (tier != TIER_DEFAULT).then_some(tier));
+        let Some(model) = choice.model else {
+            let current = current.ok_or(
+                "the profile inherits the parent's model; give --model with --effort or --tier",
+            )?;
+            return Ok(ModelSettings {
+                thinking_effort: effort.or_else(|| current.thinking_effort.clone()),
+                service_tier_id: tier.unwrap_or_else(|| current.service_tier_id.clone()),
+                ..current.clone()
+            });
+        };
+        let scope = self.scope().await.map_err(|error| error.to_string())?;
+        let provider = match choice.provider {
+            Some(named) => named_entry(&scope, &named, &model)?,
+            None => offering_entry(&scope, &model)?,
+        };
+        Ok(ModelSettings {
+            provider_id: provider,
+            model_id: model,
+            thinking_effort: effort,
+            service_tier_id: tier.flatten(),
+        })
+    }
+
+    /// The user's provider entries, their catalogs and preferences now.
+    pub(crate) async fn scope(&self) -> Result<Scope, StorageError> {
+        let services = self.services();
+        let entries = services.vault.entries_for(self.user()).await?;
+        let catalog = services.provider_registry.model_catalog(&entries, false).await;
+        let preferences = self.store().preferences().await?;
+        Ok(Scope {
+            entries,
+            catalog,
+            preferences,
+        })
+    }
+}
+
+/// The entry `named`, by its name or its id, that a profile may take
+/// `model` of: one the user has on, whose model `model` the user has on.
+pub(crate) fn named_entry(
+    scope: &Scope,
+    named: &str,
+    model: &str,
+) -> Result<ProviderId, String> {
+    let entry = super::provider_commands::named(&scope.entries, named)?;
+    if scope.preferences.hides_provider(&entry.id) {
+        return Err(hidden_entry(&entry.label));
+    }
+    if scope.preferences.hides_model(&entry.id, model) {
+        return Err(hidden_model(model, &entry.label));
+    }
+    Ok(entry.id.clone())
+}
+
+/// The first of the user's entries, in their order, whose models the menu
+/// offers `model` of (`crates/core/src/conversation/workflows.rs`).
+pub(crate) fn first_offering(scope: &Scope, model: &str) -> Option<ProviderId> {
+    scope.entries.iter().find_map(|entry| {
+        let catalog = scope.catalog_of(entry)?;
+        let offers = scope.offers(catalog)
+            && !scope.preferences.hides_model(&catalog.provider_id, model)
+            && catalog.models.iter().any(|listed| listed.model.id == model);
+        offers.then(|| entry.id.clone())
+    })
+}
+
+/// The one entry of the menu that offers `model`.
+fn offering_entry(
+    scope: &Scope,
+    model: &str,
+) -> Result<ProviderId, String> {
+    let listing: Vec<&CatalogProvider> = scope
+        .catalog
+        .iter()
+        .filter(|catalog| catalog.models.iter().any(|listed| listed.model.id == model))
+        .collect();
+    let offered: Vec<&CatalogProvider> = listing
+        .iter()
+        .copied()
+        .filter(|catalog| {
+            scope.offers(catalog) && !scope.preferences.hides_model(&catalog.provider_id, model)
+        })
+        .collect();
+    match offered.as_slice() {
+        [catalog] => Ok(catalog.provider_id.clone()),
+        [] => {
+            let label = |catalog: &CatalogProvider| {
+                scope
+                    .entry(catalog)
+                    .map_or_else(|| catalog.display_name.clone(), |entry| entry.label.clone())
+            };
+            // The model the user turned off in an entry that is on says
+            // more than an entry turned off as a whole.
+            let hides = |catalog: &CatalogProvider| {
+                scope.preferences.hides_provider(&catalog.provider_id)
+            };
+            if let Some(catalog) = listing.iter().find(|catalog| {
+                !hides(catalog) && scope.preferences.hides_model(&catalog.provider_id, model)
+            }) {
+                return Err(hidden_model(model, &label(catalog)));
+            }
+            if let Some(catalog) = listing.iter().find(|catalog| hides(catalog)) {
+                return Err(hidden_entry(&label(catalog)));
+            }
+            if !listing.is_empty() {
+                let entries: Vec<String> = listing.iter().map(|catalog| label(catalog)).collect();
+                return Err(format!(
+                    "model \"{model}\" is offered only by provider entries that cannot run now: {}; `demi providers show` shows the models of each entry the user can use",
+                    entries.join(", ")
+                ));
+            }
+            Err(format!(
+                "no provider entry offers the model \"{model}\"; `demi providers show` shows the models of each entry the user can use"
+            ))
+        }
+        several => {
+            let entries: Vec<String> = several
+                .iter()
+                .map(|catalog| match scope.entry(catalog) {
+                    Some(entry) => format!("{} ({})", entry.label, entry.id),
+                    None => catalog.provider_id.as_str().to_owned(),
+                })
+                .collect();
+            Err(format!(
+                "several provider entries offer the model \"{model}\": {}; name one with --provider",
+                entries.join(", ")
+            ))
+        }
+    }
+}
+
+/// Why a profile cannot take a model of an entry the user turned off.
+fn hidden_entry(entry: &str) -> String {
+    format!(
+        "the provider entry \"{entry}\" is turned off in Settings > Providers; choose a model `demi providers show` shows, or ask the user to turn the entry on"
+    )
+}
+
+/// Why a profile cannot take a model the user turned off.
+fn hidden_model(model: &str, entry: &str) -> String {
+    format!(
+        "the model \"{model}\" of \"{entry}\" is turned off in Settings > Providers; choose a model `demi providers show` shows, or ask the user to turn it on"
+    )
+}

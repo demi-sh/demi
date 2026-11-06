@@ -1,0 +1,487 @@
+//! The product's side of the plugins' port
+//! (`crates/plugin-interface/src/lib.rs`).
+//!
+//! It serves:
+//!
+//! - package calls and reads of a conversation through its device access;
+//! - the user's blobs;
+//! - the Providers service's images.
+//!
+//! The plugin host answers the rest itself.
+
+use std::rc::Weak;
+use std::sync::Arc;
+
+use bytes::Bytes;
+use demi_core_device_access::DeviceCore;
+use demi_core_device_access::device_git::DeviceGitError;
+use demi_plugin_interface::{DeviceName, GitEntry, GitFile, GitRefusal, GitTree};
+use demi_web_api_protocol::devices::DeviceKind;
+use demi_core_device_access::access::DeviceAccessError;
+use demi_core_device_access::plugin_files::ReadFilesError;
+use demi_core_device_access::stream::{ResidentBinding, ResidentCall, UserCallError, UserCallKind};
+use demi_core_sync::Part;
+use demi_core_device_access::device_commands::reachable;
+use demi_plugin_host::{Lost, MediaCall, ProductPort, ReadOn, VideoJob};
+use demi_core_providers::vault::seal::Row;
+use demi_runner_client::ResidentCallError;
+use demi_command_declarations::NativeOperation;
+use demi_device_interface::{DeviceErrorKind, JobCaller, PortError};
+use demi_plugin_interface::{
+    AskedVideo, AudioAsk, AudioVoices, CallKind, ImageAsk, MadeAudio, MediaListing, MadeImage, PortFailure,
+    PortRefusal, VideoAsk,
+};
+use demi_device_interface::{DeviceFile, DeviceRead};
+use demi_shared_types::{B64Bytes, BlobRef, MediaKind, Timestamp};
+use demi_web_api_protocol::error::ErrorCode;
+use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use futures_util::future::LocalBoxFuture;
+use serde_json::{Map, Value};
+use tokio_util::sync::CancellationToken;
+
+use super::Core;
+use crate::services::CoreServices;
+
+/// The most bytes of a package call's JSON answer.
+///
+/// Bounded because the answer is read into memory from a package's process.
+const CALL_ANSWER_MAX_BYTES: usize = 1024 * 1024;
+
+/// The core as its plugins' port reaches it. Weak: the core owns the
+/// plugins that hold it.
+pub(crate) struct CorePort {
+    pub(crate) core: Weak<Core>,
+    pub(crate) services: Arc<CoreServices>,
+    /// The shard thread's client of the plugins' outbound requests.
+    pub(crate) web: reqwest::Client,
+}
+
+impl CorePort {
+    fn core(&self) -> Result<std::rc::Rc<Core>, PortFailure> {
+        self.core
+            .upgrade()
+            .ok_or_else(|| PortError::Ended("the backend is shutting down".into()).into())
+    }
+}
+
+impl ProductPort for CorePort {
+    fn package_call<'a>(
+        &'a self,
+        conversation: &'a ConversationId,
+        operation: &'a NativeOperation,
+        args: Map<String, Value>,
+        input: String,
+        kind: CallKind,
+        cancel: &'a CancellationToken,
+    ) -> LocalBoxFuture<'a, Result<Value, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            let package = core
+                .services()
+                .packages
+                .package(&operation.package)
+                .ok_or_else(|| failed("the catalog serves no such package"))?
+                .clone();
+            let call = ResidentCall {
+                binding: ResidentBinding {
+                    package,
+                    operation: operation.operation.clone(),
+                },
+                args,
+                input: input.into(),
+                max_bytes: CALL_ANSWER_MAX_BYTES,
+            };
+            let kind = match kind {
+                CallKind::Starts => UserCallKind::Starts,
+                CallKind::Operates => UserCallKind::Operates,
+                CallKind::Looks => UserCallKind::Looks,
+            };
+            let answer: Bytes = core
+                .device_core()
+                .user_call(conversation, kind, &call, cancel)
+                .await
+                .map_err(call_failure)?;
+            serde_json::from_slice(&answer).map_err(|error| {
+                failed(format!("the operation answered what is not JSON: {error}"))
+            })
+        })
+    }
+
+    fn read_device_files<'a>(
+        &'a self,
+        conversation: &'a ConversationId,
+        on: &'a ReadOn,
+        reads: Vec<DeviceRead>,
+        cancel: &'a CancellationToken,
+    ) -> LocalBoxFuture<'a, Result<Vec<DeviceFile>, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            let devices = core.device_core();
+            let read = match on {
+                ReadOn::Primary => devices.read_files_on(conversation, None, &reads, cancel).await.map(|(files, _)| files),
+                ReadOn::PrimaryOf(device) => devices
+                    .read_files_on(conversation, Some(device), &reads, cancel)
+                    .await
+                    .map(|(files, _)| files),
+                ReadOn::Job { device, directory } => {
+                    devices.read_job_files(conversation, device, directory, &reads, cancel).await
+                }
+            };
+            read.map_err(|error| match error {
+                // A project search's device that is no longer the
+                // conversation's is not running for it.
+                ReadFilesError::NotRunning | ReadFilesError::Moved => PortFailure::Refused(PortRefusal::NotRunning),
+                ReadFilesError::Access(error) => access_refusal(error),
+            })
+        })
+    }
+
+    fn media_models(&self, kind: MediaKind) -> LocalBoxFuture<'_, Result<MediaListing, PortFailure>> {
+        Box::pin(async move { super::media::media_models(&*self.core()?, kind).await })
+    }
+
+    fn devices(&self) -> LocalBoxFuture<'_, Result<Vec<DeviceName>, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            let records = core
+                .store().paired_devices()
+                .await
+                .map_err(|error| failed(format!("the devices cannot be read: {error}")))?;
+            Ok(records
+                .into_iter()
+                .filter(|record| record.kind == DeviceKind::User)
+                .map(|record| DeviceName {
+                    online: core.device_core().devices().link(&record.id).is_some(),
+                    id: record.id,
+                    name: record.name,
+                })
+                .collect())
+        })
+    }
+
+    fn device_git_head<'a>(&'a self, device: &'a DeviceId, url: &'a str) -> LocalBoxFuture<'a, Result<String, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            core.device_core().device_git_head(device, url).await.map_err(git_refusal)
+        })
+    }
+
+    fn device_git_fetch<'a>(
+        &'a self,
+        device: &'a DeviceId,
+        url: &'a str,
+        marker: &'a str,
+    ) -> LocalBoxFuture<'a, Result<GitTree, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            let tree = core.device_core().device_git_fetch(device, url, marker).await.map_err(git_refusal)?;
+            Ok(GitTree {
+                commit: tree.commit,
+                entries: tree
+                    .entries
+                    .into_iter()
+                    .map(|entry| GitEntry { path: entry.path, executable: entry.executable })
+                    .collect(),
+                files: tree
+                    .files
+                    .into_iter()
+                    .map(|(path, blob)| GitFile { path, blob })
+                    .collect(),
+            })
+        })
+    }
+
+    fn make_image<'a>(
+        &'a self,
+        conversation: &'a ConversationId,
+        caller: Option<&'a JobCaller>,
+        call: &'a MediaCall,
+        ask: ImageAsk,
+        cancel: &'a CancellationToken,
+    ) -> LocalBoxFuture<'a, Result<MadeImage, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            super::media::make_image(&core, conversation, caller, call, ask, cancel).await
+        })
+    }
+
+    fn make_video<'a>(
+        &'a self,
+        conversation: &'a ConversationId,
+        caller: Option<&'a JobCaller>,
+        call: &'a MediaCall,
+        ask: VideoAsk,
+        cancel: &'a CancellationToken,
+    ) -> LocalBoxFuture<'a, Result<(AskedVideo, VideoJob), PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            super::media::make_video(&core, conversation, caller, call, ask, cancel).await
+        })
+    }
+
+    fn make_audio<'a>(
+        &'a self,
+        conversation: &'a ConversationId,
+        caller: Option<&'a JobCaller>,
+        call: &'a MediaCall,
+        ask: AudioAsk,
+        cancel: &'a CancellationToken,
+    ) -> LocalBoxFuture<'a, Result<MadeAudio, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            super::media::make_audio(&core, conversation, caller, call, ask, cancel).await
+        })
+    }
+
+    fn audio_voices<'a>(
+        &'a self,
+        conversation: &'a ConversationId,
+        model: String,
+        search: Option<String>,
+        cancel: &'a CancellationToken,
+    ) -> LocalBoxFuture<'a, Result<AudioVoices, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            super::media::audio_voices(&core, conversation, model, search, cancel).await
+        })
+    }
+
+    fn put_blob(&self, bytes: B64Bytes) -> LocalBoxFuture<'_, Result<BlobRef, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            DeviceCore::blobs(&*core)
+                .put(bytes.into_bytes())
+                .await
+                .map_err(failed)
+        })
+    }
+
+    fn get_blob(&self, blob: BlobRef) -> LocalBoxFuture<'_, Result<Option<B64Bytes>, PortFailure>> {
+        Box::pin(async move {
+            let core = self.core()?;
+            let bytes = DeviceCore::blobs(&*core).get(&blob).await.map_err(failed)?;
+            Ok(bytes.map(B64Bytes::from))
+        })
+    }
+
+    fn seal(&self, user: &UserId, plugin: &str, name: &str, plaintext: &[u8]) -> Vec<u8> {
+        let row = Row::PluginSecret { plugin, user, name };
+        self.services.vault.key().seal(row, plaintext)
+    }
+
+    fn open(&self, user: &UserId, plugin: &str, name: &str, sealed: &[u8]) -> Option<Vec<u8>> {
+        let row = Row::PluginSecret { plugin, user, name };
+        self.services.vault.key().open(row, sealed).ok()
+    }
+
+    fn web_client(&self) -> reqwest::Client {
+        self.web.clone()
+    }
+
+    fn public_url(&self) -> Option<url::Url> {
+        self.services
+            .public_url
+            .get()
+            .map(|backend| backend.url().clone())
+    }
+
+    fn now(&self) -> Timestamp {
+        self.services.clock.now()
+    }
+
+    fn spawn(&self, work: LocalBoxFuture<'static, ()>) {
+        // A core already gone is shutting down: the work has not started,
+        // and whoever waits for it hears that the backend is shutting down.
+        if let Some(core) = self.core.upgrade() {
+            core.tasks().spawn_local(work);
+        }
+    }
+}
+
+/// The client of a shard thread's plugins' outbound requests
+/// (`crates/plugin-host/src/web.rs`). A test's backend trusts the
+/// authorities its HTTPS servers present.
+pub fn web_client(services: &CoreServices) -> reqwest::Client {
+    let roots = {
+        let _ = services;
+        &[]
+    };
+    demi_plugin_host::web_client(roots)
+}
+
+fn failed(error: impl ToString) -> PortFailure {
+    PortFailure::Port(PortError::Failed(error.to_string()))
+}
+
+/// The conversation's device access refused, as its routes would answer.
+fn access_refusal(error: DeviceAccessError) -> PortFailure {
+    let (code, status) = error.code();
+    PortFailure::Refused(PortRefusal::Device {
+        code,
+        status,
+        message: error.to_string(),
+    })
+}
+
+/// A package call that did not answer. The cases are:
+///
+/// - the device access's refusal when the device cannot be reached or takes no
+///   operations, as its routes answer it;
+/// - a resident that did not start, which the plugin names in its own words;
+/// - a call whose connection to the device broke partway, 409
+///   `device_operation_failed`;
+/// - otherwise the call's own failure, such as an answer over its bound, which a
+///   page call answers as the plugin's failure.
+fn call_failure(error: UserCallError) -> PortFailure {
+    match error {
+        UserCallError::Access(error) => access_refusal(error),
+        UserCallError::Call(ResidentCallError::Exited { stderr, .. }) => {
+            PortFailure::Refused(PortRefusal::Operation { stderr })
+        }
+        UserCallError::Call(ResidentCallError::NotOpened(message)) => {
+            PortFailure::Refused(PortRefusal::Resident { message })
+        }
+        UserCallError::Call(ResidentCallError::Device(error))
+            if matches!(error.kind, DeviceErrorKind::Offline | DeviceErrorKind::Unavailable) =>
+        {
+            access_refusal(DeviceAccessError::Device(error))
+        }
+        UserCallError::Call(ResidentCallError::Device(error))
+            if matches!(error.kind, DeviceErrorKind::Interrupted | DeviceErrorKind::Protocol) =>
+        {
+            PortFailure::Refused(PortRefusal::Device {
+                code: ErrorCode::DeviceOperationFailed,
+                status: 409,
+                message: error.to_string(),
+            })
+        }
+        UserCallError::Call(error) => failed(error),
+    }
+}
+
+/// Why a conversation's tree was not reloaded.
+#[derive(Debug, thiserror::Error)]
+pub enum ReloadRefusal {
+    #[error(transparent)]
+    Access(#[from] DeviceAccessError),
+    #[error("The conversation is archived")]
+    Archived,
+    #[error("The conversation's agents are working; reload once they are done")]
+    Working,
+}
+
+impl Core {
+    /// Turns `plugin` on or off for the user (`crates/plugin-host/src/lib.rs`).
+    ///
+    /// Every live tree takes the commands of the plugins now on, and its
+    /// summary is marked, since whether a reload would change its system
+    /// prompt may have changed. A plugin turned off has the services of its
+    /// packages stopped on every connected device now, and on the others when
+    /// they connect, as their `hello` names the packages that are off.
+    pub async fn switch_plugin(
+        &self,
+        plugin: &str,
+        enabled: bool,
+    ) -> Result<(), demi_plugin_host::SwitchError> {
+        let Some(switched) = self.plugins().switch(plugin, enabled).await? else {
+            return Ok(());
+        };
+        if let Err(error) = self.agent().adopt_toolset().await {
+            // The trees keep the commands they had, which the next open
+            // corrects; a call of one the plugin no longer serves fails.
+            tracing::error!(event = "plugin_commands.switch_failed", plugin, %error, "the open conversations could not take the plugins' commands");
+        }
+        if !switched.released.is_empty() {
+            self.device_core().release_packages(&switched.released).await;
+        }
+        // Off, it keeps nothing; on, its next context request asks again.
+        self.project_files().plugins.forget(|(kept, _)| kept.as_str() == plugin);
+        let marks = self.services().sync.of(self.user());
+        for root in self.agent().live_roots() {
+            marks.mark(Part::Metadata(
+                demi_core_device_access::conversation_of(&root),
+            ));
+        }
+        Ok(())
+    }
+
+    /// Turns `plugin`'s `feature` on or off for the user: every live tree
+    /// takes the narrowed commands, and its summary is marked, as
+    /// [`Self::switch_plugin`] does.
+    pub async fn switch_plugin_feature(
+        &self,
+        plugin: &str,
+        feature: &str,
+        enabled: bool,
+    ) -> Result<(), demi_plugin_host::SwitchError> {
+        if !self.plugins().switch_feature(plugin, feature, enabled).await? {
+            return Ok(());
+        }
+        if let Err(error) = self.agent().adopt_toolset().await {
+            tracing::error!(event = "plugin_commands.switch_failed", plugin, feature, %error, "the open conversations could not take the plugins' commands");
+        }
+        let marks = self.services().sync.of(self.user());
+        for root in self.agent().live_roots() {
+            marks.mark(Part::Metadata(
+                demi_core_device_access::conversation_of(&root),
+            ));
+        }
+        Ok(())
+    }
+
+    /// Closes the conversation's live tree so that it opens again with the
+    /// user's current plugins; a tree that works or an archived
+    /// conversation is refused, and one with no live tree has nothing to do.
+    pub async fn reload_conversation(&self, id: &ConversationId) -> Result<(), ReloadRefusal> {
+        let record = self.device_core().owned_conversation(id).await?;
+        if record.archived() {
+            return Err(ReloadRefusal::Archived);
+        }
+        self.agent()
+            .reload(&demi_core_device_access::root_of(&record.id))
+            .await
+            .map_err(|_| ReloadRefusal::Working)
+    }
+}
+
+impl Core {
+    /// What `lost` names, kept on `device`, ended without its package
+    /// saying so: each plugin of such a package with work tabs in a
+    /// conversation that reaches the device hears it, for that conversation
+    /// (`crates/command-protocol/src/messages.rs`).
+    pub async fn package_lost(&self, device: &DeviceId, lost: Lost<'_>) {
+        self.cli_package_lost(device, &lost);
+        let with_tabs = match self.store().conversations_with_tabs().await {
+            Ok(with_tabs) => with_tabs,
+            Err(error) => {
+                // The plugins then show what was lost until their packages
+                // next say something about the conversations.
+                tracing::warn!(event = "package_lost.read_failed", what = "conversations", device_id = %device, error = &error as &dyn std::error::Error, "the conversations a lost package showed in could not be read");
+                return;
+            }
+        };
+        let mut reaching = Vec::new();
+        for conversation in with_tabs {
+            match reachable(self.device_core(), &conversation).await {
+                Ok(devices) if devices.iter().any(|each| &each.device == device) => {
+                    reaching.push(conversation);
+                }
+                Ok(_) => {}
+                Err(error) => {
+                    tracing::warn!(event = "package_lost.read_failed", what = "devices", %conversation, %error, "the devices of a conversation a lost package showed in could not be read");
+                }
+            }
+        }
+        self.plugins().package_lost(device, lost, &reaching).await;
+    }
+}
+
+/// A device's `git` that answered nothing, as the plugins' port says it.
+fn git_refusal(error: DeviceGitError) -> PortFailure {
+    let refusal = match error {
+        DeviceGitError::NotFound => GitRefusal::NotFound,
+        DeviceGitError::Offline => GitRefusal::Offline,
+        DeviceGitError::Failed(message) => GitRefusal::Failed { message },
+    };
+    PortFailure::Refused(PortRefusal::Git { refusal })
+}

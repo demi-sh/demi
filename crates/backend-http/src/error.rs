@@ -16,19 +16,19 @@ use crate::request_id;
 use demi_backend_accounts::email_change::EmailChangeError;
 use demi_backend_accounts::passkeys::PasskeyError;
 use demi_backend_accounts::passwords::HashError;
-use demi_backend_blobs::ObjectError;
+use demi_core_blobs::ObjectError;
 use demi_backend_cloud::machine::CloudError;
-use demi_backend_database::StorageError;
+use demi_core_store::StorageError;
 use demi_provider_registry::registry::RegistryError;
-use demi_backend_providers::vault::accounts::AccountRefusal;
-use demi_backend_providers::vault::logins::LoginRefusal;
-use demi_backend_runners::files::{TextError, TextRefusal};
+use demi_core_providers::vault::accounts::AccountRefusal;
+use demi_core_providers::vault::logins::LoginRefusal;
+use demi_core_devices::files::{TextError, TextRefusal};
 use demi_device_interface::DeviceError;
 use demi_shared_types::ReadAt;
 
-use demi_backend_device_access::access::{DeviceAccessError, device_error_code};
-use demi_backend_device_access::stream::StreamError;
-use demi_backend_user_shard::shard::ShardUnavailable;
+use demi_core_device_access::access::{DeviceAccessError, device_error_code};
+use demi_core_device_access::stream::StreamError;
+use demi_core::cores::CoreUnavailable;
 
 /// The header that carries the device's number a read answer was read at.
 pub(crate) const READ_AT: HeaderName = HeaderName::from_static("x-demi-read-at");
@@ -394,11 +394,11 @@ impl IntoResponse for ApiError {
     }
 }
 
-impl From<ShardUnavailable> for ApiError {
-    fn from(error: ShardUnavailable) -> Self {
+impl From<CoreUnavailable> for ApiError {
+    fn from(error: CoreUnavailable) -> Self {
         match error {
-            ShardUnavailable::Closing => Self::backend_closing(),
-            ShardUnavailable::Failed => Self::internal(&error),
+            CoreUnavailable::Closing => Self::backend_closing(),
+            CoreUnavailable::Failed => Self::internal(&error),
         }
     }
 }

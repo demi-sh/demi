@@ -9,7 +9,7 @@ export const GALLERY_DEVICE = 'device-1'
 
 /**
  * The attachments the gallery's conversation holds, as `demi attachment
- * upload` numbered them (`crates/backend-device-access/src/attachment_commands.rs`), over the
+ * upload` numbered them (`crates/core-device-access/src/attachment_commands.rs`), over the
  * gallery's blobs, each with its file's size. The guide, the build, the demo
  * and the chart were uploaded from the project's files, the chart from a
  * version its file has changed since, which its viewer does not show: it shows

@@ -1,0 +1,26 @@
+[package]
+name = "demi-core-permissions"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+# No doc examples.
+test = false
+doctest = false
+bench = false
+
+[dependencies]
+demi-core-store = { path = "../core-store" }
+demi-core-sync = { path = "../core-sync" }
+demi-command-declarations = { path = "../command-declarations" }
+demi-device-interface = { path = "../device-interface" }
+demi-shared-types = { path = "../shared-types" }
+demi-web-api-protocol = { path = "../web-api-protocol" }
+futures-util.workspace = true
+shlex = "2"
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid = { version = "1", features = ["v4"] }

@@ -14,6 +14,7 @@ use demi_web_api_protocol::state::ProductState;
 use super::AppState;
 use super::error::ApiError;
 use super::gate::AuthUser;
+use demi_backend_user_shard::sync::StateReads;
 
 pub(super) async fn read(
     State(state): State<AppState>,
@@ -23,8 +24,8 @@ pub(super) async fn read(
     let product = state
         .shards
         .of(&id)
-        .call(move |shard, _| async move {
-            shard
+        .call(move |core, _| async move {
+            core
                 .product_state(user)
                 .await
                 .map_err(|error| ApiError::internal(&error))

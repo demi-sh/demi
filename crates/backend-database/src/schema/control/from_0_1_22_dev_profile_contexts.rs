@@ -1,22 +1,22 @@
 //! From the control schema whose API-key entries sealed their bare configuration,
 //! format 1, to provider configuration format 2, which tells a compatible entry
 //! by its naming no vendor
-//! (`crates/backend-user-shard/src/provider_settings.rs`).
+//! (`crates/core/src/provider_settings.rs`).
 //!
 //! The vault opens, decodes and checks each one and seals it again. One it cannot
 //! read stops the migration, so the database stays as it was.
 
 use rusqlite::Transaction;
 
-use crate::providers::ResealSealed;
+use crate::schema::ControlSteps;
 use demi_web_api_protocol::ids::ProviderId;
 use super::super::{Migration, corrupt, corrupt_text};
 
-pub(super) const MIGRATION: Migration = Migration::Reseal(control_sealed_config_format_2);
+pub(super) const MIGRATION: Migration = Migration::Code(control_sealed_config_format_2);
 
 fn control_sealed_config_format_2(
     transaction: &Transaction<'_>,
-    seals: &dyn ResealSealed,
+    seals: &dyn ControlSteps,
 ) -> rusqlite::Result<()> {
     let rows = transaction
         .prepare("SELECT id, provider_type, config FROM providers WHERE config IS NOT NULL")?

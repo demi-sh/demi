@@ -235,7 +235,4 @@ fn parse(name: &str) -> io::Result<Version> {
         .map_err(|error| io::Error::other(format!("{name} is not a release's version: {error}")))
 }
 
-/// Syncs a directory's entries, so a rename in it survives a crash.
-pub fn sync_directory(path: &Path) -> io::Result<()> {
-    std::fs::File::open(path)?.sync_all()
-}
+pub use demi_shared_artifacts::sync_directory;

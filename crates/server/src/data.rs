@@ -1,7 +1,8 @@
 //! The backend's databases across a move (`upgrades.md` § Switch, § Rollback):
 //!
 //! - An upgrade keeps a copy of each database its release will migrate in
-//!   `<data>/snapshots/<version>/`.
+//!   `<data>/snapshots/<version>/`, and a hard link to each one it will move
+//!   elsewhere.
 //! - A rollback returns what the snapshot keeps. It moves the databases it
 //!   replaces to `snapshots/abandoned-<version>/` by a rename, and puts a
 //!   copy of the snapshot's in their place, so the snapshot stays whole for a
@@ -15,7 +16,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_backend_database::{DatabaseKind, SchemaFit, schema_fit};
+use demi_backend_database::{DatabaseKind, database_fit};
+use demi_core_store::schema::SchemaFit;
 use semver::Version;
 
 /// The databases of a data directory, relative to it, with their kinds.
@@ -24,6 +26,32 @@ fn databases(data: &Path) -> io::Result<Vec<(PathBuf, DatabaseKind)>> {
     let control = PathBuf::from("control.sqlite");
     if data.join(&control).exists() {
         databases.push((control, DatabaseKind::Control));
+    }
+    match std::fs::read_dir(data.join("users")) {
+        Ok(users) => {
+            for user in users {
+                let user = PathBuf::from("users").join(user?.file_name());
+                let core = user.join("core.sqlite");
+                if data.join(&core).exists() {
+                    databases.push((core, DatabaseKind::Core));
+                }
+                let conversations = user.join("conversations");
+                match std::fs::read_dir(data.join(&conversations)) {
+                    Ok(entries) => {
+                        for entry in entries {
+                            let name = entry?.file_name();
+                            if Path::new(&name).extension().is_some_and(|extension| extension == "sqlite") {
+                                databases.push((conversations.join(name), DatabaseKind::Conversation));
+                            }
+                        }
+                    }
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                    Err(error) => return Err(error),
+                }
+            }
+        }
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+        Err(error) => return Err(error),
     }
     match std::fs::read_dir(data.join("conversations")) {
         Ok(entries) => {
@@ -52,7 +80,7 @@ pub fn migrating(data: &Path) -> io::Result<Vec<PathBuf>> {
     let mut other = Vec::new();
     for (database, kind) in databases(data)? {
         let path = data.join(&database);
-        match schema_fit(&path, kind).map_err(io::Error::other)? {
+        match database_fit(&path, kind).map_err(io::Error::other)? {
             SchemaFit::Current => {}
             SchemaFit::Migrates => migrating.push(database),
             SchemaFit::Other => other.push(path.display().to_string()),
@@ -120,6 +148,18 @@ pub fn take(
             progress(done, total);
         })?;
         std::fs::File::open(&target)?.sync_all()?;
+    }
+    // A conversation's database where the releases before each user's own
+    // directory kept it moves into its user's directory as the control
+    // database migrates: the snapshot keeps it by a hard link, which costs
+    // no room, so a rollback to such a release puts it back where that
+    // release looks, as the backend last left it.
+    for (database, _) in crate::data::databases(data)? {
+        if database.starts_with("conversations") && !databases.contains(&database) {
+            let target = snapshot.join(&database);
+            std::fs::create_dir_all(target.parent().expect("a database lies in a directory"))?;
+            std::fs::hard_link(data.join(&database), &target)?;
+        }
     }
     if snapshot.exists() {
         sync_tree(&snapshot)?;

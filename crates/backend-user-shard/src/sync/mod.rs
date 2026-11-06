@@ -1,7 +1,7 @@
 //! The pages' synchronization channels: the product state and its parts as a
-//! channel reads them, and the channel's task in the user's shard.
+//! channel reads them, and the channel's task in the user's core.
 //!
-//! Every change marks the parts it changed in the registry of `backend-page-sync`,
+//! Every change marks the parts it changed in the registry of `core-sync`,
 //! after it commits.
 //!
 //! # Apart from the conversation lanes
@@ -24,21 +24,5 @@
 mod channel;
 mod state;
 
-use demi_backend_page_sync::Part;
-
-pub use self::state::{StateError, etag_of, etag_of_json};
-use crate::shard::Shard;
-
-impl Shard {
-    /// Marks `part` changed on the user's open channels. A change of the
-    /// projects also tells each runner the directories of its device's
-    /// projects, whose worktrees it reports.
-    pub fn mark(&self, part: Part) {
-        let projects = part == Part::Projects;
-        self.services().sync.mark(self.user(), part);
-        if projects {
-            let shard = self.this();
-            self.tasks().spawn_local(async move { shard.projects_changed().await });
-        }
-    }
-}
+pub use self::channel::SyncChannel;
+pub use self::state::{StateError, StateReads};

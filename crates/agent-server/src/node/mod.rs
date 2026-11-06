@@ -261,7 +261,7 @@ impl<H: DeviceResolver> Node<H> {
 
     /// Moves the node's place in `command`'s whole output to `seen`, in the
     /// command's record too while it runs
-    /// (`crates/backend-database/src/command_outputs.rs`).
+    /// (`crates/core-store/src/command_outputs.rs`).
     pub(crate) async fn set_place(&self, command: &CommandId, seen: Seen) {
         self.runtime.environments.set_place(command, seen);
         if let Err(error) = self.runtime.store.record_place(command, &self.runtime.node, seen).await {
@@ -711,7 +711,7 @@ impl<H: DeviceResolver> NodeRuntime<H> {
     /// How `command`, which one of the node's environments held, ended.
     ///
     /// It ended as the conversation's record of it keeps it
-    /// (`crates/backend-database/src/command_outputs.rs`), which the record
+    /// (`crates/core-store/src/command_outputs.rs`), which the record
     /// holds before the command reads as ended. A command no record keeps, as
     /// in a product without a keeper, ended as its environment says.
     async fn end_of(&self, command: &CommandId) -> EndOf {
@@ -1076,7 +1076,7 @@ impl<H: DeviceResolver> SessionRuntime for NodeRuntime<H> {
                 // until it is back: the silence is the connection's
                 // (`crates/agent-session/src/reports.rs`). So does one whose
                 // start waits for its device, which never ran
-                // (`crates/backend-device-access/src/access.rs`).
+                // (`crates/core-device-access/src/access.rs`).
                 if environment.unreachable(command).is_some() {
                     dropped("silence", "device_away");
                     return None;

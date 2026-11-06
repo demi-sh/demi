@@ -1863,17 +1863,20 @@ dependencies = [
  "bytes",
  "clap",
  "demi-backend-accounts",
- "demi-backend-blobs",
  "demi-backend-cloud",
  "demi-backend-database",
- "demi-backend-device-access",
  "demi-backend-http",
- "demi-backend-providers",
  "demi-backend-runners",
  "demi-backend-user-shard",
  "demi-command-declarations",
  "demi-command-package-browser-protocol",
  "demi-command-protocol",
+ "demi-core",
+ "demi-core-blobs",
+ "demi-core-device-access",
+ "demi-core-devices",
+ "demi-core-providers",
+ "demi-core-store",
  "demi-device-interface",
  "demi-machine-manager-protocol",
  "demi-plugin-audio",
@@ -1933,13 +1936,12 @@ dependencies = [
  "base64 0.22.1",
  "demi-backend-database",
  "demi-command-protocol",
+ "demi-core-store",
  "demi-shared-types",
  "demi-web-api-protocol",
  "futures-util",
  "hex",
  "http",
- "icu_locale",
- "icu_time",
  "jiff",
  "password-hash",
  "rand 0.9.5",
@@ -1959,34 +1961,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "demi-backend-blobs"
-version = "0.1.65"
-dependencies = [
- "async-trait",
- "bytes",
- "demi-agent-store",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "object_store",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "url",
-]
-
-[[package]]
 name = "demi-backend-cloud"
 version = "0.1.65"
 dependencies = [
  "demi-backend-database",
- "demi-backend-idle-watch",
- "demi-backend-page-sync",
- "demi-backend-providers",
  "demi-backend-runners",
+ "demi-core",
+ "demi-core-device-access",
+ "demi-core-devices",
+ "demi-core-idle-watch",
+ "demi-core-providers",
+ "demi-core-store",
+ "demi-core-sync",
  "demi-device-interface",
  "demi-machine-manager-protocol",
+ "demi-plugin-host",
  "demi-provider-registry",
  "demi-runner-client",
  "demi-runner-protocol",
@@ -2010,6 +1999,7 @@ dependencies = [
  "demi-agent-store",
  "demi-backend-database",
  "demi-conversation-lane-protocol",
+ "demi-core-store",
  "demi-device-interface",
  "demi-device-paths",
  "demi-machine-manager-protocol",
@@ -2034,6 +2024,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "subtle",
+ "tempfile",
  "thiserror 2.0.20",
  "tokio",
  "tokio-rusqlite",
@@ -2042,41 +2033,6 @@ dependencies = [
  "uuid",
  "webauthn-rs",
  "zstd 0.13.3",
-]
-
-[[package]]
-name = "demi-backend-device-access"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-agent-store",
- "demi-agent-tools",
- "demi-backend-blobs",
- "demi-backend-cloud",
- "demi-backend-database",
- "demi-backend-runners",
- "demi-command-declarations",
- "demi-command-protocol",
- "demi-device-interface",
- "demi-device-paths",
- "demi-plugin-interface",
- "demi-runner-client",
- "demi-runner-protocol",
- "demi-shared-gates",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "http",
- "schemars",
- "serde",
- "serde_json",
- "shlex",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
 ]
 
 [[package]]
@@ -2091,17 +2047,20 @@ dependencies = [
  "data-encoding",
  "demi-agent-store",
  "demi-backend-accounts",
- "demi-backend-blobs",
  "demi-backend-cloud",
  "demi-backend-database",
- "demi-backend-device-access",
- "demi-backend-page-sync",
- "demi-backend-permissions",
- "demi-backend-providers",
  "demi-backend-runners",
  "demi-backend-user-shard",
  "demi-command-protocol",
  "demi-conversation-lane-protocol",
+ "demi-core",
+ "demi-core-blobs",
+ "demi-core-device-access",
+ "demi-core-devices",
+ "demi-core-permissions",
+ "demi-core-providers",
+ "demi-core-store",
+ "demi-core-sync",
  "demi-device-interface",
  "demi-plugin-host",
  "demi-plugin-interface",
@@ -2140,79 +2099,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "demi-backend-idle-watch"
-version = "0.1.65"
-dependencies = [
- "demi-shared-gates",
- "futures-util",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-backend-page-sync"
-version = "0.1.65"
-dependencies = [
- "demi-backend-database",
- "demi-plugin-host",
- "demi-web-api-protocol",
- "tokio",
-]
-
-[[package]]
-name = "demi-backend-permissions"
-version = "0.1.65"
-dependencies = [
- "demi-backend-database",
- "demi-backend-page-sync",
- "demi-command-declarations",
- "demi-device-interface",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "shlex",
- "thiserror 2.0.20",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "demi-backend-providers"
-version = "0.1.65"
-dependencies = [
- "aes-gcm 0.10.3",
- "async-stream",
- "demi-backend-database",
- "demi-backend-page-sync",
- "demi-provider-common",
- "demi-provider-registry",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "rand 0.9.5",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "demi-backend-runners"
 version = "0.1.65"
 dependencies = [
  "axum",
  "bytes",
  "data-encoding",
- "demi-backend-blobs",
  "demi-backend-database",
- "demi-backend-page-sync",
  "demi-command-protocol",
+ "demi-core-blobs",
+ "demi-core-devices",
+ "demi-core-store",
  "demi-device-interface",
  "demi-runner-client",
  "demi-runner-protocol",
@@ -2241,31 +2138,22 @@ dependencies = [
 name = "demi-backend-user-shard"
 version = "0.1.65"
 dependencies = [
- "async-stream",
  "axum",
  "base64 0.22.1",
  "bytes",
- "demi-agent-server",
- "demi-agent-session",
- "demi-agent-store",
- "demi-agent-tools",
- "demi-agent-transcript",
  "demi-backend-accounts",
- "demi-backend-blobs",
  "demi-backend-cloud",
  "demi-backend-database",
- "demi-backend-device-access",
- "demi-backend-idle-watch",
- "demi-backend-page-sync",
- "demi-backend-permissions",
- "demi-backend-providers",
  "demi-backend-runners",
- "demi-command-declarations",
- "demi-command-package-claude-code-protocol",
- "demi-command-protocol",
  "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-device-paths",
+ "demi-core",
+ "demi-core-blobs",
+ "demi-core-device-access",
+ "demi-core-devices",
+ "demi-core-permissions",
+ "demi-core-providers",
+ "demi-core-store",
+ "demi-core-sync",
  "demi-machine-manager-protocol",
  "demi-plugin-host",
  "demi-plugin-interface",
@@ -2276,24 +2164,16 @@ dependencies = [
  "demi-runner-client",
  "demi-runner-protocol",
  "demi-shared-artifacts",
- "demi-shared-gates",
  "demi-shared-types",
  "demi-web-api-protocol",
  "futures-util",
- "garde",
- "hex",
- "hmac 0.12.1",
  "http",
- "jiff",
  "object_store",
  "rand 0.9.5",
  "reqwest",
- "schemars",
  "semver",
- "serde",
  "serde_json",
  "sha2 0.10.9",
- "subtle",
  "sysinfo",
  "thiserror 2.0.20",
  "tokio",
@@ -2301,7 +2181,6 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "zstd 0.13.3",
 ]
 
 [[package]]
@@ -2520,6 +2399,244 @@ dependencies = [
  "serde_plain",
  "serde_with",
  "thiserror 2.0.20",
+]
+
+[[package]]
+name = "demi-core"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "demi-agent-server",
+ "demi-agent-session",
+ "demi-agent-store",
+ "demi-agent-tools",
+ "demi-agent-transcript",
+ "demi-command-declarations",
+ "demi-command-package-claude-code-protocol",
+ "demi-command-protocol",
+ "demi-conversation-lane-protocol",
+ "demi-core-blobs",
+ "demi-core-device-access",
+ "demi-core-devices",
+ "demi-core-idle-watch",
+ "demi-core-permissions",
+ "demi-core-providers",
+ "demi-core-store",
+ "demi-core-sync",
+ "demi-device-interface",
+ "demi-device-paths",
+ "demi-plugin-host",
+ "demi-plugin-interface",
+ "demi-provider-claude-code",
+ "demi-provider-common",
+ "demi-provider-registry",
+ "demi-provider-relay",
+ "demi-runner-client",
+ "demi-runner-protocol",
+ "demi-shared-gates",
+ "demi-shared-types",
+ "demi-web-api-protocol",
+ "futures-util",
+ "garde",
+ "hex",
+ "hmac 0.12.1",
+ "http",
+ "icu_locale",
+ "icu_time",
+ "jiff",
+ "rand 0.9.5",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "subtle",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "uuid",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "demi-core-blobs"
+version = "0.1.65"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "demi-agent-store",
+ "demi-shared-types",
+ "demi-web-api-protocol",
+ "futures-util",
+ "object_store",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "demi-core-device-access"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "demi-agent-store",
+ "demi-agent-tools",
+ "demi-command-declarations",
+ "demi-command-protocol",
+ "demi-core-blobs",
+ "demi-core-devices",
+ "demi-core-store",
+ "demi-device-interface",
+ "demi-device-paths",
+ "demi-plugin-interface",
+ "demi-runner-client",
+ "demi-runner-protocol",
+ "demi-shared-gates",
+ "demi-shared-types",
+ "demi-web-api-protocol",
+ "futures-util",
+ "garde",
+ "http",
+ "schemars",
+ "serde",
+ "serde_json",
+ "shlex",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "demi-core-devices"
+version = "0.1.65"
+dependencies = [
+ "axum",
+ "bytes",
+ "demi-command-protocol",
+ "demi-core-store",
+ "demi-core-sync",
+ "demi-device-interface",
+ "demi-runner-client",
+ "demi-runner-protocol",
+ "demi-shared-gates",
+ "demi-web-api-protocol",
+ "futures-util",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "demi-core-idle-watch"
+version = "0.1.65"
+dependencies = [
+ "demi-shared-gates",
+ "futures-util",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "demi-core-permissions"
+version = "0.1.65"
+dependencies = [
+ "demi-command-declarations",
+ "demi-core-store",
+ "demi-core-sync",
+ "demi-device-interface",
+ "demi-shared-types",
+ "demi-web-api-protocol",
+ "futures-util",
+ "shlex",
+ "thiserror 2.0.20",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "demi-core-providers"
+version = "0.1.65"
+dependencies = [
+ "aes-gcm 0.10.3",
+ "async-stream",
+ "demi-core-store",
+ "demi-core-sync",
+ "demi-provider-common",
+ "demi-provider-registry",
+ "demi-shared-types",
+ "demi-web-api-protocol",
+ "futures-util",
+ "garde",
+ "rand 0.9.5",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "demi-core-store"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "comrak",
+ "demi-agent-store",
+ "demi-conversation-lane-protocol",
+ "demi-device-interface",
+ "demi-device-paths",
+ "demi-plugin-host",
+ "demi-plugin-interface",
+ "demi-runner-client",
+ "demi-runner-protocol",
+ "demi-shared-artifacts",
+ "demi-shared-gates",
+ "demi-shared-types",
+ "demi-web-api-protocol",
+ "futures-util",
+ "garde",
+ "hashlink",
+ "hex",
+ "jiff",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-rusqlite",
+ "tracing",
+ "uuid",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "demi-core-sync"
+version = "0.1.65"
+dependencies = [
+ "demi-core-store",
+ "demi-plugin-host",
+ "demi-web-api-protocol",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tokio",
 ]
 
 [[package]]
@@ -3426,6 +3543,7 @@ dependencies = [
  "serde_plain",
  "serde_with",
  "sha2 0.10.9",
+ "shlex",
  "thiserror 2.0.20",
  "tokio",
  "typed-path",
@@ -3495,6 +3613,7 @@ version = "0.1.65"
 dependencies = [
  "clap",
  "demi-backend-database",
+ "demi-core-store",
  "demi-machine-manager-protocol",
  "demi-runner-protocol",
  "demi-shared-artifacts",

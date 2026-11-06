@@ -3,7 +3,7 @@
 //! The runner's first message is its hello, which must come within the hello
 //! deadline.
 //!
-//! - A known token moves the socket into the shard of the device's owner.
+//! - A known token moves the socket into the core of the device's owner.
 //! - A runner without one waits here for its user to claim the code it printed,
 //!   the code changing every claim lifetime while it waits.
 
@@ -11,17 +11,19 @@ use std::sync::Arc;
 
 use axum::extract::ws::{Message, WebSocket};
 use demi_backend_database::accounts::TokenHash;
+use demi_core_store::StorageError;
 use demi_runner_protocol::values::DeviceToken;
 use demi_runner_protocol::wire::{self, HelloErrorCode, Inbound, Outbound, RunnerInfo};
 
 use demi_backend_runners::claims::ClaimGrant;
 use demi_backend_runners::codes::ClaimCode;
-use demi_backend_runners::devices::{RunnerSocket, send};
+use demi_core_devices::devices::{RunnerSocket, send};
 
 use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::{KeptJobs, Shards};
+use demi_backend_user_shard::pool::Shards;
+use demi_core::KeptJobs;
 
-/// Serves a runner's socket until it is handed to a shard or closes.
+/// Serves a runner's socket until it is handed to a core or closes.
 pub(crate) async fn accept(services: Arc<Services>, shards: Shards, mut socket: RunnerSocket) {
     let deadline = services.runners.hello_deadline;
     let hello = match tokio::time::timeout(deadline, hello(&mut socket)).await {
@@ -64,10 +66,11 @@ pub(crate) async fn accept(services: Arc<Services>, shards: Shards, mut socket: 
         return;
     };
     let lookup = async {
-        services
-            .control
-            .device_by_token(TokenHash::of(token.expose()))
-            .await
+        let Some((id, owner)) = services.control.device_by_token(TokenHash::of(token.expose())).await? else {
+            return Ok(None);
+        };
+        let device = services.stores.of(&owner).await?.device(id).await?;
+        Ok::<_, StorageError>(device.map(|device| (owner, device)))
     };
     let device = tokio::select! {
         device = lookup => device,
@@ -76,7 +79,7 @@ pub(crate) async fn accept(services: Arc<Services>, shards: Shards, mut socket: 
         () = closed(&mut socket) => return,
     };
     let device = match device {
-        Ok(Some(device)) => device,
+        Ok(Some(found)) => found,
         Ok(None) => {
             refuse(
                 socket,
@@ -103,7 +106,7 @@ pub(crate) async fn accept(services: Arc<Services>, shards: Shards, mut socket: 
             return;
         }
     };
-    let owner = device.user.clone();
+    let (owner, device) = device;
     // The devices of a disabled account cannot reach the backend: its
     // runners are turned away without a word and connect again, so enabling
     // the account brings them back.
@@ -126,9 +129,9 @@ pub(crate) async fn accept(services: Arc<Services>, shards: Shards, mut socket: 
     }
     let adopted = shards
         .of(&owner)
-        .adopt(move |shard| async move { shard.adopt_runner(device, runner, kept, socket).await })
+        .adopt(move |core| async move { core.adopt_runner(device, runner, kept, socket).await })
         .await;
-    // A shard that is closing takes no runner: dropping the socket closes it
+    // A core that is closing takes no runner: dropping the socket closes it
     // without a word, as shutdown does to every runner.
     if adopted.is_err() {
         tracing::info!(event = "socket.refused", kind = "runner", reason = "shutting_down", "a runner connected while the backend shuts down");
@@ -225,7 +228,7 @@ async fn refuse(mut socket: RunnerSocket, runner: &RunnerInfo, code: HelloErrorC
 }
 
 /// Waits for the runner's user to claim it, printing a new code every claim
-/// lifetime, and hands the socket to the user's shard once claimed. Frames
+/// lifetime, and hands the socket to the user's core once claimed. Frames
 /// the runner sends meanwhile are ignored; unclaimed runners are not pinged.
 async fn await_claim(
     services: &Services,
@@ -277,7 +280,7 @@ async fn await_claim(
     }
 }
 
-/// Moves the claimed runner's socket into the shard of the user who claimed it,
+/// Moves the claimed runner's socket into the core of the user who claimed it,
 /// which gives the runner its token. A runner lost on the way leaves the grant
 /// unanswered, and the claim then deletes the device it made.
 async fn hand_over(
@@ -288,15 +291,15 @@ async fn hand_over(
     grant: ClaimGrant,
 ) {
     let ClaimGrant {
+        owner,
         device,
         token,
         bound,
     } = grant;
-    let owner = device.user.clone();
     let adopted = shards
         .of(&owner)
-        .adopt(move |shard| async move {
-            shard.adopt_claimed(device, runner, instance, token, socket, bound).await
+        .adopt(move |core| async move {
+            core.adopt_claimed(device, runner, instance, token, socket, bound).await
         })
         .await;
     if adopted.is_err() {

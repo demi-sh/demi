@@ -174,16 +174,11 @@ async fn in_place(
     Ok(())
 }
 
-/// Puts a directory's entries on disk.
-#[cfg(unix)]
+/// Puts a directory's entries on disk (`crate::sync_directory`).
 async fn sync_directory(path: &Path) -> Result<(), Error> {
-    tokio::fs::File::open(path).await?.sync_all().await?;
-    Ok(())
-}
-
-/// The standard library cannot open a directory on Windows, so there a
-/// directory's entries reach the disk when the system writes them.
-#[cfg(not(unix))]
-async fn sync_directory(_: &Path) -> Result<(), Error> {
+    let path = path.to_owned();
+    tokio::task::spawn_blocking(move || crate::sync_directory(&path))
+        .await
+        .map_err(std::io::Error::other)??;
     Ok(())
 }

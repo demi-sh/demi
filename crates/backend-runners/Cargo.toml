@@ -12,10 +12,11 @@ doctest = false
 bench = false
 
 [dependencies]
+demi-core-devices = { path = "../core-devices" }
 demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-backend-blobs = { path = "../backend-blobs" }
+demi-core-blobs = { path = "../core-blobs" }
 demi-backend-database = { path = "../backend-database" }
-demi-backend-page-sync = { path = "../backend-page-sync" }
+demi-core-store = { path = "../core-store" }
 demi-command-protocol = { path = "../command-protocol" }
 demi-shared-gates = { path = "../shared-gates" }
 demi-runner-client = { path = "../runner-client", features = ["edge"] }

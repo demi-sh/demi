@@ -13,6 +13,7 @@ use super::AppState;
 use super::body::JsonBody;
 use super::error::ApiError;
 use super::gate::AuthUser;
+use demi_backend_cloud::user_core::CloudOfCore;
 
 pub(super) async fn status(
     State(state): State<AppState>,
@@ -21,7 +22,7 @@ pub(super) async fn status(
     let status = state
         .shards
         .of(&user.id)
-        .call(|shard, _| async move { shard.cloud_shard().cloud_status().await })
+        .call(|core, _| async move { core.cloud_core().cloud_status().await })
         .await??;
     Ok(Json(status))
 }
@@ -36,7 +37,7 @@ pub(super) async fn reset(
     let operation = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.cloud_shard().reset_cloud(operation_id).await })
+        .call(move |core, _| async move { core.cloud_core().reset_cloud(operation_id).await })
         .await?
         .map_err(|error| match error {
             // A reset that cannot start now is refused like a second reset.

@@ -29,6 +29,7 @@ use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 
 use super::AppState;
+use demi_backend_user_shard::prefetch::RunnerPrefetch;
 
 /// The longest request line read.
 ///
@@ -144,7 +145,7 @@ async fn announce(state: &AppState, request: &str) -> Result<Arc<NextRelease>, S
     let users = state
         .services
         .control
-        .paired_owners()
+        .device_holders()
         .await
         .map_err(|error| error.to_string())?;
     for user in users {
@@ -152,7 +153,7 @@ async fn announce(state: &AppState, request: &str) -> Result<Arc<NextRelease>, S
         let asked = state
             .shards
             .of(&user)
-            .call(move |shard, _| async move { shard.prefetch(next).await })
+            .call(move |core, _| async move { core.prefetch(next).await })
             .await;
         if asked.is_err() {
             return Err("the backend is shutting down".into());

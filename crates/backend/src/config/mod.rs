@@ -69,22 +69,21 @@ use tracing_subscriber::filter::Targets;
 use url::Url;
 
 use demi_backend_accounts::email_change::AccountMail;
-use demi_backend_blobs::store::{S3Config, Storage};
+use demi_core_blobs::store::{S3Config, Storage};
 use demi_backend_cloud::tuning::CloudTuning;
-use demi_backend_user_shard::conversation::claude_cli::MachineSlot;
+use demi_core::conversation::claude_cli::MachineSlot;
 use demi_provider_claude_code::releases::DEFAULT_RELEASES_URL;
 use demi_provider_registry::families::FamilyRegistry;
-use demi_backend_providers::vault::entries::SeededAccount;
-use demi_backend_providers::vault::logins::LoginTiming;
+use demi_core_providers::vault::entries::SeededAccount;
+use demi_core_providers::vault::logins::LoginTiming;
 use demi_backend_runners::native::NativeCatalog;
 use demi_plugin_interface::PluginFactory;
 use demi_provider_common::media_catalog;
 use demi_provider_common::models_dev::ModelsDevClient;
 
-use demi_backend_user_shard::shard::ShardPlacement;
-use demi_backend_user_shard::tuning::{
-    ConversationTuning, LifecycleTuning, MediaTuning, PageTuning, RunnerTuning,
-};
+use demi_backend_user_shard::pool::ShardPlacement;
+use demi_backend_user_shard::tuning::PageTuning;
+use demi_core::tuning::{ConversationTuning, LifecycleTuning, MediaTuning, RunnerTuning};
 
 use self::secret::InstanceSecret;
 
@@ -268,7 +267,7 @@ pub struct Config {
     pub log: Targets,
 }
 
-/// Where the one object store lives (`crates/backend-blobs/src/store.rs`).
+/// Where the one object store lives (`crates/core-blobs/src/store.rs`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum StorageKind {
     Local,
@@ -296,7 +295,7 @@ pub enum ConfigError {
     #[error("{0} names an S3 bucket, and DEMI_STORAGE is local")]
     S3Unused(&'static str),
     #[error("{0}")]
-    S3(#[from] demi_backend_blobs::store::S3ConfigError),
+    S3(#[from] demi_core_blobs::store::S3ConfigError),
     /// The reason never quotes the file, which holds tokens.
     #[error("--dev-codex-account {}: {reason}", path.display())]
     DevCodexAccount { path: PathBuf, reason: String },

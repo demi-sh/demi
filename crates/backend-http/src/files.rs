@@ -2,9 +2,9 @@
 //! file's bytes in both directions, and the working tree's changes.
 //!
 //! Each reaches the conversation's device through its device access
-//! (`crates/backend-device-access/src/access.rs`), in the user's shard, which
+//! (`crates/core-device-access/src/access.rs`), in the user's core, which
 //! also checks that the conversation is the caller's. The bytes of a download
-//! or an upload move here while the shard holds their admission.
+//! or an upload move here while the core holds their admission.
 
 use axum::Json;
 use axum::body::Body;
@@ -13,7 +13,7 @@ use axum::http::header::{CONTENT_LENGTH, ETAG, IF_NONE_MATCH, LAST_MODIFIED, RAN
 use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode};
 use axum::response::{IntoResponse, Response};
 use demi_runner_client::{ConditionalRead, byte_stream};
-use demi_backend_runners::files::{
+use demi_core_devices::files::{
     TEXT_RANGE, TextError, TextRefusal, browse_directory, text_of, text_of_stream,
 };
 use demi_device_interface::{FileStat, DeviceError, DeviceFs, MkdirOptions, RmOptions};
@@ -37,8 +37,8 @@ use super::gate::AuthUser;
 use super::listener::Peer;
 use super::query::QueryParams;
 use super::transfer::{TRANSFER_IDLE, UploadEnd, copy_upload, paced_body};
-use demi_backend_device_access::access::{ConversationDevice, DeviceAccessError, Refusal};
-use demi_backend_device_access::transfer::{
+use demi_core_device_access::access::{ConversationDevice, DeviceAccessError, Refusal};
+use demi_core_device_access::transfer::{
     Download, DownloadPath, DownloadRequest, OpenSearch, RangeAnswer,
 };
 
@@ -294,9 +294,9 @@ pub(super) async fn raw(
     let download = state
         .shards
         .of(&user.id)
-        .call(move |shard, cancel| async move {
-            shard
-                .device_shard()
+        .call(move |core, cancel| async move {
+            core
+                .device_core()
                 .open_download(&conversation, request, &cancel)
                 .await
         })
@@ -395,9 +395,9 @@ pub(super) async fn search(
     let opened = state
         .shards
         .of(&user.id)
-        .call(move |shard, cancel| async move {
-            shard
-                .device_shard()
+        .call(move |core, cancel| async move {
+            core
+                .device_core()
                 .open_search(&conversation, root, query, &cancel)
                 .await
         })
@@ -427,9 +427,9 @@ pub(super) async fn upload(
     let open = state
         .shards
         .of(&user.id)
-        .call(move |shard, cancel| async move {
-            shard
-                .device_shard()
+        .call(move |core, cancel| async move {
+            core
+                .device_core()
                 .open_upload(&conversation, path, replace.0, &cancel)
                 .await
         })
@@ -743,9 +743,9 @@ where
     state
         .shards
         .of(user)
-        .call(move |shard, cancel| async move {
-            shard
-                .device_shard()
+        .call(move |core, cancel| async move {
+            core
+                .device_core()
                 .with_unheld_device(&conversation, device.as_ref(), &cancel, operation)
                 .await?
         })

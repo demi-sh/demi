@@ -35,7 +35,7 @@ const MENU_NAME_MARKS: &[char] = &[
 ];
 
 /// The help of `demi agent workflows`: where workflow files live, each
-/// field, and a whole example (`crates/backend-user-shard/src/conversation/workflows.rs`).
+/// field, and a whole example (`crates/core/src/conversation/workflows.rs`).
 pub const WORKFLOWS_HELP: &str = r#"A workflow is a group of subagent profiles with instructions on how to split the work between them, kept in the project's repository so a team shares it. The user picks one for a conversation in the composer's Workflow menu, or lets an agent pick one with demi agent workflows use; nothing applies until one is picked. With a workflow picked, the conversation spawns its profiles and the user's own from Settings > Subagents, unless user_profiles turns the user's off, and its instructions and profiles reach the agent leading the conversation with the project's instructions.
 
 Where: .demi/workflows/<id>.yaml in the nearest directory, from the project's directory up to the git repository's root, that has a .demi/workflows/ directory. The file's name without .yaml is the workflow's id. A conversation that works in a linked git worktree of the project reads the project's files, so a branch's change to a workflow applies once the project's checkout holds it; list shows the worktree's own beside them while they differ, and use --worktree picks one.
@@ -209,7 +209,7 @@ fn one_line(value: &str, _: &()) -> garde::Result {
     Ok(())
 }
 
-/// The same rule as a user profile's name (`crates/backend-accounts/src/subagents.rs`),
+/// The same rule as a user profile's name (`crates/core/src/subagents.rs`),
 /// whose limit of 40 characters that crate owns.
 fn profile_id(value: &str, _: &()) -> garde::Result {
     let mut chars = value.chars();

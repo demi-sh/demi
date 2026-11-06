@@ -39,7 +39,7 @@ fn answer_fits(value: &WireBytes, _: &()) -> garde::Result {
 #[garde(allow_unvalidated)]
 pub enum Inbound {
     /// Ends what the runner's residents hold for the conversation
-    /// (`crates/backend-user-shard/src/lifecycle/conversations.rs`).
+    /// (`crates/core/src/lifecycle/conversations.rs`).
     ///
     /// `over` says the conversation is archived or deleted, which also ends
     /// what the runner itself keeps for it besides its residents' state: its
@@ -755,7 +755,7 @@ pub enum Inbound {
         cwd: Option<String>,
     },
     /// The directory at `path` as its device names it, in one exchange
-    /// (`crates/backend-device-access/src/directories.rs`): its real path, or
+    /// (`crates/core-device-access/src/directories.rs`): its real path, or
     /// `ENOTDIR` when it is no directory. With `create`, a directory that
     /// does not exist is made first, with its parents, and a path that cannot
     /// be one fails with a reason the runner words from the part of it that
@@ -928,7 +928,7 @@ pub enum Inbound {
         code: crate::direct::DialRefusal,
         message: String,
     },
-    /// Every forward this runner is an end of (`crates/backend-user-shard/src/shard/port_forwards.rs`), as
+    /// Every forward this runner is an end of (`crates/core/src/port_forwards.rs`), as
     /// the connection begins and whenever one of them, or the presence of
     /// a device at its other end, changes.
     Forwards {
@@ -977,7 +977,7 @@ pub enum Inbound {
         message: String,
     },
     /// A request the backend makes for the user from this device
-    /// (`crates/backend-user-shard/src/shard/device_requests.rs`): the runner
+    /// (`crates/core/src/device_requests.rs`): the runner
     /// makes it to `url` with `method` and `headers`, reading its body from
     /// `body`, when it has one, and answers `http_answered` with the status
     /// and headers, the answer's body going into `answer`, or `http_failed`.
@@ -1885,7 +1885,7 @@ pub struct RunnerInfo {
     pub name: String,
     pub platform: RunnerPlatform,
     /// The device's operating system, which the agent reads in its context
-    /// block (`crates/backend-device-access/src/transition.rs`).
+    /// block (`crates/core-device-access/src/transition.rs`).
     #[garde(dive)]
     pub os: OperatingSystem,
     /// The runner's release, such as `0.1.16`, which Settings shows.

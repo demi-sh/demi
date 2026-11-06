@@ -1,0 +1,180 @@
+//! The Cloud's side of the user's core (`crates/core/src/lib.rs`): what the
+//! Cloud needs of the core (`CloudCore`), with what the server keeps in the
+//! core for it (`CloudSide`), and the Cloud as the core's device access sees it
+//! (`CloudDevice`).
+
+use std::rc::Rc;
+use std::time::Duration;
+
+use demi_backend_database::control::ControlService;
+use demi_core::Core;
+use demi_core::holds::{IdleHold, ResetHold};
+use demi_core_device_access::cloud::{CloudAdmission, CloudError, CloudDevice, MachineAccess};
+use demi_core_idle_watch::Activity;
+use demi_core_providers::vault::entries::Vault;
+use demi_core_devices::devices::Devices;
+use demi_core_devices::public_url::PublicUrl;
+use demi_core_store::StorageError;
+use demi_core_store::devices::DeviceRecord;
+use demi_core_store::store::CoreStore;
+use demi_core_sync::UserMarks;
+use demi_plugin_host::Lost;
+use demi_provider_registry::registry::ProviderRegistry;
+use demi_runner_client::Admission;
+use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProviderId, UserId};
+use futures_util::future::LocalBoxFuture;
+use tokio_util::sync::WaitForCancellationFuture;
+use tokio_util::task::TaskTracker;
+
+use crate::machine::Cloud;
+use crate::{CloudServices, CloudCore, CloudSide, ConversationHold};
+
+impl ConversationHold for IdleHold {}
+
+impl ConversationHold for ResetHold {}
+
+/// What the server keeps in `core` for its Cloud.
+fn side(core: &Core) -> &CloudSide {
+    core.extension()
+        .expect("the server starts each of its cores with its Cloud's side")
+}
+
+impl CloudCore for Core {
+    fn user(&self) -> &UserId {
+        Core::user(self)
+    }
+
+    fn cloud(&self) -> &Cloud {
+        &side(self).cloud
+    }
+
+    fn devices(&self) -> &Devices {
+        Core::devices(self)
+    }
+
+    fn control(&self) -> &ControlService {
+        &side(self).control
+    }
+
+    fn store(&self) -> &CoreStore {
+        Core::store(self)
+    }
+
+    fn cloud_services(&self) -> &CloudServices {
+        &side(self).services
+    }
+
+    fn public_url(&self) -> &PublicUrl {
+        &self.services().public_url
+    }
+
+    fn idle_window(&self) -> Duration {
+        self.services().lifecycle.idle_window
+    }
+
+    fn marks(&self) -> UserMarks {
+        self.services().sync.of(Core::user(self))
+    }
+
+    fn vault(&self) -> &Vault {
+        &self.services().vault
+    }
+
+    fn provider_registry(&self) -> &ProviderRegistry {
+        &self.services().provider_registry
+    }
+
+    fn tasks(&self) -> &TaskTracker {
+        Core::tasks(self)
+    }
+
+    fn closed(&self) -> WaitForCancellationFuture<'_> {
+        Core::closed(self)
+    }
+
+    fn this(&self) -> Rc<dyn CloudCore> {
+        Core::this(self)
+    }
+
+    fn activity(&self, conversation: &ConversationId) -> Activity {
+        self.conversation_activity(conversation)
+    }
+
+    fn tree_providers(&self, conversation: &ConversationId) -> Vec<ProviderId> {
+        Core::tree_providers(self, conversation)
+    }
+
+    fn attended(&self, conversation: &ConversationId) -> bool {
+        Core::attended(self, conversation)
+    }
+
+    fn hold_for_idle(&self, conversation: &ConversationId) -> Option<Box<dyn ConversationHold>> {
+        let held: Box<dyn ConversationHold> = Box::new(Core::hold_for_idle(self, conversation)?);
+        Some(held)
+    }
+
+    fn packages_lost(&self, device: &DeviceId) {
+        let core = Core::this(self);
+        let device = device.clone();
+        Core::tasks(self).spawn_local(async move {
+            core.package_lost(&device, Lost::Every).await;
+        });
+    }
+
+    fn hold_for_reset<'a>(
+        &'a self,
+        conversation: &'a ConversationId,
+        files_on_cloud: bool,
+        hold: Duration,
+    ) -> LocalBoxFuture<'a, Option<Box<dyn ConversationHold>>> {
+        Box::pin(async move {
+            let held: Box<dyn ConversationHold> =
+                Box::new(Core::hold_for_reset(self, conversation, files_on_cloud, hold).await?);
+            Some(held)
+        })
+    }
+}
+
+/// The core as its Cloud sees it, whose operations it is.
+pub trait CloudOfCore {
+    fn cloud_core(&self) -> &(dyn CloudCore + 'static);
+}
+
+impl CloudOfCore for Core {
+    fn cloud_core(&self) -> &(dyn CloudCore + 'static) {
+        self
+    }
+}
+
+/// The user's Cloud as the core's device access sees it.
+pub struct UserCloud(pub Rc<Core>);
+
+impl CloudDevice for UserCloud {
+    fn cloud_device(&self) -> LocalBoxFuture<'_, Result<DeviceRecord, CloudError>> {
+        Box::pin(async move { Ok(self.0.cloud_core().cloud_device().await?) })
+    }
+
+    fn admit_cloud<'a>(&'a self, device: &'a DeviceRecord) -> LocalBoxFuture<'a, Result<CloudAdmission, CloudError>> {
+        Box::pin(self.0.cloud_core().admit_cloud(device))
+    }
+
+    fn operation_admission<'a>(&'a self, device: &'a DeviceRecord) -> LocalBoxFuture<'a, Result<Admission, StorageError>> {
+        Box::pin(self.0.cloud_core().operation_admission(device))
+    }
+
+    fn machine_access(&self) -> LocalBoxFuture<'_, Result<MachineAccess, CloudError>> {
+        Box::pin(self.0.cloud_core().machine_access())
+    }
+
+    fn claude_code_access(&self) -> LocalBoxFuture<'_, Result<MachineAccess, CloudError>> {
+        Box::pin(self.0.cloud_core().claude_code_access())
+    }
+
+    fn stop(&self) {
+        side(&self.0).cloud.stop();
+    }
+
+    fn close(&self) -> LocalBoxFuture<'_, ()> {
+        Box::pin(self.0.cloud_core().close_cloud())
+    }
+}

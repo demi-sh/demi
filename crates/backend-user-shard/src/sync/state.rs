@@ -1,16 +1,16 @@
 //! The product state `GET /state` answers, and each part of it a channel sends
 //! when it changed.
 //!
-//! The user's shard reads each part from the stores and its own state when the
+//! The user's core reads each part from the stores and its own state when the
 //! channel sends it. The state is not one atomic read across databases, and need
 //! not be: its version is taken before it is read, so a change made while it
 //! is read is one after the version, which the page follows the state from.
 
-use demi_backend_providers::vault::entries::Vault;
+use demi_core_providers::vault::entries::Vault;
 use demi_backend_accounts::passkeys::{passkey_list, relying_party_id};
-use demi_backend_database::StorageError;
+use demi_core_store::StorageError;
 use demi_backend_database::accounts::TokenHash;
-use demi_backend_page_sync::Part;
+use demi_core_sync::Part;
 use demi_backend_runners::install::install_commands;
 use demi_conversation_lane_protocol::Version;
 use demi_plugin_interface::PluginError;
@@ -20,13 +20,15 @@ use demi_web_api_protocol::port_forwards::PortForwardList;
 use demi_web_api_protocol::users::Users;
 use demi_web_api_protocol::providers::{ProviderReading, ProviderState};
 use demi_web_api_protocol::state::{ProductState, SyncEvent};
-use serde::Serialize;
-use sha2::{Digest as _, Sha256};
+use demi_core_sync::etag_of;
 use std::time::Instant;
 use futures_util::future::join_all;
 
-use crate::provider_settings::CatalogError;
-use crate::shard::Shard;
+use demi_core::provider_settings::CatalogError;
+use demi_backend_cloud::user_core::CloudOfCore;
+use demi_core::Core;
+
+use crate::server_starter::ServerCore;
 
 /// Why a part of the product state could not be read.
 #[derive(Debug, thiserror::Error)]
@@ -71,31 +73,44 @@ fn millis(started: Instant) -> u64 {
     u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX)
 }
 
-/// The entity tag of `body`, the value a read answers with: the quoted hash
-/// of its JSON, which is what the `ETag` of the read carries
-/// (`crates/backend-http/src/revalidate.rs`) and what a push of the value
-/// names.
-pub fn etag_of<T: Serialize>(body: &T) -> String {
-    // The messages' types serialize as JSON, which serde_json never refuses.
-    etag_of_json(&serde_json::to_vec(body).expect("a body serializes to JSON"))
-}
-
-/// The entity tag of the JSON `json`.
-pub fn etag_of_json(json: &[u8]) -> String {
-    format!("\"{:x}\"", Sha256::digest(json))
-}
-
-impl Shard {
-    /// The product state for `user`, this shard's user as the session
+/// The product state a page reads, on the user's core.
+#[expect(
+    async_fn_in_trait,
+    reason = "a core runs on one thread: its futures are never sent to another"
+)]
+pub trait StateReads {
+    /// The product state for `user`, this core's user as the session
     /// resolved them.
     ///
     /// It writes how long each part took, which a page with no offline copy
     /// waits for before it shows anything.
-    pub async fn product_state(
+    async fn product_state(
+        &self,
+        user: UserDto,
+    ) -> Result<ProductState, StateError>;
+
+    /// The part as the message that carries it, read now for `user`, this
+    /// core's user, and the page of the session `reader`; a conversation
+    /// the user no longer has was deleted.
+    async fn read_part(
+        &self,
+        part: &Part,
+        user: &UserDto,
+        reader: &TokenHash,
+    ) -> Result<Option<SyncEvent>, StateError>;
+
+    /// The entries `user` infers with, each with what its provider says now,
+    /// which a user who only infers sees without accounts, plan or usage.
+    /// One entry that cannot be read leaves the others intact.
+    async fn provider_states(&self, user: &UserDto) -> Result<Vec<ProviderState>, StorageError>;
+}
+
+impl StateReads for Core {
+    async fn product_state(
         &self,
         user: UserDto,
     ) -> Result<ProductState, StateError> {
-        let services = self.services();
+        let services = self.server_services();
         let started = Instant::now();
         let mut ms = PartTimes::default();
         // The version before anything is read: a change made while the state
@@ -105,16 +120,16 @@ impl Shard {
         // this read is learned from the logins part, and its account is
         // then read below or with that part.
         let logins = services.logins.listed(self.user());
-        let preferences = timed(&mut ms.preferences, services.control.preferences(self.user().clone())).await?;
+        let preferences = timed(&mut ms.preferences, self.store().preferences()).await?;
         let providers = timed(&mut ms.providers, self.provider_states(&user)).await?;
         let models = timed(&mut ms.models, services.known_model_catalog(self.user())).await?;
-        let workspaces = timed(&mut ms.workspaces, services.control.workspaces(self.user().clone())).await?;
-        let projects = timed(&mut ms.projects, services.control.projects(self.user().clone())).await?;
+        let workspaces = timed(&mut ms.workspaces, self.store().workspaces()).await?;
+        let projects = timed(&mut ms.projects, self.store().projects()).await?;
         let devices = timed(&mut ms.devices, self.device_list()).await?;
         let mut conversations = timed(&mut ms.conversations, self.conversation_summaries(false)).await?;
         let active = conversations.len();
         conversations.extend(timed(&mut ms.archived, self.conversation_summaries(true)).await?);
-        let cloud = timed(&mut ms.cloud, self.cloud_shard().cloud_status()).await?;
+        let cloud = timed(&mut ms.cloud, self.cloud_core().cloud_status()).await?;
         let runner_release = match timed(&mut ms.runner_release, services.runner_releases.current()).await {
             Ok(release) => release.map(|release| release.release),
             Err(error) => {
@@ -192,22 +207,20 @@ impl Shard {
         })
     }
 
-    /// The part as the message that carries it, read now for `user`, this
-    /// shard's user, and the page of the session `reader`; a conversation
-    /// the user no longer has was deleted.
-    pub(crate) async fn read_part(
+    async fn read_part(
         &self,
         part: &Part,
         user: &UserDto,
         reader: &TokenHash,
     ) -> Result<Option<SyncEvent>, StateError> {
-        let control = &self.services().control;
+        let store = self.store();
+        let control = &self.server_services().control;
         let event = match part {
             // No channel of a page's sidebar follows it.
             Part::Metadata(_) => return Ok(None),
             Part::Conversation(id) => {
-                let record = control.conversation(id.clone()).await?;
-                let Some(record) = record.filter(|record| record.owner == *self.user()) else {
+                let record = store.conversation(id.clone()).await?;
+                let Some(record) = record else {
                     return Ok(Some(SyncEvent::ConversationDeleted { id: id.clone() }));
                 };
                 SyncEvent::Conversation {
@@ -215,14 +228,14 @@ impl Shard {
                 }
             }
             Part::ConversationOrder => SyncEvent::ConversationOrder {
-                ids: control.conversation_order(self.user().clone()).await?,
+                ids: store.conversation_order().await?,
             },
             Part::Instance => SyncEvent::Instance {
-                mode: self.services().vault.mode(),
-                manages: self.services().vault.managed_kinds(self.user()).await?,
+                mode: self.server_services().vault.mode(),
+                manages: self.server_services().vault.managed_kinds(self.user()).await?,
             },
             Part::Preferences => SyncEvent::Preferences {
-                preferences: control.preferences(self.user().clone()).await?,
+                preferences: store.preferences().await?,
             },
             Part::User => {
                 let Some(account) = control.account(self.user().clone()).await? else {
@@ -231,16 +244,14 @@ impl Shard {
                 SyncEvent::User { user: account.user }
             }
             Part::Workspaces => SyncEvent::Workspaces {
-                workspaces: control
-                    .workspaces(self.user().clone())
+                workspaces: store.workspaces()
                     .await?
                     .into_iter()
                     .map(|workspace| workspace.dto())
                     .collect(),
             },
             Part::Projects => SyncEvent::Projects {
-                projects: control
-                    .projects(self.user().clone())
+                projects: store.projects()
                     .await?
                     .into_iter()
                     .map(|project| project.dto())
@@ -250,14 +261,14 @@ impl Shard {
                 devices: self.device_list().await?,
             },
             Part::Subagents => {
-                let subagents = control.subagent_settings(self.user().clone()).await?;
+                let subagents = store.subagent_settings().await?;
                 SyncEvent::Subagents {
                     etag: etag_of(&subagents),
                     subagents,
                 }
             }
             Part::Instructions => {
-                let instructions = control.instructions(self.user().clone()).await?;
+                let instructions = store.instructions().await?;
                 SyncEvent::Instructions {
                     etag: etag_of(&InstructionsAnswer { instructions: instructions.clone() }),
                     instructions,
@@ -285,7 +296,7 @@ impl Shard {
                 }
             }
             Part::Sessions => SyncEvent::Sessions {
-                sessions: self.services().sessions.list(self.user(), reader).await?.sessions,
+                sessions: self.server_services().sessions.list(self.user(), reader).await?.sessions,
                 etag: String::new(),
             },
             Part::Users => {
@@ -295,7 +306,7 @@ impl Shard {
                 }
                 let list = Users {
                     users: control.users().await?,
-                    cloud_storage_limits: demi_backend_cloud::isolation::storage_limits(control, &self.services().cloud).await?,
+                    cloud_storage_limits: demi_backend_cloud::isolation::storage_limits(control, &self.server_services().cloud).await?,
                 };
                 SyncEvent::Users {
                     etag: etag_of(&list),
@@ -309,7 +320,7 @@ impl Shard {
                     return Ok(None);
                 }
                 SyncEvent::CloudIsolation {
-                    isolation: demi_backend_cloud::isolation::setting(control, &self.services().cloud).await?,
+                    isolation: demi_backend_cloud::isolation::setting(control, &self.server_services().cloud).await?,
                     etag: String::new(),
                 }
             }
@@ -318,13 +329,13 @@ impl Shard {
                 if user.role == Role::User {
                     return Ok(None);
                 }
-                let Some(upgrade) = self.services().upgrades.snapshot() else {
+                let Some(upgrade) = self.server_services().upgrades.snapshot() else {
                     return Ok(None);
                 };
                 SyncEvent::ServerUpgrade { upgrade }
             }
             Part::Update => SyncEvent::Update {
-                state: self.services().upgrades.update_state(),
+                state: self.server_services().upgrades.update_state(),
             },
             Part::Plugins => SyncEvent::Plugins {
                 plugins: self.plugins().entries().await.map_err(StorageError::from)?,
@@ -342,23 +353,20 @@ impl Shard {
                 providers: self.provider_states(user).await?,
             },
             Part::Models => SyncEvent::Models {
-                models: self.services().known_model_catalog(self.user()).await?,
+                models: self.server_services().known_model_catalog(self.user()).await?,
             },
             Part::Logins => SyncEvent::Logins {
-                logins: self.services().logins.listed(self.user()),
+                logins: self.server_services().logins.listed(self.user()),
             },
             Part::Cloud => SyncEvent::Cloud {
-                cloud: self.cloud_shard().cloud_status().await?,
+                cloud: self.cloud_core().cloud_status().await?,
             },
         };
         Ok(Some(event))
     }
 
-    /// The entries `user` infers with, each with what its provider says now,
-    /// which a user who only infers sees without accounts, plan or usage.
-    /// One entry that cannot be read leaves the others intact.
     async fn provider_states(&self, user: &UserDto) -> Result<Vec<ProviderState>, StorageError> {
-        let services = self.services();
+        let services = self.server_services();
         let entries = services.vault.entries_for(&user.id).await?;
         let providers = join_all(entries.iter().map(|entry| async move {
             let disclose = Vault::manages(&user.id, entry);

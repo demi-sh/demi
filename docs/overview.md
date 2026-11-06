@@ -83,7 +83,7 @@ The two sides of that boundary work as follows:
 The following files define the boundaries:
 
 - Providers: `crates/provider-registry/src/lib.rs`, with the server's
-  credential vault in `crates/backend-providers/src/lib.rs`
+  credential vault in `crates/core-providers/src/lib.rs`
 - Claude Code: `crates/provider-claude-code/src/lib.rs`
 - Native command residents, which are separate from provider CLIs:
   `crates/command-protocol/src/lib.rs`
@@ -94,6 +94,44 @@ schemas from those types ([Contracts](../ARCHITECTURE.md)).
 
 [Crates and packages](../ARCHITECTURE.md) owns the responsibilities and
 dependencies of every crate and package.
+
+## A program that runs Demi's agents
+
+The server runs one core for each user (`crates/core/src/lib.rs`). A program
+runs the same cores in a process of its own, `demi-core`, which the
+TypeScript SDK starts and speaks to over HTTP/2 on its standard input and
+output:
+
+```text
++--------------------+  HTTP/2 on stdio   +--------------------+
+| Program            |------------------->| demi-core          |
+| @demicodes/sdk     |  the web API, the  | the cores the      |
+| and its plugins    |  lanes, runners'   | program opened     |
++--------------------+  channels          +--------------------+
+   ^           |
+   |           | starts it and carries its channel
+   |           v
+   |    +--------------------+
+   |    | Runner             |
+   |    | run --stdio        |
+   |    +--------------------+
+   |
+   | its page's requests and page connection, which it forwards
+   |
++--------------------+
+| A page with Demi's |
+| elements           |
++--------------------+
+```
+
+- A program drives a core with the web app's own API and clients
+  (`packages/sdk/src/index.ts`).
+- A program's plugins answer their requests on lanes of the core's
+  connection (`crates/core-api/src/plugin_lanes.rs`).
+- A runner reaches the core over a channel the program gives it, such as a
+  container's standard input and output (`crates/runner-process/src/backend.rs`).
+- A program's page shows a conversation with the web app's own views
+  (`packages/web/src/elements/main.ts`).
 
 ## A conversation using a device
 
@@ -114,7 +152,7 @@ transcript.
 
 Two files own the rules around a target:
 
-- Sessions and targets (`crates/backend-device-access/src/lib.rs`) owns switching
+- Sessions and targets (`crates/core-device-access/src/lib.rs`) owns switching
   and attachment rules.
 - Execution coordination (`crates/backend-cloud/src/uses.rs`) owns admission
   while agent nodes or device operations are active.
@@ -164,9 +202,10 @@ The following table defines the terms this page uses:
 | Conversation | Backend-owned transcript, agent state, and product settings. |
 | Execution target | The conversation's selection of Cloud, a device directory, or a project. |
 | Device | A machine the conversation's work runs on, the user's Cloud or a paired one, and the filesystem and process abstraction its runner serves. |
-| Device access | The one way the backend reaches a conversation's device: it resolves the target, wakes a stopped Cloud and holds the conversation's file gate (`crates/backend-device-access/src/access.rs`). |
+| Device access | The one way the backend reaches a conversation's device: it resolves the target, wakes a stopped Cloud and holds the conversation's file gate (`crates/core-device-access/src/access.rs`). |
 | Guest | A managed gVisor/systrap sandbox running a runner. |
 | User shard | The part of the backend that holds everything belonging to one user, such as conversations, runner connections and Cloud state, on a single thread ([The user shard](../crates/backend-user-shard/src/lib.rs)). |
+| Core | Everything Demi does for one principal's agents, on one thread: one for each user in the server, and each a program opens in its process ([The core](../crates/core/src/lib.rs)). |
 | Backend machine | The machine that runs the backend or the machine manager. |
 
 The [reading index](README.md) lists every design document by the question it

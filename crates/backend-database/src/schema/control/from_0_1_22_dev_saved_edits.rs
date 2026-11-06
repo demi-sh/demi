@@ -1,6 +1,6 @@
 //! From the control schema that kept the edits and sends of saved messages
 //! to the one where an attached host goes by its device's name
-//! (`crates/backend-database/src/conversation_index.rs`) and a switch is known by the
+//! (`crates/core-store/src/conversation_index.rs`) and a switch is known by the
 //! revision it made.
 //!
 //! The hosts' table loses the names conversations gave them, rebuilt since SQLite
@@ -29,12 +29,12 @@
 
 use rusqlite::Transaction;
 
-use super::super::{Migration, ReadBlob, corrupt, corrupt_text};
+use super::super::{Migration, ControlSteps, corrupt, corrupt_text};
 use super::shared::{fork_format_2};
 
 pub(super) const MIGRATION: Migration = Migration::Code(control_from_saved_edits);
 
-fn control_from_saved_edits(transaction: &Transaction<'_>, _: &dyn ReadBlob) -> rusqlite::Result<()> {
+fn control_from_saved_edits(transaction: &Transaction<'_>, _: &dyn ControlSteps) -> rusqlite::Result<()> {
     transaction.execute_batch(
         "
 CREATE TABLE conversation_hosts_next (

@@ -1,5 +1,5 @@
 //! A conversation's choice in its Workflow menu
-//! (`crates/backend-user-shard/src/conversation/workflows.rs`), which the
+//! (`crates/core/src/conversation/workflows.rs`), which the
 //! conversation keeps as it keeps its model.
 
 use schemars::JsonSchema;
@@ -19,7 +19,7 @@ pub enum WorkflowChoice {
     None,
     /// The workflow whose file is `.demi/workflows/<id>.yaml`: the
     /// project's, or with `worktree` the one of the linked worktree the
-    /// conversation works in (`crates/backend-database/src/selection.rs`
+    /// conversation works in (`crates/core-store/src/selection.rs`
     /// § Worktrees). A conversation in no worktree reads its own directory's
     /// either way.
     Workflow {

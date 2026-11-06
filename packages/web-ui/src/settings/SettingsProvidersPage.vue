@@ -126,7 +126,7 @@ import type { TitleText } from '../ui/ui-text'
  *   words *No models yet*. Red marks a failure only.
  * - Add Model adds the model it is given at once and opens it in Edit Model, the
  *   dialog every model of the list opens
- *   (`crates/backend-user-shard/src/provider_settings.rs`).
+ *   (`crates/core/src/provider_settings.rs`).
  * - Removing an entry, an account or a model asks first.
  * - Field edits land on the entry itself. Everything that needs the host is
  *   emitted.
@@ -430,7 +430,7 @@ function askRemoveProvider(provider: SettingsProviderEntry): void {
 
 /**
  * Removing the active account switches the provider to its first other account in the list,
- * as the backend does, or leaves it with none (`crates/backend-providers/src/vault/logins.rs`); the
+ * as the backend does, or leaves it with none (`crates/core-providers/src/vault/logins.rs`); the
  * question says which.
  */
 function askRemoveAccount(

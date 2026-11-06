@@ -414,7 +414,7 @@ impl<'a, H: DeviceResolver> ShellAccess<'a, H> {
             Ok(command) => command,
             // A device that is offline to the environment runs nothing now:
             // the call's result is its offline error as it is, worded for
-            // the model (`crates/backend-device-access/src/access.rs`).
+            // the model (`crates/core-device-access/src/access.rs`).
             Err(ShellError::Device(error)) if error.kind == DeviceErrorKind::Offline => {
                 ended(None, "failed_to_start", None, None);
                 return Ok(ToolOutcome::error(error.message));

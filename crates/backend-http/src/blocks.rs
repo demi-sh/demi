@@ -29,7 +29,7 @@ use axum::extract::{Path, State};
 use axum::http::header::{CACHE_CONTROL, CONTENT_TYPE, LOCATION};
 use axum::http::{HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
-use demi_backend_user_shard::conversation::reply_block_facts;
+use demi_core::conversation::reply_block_facts;
 use demi_web_api_protocol::plugins::{ReplyBlocksAnswer, ReplyBlocksRead};
 
 use super::AppState;
@@ -48,7 +48,7 @@ pub(super) async fn document(
     let answer = state
         .shards
         .of(&user.id)
-        .call(move |shard, cancel| async move { shard.plugins().reply_block_document(&plugin, &tag, id, cancel).await })
+        .call(move |core, cancel| async move { core.plugins().reply_block_document(&plugin, &tag, id, cancel).await })
         .await;
     let answer = match answer {
         Ok(Ok(answer)) => answer,
@@ -151,7 +151,7 @@ pub(super) async fn facts(
     let reply_blocks = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { reply_block_facts(shard.plugins(), named).await })
+        .call(move |core, _| async move { reply_block_facts(core.plugins(), named).await })
         .await?;
     Ok(Json(ReplyBlocksAnswer { reply_blocks }))
 }

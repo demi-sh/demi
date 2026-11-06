@@ -50,7 +50,7 @@ export function profileModelLabel(
   return provider ? `${name} · ${provider.label}` : name
 }
 
-/** The longest name a profile may have, the limit `crates/backend-accounts/src/subagents.rs` enforces, which the page states before saving. */
+/** The longest name a profile may have, the limit `crates/core/src/subagents.rs` enforces, which the page states before saving. */
 const PROFILE_NAME_MAX = 40
 
 /**

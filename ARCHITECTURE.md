@@ -109,13 +109,13 @@ A shared mechanism goes where its use decides:
     fact depends on and reports a change, the backend reads the fact again,
     stores it with when it was read and announces a new value, and a request
     takes what is held, without waiting on or waking a device
-    (`crates/backend-device-access/src/kept.rs`). Files and Changes, which show
+    (`crates/core-device-access/src/kept.rs`). Files and Changes, which show
     a device's own files and changes, read the device when shown.
 -   The Cloud and a paired device are the same thing: a device behind a runner.
     Code never distinguishes them except where the design says they differ
     (pairing, revocation, lifecycle). Anything that reaches a conversation's
     device goes through the conversation's device access (`with_device` in
-    `backend-device-access`, see `crates/backend-device-access/src/lib.rs`), which
+    `core-device-access`, see `crates/core-device-access/src/lib.rs`), which
     resolves the target and takes the file gate. What the agent and the user
     start there (a turn's tool, an upload, a download) wakes a stopped Cloud
     and holds the gate for the operation; what the user only reads (the Files
@@ -446,6 +446,7 @@ plugin-changes -> plugin-interface
 plugin-file-browser -> plugin-interface
 plugin-widget -> plugin-interface, command-declarations, command-package-browser-protocol, command-protocol, device-interface, shared-types
 runner-client -> command-protocol, command-declarations, shared-types, shared-gates, runner-protocol, device-interface, device-paths
+core-store -> agent-store, conversation-lane-protocol, device-interface, device-paths, plugin-host, plugin-interface, runner-client, runner-protocol, shared-artifacts, shared-gates, shared-types, web-api-protocol
 runner-process -> shared-artifacts, command-protocol, command-sdk, runner-protocol, shared-lanes
 runner-device -> shared-artifacts, command-protocol, command-sdk, runner-process, runner-protocol
 runner-direct -> live-view-protocol, runner-protocol
@@ -454,21 +455,23 @@ runner-shell -> command-protocol, command-sdk, runner-process, runner-protocol
 runner-jobs -> command-protocol, command-sdk, command-declarations, runner-process, runner-protocol, runner-command-packages
 live-view -> command-sdk, live-view-protocol, shared-types
 command-package-browser-chrome -> command-package-browser-protocol, command-protocol, command-sdk, live-view, live-view-protocol, shared-artifacts, shared-recording, shared-recording-protocol, shared-types
-backend-page-sync -> backend-database, web-api-protocol, plugin-host
-backend-database -> shared-artifacts, agent-store, conversation-lane-protocol, shared-types, shared-gates, runner-client, machine-manager-protocol, runner-protocol, device-interface, device-paths, web-api-protocol, plugin-interface, plugin-host
-backend-blobs -> agent-store, shared-types, web-api-protocol
-backend-accounts -> backend-database, command-protocol, shared-types, web-api-protocol
-backend-providers -> backend-database, backend-page-sync, shared-types, provider-common, provider-registry, web-api-protocol
-backend-runners -> shared-artifacts, backend-blobs, backend-database, backend-page-sync, command-protocol, shared-gates, runner-client, runner-protocol, device-interface, web-api-protocol
-backend-idle-watch -> shared-gates
-backend-cloud -> backend-idle-watch, backend-providers, backend-runners, backend-database, backend-page-sync, shared-gates, runner-client, machine-manager-protocol, runner-protocol, device-interface, web-api-protocol, provider-registry
-backend-permissions -> command-declarations, shared-types, device-interface, backend-database, backend-page-sync, web-api-protocol
-backend-device-access -> agent-store, agent-tools, backend-cloud, backend-blobs, backend-runners, backend-database, command-protocol, command-declarations, shared-types, shared-gates, runner-client, runner-protocol, device-interface, web-api-protocol, plugin-interface, device-paths
-backend-user-shard -> agent-server, conversation-lane-protocol, agent-session, agent-store, agent-tools, agent-transcript, backend-accounts, backend-cloud, backend-device-access, backend-idle-watch, backend-blobs, backend-permissions, plugin-host, backend-providers, backend-runners, backend-database, backend-page-sync, command-package-claude-code-protocol, command-protocol, command-declarations, shared-artifacts, shared-types, shared-gates, plugin-interface, runner-client, machine-manager-protocol, provider-common, provider-claude-code, runner-protocol, device-interface, web-api-protocol, provider-registry, provider-relay, device-paths
-backend-http -> conversation-lane-protocol, agent-store, shared-artifacts, backend-accounts, backend-cloud, backend-device-access, backend-blobs, backend-providers, backend-runners, backend-user-shard, backend-database, backend-page-sync, command-protocol, shared-types, runner-client, provider-common, runner-protocol, shared-lanes, device-interface, web-api-protocol, backend-permissions, plugin-host, plugin-interface, provider-registry, provider-relay
-backend -> backend-accounts, backend-blobs, backend-cloud, backend-database, backend-device-access, backend-http, backend-providers, backend-runners, backend-user-shard, command-declarations, command-package-browser-protocol, plugin-browser, plugin-changes, plugin-file, plugin-file-browser, plugin-interface, plugin-mobile, provider-anthropic-api, provider-claude-code, provider-codex, provider-bytedance, provider-common, provider-elevenlabs, provider-minimax, provider-google, provider-grok-build, provider-openai-api, runner-protocol, shared-artifacts, shared-cli, shared-gates, shared-types, web-api-protocol, plugin-skills, plugin-web, plugin-image, plugin-video, plugin-audio, plugin-widget, provider-registry, provider-relay
+core-sync -> web-api-protocol, plugin-host, core-store
+core-devices -> command-protocol, core-store, core-sync, device-interface, runner-client, runner-protocol, shared-gates, web-api-protocol
+backend-database -> shared-artifacts, agent-store, conversation-lane-protocol, shared-types, shared-gates, runner-client, machine-manager-protocol, runner-protocol, device-interface, device-paths, web-api-protocol, plugin-interface, plugin-host, core-store
+core-blobs -> agent-store, shared-types, web-api-protocol
+backend-accounts -> backend-database, command-protocol, shared-types, web-api-protocol, core-store
+core-providers -> core-sync, shared-types, provider-common, provider-registry, web-api-protocol, core-store
+backend-runners -> shared-artifacts, core-blobs, backend-database, command-protocol, shared-gates, runner-client, runner-protocol, device-interface, web-api-protocol, core-devices, core-store
+core-idle-watch -> shared-gates
+backend-cloud -> core-idle-watch, core-providers, backend-runners, backend-database, core-sync, shared-gates, runner-client, machine-manager-protocol, runner-protocol, device-interface, web-api-protocol, provider-registry, core, core-device-access, core-devices, core-store, plugin-host
+core-permissions -> command-declarations, shared-types, device-interface, core-sync, web-api-protocol, core-store
+core-device-access -> agent-store, agent-tools, core-blobs, command-protocol, command-declarations, shared-types, shared-gates, runner-client, runner-protocol, device-interface, web-api-protocol, plugin-interface, device-paths, core-devices, core-store
+core -> agent-server, agent-session, agent-store, agent-tools, agent-transcript, command-declarations, command-package-claude-code-protocol, command-protocol, conversation-lane-protocol, core-blobs, core-device-access, core-devices, core-idle-watch, core-permissions, core-providers, core-store, core-sync, device-interface, device-paths, plugin-host, plugin-interface, provider-claude-code, provider-common, provider-registry, provider-relay, runner-client, runner-protocol, shared-gates, shared-types, web-api-protocol
+backend-user-shard -> conversation-lane-protocol, backend-accounts, backend-cloud, core-device-access, core-blobs, core-permissions, plugin-host, core-providers, backend-runners, backend-database, core-sync, shared-artifacts, shared-types, plugin-interface, runner-client, machine-manager-protocol, provider-common, provider-claude-code, runner-protocol, web-api-protocol, provider-registry, provider-relay, core, core-devices, core-store
+backend-http -> conversation-lane-protocol, agent-store, shared-artifacts, backend-accounts, backend-cloud, core-device-access, core-blobs, core-providers, backend-runners, backend-user-shard, backend-database, core-sync, command-protocol, shared-types, runner-client, provider-common, runner-protocol, shared-lanes, device-interface, web-api-protocol, core-permissions, plugin-host, plugin-interface, provider-registry, provider-relay, core, core-devices, core-store
+backend -> backend-accounts, core-blobs, backend-cloud, backend-database, core-device-access, backend-http, core-providers, backend-runners, backend-user-shard, command-declarations, command-package-browser-protocol, plugin-browser, plugin-changes, plugin-file, plugin-file-browser, plugin-interface, plugin-mobile, provider-anthropic-api, provider-claude-code, provider-codex, provider-bytedance, provider-common, provider-elevenlabs, provider-minimax, provider-google, provider-grok-build, provider-openai-api, runner-protocol, shared-artifacts, shared-cli, shared-gates, shared-types, web-api-protocol, plugin-skills, plugin-web, plugin-image, plugin-video, plugin-audio, plugin-widget, provider-registry, provider-relay, core, core-devices, core-store
 machine-manager -> shared-artifacts, shared-cli, shared-processes, shared-types, machine-manager-protocol, runner-protocol, supervisor-protocol
-server -> backend-database, machine-manager-protocol, runner-protocol, shared-artifacts, shared-cli, shared-processes, shared-types, supervisor-protocol, web-api-protocol
+server -> backend-database, machine-manager-protocol, runner-protocol, shared-artifacts, shared-cli, shared-processes, shared-types, supervisor-protocol, web-api-protocol, core-store
 runner -> command-protocol, command-sdk, runner-direct, runner-device, runner-jobs, runner-process, runner-protocol, runner-command-packages, runner-shell, shared-artifacts, shared-cli, shared-recording-protocol
 command-package-file -> shared-artifacts, command-protocol, command-sdk, shared-types, command-package-file-protocol, shared-gates, shared-cli
 command-package-fetch -> command-protocol, command-sdk, command-package-fetch-protocol, shared-cli, shared-types, shared-artifacts

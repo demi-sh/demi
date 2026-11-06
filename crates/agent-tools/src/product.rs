@@ -142,7 +142,7 @@ pub enum Unavailable {
 }
 
 /// The profiles a conversation's spawns use now
-/// (`crates/backend-user-shard/src/conversation/workflows.rs`): its Workflow
+/// (`crates/core/src/conversation/workflows.rs`): its Workflow
 /// menu choice, with the chosen workflow as its file reads at this moment.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConversationProfiles {
@@ -447,11 +447,11 @@ pub struct NodeContext<'a> {
     pub placement: Option<&'a Placement>,
 }
 
-/// Where a conversation's nodes run. Its futures run on the user's shard, so
+/// Where a conversation's nodes run. Its futures run on the user's core, so
 /// they need not be `Send`, and the agent calls it through the concrete type.
 #[expect(
     async_fn_in_trait,
-    reason = "a resolver runs on the user's shard: its futures are never sent to another thread"
+    reason = "a resolver runs on the user's core: its futures are never sent to another thread"
 )]
 pub trait DeviceResolver: 'static {
     /// The devices the conversations' shell tools run on. The agent only asks
@@ -461,7 +461,7 @@ pub trait DeviceResolver: 'static {
 
     /// The device a node's shell tools reach now: a child's own placement's, and
     /// the conversation's current execution target for the root
-    /// (`crates/backend-device-access/src/access.rs`).
+    /// (`crates/core-device-access/src/access.rs`).
     ///
     /// Two answers for the same target have equal keys, so a node keeps one
     /// shell environment per target it used. By default there is none, and a

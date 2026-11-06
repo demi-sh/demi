@@ -110,7 +110,7 @@ pub enum PortMessage {
     Devices,
     /// The commit `url`'s default branch points to, as the user's paired
     /// device `device` reads it with its own `git`
-    /// (`crates/backend-device-access/src/device_git.rs`).
+    /// (`crates/core-device-access/src/device_git.rs`).
     DeviceGitHead {
         device: DeviceId,
         url: String,
@@ -387,7 +387,7 @@ pub struct StoredValue {
 
 /// A directory the plugin keeps on every device its user's jobs run on, or
 /// only on those the jobs of one workspace's conversations run on
-/// (`crates/backend-device-access/src/plugin_files.rs`).
+/// (`crates/core-device-access/src/plugin_files.rs`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DeviceDirectory {
@@ -561,7 +561,7 @@ pub struct DirectoryPath {
 
 /// What a package call does on the device, which decides whether it wakes a
 /// stopped Cloud and whether it is activity (`backend-user-shard`'s
-/// `crates/backend-user-shard/src/lifecycle/mod.rs`).
+/// `crates/core/src/lifecycle/mod.rs`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CallKind {

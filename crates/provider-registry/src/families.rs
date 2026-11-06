@@ -157,7 +157,7 @@ pub struct FamilyArgs {
     /// The entry's client on the backend's shared services, for the
     /// provider's own requests such as its directory and quota probes
     /// (`crates/provider-common/src/client.rs`). A runtime gets the entry's
-    /// client on the shard it runs on instead.
+    /// client on the core it runs on instead.
     pub http: demi_provider_common::ProviderHttp,
     /// The shared services' client itself, for what a family reads that is
     /// no entry's, such as the newest Codex release.
@@ -257,7 +257,7 @@ pub fn family_name(family: &str) -> &str {
 
 /// The models.dev vendor whose API sells the models subscription family
 /// `family` runs, whose prices are its calls'
-/// (`crates/backend-database/src/usage.rs`).
+/// (`crates/core-store/src/usage.rs`).
 ///
 /// The result is none for a family of API keys, whose catalog has its own
 /// prices.

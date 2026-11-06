@@ -56,7 +56,7 @@ pub enum Request {
     /// The backend keeps the answer. It searches again when the runner says one
     /// of `watch` changed or the device comes online again, and gives what it
     /// holds to each context request
-    /// (`crates/backend-device-access/src/plugin_files.rs`).
+    /// (`crates/core-device-access/src/plugin_files.rs`).
     ProjectSearch {
         user: UserId,
         conversation: ConversationId,

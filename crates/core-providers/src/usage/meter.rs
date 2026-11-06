@@ -1,0 +1,455 @@
+//! The metered runtime
+//! (`crates/core/src/conversation/providers.rs`): the backend
+//! wraps each session's runtime so that accounting happens around every run.
+//!
+//! - Every call the run makes to the vendor is a usage ledger row as it ends,
+//!   the run's last before the run's response reaches the agent
+//!   (`crates/core-store/src/usage.rs`).
+//!
+//! A ledger write that fails is logged and the request goes on: inference never
+//! fails because accounting did. Each run logs under a span that names its
+//! request, its agent and its account, so a row finds its course in the server
+//! log.
+
+use std::rc::Rc;
+use std::sync::Arc;
+
+use demi_core_store::store::CoreStore;
+use demi_core_store::usage::{ApiPrice, ObservedWindow, UsageRow, merge_windows};
+use demi_provider_common::{
+    Ahead, CallEvent, CallOutcome, ErrorCode, InferenceRequest, ProviderEvent, ProviderRun,
+    ProviderRuntime, RequestLimits, RequestPurpose, VendorCall,
+};
+use demi_shared_types::{Clock, Model, ModelCost, QuotaWindow, Timestamp, TokenUsage};
+use demi_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId};
+use futures_util::future::LocalBoxFuture;
+use futures_util::{Stream, StreamExt, stream};
+
+
+/// Whose calls a runtime makes: the ledger rows' store, conversation, entry
+/// and account.
+#[derive(Clone)]
+pub struct Ledger {
+    pub store: CoreStore,
+    pub clock: Arc<dyn Clock>,
+    pub conversation: ConversationId,
+    pub provider: ProviderId,
+    /// The subscription account the runtime calls with; none for an API key.
+    pub account: Option<CredentialId>,
+    /// Looks up the catalog's prices of a model as each of its rows is
+    /// written, so a price the catalog learns or corrects applies from the
+    /// next call (`crates/core-store/src/usage.rs`).
+    pub prices: ModelPrices,
+    /// Tells the entry that the vendor no longer serves a model to it.
+    pub retire: RetireModel,
+}
+
+/// The catalog's prices of the model named, at the moment it is asked;
+/// none when the catalog has none.
+pub type ModelPrices = Rc<dyn Fn(String) -> LocalBoxFuture<'static, Option<ModelCost>>>;
+
+/// Takes the model named out of the entry's list: the vendor refused it to
+/// the entry's key, or answered with the model named second, which it
+/// routes the first to (`crates/provider-registry/src/catalog.rs`).
+pub type RetireModel = Rc<dyn Fn(String, Option<String>) -> LocalBoxFuture<'static, ()>>;
+
+/// The hashes of the system prompt and of the tool definitions `request`
+/// sends; none for a request outside a session (`crates/core-store/src/usage.rs`).
+fn prompt_hashes(request: &InferenceRequest) -> (Option<String>, Option<String>) {
+    if request.agent.is_none() {
+        return (None, None);
+    }
+    let (system, tools) = request.prompt_hashes();
+    (Some(system), Some(tools))
+}
+
+/// Writes `row` and answers its id; a failure is logged and the row is
+/// lost.
+async fn write(store: &CoreStore, row: UsageRow) -> Option<String> {
+    let (conversation, user, provider, model, request) =
+        (row.conversation.clone(), store.principal().clone(), row.provider.clone(), row.model.clone(), row.request.clone());
+    match store.append_usage(row).await {
+        Ok(id) => Some(id),
+        Err(error) => {
+            // The row is lost; the request goes on (`crates/core-providers/src/usage/mod.rs`).
+            tracing::warn!(
+                event = "usage_ledger.write_failed",
+                %conversation,
+                %user,
+                %provider,
+                model,
+                provider_request_id = request,
+                error = &error as &dyn std::error::Error,
+                "a usage ledger row was not written"
+            );
+            None
+        }
+    }
+}
+
+/// A session's runtime with the ledger around it. Its forks write to the same
+/// ledger.
+pub struct MeteredRuntime {
+    inner: Box<dyn ProviderRuntime>,
+    ledger: Rc<Ledger>,
+}
+
+impl MeteredRuntime {
+    pub fn new(inner: Box<dyn ProviderRuntime>, ledger: Ledger) -> Self {
+        Self {
+            inner,
+            ledger: Rc::new(ledger),
+        }
+    }
+}
+
+/// How a call ended, as its row says.
+enum Outcome {
+    Answered,
+    Refused(Option<ErrorCode>),
+    Cancelled,
+}
+
+impl Outcome {
+    fn text(&self) -> String {
+        match self {
+            Self::Answered => "answered".to_owned(),
+            Self::Cancelled => "cancelled".to_owned(),
+            Self::Refused(Some(code)) => code.as_str().to_owned(),
+            // A failure without a code, such as a stream that broke off.
+            Self::Refused(None) => "failed".to_owned(),
+        }
+    }
+}
+
+/// The calls of one run: what each row says of the request, and the call
+/// open now, which started with the run or at its `Started` and which its
+/// `Ended` or the run's end ends. A run dropped with a call open was
+/// cancelled, and that call's row is written then.
+struct Calls {
+    ledger: Rc<Ledger>,
+    agent: Option<u64>,
+    turn: Option<String>,
+    purpose: RequestPurpose,
+    model: String,
+    request: String,
+    system_hash: Option<String>,
+    tools_hash: Option<String>,
+    /// When the open call started; none between a call's end and the next
+    /// one's start.
+    open: Option<Timestamp>,
+    /// The windows the open call's response reported.
+    observed: Vec<ObservedWindow>,
+    /// When the open call's first output came: a thinking, text or tool-call
+    /// event.
+    first_output: Option<Timestamp>,
+    /// The HTTP status the vendor refused the run with, once its failure
+    /// came.
+    status: Option<u16>,
+    /// How many calls the run has made, the open one included.
+    call_no: u32,
+    /// The row of the call that ended last, which a window the vendor
+    /// reports before the next call starts is added to.
+    last_row: Option<String>,
+    /// The run's span, which a dropped run's last line logs under.
+    span: tracing::Span,
+}
+
+impl Calls {
+    fn new(ledger: Rc<Ledger>, request: &InferenceRequest, span: tracing::Span) -> Self {
+        let open = Some(ledger.clock.now());
+        let (system_hash, tools_hash) = prompt_hashes(request);
+        Self {
+            system_hash,
+            tools_hash,
+            agent: request.agent,
+            turn: request.purpose.belongs_to_turn().then(|| request.turn_id.clone()),
+            purpose: request.purpose,
+            model: request.model_id.clone(),
+            request: request.request_id.clone(),
+            ledger,
+            open,
+            observed: Vec::new(),
+            first_output: None,
+            status: None,
+            call_no: 1,
+            last_row: None,
+            span,
+        }
+    }
+
+    fn start(&mut self) {
+        if self.open.is_none() {
+            self.open = Some(self.ledger.clock.now());
+            self.call_no += 1;
+            self.last_row = None;
+            self.first_output = None;
+        }
+    }
+
+    /// The run produced `event`: the first of thinking, text or a tool call
+    /// is the call's first output.
+    fn output(&mut self, event: &ProviderEvent) {
+        let output = matches!(
+            event,
+            ProviderEvent::ThinkingStart
+                | ProviderEvent::ThinkingDelta(_)
+                | ProviderEvent::Opaque(_)
+                | ProviderEvent::TextDelta(_)
+                | ProviderEvent::ToolCallStart { .. }
+        );
+        if output && self.open.is_some() && self.first_output.is_none() {
+            self.first_output = Some(self.ledger.clock.now());
+        }
+        if let ProviderEvent::Error(failure) = event {
+            self.status = failure.diagnostics.as_ref().and_then(|diagnostics| diagnostics.http_status);
+        }
+    }
+
+    /// The vendor reported `windows`: the open call's, else the one that
+    /// ended last, whose row gains them.
+    async fn observe(&mut self, windows: Vec<QuotaWindow>) {
+        if self.open.is_some() {
+            merge_windows(&mut self.observed, &windows);
+            return;
+        }
+        let Some(id) = self.last_row.clone() else {
+            return;
+        };
+        if let Err(error) = self.ledger.store.add_usage_quota(id, windows).await {
+            // The windows are lost from the row; the request goes on.
+            tracing::warn!(
+                event = "usage_ledger.quota_write_failed",
+                conversation = %self.ledger.conversation,
+                provider = %self.ledger.provider,
+                error = &error as &dyn std::error::Error,
+                "a usage ledger row's quota was not written"
+            );
+        }
+    }
+
+    /// Writes `row` and keeps its id for windows reported after it.
+    async fn record(&mut self, mut row: UsageRow) {
+        // A call without counts has nothing to price.
+        if let Some(usage) = row.usage {
+            let prices = (self.ledger.prices)(row.model.clone()).await;
+            row.price = prices.and_then(|prices| ApiPrice::of(&prices, &usage, row.cache_write_1h_tokens));
+        }
+        self.last_row = write(&self.ledger.store, row).await;
+    }
+
+    /// The row of the call open now, ended as `outcome` says with the
+    /// vendor's counts and id for it, none when it reported none; a call
+    /// the run reports without its start, such as a refusal after the last
+    /// call ended, starts as it ends.
+    fn row(&mut self, call: VendorCall, outcome: Outcome) -> UsageRow {
+        let ended_at = self.ledger.clock.now();
+        let started_at = self.open.take().unwrap_or(ended_at);
+        let VendorCall {
+            vendor_id,
+            usage,
+            cache_write_1h_tokens,
+            ..
+        } = call;
+        let refused = matches!(outcome, Outcome::Refused(_));
+        let outcome = outcome.text();
+        let ms = |from: Timestamp, to: Timestamp| u64::try_from(to.as_millisecond() - from.as_millisecond()).unwrap_or(0);
+        tracing::info!(
+            event = "provider_call.ended",
+            outcome,
+            error_code = refused.then_some(outcome.as_str()),
+            status = self.status,
+            call_no = self.call_no,
+            ms = ms(started_at, ended_at),
+            first_token_ms = self.first_output.take().map(|first| ms(started_at, first)),
+            vendor_id = vendor_id.as_deref(),
+            input_tokens = usage.map(|usage| usage.input_tokens),
+            output_tokens = usage.map(|usage| usage.output_tokens),
+            cache_read_tokens = usage.map(|usage| usage.cache_read_tokens),
+            cache_write_tokens = usage.map(|usage| usage.cache_write_tokens),
+            "a vendor call ended"
+        );
+        let observed = std::mem::take(&mut self.observed);
+        UsageRow {
+            media_digest: None,
+            conversation: self.ledger.conversation.clone(),
+            agent: self.agent,
+            turn: self.turn.clone(),
+            purpose: self.purpose.as_str(),
+            provider: self.ledger.provider.clone(),
+            account: self.ledger.account.clone(),
+            model: self.model.clone(),
+            request: self.request.clone(),
+            vendor_id,
+            usage,
+            cache_write_1h_tokens,
+            outcome,
+            quota: (!observed.is_empty()).then_some(observed),
+            started_at,
+            ended_at,
+            media_seconds: None,
+            cost: None,
+            // Priced as it is written.
+            price: None,
+            system_hash: self.system_hash.clone(),
+            tools_hash: self.tools_hash.clone(),
+        }
+    }
+
+    /// The run reported the end of its latest call.
+    async fn ended(&mut self, call: VendorCall) {
+        let outcome = match &call.outcome {
+            CallOutcome::Answered => Outcome::Answered,
+            CallOutcome::Refused(code) => Outcome::Refused(code.clone()),
+        };
+        let rerouted_to = call.rerouted_to.clone();
+        self.retire(&outcome, rerouted_to).await;
+        let row = self.row(call, outcome);
+        self.record(row).await;
+    }
+
+    /// The run's end ends the call open, if any: with the response's usage,
+    /// the failure's code, or, cancelled, with none.
+    async fn close(&mut self, usage: Option<TokenUsage>, outcome: Outcome) {
+        if self.open.is_none() {
+            return;
+        }
+        self.retire(&outcome, None).await;
+        let row = self.row(unreported(usage), outcome);
+        self.record(row).await;
+    }
+
+    /// Retires the call's model when the vendor refused it to the key or
+    /// answered with `rerouted_to` instead.
+    async fn retire(&self, outcome: &Outcome, rerouted_to: Option<String>) {
+        let refused = matches!(outcome, Outcome::Refused(Some(ErrorCode::ModelUnavailable)));
+        if refused || rerouted_to.is_some() {
+            (self.ledger.retire)(self.model.clone(), rerouted_to).await;
+        }
+    }
+}
+
+/// A call the run did not report on its own, with the usage its end
+/// carries: no vendor id and no hour-long cache write.
+fn unreported(usage: Option<TokenUsage>) -> VendorCall {
+    VendorCall {
+        vendor_id: None,
+        usage,
+        cache_write_1h_tokens: 0,
+        // The row's outcome is the run end's.
+        outcome: CallOutcome::Answered,
+        rerouted_to: None,
+    }
+}
+
+impl Drop for Calls {
+    /// A run dropped with a call open was cancelled before the vendor
+    /// answered; its row is written on its own, since nothing awaits the
+    /// run any more.
+    fn drop(&mut self) {
+        if self.open.is_none() {
+            return;
+        }
+        let span = self.span.clone();
+        let row = span.in_scope(|| self.row(unreported(None), Outcome::Cancelled));
+        let store = self.ledger.store.clone();
+        tokio::spawn(async move {
+            write(&store, row).await;
+        });
+    }
+}
+
+/// `run` polled inside `span`, so every line its provider logs carries the
+/// span's fields.
+fn within<'a>(span: tracing::Span, run: impl Stream<Item = ProviderEvent> + 'a) -> ProviderRun<'a> {
+    let mut run = Box::pin(run);
+    stream::poll_fn(move |context| {
+        let _entered = span.enter();
+        run.as_mut().poll_next(context)
+    })
+    .boxed_local()
+}
+
+impl ProviderRuntime for MeteredRuntime {
+    fn run(&mut self, request: InferenceRequest) -> ProviderRun<'_> {
+        let span = tracing::info_span!(
+            "provider_call",
+            provider_request_id = %request.request_id,
+            conversation = %self.ledger.conversation,
+            user = %self.ledger.store.principal(),
+            turn = tracing::field::Empty,
+            agent = tracing::field::Empty,
+            account = tracing::field::Empty,
+            purpose = request.purpose.as_str(),
+            provider = %self.ledger.provider,
+            model = %request.model_id,
+        );
+        if let Some(agent) = request.agent {
+            span.record("agent", agent);
+        }
+        if request.purpose.belongs_to_turn() {
+            span.record("turn", request.turn_id.as_str());
+        }
+        if let Some(account) = &self.ledger.account {
+            span.record("account", account.as_str());
+        }
+        let cancel = request.cancel.clone();
+        let mut calls = Calls::new(self.ledger.clone(), &request, span.clone());
+        let mut events = span.in_scope(|| self.inner.run(request));
+        let run = async_stream::stream! {
+            while let Some(event) = events.next().await {
+                calls.output(&event);
+                match event {
+                    ProviderEvent::Call(CallEvent::Started) => calls.start(),
+                    ProviderEvent::Call(CallEvent::Ended(call)) => calls.ended(call).await,
+                    ProviderEvent::Call(CallEvent::Observed(windows)) => calls.observe(windows).await,
+                    event => {
+                        match &event {
+                            ProviderEvent::Response(usage) => {
+                                calls.close(*usage, Outcome::Answered).await;
+                            }
+                            ProviderEvent::Error(failure) => {
+                                calls.close(None, Outcome::Refused(failure.code.clone())).await;
+                            }
+                            _ => {}
+                        }
+                        yield event;
+                    }
+                }
+            }
+            // A run that ends without its response was cancelled, or ended
+            // at a batch of tool calls whose results it waits for.
+            let outcome = if cancel.is_cancelled() { Outcome::Cancelled } else { Outcome::Answered };
+            calls.close(None, outcome).await;
+        };
+        within(span, run)
+    }
+
+    fn fresh(&self) -> Box<dyn ProviderRuntime> {
+        Box::new(Self {
+            inner: self.inner.fresh(),
+            ledger: self.ledger.clone(),
+        })
+    }
+
+    fn close(&mut self) -> LocalBoxFuture<'_, ()> {
+        self.inner.close()
+    }
+
+    fn idle(&mut self) {
+        self.inner.idle();
+    }
+
+    fn prepares_ahead(&self) -> bool {
+        self.inner.prepares_ahead()
+    }
+
+    /// Readying ahead is no request: it is neither limited nor recorded.
+    fn prepare(&mut self, request: InferenceRequest, ahead: Ahead) -> LocalBoxFuture<'_, ()> {
+        self.inner.prepare(request, ahead)
+    }
+
+    fn request_limits(&self, model: &Model) -> RequestLimits {
+        self.inner.request_limits(model)
+    }
+}

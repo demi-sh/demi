@@ -206,6 +206,18 @@ pub fn publish_bytes_blocking(
     persist(temporary, path, publication.mode)
 }
 
+/// Puts the entries of the directory at `path` on disk, so that a file
+/// created, renamed or removed in it survives a crash. The standard library
+/// cannot open a directory on Windows, where a directory's entries reach the
+/// disk when the system writes them.
+pub fn sync_directory(path: &Path) -> std::io::Result<()> {
+    #[cfg(unix)]
+    std::fs::File::open(path)?.sync_all()?;
+    #[cfg(not(unix))]
+    let _ = path;
+    Ok(())
+}
+
 /// Moves the directory `staged` to `destination`, replacing a directory
 /// there. Both are on one volume, as a staging directory beside the
 /// destination is.

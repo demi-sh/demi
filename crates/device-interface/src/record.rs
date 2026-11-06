@@ -53,7 +53,7 @@ pub struct CommandRecord {
     whole: Option<Arc<WholeOutput>>,
     /// How many bytes of each stream that the model saw before the command
     /// was taken up again are still to arrive: the model's view passes over
-    /// them (`crates/backend-database/src/command_outputs.rs`).
+    /// them (`crates/core-store/src/command_outputs.rs`).
     seen_before: Seen,
 }
 
@@ -109,7 +109,7 @@ pub struct PageView {
 pub enum PageState {
     Running,
     /// It waits to start until its device, the paired device `device` names,
-    /// is back (`crates/backend-device-access/src/access.rs`): the pages show
+    /// is back (`crates/core-device-access/src/access.rs`): the pages show
     /// *Waiting for MacBook Pro*, and it counts as running.
     Waiting { device: String },
     /// It runs while a stop waits for its runner to say that it ended

@@ -111,7 +111,7 @@ pub trait ShellEnvironment {
 
     /// Ends each of its commands whose start still waits for its device, as
     /// the user's Stop does, whatever turn started it: none of them ever
-    /// runs (`crates/backend-device-access/src/access.rs`). A command that
+    /// runs (`crates/core-device-access/src/access.rs`). A command that
     /// started runs on.
     fn stop_waiting(&self) -> LocalBoxFuture<'_, ()>;
 
@@ -181,7 +181,7 @@ pub struct ExecRequest {
 }
 
 /// The agent node a job runs for, whose commands its `rpc` calls reach
-/// (`crates/backend-user-shard/src/shard/policy.rs`), and the call of
+/// (`crates/core/src/policy.rs`), and the call of
 /// it that started the job, which a message the job sends comes from.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -191,7 +191,7 @@ pub struct JobCaller {
     pub tool_use_id: String,
     /// The turn that call belongs to, which a command's call to a vendor
     /// is counted under, even after the turn ended
-    /// (`crates/backend-database/src/usage.rs`); none for a job recorded before
+    /// (`crates/core-store/src/usage.rs`); none for a job recorded before
     /// records kept it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub turn: Option<TurnId>,
@@ -208,7 +208,7 @@ pub struct Unreachable {
 /// A command an environment takes up again: the call `caller` names, titled
 /// `title`, started it with `script` as the job `job` on the environment's
 /// device for its node, it has run for `running` since, and the node had seen
-/// `seen` of its output (`crates/backend-database/src/command_outputs.rs`).
+/// `seen` of its output (`crates/core-store/src/command_outputs.rs`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TakenUp {
     pub command: CommandId,
@@ -221,14 +221,14 @@ pub struct TakenUp {
     pub running: Duration,
     pub seen: Seen,
     /// What it was asked to start, while its start still waits for its
-    /// device and was never sent (`crates/backend-device-access/src/access.rs`): it waits again, and is sent once its runner connects.
+    /// device and was never sent (`crates/core-device-access/src/access.rs`): it waits again, and is sent once its runner connects.
     pub unsent: Option<UnsentStart>,
 }
 
 /// What a command whose start waits for its device, a paired device whose
 /// runner is away, was asked to run, which its record keeps until the start
 /// is sent, so a backend that starts again sends it once the runner
-/// connects (`crates/backend-device-access/src/access.rs`).
+/// connects (`crates/core-device-access/src/access.rs`).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, garde::Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct UnsentStart {

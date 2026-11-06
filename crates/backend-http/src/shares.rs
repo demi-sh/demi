@@ -8,7 +8,7 @@
 //! - Every miss answers the same 404 `share_not_found`, so an answer tells
 //!   nothing of what exists.
 //! - A public route finds the share's record, then reads through its list on
-//!   the owner's shard, the conversation's history reads (`history.rs`)
+//!   the owner's core, the conversation's history reads (`history.rs`)
 //!   answering it.
 
 use std::collections::BTreeSet;
@@ -18,11 +18,11 @@ use axum::http::header::{CACHE_CONTROL, REFERRER_POLICY};
 use axum::http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
 use axum::response::Response;
 use demi_backend_database::shares::ShareRecord;
-use demi_backend_user_shard::conversation::{named_blocks, reply_block_facts};
-use demi_backend_user_shard::conversation::shares::{ShareBlobError, ShareRefusal};
+use demi_core::conversation::{named_blocks, reply_block_facts};
+use demi_backend_user_shard::shares::{ShareBlobError, ShareRefusal};
 use demi_backend_user_shard::services::Services;
 use demi_shared_types::{BlobRef, Block, BlockId};
-use demi_backend_database::tree::{Entry, PageRead};
+use demi_core_store::{tree::{Entry, PageRead}};
 use demi_conversation_lane_protocol::{ReplyBlockFacts, index_u32, light};
 use demi_web_api_protocol::conversations::{ConversationShares, WholeBlock};
 use demi_web_api_protocol::error::ErrorCode;
@@ -31,7 +31,7 @@ use demi_web_api_protocol::shares::{
     ShareAnswer, ShareTarget, ShareTranscriptQuery, SharedConversation, SharedEntry, SharedTranscriptPage,
 };
 use demi_web_api_protocol::attachments::ConversationAttachment;
-use demi_backend_database::conversation_attachments::AttachmentNumber;
+use demi_core_store::conversation_attachments::AttachmentNumber;
 
 use super::AppState;
 use super::blobs::blob_answer;
@@ -42,6 +42,7 @@ use super::error::ApiError;
 use super::gate::AuthUser;
 use super::history::block_answer;
 use super::query::QueryParams;
+use demi_backend_user_shard::shares::ConversationSharing;
 
 /// `POST /conversations/:id/shares { kind, blockId? }`: the conversation's
 /// share of that target, the one it has or a new one.
@@ -56,7 +57,7 @@ pub(super) async fn list(
     let shares = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.conversation_shares(&record.id).await })
+        .call(move |core, _| async move { core.starter().conversation_shares(&record.id).await })
         .await??;
     Ok(Json(shares))
 }
@@ -71,7 +72,7 @@ pub(super) async fn create(
     let share = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.share(conversation, target).await })
+        .call(move |core, _| async move { core.share(conversation, target).await })
         .await?
         .map_err(refused)?;
     Ok(Json(answer(&state.services, share)))
@@ -88,7 +89,7 @@ pub(super) async fn update(
     let share = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.update_share(conversation, token).await })
+        .call(move |core, _| async move { core.update_share(conversation, token).await })
         .await?
         .map_err(refused)?;
     Ok(Json(answer(&state.services, share)))
@@ -104,7 +105,7 @@ pub(super) async fn remove(
     state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.stop_sharing(conversation, token).await })
+        .call(move |core, _| async move { core.stop_sharing(conversation, token).await })
         .await?
         .map_err(refused)?;
     Ok(StatusCode::NO_CONTENT)
@@ -176,11 +177,11 @@ pub(super) async fn block_document(
     let answer = state
         .shards
         .of(&owner)
-        .call(move |shard, cancel| async move {
-            if !shard.shows_block(&share, tag.clone(), id.clone()).await.map_err(BlockError::Storage)? {
+        .call(move |core, cancel| async move {
+            if !core.shows_block(&share, tag.clone(), id.clone()).await.map_err(BlockError::Storage)? {
                 return Ok(None);
             }
-            shard.plugins().reply_block_document(&plugin, &tag, id, cancel).await.map_err(BlockError::Call)
+            core.plugins().reply_block_document(&plugin, &tag, id, cancel).await.map_err(BlockError::Call)
         })
         .await?;
     match answer {
@@ -193,7 +194,7 @@ pub(super) async fn block_document(
 
 /// Why a share's reply block was not answered.
 enum BlockError {
-    Storage(demi_backend_database::StorageError),
+    Storage(demi_core_store::StorageError),
     Call(PageCallError),
 }
 
@@ -211,12 +212,12 @@ pub(super) async fn read(
             let facts = state
                 .shards
                 .of(&share.owner)
-                .call(move |shard, _| async move {
-                    if !shard.plugins().reply_block_on(&tag).await.unwrap_or(false) {
+                .call(move |core, _| async move {
+                    if !core.plugins().reply_block_on(&tag).await.unwrap_or(false) {
                         return ReplyBlockFacts { tag, id, facts: serde_json::Value::Null };
                     }
                     let named = [(tag.clone(), id.clone())].into_iter().collect();
-                    let facts = reply_block_facts(shard.plugins(), named).await.pop();
+                    let facts = reply_block_facts(core.plugins(), named).await.pop();
                     facts.unwrap_or(ReplyBlockFacts { tag, id, facts: serde_json::Value::Null })
                 })
                 .await?;
@@ -245,7 +246,7 @@ pub(super) async fn attachment(
     let row = state
         .shards
         .of(&owner)
-        .call(move |shard, _| async move { shard.shared_attachment(&share, number).await })
+        .call(move |core, _| async move { core.shared_attachment(&share, number).await })
         .await?
         .map_err(ApiError::conversation_unreadable)?
         .ok_or_else(not_found)?;
@@ -265,9 +266,9 @@ pub(super) async fn transcript(
     // for what the list does not hold.
     let QueryParams(query) = query.map_err(|_| not_found())?;
     let owner = share.owner.clone();
-    let shard = state.shards.of(&owner);
-    let read = shard
-        .call(move |shard, _| async move { shard.share_page(&share, query).await })
+    let core = state.shards.of(&owner);
+    let read = core
+        .call(move |core, _| async move { core.share_page(&share, query).await })
         .await?
         .map_err(ApiError::conversation_unreadable)?;
     // A conversation without a database holds no share's list.
@@ -297,15 +298,15 @@ pub(super) async fn transcript(
     let reply_blocks = if named.is_empty() {
         Vec::new()
     } else {
-        shard
-            .call(move |shard, _| async move {
+        core
+            .call(move |core, _| async move {
                 let mut on = BTreeSet::new();
                 for (tag, id) in named {
-                    if shard.plugins().reply_block_on(&tag).await.unwrap_or(false) {
+                    if core.plugins().reply_block_on(&tag).await.unwrap_or(false) {
                         on.insert((tag, id));
                     }
                 }
-                reply_block_facts(shard.plugins(), on).await
+                reply_block_facts(core.plugins(), on).await
             })
             .await?
     };
@@ -345,7 +346,7 @@ pub(super) async fn block(
     let read = state
         .shards
         .of(&owner)
-        .call(move |shard, _| async move { shard.share_block(&share, block).await })
+        .call(move |core, _| async move { core.share_block(&share, block).await })
         .await?
         .map_err(ApiError::conversation_unreadable)?;
     Ok(Json(WholeBlock {
@@ -367,7 +368,7 @@ pub(super) async fn blob(
     let bytes = state
         .shards
         .of(&owner)
-        .call(move |shard, _| async move { shard.share_blob(&share, blob).await })
+        .call(move |core, _| async move { core.share_blob(&share, blob).await })
         .await?
         .map_err(|error| match error {
             ShareBlobError::Storage(error) => ApiError::conversation_unreadable(error),

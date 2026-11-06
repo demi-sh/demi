@@ -1,4 +1,4 @@
-//! The user's Cloud machine in the user's shard: one phase, and the transitions
+//! The user's Cloud machine in the user's core: one phase, and the transitions
 //! that change it.
 //!
 //! The phase carries what exists only in it:
@@ -7,7 +7,7 @@
 //! - The idle watch and the maintenance loop, while the machine runs.
 //! - The reset, while one holds the machine.
 //!
-//! Each transition is a task of the shard, so a requester that goes away never
+//! Each transition is a task of the core, so a requester that goes away never
 //! cuts a boot or a save short.
 //!
 //! ```text
@@ -33,11 +33,11 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
+use demi_core_store::StorageError;
 use demi_backend_database::accounts::TokenHash;
-use demi_backend_database::devices::{DeviceRecord, ManagedMachine};
+use demi_core_store::devices::{DeviceRecord, ManagedMachine};
 use demi_backend_database::managed::ManagedOperation;
-use demi_backend_page_sync::{Part, UserMarks};
+use demi_core_sync::{Part, UserMarks};
 use demi_runner_client::Admission;
 use demi_backend_runners::codes::new_device_token;
 use demi_device_interface::{DeviceError, DeviceErrorKind};
@@ -48,15 +48,14 @@ use demi_machine_manager_protocol::{
 use demi_runner_protocol::boot::ManagedBoot;
 use demi_shared_gates::{ActivityGate, GateLease, Purpose};
 use demi_web_api_protocol::cloud::CloudState;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{DeviceId, OperationId};
+use demi_web_api_protocol::ids::{DeviceId, OperationId, UserId};
 use demi_web_api_protocol::users::CloudStorage;
 use futures_util::FutureExt as _;
 use futures_util::future::{LocalBoxFuture, Shared};
 use tokio::time::Instant;
 use tokio_util::task::AbortOnDropHandle;
 
-use crate::CloudShard;
+use crate::CloudCore;
 use crate::capacity::CapacityPermit;
 use crate::client::MachinesError;
 
@@ -74,16 +73,17 @@ pub(crate) fn sandbox_machine(device: &DeviceRecord) -> SandboxMachine {
 /// Claude Code machine.
 pub(crate) async fn capacity(
     control: &ControlService,
+    user: &UserId,
     device: &DeviceRecord,
 ) -> Result<Capacity, StorageError> {
     let storage = match device.machine.unwrap_or(ManagedMachine::Cloud) {
         ManagedMachine::ClaudeCode => CloudStorage::DEFAULT,
         ManagedMachine::Cloud => control
-            .cloud_storage(device.user.clone())
+            .cloud_storage(user.clone())
             .await?
             .ok_or_else(|| StorageError::Corrupt {
-                table: "devices",
-                column: "user_id",
+                table: "users",
+                column: "id",
                 reason: format!("the Cloud {} names no account", device.id),
             })?,
     };
@@ -94,71 +94,20 @@ pub(crate) async fn capacity(
     })
 }
 
-/// Why the Cloud admits no operation, or why one of its transitions failed.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-pub enum CloudError {
-    #[error("Cloud is shutting down")]
-    Closed,
-    /// Its runtime was lost too often in a short time.
-    #[error("Cloud repeatedly failed; reset the environment to recover")]
-    CrashLoop,
-    #[error("Cloud capacity is currently full; retry later")]
-    Capacity,
-    /// Another reset holds the Cloud.
-    #[error("Another reset is in progress")]
-    Resetting,
-    /// A boot, a save or a reset failed, or the machine manager did.
-    #[error("{0}")]
-    Failed(String),
-}
+pub use demi_core_device_access::cloud::{CloudAdmission, CloudError};
 
-impl CloudError {
-    /// The code and HTTP status an operation refused this way answers with.
-    pub fn code(&self) -> (ErrorCode, u16) {
-        match self {
-            Self::Closed => (ErrorCode::BackendClosing, 503),
-            Self::CrashLoop => (ErrorCode::CloudCrashLoop, 503),
-            Self::Capacity => (ErrorCode::CloudCapacity, 503),
-            Self::Resetting => (ErrorCode::CloudResetting, 409),
-            Self::Failed(_) => (ErrorCode::CloudUnavailable, 503),
-        }
-    }
-}
-
-impl From<MachinesError> for CloudError {
-    fn from(error: MachinesError) -> Self {
-        Self::Failed(error.to_string())
-    }
-}
-
-impl From<StorageError> for CloudError {
-    fn from(error: StorageError) -> Self {
-        tracing::error!(
-            event = "cloud_records.failed",
-            error = &error as &dyn std::error::Error,
-            "the Cloud's records failed"
-        );
-        Self::Failed(format!(
-            "The Cloud's records could not be read or written: {error}"
-        ))
-    }
-}
-
-/// A hold of the Cloud's admission: the Cloud keeps running while it is
-/// held, and each operation of a device made under it takes `per_operation`.
-pub struct CloudAdmission {
-    pub device: DeviceId,
-    pub per_operation: Admission,
-    _held: GateLease,
+/// A failure of the machine manager, as the Cloud's.
+pub(crate) fn machines_failed(error: MachinesError) -> CloudError {
+    CloudError::Failed(error.to_string())
 }
 
 /// A transition joiners await; the task behind it runs to its end whoever
 /// waits.
 pub(crate) type Transition = Shared<LocalBoxFuture<'static, Result<(), CloudError>>>;
 
-/// The user's managed machines, in the user's shard: the Cloud, and for the
+/// The user's managed machines, in the user's core: the Cloud, and for the
 /// master the Claude Code machine, each made on the first need, and whether
-/// the shard is closing them.
+/// the core is closing them.
 #[derive(Default)]
 pub struct Cloud {
     machine: RefCell<Option<Rc<Machine>>>,
@@ -180,7 +129,7 @@ impl Cloud {
         }
     }
 
-    /// Every managed machine the shard made.
+    /// Every managed machine the core made.
     pub(crate) fn machines(&self) -> Vec<Rc<Machine>> {
         [self.machine(), self.claude_code.borrow().clone()]
             .into_iter()
@@ -193,7 +142,7 @@ impl Cloud {
     }
 
     /// Admits nothing more and ends the running machine's schedules, as the
-    /// shard's close does first; a retirement already running finishes.
+    /// core's close does first; a retirement already running finishes.
     pub fn stop(&self) {
         self.closed.set(true);
         for machine in self.machines() {
@@ -202,7 +151,7 @@ impl Cloud {
     }
 }
 
-/// The user's Cloud device and what the shard knows of its machine.
+/// The user's Cloud device and what the core knows of its machine.
 pub(crate) struct Machine {
     pub(crate) device: DeviceRecord,
     /// Every operation on the Cloud holds a lease of it; an idle stop and a
@@ -435,7 +384,7 @@ impl Machine {
     }
 }
 
-impl dyn CloudShard {
+impl dyn CloudCore {
     /// The managed machine of `device`, the user's Cloud or the Claude Code
     /// machine, made on the first need with the latest reset its records
     /// hold.
@@ -472,7 +421,7 @@ impl dyn CloudShard {
     }
 
     /// Takes the Cloud's admission
-    /// (`crates/backend-device-access/src/access.rs`).
+    /// (`crates/core-device-access/src/access.rs`).
     ///
     /// The admission wakes a stopped Cloud, joins a boot under way, or waits
     /// for a running reset to finish, holding nothing while it waits, since a
@@ -498,11 +447,7 @@ impl dyn CloudShard {
                         let machine = machine.clone();
                         Admission::Leased(Rc::new(move || machine.admit()))
                     };
-                    return Ok(CloudAdmission {
-                        device: device.id.clone(),
-                        per_operation,
-                        _held: lease,
-                    });
+                    return Ok(CloudAdmission::new(device.id.clone(), per_operation, lease));
                 }
                 Ready::Resetting => drop(lease),
             }
@@ -559,14 +504,14 @@ impl dyn CloudShard {
                     }
                 }
             };
-            let shard = self.this();
+            let core = self.this();
             let target = machine.clone();
             let transition = if recover {
-                self.spawn_transition(machine, async move { shard.recover(&target).await })
+                self.spawn_transition(machine, async move { core.recover(&target).await })
             } else {
                 self.spawn_transition(machine, async move {
-                    let booted = shard.boot(&target).await;
-                    shard.finish_boot(&target, &booted);
+                    let booted = core.boot(&target).await;
+                    core.finish_boot(&target, &booted);
                     booted
                 })
             };
@@ -574,7 +519,7 @@ impl dyn CloudShard {
         }
     }
 
-    /// Runs `work` as the machine's transition, a task of the shard; the
+    /// Runs `work` as the machine's transition, a task of the core; the
     /// transition is cleared in the step that ends it.
     pub(crate) fn spawn_transition(
         &self,
@@ -592,7 +537,7 @@ impl dyn CloudShard {
         transition
     }
 
-    /// A task of the shard as a transition that joiners await.
+    /// A task of the core as a transition that joiners await.
     pub(crate) fn spawn_joinable(
         &self,
         work: impl Future<Output = Result<(), CloudError>> + 'static,
@@ -629,7 +574,7 @@ impl dyn CloudShard {
         let device = &machine.device.id;
         let token = new_device_token();
         self.control()
-            .rotate_device_token(device.clone(), TokenHash::of(token.expose()))
+            .rotate_device_token(device.clone(), self.user().clone(), TokenHash::of(token.expose()))
             .await?;
         let backend_url = self
             .public_url()
@@ -638,7 +583,7 @@ impl dyn CloudShard {
             .ok_or_else(|| CloudError::Failed("The backend does not listen yet".into()))?;
         let wake = WakeParams {
             device_id: device.to_string(),
-            capacity: capacity(self.control(), &machine.device).await?,
+            capacity: capacity(self.control(), self.user(), &machine.device).await?,
             boot: ManagedBoot {
                 backend_url,
                 device_token: token,
@@ -647,7 +592,7 @@ impl dyn CloudShard {
             machine: sandbox_machine(&machine.device),
         };
         let cloud = self.cloud_services();
-        cloud.machines.call(wake).await?;
+        cloud.machines.call(wake).await.map_err(machines_failed)?;
         let connection = cloud.tuning.runner_connection;
         tokio::select! {
             biased;
@@ -667,7 +612,7 @@ impl dyn CloudShard {
         }
         // The lifetime cap counts from here, also after a backend restart
         // takes the running Cloud over.
-        self.control().record_cloud_boot(device.clone()).await?;
+        self.store().record_cloud_boot(device.clone()).await?;
         Ok(())
     }
 
@@ -724,7 +669,7 @@ impl dyn CloudShard {
             .call(RuntimeStateParams {
                 device_id: device.to_string(),
             })
-            .await?;
+            .await.map_err(machines_failed)?;
         if state == RuntimeState::Running {
             let connection = self.cloud_services().tuning.runner_connection;
             return tokio::time::timeout(connection, self.devices().until_online(device))
@@ -809,10 +754,10 @@ impl dyn CloudShard {
                 }
             }
         }
-        let shard = self.this();
+        let core = self.this();
         let target = machine.clone();
         let save = self.spawn_transition(machine, async move {
-            let saved = shard.save(&target).await;
+            let saved = core.save(&target).await;
             let mut phase = target.phase();
             if matches!(&*phase, Phase::Saving(_)) {
                 *phase = Phase::Off;
@@ -840,7 +785,7 @@ impl dyn CloudShard {
         self.devices().disconnect(device, "Cloud stopped");
         self.packages_lost(device);
         operation_ended(device, "save", started, saved.is_ok());
-        Ok(saved?)
+        Ok(saved.map_err(machines_failed)?)
     }
 
     /// Asks the Cloud's runner to flush its writable filesystems, within the
@@ -865,7 +810,7 @@ impl dyn CloudShard {
         }
     }
 
-    /// Closes the Cloud with its shard (`crates/backend/src/backend.rs`).
+    /// Closes the Cloud with its core (`crates/backend/src/backend.rs`).
     ///
     /// No admission follows, its schedules end, and a reset or a transition
     /// under way finishes. A running machine keeps running, and the next
@@ -925,7 +870,7 @@ impl dyn CloudShard {
             device_id: device.id.to_string(),
             machine: sandbox_machine(device),
         };
-        self.cloud_services().machines.call(hibernate).await?;
+        self.cloud_services().machines.call(hibernate).await.map_err(machines_failed)?;
         Ok(())
     }
 }

@@ -767,7 +767,7 @@ impl Owner<'_> {
                     // record of its own.
                     scratch.forget_released(&conversation_id).await;
                     // The residents end what they hold; the runner holds no
-                    // files of the conversation (`crates/backend-user-shard/src/lifecycle/conversations.rs`).
+                    // files of the conversation (`crates/core/src/lifecycle/conversations.rs`).
                     let result = tokio::select! {
                         _ = closed.cancelled() => return Work::Done,
                         result = residents.release_conversation(&conversation_id) => result,

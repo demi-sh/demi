@@ -21,7 +21,7 @@ use crate::shares::ConversationShare;
 use crate::workflows::ConversationWorkflowList;
 use crate::text::Trimmed;
 
-/// Where a conversation's work runs (`crates/backend-database/src/selection.rs`): the user's Cloud, a directory on a paired device, or a
+/// Where a conversation's work runs (`crates/core-store/src/selection.rs`): the user's Cloud, a directory on a paired device, or a
 /// project. A new conversation runs on the Cloud, in its session
 /// directory.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, garde::Validate)]
@@ -203,7 +203,7 @@ pub struct ConversationSummary {
     pub target: ConversationTarget,
     /// The name git gave the linked worktree of its project it works in,
     /// which the sidebar's row and the header show; null outside one
-    /// (`crates/backend-database/src/selection.rs` § Worktrees).
+    /// (`crates/core-store/src/selection.rs` § Worktrees).
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<String>")]
     pub worktree: Option<String>,
@@ -257,7 +257,7 @@ pub struct ConversationMetadata {
     #[schemars(with = "Nullable<ModelSettings>")]
     pub model: Option<ModelSettings>,
     /// The conversation's Workflow menu choice
-    /// (`crates/backend-user-shard/src/conversation/workflows.rs`), kept as its
+    /// (`crates/core/src/conversation/workflows.rs`), kept as its
     /// model is.
     pub workflow: WorkflowChoice,
     /// The directory the conversation's work runs in, resolved by the backend
@@ -309,7 +309,7 @@ pub struct ConversationMetadata {
     /// detach or a rename raises.
     pub devices: ConversationDevices,
     /// The number of the conversation's latest attachment, 3 for `a3`, 0
-    /// before its first (`crates/backend-device-access/src/attachment_commands.rs`): a message
+    /// before its first (`crates/core-device-access/src/attachment_commands.rs`): a message
     /// that names a higher number names one still to come, whose description
     /// the socket sends once it is uploaded.
     #[garde(range(max = MAX_SAFE_INTEGER))]
@@ -428,7 +428,7 @@ pub struct ConversationDetail {
 }
 
 /// What the conversation's socket carries of the conversation itself, beside
-/// its agents' frames (`crates/backend-user-shard/src/conversation/lane.rs`).
+/// its agents' frames (`crates/core/src/conversation/lane.rs`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case", rename_all_fields = "camelCase")]
 pub enum ConversationFrame {
@@ -601,7 +601,7 @@ pub struct TranscriptQuery {
 
 /// One page of an agent's transcript: a thousand blocks, wherever requests
 /// begin and end (`PAGE_BLOCKS` in `crates/conversation-lane-protocol`), in their light form, with the failure facts of its error blocks
-/// (`crates/backend-user-shard/src/conversation/failure_facts.rs`).
+/// (`crates/core/src/conversation/failure_facts.rs`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TranscriptPage {

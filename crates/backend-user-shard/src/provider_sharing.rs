@@ -13,11 +13,11 @@
 //!   is the borrower's.
 //! - Revoking a key closes every session it opened and ends every media call
 //!   it made, which cancels a video's job left unfinished
-//!   (`crate::shard::lent_media`).
+//!   (`demi_core::lent_media`).
 //!
-//! A borrowed session runs on the shard of the key's maker, on the runtime a
+//! A borrowed session runs on the core of the key's maker, on the runtime a
 //! conversation of theirs would have, unmetered
-//! (`crates/backend-user-shard/src/conversation/providers.rs`).
+//! (`crates/core/src/conversation/providers.rs`).
 
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -25,25 +25,26 @@ use std::sync::Mutex;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_backend_database::StorageError;
+use demi_core_store::StorageError;
 use demi_backend_database::accounts::TokenHash;
-use demi_backend_database::providers::ShareKeyRow;
-use demi_backend_providers::vault::entries::Vault;
+use demi_backend_database::provider_keys::ShareKeyRow;
+use demi_core_providers::vault::entries::Vault;
 use demi_provider_registry::entry::ProviderEntry;
 use demi_provider_relay::borrow::FAMILY as BORROWED;
 use demi_provider_relay::key::ShareKey as KeyText;
 use demi_provider_relay::lend::Lends;
 use demi_provider_relay::wire::{ClientMessage, Lent, ModelLimits, ServerMessage};
 use demi_shared_types::{ProviderModelList, Timestamp};
-use demi_web_api_protocol::ids::{ProviderId, UserId};
+use demi_web_api_protocol::ids::UserId;
 use demi_web_api_protocol::providers::{NewShareKey, ShareKey, ShareKeyUse, ShareKeys};
 use futures_util::{Sink, Stream};
 use tokio_util::sync::CancellationToken;
 
-use crate::conversation::{lent_limits, lent_runtime};
-use crate::provider_settings::ProviderRefusal;
+use demi_core::conversation::{lent_limits, lent_runtime};
+use demi_core::provider_settings::ProviderRefusal;
+use crate::server_starter::ServerCore;
 use crate::services::Services;
-use crate::shard::Shard;
+use demi_core::Core;
 
 /// How long a key nobody used keeps working: a key pasted into a chat and
 /// forgotten should not stay valid, and a week is how long an invite link
@@ -108,7 +109,7 @@ impl Services {
     /// The share keys of the entry `id`, newest first.
     pub async fn share_keys(&self, user: &UserId, id: &str) -> Result<ShareKeys, ProviderRefusal> {
         let entry = self.lendable(user, id).await?;
-        let rows = self.control.share_keys(entry.id, self.unused_since()).await?;
+        let rows = self.control.share_keys(entry.owner, entry.id, self.unused_since()).await?;
         Ok(ShareKeys {
             keys: rows.into_iter().map(shown).collect(),
         })
@@ -126,14 +127,13 @@ impl Services {
         let token = URL_SAFE_NO_PAD.encode(rand::random::<[u8; 32]>());
         let row = ShareKeyRow {
             id: URL_SAFE_NO_PAD.encode(rand::random::<[u8; 12]>()),
+            owner: entry.owner.clone(),
             provider: entry.id.clone(),
             created_by: user.clone(),
             created_at: self.clock.now(),
             used: None,
         };
-        if !self.control.insert_share_key(TokenHash::of(&token), row.clone()).await? {
-            return Err(ProviderRefusal::NotFound);
-        }
+        self.control.insert_share_key(TokenHash::of(&token), row.clone()).await?;
         Ok(NewShareKey {
             key: shown(row),
             text: KeyText { url, token }.text(),
@@ -144,7 +144,7 @@ impl Services {
     /// borrowed with it.
     pub async fn revoke_share_key(&self, user: &UserId, id: &str, key: &str) -> Result<(), ProviderRefusal> {
         let entry = self.lendable(user, id).await?;
-        if !self.control.delete_share_key(entry.id, key.to_owned()).await? {
+        if !self.control.delete_share_key(entry.owner, entry.id, key.to_owned()).await? {
             return Err(ProviderRefusal::NotFound);
         }
         self.end_lending(&[key.to_owned()]);
@@ -154,8 +154,8 @@ impl Services {
     /// The ids of the entry `entry`'s share keys, whose sessions
     /// [`end_lending`](Self::end_lending) closes once deleting the entry
     /// deleted them.
-    pub(crate) async fn lent_keys(&self, entry: &ProviderId) -> Result<Vec<String>, StorageError> {
-        let rows = self.control.share_keys(entry.clone(), self.unused_since()).await?;
+    pub(crate) async fn lent_keys(&self, entry: &ProviderEntry) -> Result<Vec<String>, StorageError> {
+        let rows = self.control.share_keys(entry.owner.clone(), entry.id.clone(), self.unused_since()).await?;
         Ok(rows.into_iter().map(|row| row.id).collect())
     }
 
@@ -210,7 +210,7 @@ impl Services {
     /// its `model`: they lend only what they have on in Settings ›
     /// Providers.
     async fn lends_model(&self, borrowing: &Borrowing, model: Option<&str>) -> Result<Lends, StorageError> {
-        let preferences = self.control.preferences(borrowing.key.created_by.clone()).await?;
+        let preferences = self.stores.of(&borrowing.key.created_by).await?.preferences().await?;
         let entry = &borrowing.entry.id;
         Ok(if preferences.hides_provider(entry) {
             Lends::TurnedOff
@@ -222,17 +222,38 @@ impl Services {
     }
 }
 
-impl Shard {
+/// The user's provider entries lent to other servers, on the user's core.
+#[expect(
+    async_fn_in_trait,
+    reason = "a core runs on one thread: its futures are never sent to another"
+)]
+pub trait ProviderSharing {
     /// What the lender says of `borrowing`'s entry: its name, its catalog of
     /// the models the key's maker has on, and what one request of each may
     /// hold; nothing but its name while they have it turned off.
-    pub async fn lent(self: Rc<Self>, borrowing: Borrowing) -> Result<Lent, String> {
-        let services = self.shared_services();
+    async fn lent(self: Rc<Self>, borrowing: Borrowing) -> Result<Lent, String>;
+
+    /// Serves the session borrowed with `borrowing`'s key over a socket's
+    /// messages until it closes or the key is revoked.
+    async fn lend<In, Out>(self: Rc<Self>, borrowing: Borrowing, incoming: In, outgoing: Out)
+    where
+        In: Stream<Item = ClientMessage> + Unpin,
+        Out: Sink<ServerMessage> + Unpin,
+;
+}
+
+impl ProviderSharing for Core {
+    async fn lent(self: Rc<Self>, borrowing: Borrowing) -> Result<Lent, String> {
+        let services = self.server_services().clone();
         let registry = &services.provider_registry;
         let entry = &borrowing.entry;
-        let preferences = services
-            .control
-            .preferences(borrowing.key.created_by.clone())
+        let preferences = self
+            .server_services()
+            .stores
+            .of(&borrowing.key.created_by)
+            .await
+            .map_err(|error| error.to_string())?
+            .preferences()
             .await
             .map_err(|error| error.to_string())?;
         if preferences.hides_provider(&entry.id) {
@@ -270,7 +291,7 @@ impl Shard {
             .collect();
         let limits = lent_limits(
             &self,
-            services.clone(),
+            services.core.clone(),
             borrowing.key.created_by.clone(),
             entry,
             &selections,
@@ -288,27 +309,25 @@ impl Shard {
         })
     }
 
-    /// Serves the session borrowed with `borrowing`'s key over a socket's
-    /// messages until it closes or the key is revoked.
-    pub async fn lend<In, Out>(self: Rc<Self>, borrowing: Borrowing, incoming: In, outgoing: Out)
+    async fn lend<In, Out>(self: Rc<Self>, borrowing: Borrowing, incoming: In, outgoing: Out)
     where
         In: Stream<Item = ClientMessage> + Unpin,
         Out: Sink<ServerMessage> + Unpin,
     {
-        let services = self.shared_services();
+        let services = self.server_services().clone();
         let key = borrowing.key.id.clone();
         let revoked = services.lent.open(&key);
         // A revoke, or the entry's deletion, between the key's check and
         // `open` found no session to close: the key is checked again now
         // that one would be found.
-        let held = services.lent_keys(&borrowing.entry.id).await;
+        let held = services.lent_keys(&borrowing.entry).await;
         if !held.is_ok_and(|keys| keys.contains(&key)) {
             services.lent.ended(&key, &revoked);
             return;
         }
         let runtime = lent_runtime(
             &self,
-            services.clone(),
+            services.core.clone(),
             borrowing.key.created_by.clone(),
             borrowing.entry.id.clone(),
             key.clone(),

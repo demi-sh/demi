@@ -1,0 +1,19 @@
+[package]
+name = "demi-core-idle-watch"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+# No doc examples.
+test = false
+doctest = false
+bench = false
+
+[dependencies]
+demi-shared-gates = { path = "../shared-gates" }
+futures-util.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true

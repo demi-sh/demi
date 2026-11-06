@@ -10,9 +10,9 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::saved::ScopeSwitch;
-use demi_backend_database::projects::{ProjectChange, ProjectCreation, new_project_id};
-use demi_backend_page_sync::Part;
+use demi_core_store::saved::ScopeSwitch;
+use demi_core_store::projects::{ProjectChange, ProjectCreation, new_project_id};
+use demi_core_sync::Part;
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::ids::ProjectId;
 use demi_web_api_protocol::projects::{
@@ -23,14 +23,14 @@ use super::AppState;
 use super::body::JsonBody;
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_user_shard::conversation::CloudProject;
+use demi_core::conversation::CloudProject;
 use demi_backend_user_shard::services::Services;
 
 pub(super) async fn list(
     State(services): State<Arc<Services>>,
     AuthUser(user): AuthUser,
 ) -> Result<Json<Projects>, ApiError> {
-    let projects = services.control.projects(user.id).await?;
+    let projects = services.stores.of(&user.id).await?.projects().await?;
     Ok(Json(Projects {
         projects: projects
             .into_iter()
@@ -49,20 +49,18 @@ pub(super) async fn create(
     let project = match request {
         CreateProject::Device { workspace_id, device_id, path } => {
             // The directory as its device names it, so two spellings of one
-            // directory are one project (`crates/backend-database/src/selection.rs`).
+            // directory are one project (`crates/core-store/src/selection.rs`).
             let resolving = device_id.clone();
             let path = state
                 .shards
                 .of(&user.id)
-                .call(move |shard, _| async move {
-                    shard.device_shard().device_directory(&resolving, path.as_str()).await
+                .call(move |core, _| async move {
+                    core.device_core().device_directory(&resolving, path.as_str()).await
                 })
                 .await?
                 .map_err(super::attached_devices::refused)?;
             match state
-            .services
-            .control
-            .create_project(new_project_id(), user.id.clone(), workspace_id, device_id, path)
+            .services.stores.of(&user.id).await?.create_project(new_project_id(), workspace_id, device_id, path)
             .await?
         {
             ProjectCreation::Created(project) => project,
@@ -97,7 +95,7 @@ pub(super) async fn create(
             match state
                 .shards
                 .of(&user.id)
-                .call(move |shard, _| async move { shard.create_cloud_project(workspace_id, name).await })
+                .call(move |core, _| async move { core.create_cloud_project(workspace_id, name).await })
                 .await??
             {
                 CloudProject::Made(project) => project,
@@ -120,12 +118,12 @@ pub(super) async fn create(
             }
         }
     };
-    // Through the shard, which also tells the device's runner the new
+    // Through the core, which also tells the device's runner the new
     // project's directory, whose worktrees it reports.
     state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.mark(Part::Projects) })
+        .call(move |core, _| async move { core.mark(Part::Projects) })
         .await?;
     Ok((
         StatusCode::CREATED,
@@ -147,9 +145,7 @@ pub(super) async fn change(
         last_model: change.last_model,
         last_workflow: change.last_workflow,
     };
-    let project = services
-        .control
-        .change_project(user.id.clone(), id, change)
+    let project = services.stores.of(&user.id).await?.change_project(id, change)
         .await?
         .ok_or_else(not_found)?;
     services.sync.mark(&user.id, Part::Projects);
@@ -168,9 +164,7 @@ pub(super) async fn switch_saved_scope(
     JsonBody(switch): JsonBody<SavedScopeSwitch>,
 ) -> Result<Json<ProjectAnswer>, ApiError> {
     let id = project_id(id)?;
-    let switched = services
-        .control
-        .switch_saved_scope(user.id.clone(), id.clone(), switch.scope, switch.to)
+    let switched = services.stores.of(&user.id).await?.switch_saved_scope(id.clone(), switch.scope, switch.to)
         .await?;
     let changed = match switched {
         ScopeSwitch::Switched(changed) => changed,
@@ -194,14 +188,14 @@ pub(super) async fn switch_saved_scope(
         services.sync.mark(&user.id, Part::Metadata(conversation));
     }
     services.sync.mark(&user.id, Part::Projects);
-    let project = services.control.project(id).await?.ok_or_else(not_found)?;
+    let project = services.stores.of(&user.id).await?.project(id).await?.ok_or_else(not_found)?;
     Ok(Json(ProjectAnswer {
         project: project.dto(),
     }))
 }
 
 /// Archives the project's conversations and deletes it, as one transition
-/// the user's shard makes.
+/// the user's core makes.
 pub(super) async fn delete(
     State(state): State<AppState>,
     AuthUser(user): AuthUser,
@@ -211,7 +205,7 @@ pub(super) async fn delete(
     state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.delete_project(&id).await })
+        .call(move |core, _| async move { core.delete_project(&id).await })
         .await?
         .map_err(super::attached_devices::refused)?;
     Ok(StatusCode::NO_CONTENT)

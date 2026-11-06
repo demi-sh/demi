@@ -12,13 +12,18 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-backend-idle-watch = { path = "../backend-idle-watch" }
-demi-backend-providers = { path = "../backend-providers" }
+demi-core = { path = "../core" }
+demi-core-device-access = { path = "../core-device-access" }
+demi-core-devices = { path = "../core-devices" }
+demi-core-idle-watch = { path = "../core-idle-watch" }
+demi-core-providers = { path = "../core-providers" }
 demi-provider-registry = { path = "../provider-registry" }
 demi-backend-runners = { path = "../backend-runners" }
 demi-backend-database = { path = "../backend-database" }
-demi-backend-page-sync = { path = "../backend-page-sync" }
+demi-core-store = { path = "../core-store" }
+demi-core-sync = { path = "../core-sync" }
 demi-shared-gates = { path = "../shared-gates" }
+demi-plugin-host = { path = "../plugin-host" }
 demi-runner-client = { path = "../runner-client" }
 demi-machine-manager-protocol = { path = "../machine-manager-protocol" }
 demi-runner-protocol = { path = "../runner-protocol" }

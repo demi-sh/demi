@@ -36,7 +36,7 @@ pub enum ControlReason {
     CaptureUnavailable,
     InputFailed,
     NoFocusedField,
-    // The conversation's device access (`crates/backend-device-access/src/access.rs`).
+    // The conversation's device access (`crates/core-device-access/src/access.rs`).
     ConversationNotFound,
     ConversationArchived,
     ConversationBusy,

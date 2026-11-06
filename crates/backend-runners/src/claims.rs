@@ -3,7 +3,7 @@
 //! An unpaired runner has no user yet, so it waits at the edge, under the code
 //! it printed, until a signed-in user claims that code. The claim creates the
 //! device and hands the waiting runner its token, and the runner's socket moves
-//! into the user's shard. Each user may try ten codes a minute.
+//! into the user's core. Each user may try ten codes a minute.
 //!
 //! An agent pairs a computer it reaches without the user typing the code (`demi
 //! device pair`): the code is proof enough, since it reaches only the runner's
@@ -14,10 +14,11 @@ use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
+use demi_core_store::StorageError;
 use demi_backend_database::accounts::TokenHash;
 use demi_backend_database::control::ControlService;
-use demi_backend_database::devices::DeviceRecord;
+use demi_core_store::store::CoreStore;
+use demi_core_store::devices::{DeviceRecord, new_device_id};
 use demi_runner_protocol::values::DeviceToken;
 use demi_runner_protocol::wire::RunnerInfo;
 use demi_web_api_protocol::devices::DeviceDto;
@@ -34,6 +35,7 @@ const ATTEMPT_WINDOW: Duration = Duration::from_secs(60);
 
 /// The runners waiting to be paired, and each user's recent claims.
 pub struct PendingClaims {
+    control: ControlService,
     /// A `std` mutex: the edge's threads share the waiting runners, and no
     /// section awaits.
     state: Mutex<State>,
@@ -72,18 +74,20 @@ pub enum ClaimRefusal {
     Storage(#[from] StorageError),
 }
 
-/// What a claim hands its runner: the device made for it, the token only
-/// the runner receives, and where the device's answer goes once the runner's
-/// socket is bound in the user's shard.
+/// What a claim hands its runner: the user who claimed it, the device made
+/// for it, the token only the runner receives, and where the device's answer
+/// goes once the runner's socket is bound in the user's core.
 pub struct ClaimGrant {
+    pub owner: UserId,
     pub device: DeviceRecord,
     pub token: DeviceToken,
     pub bound: oneshot::Sender<DeviceDto>,
 }
 
 impl PendingClaims {
-    pub fn new(attempts_per_minute: usize) -> Self {
+    pub fn new(control: ControlService, attempts_per_minute: usize) -> Self {
         Self {
+            control,
             state: Mutex::default(),
             attempts: RateWindow::new(attempts_per_minute, ATTEMPT_WINDOW),
         }
@@ -98,11 +102,11 @@ impl PendingClaims {
     /// Pairs the runner waiting under `code`, spelled as a person types it,
     /// with `user`: the device is made, its token goes to that runner alone,
     /// and the answer is the device once the runner's socket is bound in the
-    /// user's shard. Add Device's `POST /devices/claim` and `demi device pair`
+    /// user's core. Add Device's `POST /devices/claim` and `demi device pair`
     /// both claim this way.
     pub async fn claim(
         &self,
-        control: &ControlService,
+        store: &CoreStore,
         user: &UserId,
         code: &str,
     ) -> Result<DeviceDto, ClaimRefusal> {
@@ -113,21 +117,29 @@ impl PendingClaims {
             .and_then(|code| self.take(&code))
             .ok_or(ClaimRefusal::UnknownCode)?;
         let token = new_device_token();
-        let device = control
-            .create_device(
-                user.clone(),
-                pending.runner.name.clone(),
-                pending.runner.platform,
-                TokenHash::of(token.expose()),
-            )
+        let id = new_device_id();
+        // The routing row comes first: a device is never one no request
+        // reaches.
+        self.control
+            .record_device_owner(id.clone(), user.clone(), Some(TokenHash::of(token.expose())))
             .await?;
-        let id = device.id.clone();
-        match pending.grant(device, token).await {
+        let device = match store
+            .create_device(id.clone(), pending.runner.name.clone(), pending.runner.platform)
+            .await
+        {
+            Ok(device) => device,
+            Err(error) => {
+                self.control.forget_device_owner(id).await?;
+                return Err(error.into());
+            }
+        };
+        match pending.grant(user.clone(), device, token).await {
             Ok(device) => Ok(device),
             Err(_) => {
                 // The runner went away before it held its token: the device
                 // it would have been goes too.
-                control.delete_device(id).await?;
+                store.delete_device(id.clone()).await?;
+                self.control.forget_device_owner(id).await?;
                 Err(ClaimRefusal::UnknownCode)
             }
         }
@@ -179,11 +191,12 @@ impl PendingClaims {
 impl PendingRunner {
     /// Hands the runner its device and token. The answer is the device as it
     /// is once the runner is bound; none when the runner went away before.
-    pub fn grant(self, device: DeviceRecord, token: DeviceToken) -> oneshot::Receiver<DeviceDto> {
+    pub fn grant(self, owner: UserId, device: DeviceRecord, token: DeviceToken) -> oneshot::Receiver<DeviceDto> {
         let (bound, answer) = oneshot::channel();
         // A runner that went away dropped its end, and `answer` then resolves
         // without a device.
         let _ = self.grant.send(ClaimGrant {
+            owner,
             device,
             token,
             bound,

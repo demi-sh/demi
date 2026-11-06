@@ -54,6 +54,8 @@ use demi_machine_manager_protocol::{
     store::{appended, mounted_from, partial_file, store_file},
 };
 
+use demi_shared_artifacts::sync_directory;
+
 use crate::moving::run;
 
 /// How a store came to share extents.
@@ -273,10 +275,6 @@ fn mount(store: &Path, file: &Path) -> io::Result<()> {
         return Ok(());
     }
     run(Command::new("mount").arg(store))
-}
-
-fn sync_directory(directory: &Path) -> io::Result<()> {
-    fs::File::open(directory)?.sync_all()
 }
 
 /// Makes room for copying `source`, `bytes` large, to `target`, before it is

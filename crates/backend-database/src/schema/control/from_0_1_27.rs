@@ -1,12 +1,12 @@
 //! From 0.1.27's control schema to the next one.
 //!
 //! - The users' port forwards
-//!   (`crates/backend-user-shard/src/shard/port_forwards.rs`) and exposed ports
+//!   (`crates/core/src/port_forwards.rs`) and exposed ports
 //!   (`crates/backend-user-shard/src/shard/exposed_ports.rs`), none before.
 //! - Each owner's entries have an order of their own, which the user sets by
 //!   dragging Settings › Providers and generated media try them in, first the
 //!   order they were added in
-//!   (`crates/backend-user-shard/src/provider_settings.rs`).
+//!   (`crates/core/src/provider_settings.rs`).
 //! - Preferences no longer choose an entry per vendor's images, which the order
 //!   and the switches say instead, so a saved choice is dropped.
 //! - An entry whose provider makes videos has a Video Generation switch, and one
@@ -14,7 +14,7 @@
 //!   entry stored before.
 //! - A usage ledger row may be a video's or an audio file's, with the seconds
 //!   made and the cost the vendor reported
-//!   (`crates/backend-database/src/usage.rs`), which SQLite's checks let in only
+//!   (`crates/core-store/src/usage.rs`), which SQLite's checks let in only
 //!   on a table made again, its rows as they were with null for both.
 
 use super::super::Migration;

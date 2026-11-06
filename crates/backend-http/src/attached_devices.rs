@@ -1,5 +1,5 @@
 //! A conversation's attached devices
-//! (`crates/backend-database/src/conversation_index.rs`).
+//! (`crates/core-store/src/conversation_index.rs`).
 //!
 //! The route is a detach; the conversation's metadata lists the devices. A detach
 //! applies at once, whatever the conversation does, and reaches the
@@ -8,13 +8,13 @@
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::conversation_index::{ConversationChange, RecordChange};
+use demi_core_store::conversation_index::{ConversationChange, RecordChange};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 
 use super::AppState;
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_device_access::transition::ChangeRefusal;
+use demi_core_device_access::transition::ChangeRefusal;
 
 /// Detaches a device: answers once it has left the conversation and the
 /// conversation's commands there were asked to stop, waiting for no device; the
@@ -44,7 +44,7 @@ async fn change(
     state
         .shards
         .of(user)
-        .call(move |shard, _| async move { shard.transition(&id, change).await })
+        .call(move |core, _| async move { core.transition(&id, change).await })
         .await?
         .map_err(refused)
 }

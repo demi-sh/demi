@@ -24,8 +24,9 @@ use std::ops::Bound;
 use axum_extra::TypedHeader;
 use axum_extra::headers::Range;
 use bytes::Bytes;
-use demi_backend_database::devices::DeviceRecord;
-use demi_backend_runners::devices::Download;
+use demi_core_devices::devices::Download;
+
+use super::runners::TokenDevice;
 use demi_backend_runners::native::StoredBytes;
 use futures_util::stream::{BoxStream, StreamExt as _, TryStreamExt as _};
 use demi_backend_runners::install::{
@@ -229,8 +230,8 @@ pub(super) async fn artifact(
 }
 
 /// `stored`, whose bytes count as `device`'s download as they are served:
-/// its shard hears of each, until the download ends (`crates/runner/src/update.rs`). Without a device, nothing counts.
-async fn counted(state: &AppState, device: Option<DeviceRecord>, stored: Stored) -> Stored {
+/// its core hears of each, until the download ends (`crates/runner/src/update.rs`). Without a device, nothing counts.
+async fn counted(state: &AppState, device: Option<TokenDevice>, stored: Stored) -> Stored {
     let Some(device) = device else {
         return stored;
     };
@@ -242,8 +243,8 @@ async fn counted(state: &AppState, device: Option<DeviceRecord>, stored: Stored)
     let id = device.id;
     let told = state
         .shards
-        .of(&device.user)
-        .call(move |shard, _| async move { shard.runner_downloading(id, serving) })
+        .of(&device.owner)
+        .call(move |core, _| async move { core.runner_downloading(id, serving) })
         .await;
     if told.is_err() {
         // A closing backend counts nothing more; the bytes go out all the same.

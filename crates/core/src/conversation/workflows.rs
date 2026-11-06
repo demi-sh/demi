@@ -1,0 +1,673 @@
+//! A project's workflows on the conversation's device.
+//!
+//! A workflow is a `.demi/workflows/*.yaml` file of the nearest directory that
+//! has it, from the project's directory up to the root of its git repository;
+//! a conversation in a linked worktree of the project reads the project's, and
+//! the worktree's own only when it picks one of them. It is:
+//!
+//! - read through the conversation's device access, or through device access for a
+//!   new conversation before its first message;
+//! - parsed with the one parser (`crates/agent-tools/src/workflow.rs`).
+//!
+//! The core keeps each conversation directory's workflows current with the
+//! runner's file watch (`project_files`). The spawns, `demi agent workflows`,
+//! `demi agent profiles list`, the Workflow menu and the instructions block take
+//! what it holds.
+//!
+//! Why it is built this way:
+//!
+//! - Nothing applies by itself. A repository is often someone else's, so a
+//!   workflow applies only when the user picks it in a conversation's Workflow
+//!   menu, or allows an agent of that conversation to pick it (`demi agent
+//!   workflows use`), never because a repository holds it.
+//! - A spawn takes the workflow as its file is then, without asking the device, so
+//!   a slow or stopped device never holds a spawn; only a directory's first read
+//!   holds them, briefly.
+//! - A chosen workflow that no longer reads is shown as unavailable with why,
+//!   and spawns fail with that reason until the user picks another, rather than
+//!   quietly spawning with other settings.
+
+use demi_agent_tools::{
+    ChosenWorkflow, ConversationProfiles, EFFORT_OFF, ListedWorkflow, WORKFLOW_EXTENSION,
+    WORKFLOW_FILE_MAX_BYTES, WORKFLOWS_DIRECTORY, Workflow, WorkflowChild, WorkflowListing,
+    WorkflowProfile, parse_workflow, workflow_id,
+};
+use demi_core_device_access::plugin_files::ReadFilesError;
+use demi_core_device_access::transition::ChangeRefusal;
+use std::rc::Rc;
+use std::future::Future;
+
+use demi_core_device_access::plugin_files::look_files;
+use demi_device_interface::{Device as _, DeviceError};
+use demi_device_paths::DevicePaths;
+use demi_device_interface::project;
+use demi_device_interface::{EntryKind, DeviceFile, DeviceRead};
+use demi_shared_types::{ModelSelection, ReadAt, THINKING_OFF, UnavailableSetting, WorkflowChoice};
+use demi_web_api_protocol::conversations::{ConversationPatch, FieldResult, ModelSettings};
+use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use demi_runner_protocol::files::SubscriptionKind as WatchKind;
+use demi_web_api_protocol::workflows::{ConversationWorkflows, KeptWorkflowList, MenuWorkflow, WatchSubject};
+use tokio_util::sync::CancellationToken;
+
+use super::project_files::KeptWorkflows;
+use crate::Core;
+use crate::agent_profiles::{Scope, first_offering, named_entry};
+
+/// The workflows a working directory has now.
+pub(crate) struct ProjectWorkflows {
+    /// The `.demi/workflows` directory they are in, or would be; none when
+    /// no directory searched has a `.demi` that holds one.
+    pub(crate) directory: Option<String>,
+    /// Why that directory cannot be used, as the device could not read it; none
+    /// while it can.
+    pub(crate) unavailable: Option<String>,
+    /// Each file, by id.
+    pub(crate) files: Vec<WorkflowFile>,
+    /// What the backend watches to hear of a workflow added, changed or
+    /// removed, or of a nearer directory that gains one.
+    pub(crate) watch: Vec<WatchSubject>,
+}
+
+/// One workflow file, as it reads now.
+pub(crate) struct WorkflowFile {
+    pub(crate) id: String,
+    pub(crate) path: String,
+    /// The workflow, or why it cannot be used.
+    pub(crate) read: Result<Workflow, String>,
+}
+
+/// The directory a search was asked about is not there, or is no
+/// directory, as the device said.
+#[derive(Debug)]
+pub(crate) struct NoDirectory;
+
+impl ProjectWorkflows {
+    fn get(&self, id: &str) -> Option<&WorkflowFile> {
+        self.files.iter().find(|file| file.id == id)
+    }
+
+    /// Why the workflow `id` cannot be used: its directory cannot, it does
+    /// not read, or it is gone; none while it can.
+    pub(crate) fn unavailable(&self, id: &str) -> Option<String> {
+        if let Some(reason) = &self.unavailable {
+            return Some(reason.clone());
+        }
+        match self.get(id) {
+            None => Some("it is no longer in the project's .demi/workflows/".to_owned()),
+            Some(file) => file.reason(),
+        }
+    }
+
+    /// Whether `other` offers the same workflows: the same ids, each reading
+    /// as the same workflow, its instructions and profiles whole, or neither
+    /// reading, wherever their files are.
+    pub(crate) fn offers_same(&self, other: &ProjectWorkflows) -> bool {
+        let offered = |found: &ProjectWorkflows| {
+            found
+                .files
+                .iter()
+                .map(|file| (file.id.clone(), file.read.as_ref().ok().cloned()))
+                .collect::<Vec<_>>()
+        };
+        self.unavailable.is_some() == other.unavailable.is_some() && offered(self) == offered(other)
+    }
+
+    /// The Workflow menu's list, by id.
+    pub(crate) fn menu(&self) -> ConversationWorkflows {
+        let workflows = self
+            .files
+            .iter()
+            .map(|file| MenuWorkflow {
+                id: file.id.clone(),
+                name: file.read.as_ref().ok().map(|workflow| workflow.name.clone()),
+                path: file.path.clone(),
+                unavailable: file.reason(),
+                profiles: file
+                    .read
+                    .as_ref()
+                    .map(|workflow| workflow.profiles.iter().map(|profile| profile.id.clone()).collect())
+                    .unwrap_or_default(),
+                user_profiles: file.read.as_ref().is_ok_and(|workflow| workflow.user_profiles),
+            })
+            .collect();
+        ConversationWorkflows {
+            directory: self.directory.clone(),
+            unavailable: self.unavailable.clone(),
+            workflows,
+        }
+    }
+}
+
+impl WorkflowFile {
+    /// Why it cannot be used, in one line, the path first for a file that
+    /// does not read.
+    fn reason(&self) -> Option<String> {
+        let error = self.read.as_ref().err()?;
+        let first = error.lines().next().unwrap_or_default();
+        let first = first.strip_prefix("error: ").unwrap_or(first);
+        Some(format!("{} does not read: {first}", self.path))
+    }
+}
+
+/// The text of a workflow file the device answered, read with a limit one
+/// byte past [`WORKFLOW_FILE_MAX_BYTES`]: a file larger than that, by the
+/// size the device gave or by the bytes it sent, is refused.
+pub(crate) fn workflow_text(answer: DeviceFile) -> Result<String, String> {
+    match answer {
+        DeviceFile::File { size, bytes }
+            if size > WORKFLOW_FILE_MAX_BYTES || bytes.as_bytes().len() as u64 > WORKFLOW_FILE_MAX_BYTES =>
+        {
+            Err("the file is larger than 1 MiB".to_owned())
+        }
+        DeviceFile::File { bytes, .. } => {
+            String::from_utf8(bytes.as_bytes().to_vec()).map_err(|_| "the file is not UTF-8 text".to_owned())
+        }
+        DeviceFile::Unreadable { message } => Err(format!("the device cannot read it: {message}")),
+        DeviceFile::Directory { .. } => Err("it is a directory".to_owned()),
+        DeviceFile::Missing | DeviceFile::Other => Err("there is no such file".to_owned()),
+    }
+}
+
+/// The workflows of `cwd`, read through `read`.
+///
+/// It reads in two requests: one finds `cwd` itself, and `.git`, `.demi` and
+/// `.demi/workflows` in every directory from `cwd` up to the repository's root,
+/// and one more reads the nearest workflows directory's files.
+///
+/// A `.demi` the device cannot read makes that directory's workflows unavailable
+/// rather than looked past.
+///
+/// It watches only what its answer depends on, so that the files a home folder
+/// or a repository's root gains all day change nothing:
+///
+/// - the `.git` whose coming moves the repository's root nearer;
+/// - in each directory it passed, the coming of the entry it looked for and
+///   did not find, its `.demi`, or its `.demi/workflows`;
+/// - in the workflows directory, the `.yaml` entries and their contents.
+pub(crate) async fn search_workflows<E, Fut>(
+    paths: DevicePaths,
+    cwd: &str,
+    read: impl Fn(Vec<DeviceRead>) -> Fut,
+) -> Result<Result<ProjectWorkflows, NoDirectory>, E>
+where
+    Fut: Future<Output = Result<(Vec<DeviceFile>, ReadAt), E>>,
+{
+    let ancestors = paths.ancestors(cwd);
+    let [demi, workflows] = WORKFLOWS_DIRECTORY;
+    let dot_demi = |directory: &str| paths.join(directory, demi);
+    let workflows_of = |directory: &str| paths.join(&dot_demi(directory), workflows);
+    let mut reads = vec![DeviceRead::new(cwd.to_owned(), 0)];
+    reads.extend(project::root_reads(paths, &ancestors));
+    for directory in &ancestors {
+        for path in [dot_demi(directory), workflows_of(directory)] {
+            reads.push(DeviceRead::new(path, 0));
+        }
+    }
+    let (found, _) = read(reads).await?;
+    let (itself, found) = found.split_at(1);
+    if !matches!(itself[0], DeviceFile::Directory { .. }) {
+        return Ok(Err(NoDirectory));
+    }
+    let (git, kept) = found.split_at(ancestors.len());
+    let searched = project::searched(&ancestors, git);
+    let file = |path: String| WatchSubject {
+        kind: WatchKind::File,
+        path,
+        suffix: None,
+    };
+    let mut watch: Vec<WatchSubject> = project::root_watch(paths, &ancestors, git).into_iter().map(file).collect();
+    let mut nearest = None;
+    for (directory, answers) in searched.iter().zip(kept.chunks(2)) {
+        let unusable = |reason: String| (workflows_of(directory), Err(reason));
+        match (&answers[0], &answers[1]) {
+            (DeviceFile::Missing | DeviceFile::File { .. } | DeviceFile::Other, _) => {
+                watch.push(file(dot_demi(directory)));
+                continue;
+            }
+            (DeviceFile::Unreadable { message }, _) => {
+                watch.push(file(dot_demi(directory)));
+                nearest = Some(unusable(format!("the device cannot read {}: {message}", dot_demi(directory))));
+            }
+            (DeviceFile::Directory { .. }, DeviceFile::Missing | DeviceFile::File { .. } | DeviceFile::Other) => {
+                watch.push(file(workflows_of(directory)));
+                continue;
+            }
+            (DeviceFile::Directory { .. }, DeviceFile::Unreadable { message }) => {
+                watch.push(file(workflows_of(directory)));
+                nearest = Some(unusable(format!("the device cannot read {}: {message}", workflows_of(directory))));
+            }
+            (DeviceFile::Directory { .. }, DeviceFile::Directory { entries }) => {
+                watch.push(WatchSubject {
+                    kind: WatchKind::FolderDetails,
+                    path: workflows_of(directory),
+                    suffix: Some(WORKFLOW_EXTENSION.to_owned()),
+                });
+                nearest = Some((workflows_of(directory), Ok(entries.clone())));
+            }
+        }
+        break;
+    }
+    let Some((directory, entries)) = nearest else {
+        return Ok(Ok(ProjectWorkflows {
+            directory: None,
+            unavailable: None,
+            files: Vec::new(),
+            watch,
+        }));
+    };
+    let entries = match entries {
+        Ok(entries) => entries,
+        Err(reason) => {
+            return Ok(Ok(ProjectWorkflows {
+                directory: Some(directory),
+                unavailable: Some(reason),
+                files: Vec::new(),
+                watch,
+            }));
+        }
+    };
+    let mut named: Vec<(String, String)> = entries
+        .iter()
+        .filter(|entry| matches!(entry.kind, EntryKind::File | EntryKind::Symlink))
+        .filter_map(|entry| {
+            let id = workflow_id(&entry.name)?;
+            Some((id.to_owned(), paths.join(&directory, &entry.name)))
+        })
+        .collect();
+    named.sort();
+    let reads: Vec<DeviceRead> = named
+        .iter()
+        // One byte past the largest file read, to tell a larger one.
+        .map(|(_, path)| DeviceRead::new(path.clone(), WORKFLOW_FILE_MAX_BYTES + 1))
+        .collect();
+    let mut answers = if reads.is_empty() {
+        Vec::new()
+    } else {
+        read(reads).await?.0
+    }
+    .into_iter();
+    let files = named
+        .into_iter()
+        .map(|(id, path)| {
+            let read = workflow_text(answers.next().unwrap_or(DeviceFile::Missing))
+                .and_then(|text| parse_workflow(&text).map_err(|error| error.to_string()));
+            WorkflowFile { id, path, read }
+        })
+        .collect();
+    Ok(Ok(ProjectWorkflows {
+        directory: Some(directory),
+        unavailable: None,
+        files,
+        watch,
+    }))
+}
+
+/// Why a device's directory's workflows were not listed.
+#[derive(Debug)]
+pub enum DeviceWorkflowsRefusal {
+    /// The device's runner is not connected.
+    Offline,
+    /// The directory is not there.
+    NoDirectory,
+    Device(DeviceError),
+    Storage(demi_core_store::StorageError),
+}
+
+/// The workflows of `directory`, the conversation `id`'s, read now through
+/// its device access in the form that never wakes its device. A directory that
+/// is gone has none, and is watched for coming back.
+pub(crate) async fn search_conversation_workflows(
+    core: &Core,
+    id: &ConversationId,
+    device: &DeviceId,
+    directory: &str,
+) -> Result<ProjectWorkflows, ReadFilesError> {
+    let paths = core
+        .primary_device_paths(id)
+        .await
+        .map_err(|error| ReadFilesError::Access(error.into()))?;
+    let access = core.device_core();
+    let cancel = CancellationToken::new();
+    let cancel = &cancel;
+    let found = search_workflows(paths, directory, |reads| async move {
+        access.read_files_on(id, Some(device), &reads, cancel).await
+    })
+    .await?;
+    Ok(found.unwrap_or_else(|NoDirectory| ProjectWorkflows {
+        directory: None,
+        unavailable: None,
+        files: Vec::new(),
+        watch: vec![WatchSubject {
+            kind: WatchKind::FolderNames,
+            path: directory.to_owned(),
+            suffix: None,
+        }],
+    }))
+}
+
+impl Core {
+    /// The workflows the core holds for the conversation `id`'s project, or
+    /// with `worktree` for the linked worktree it works in; why none are,
+    /// while it holds none, as on a device that has not run since.
+    pub(crate) async fn project_workflows(&self, id: &ConversationId, worktree: bool) -> Result<Rc<ProjectWorkflows>, String> {
+        match self.kept_workflows(id, worktree).await.map_err(|error| error.to_string())? {
+            KeptWorkflows::Found(found) => Ok(found),
+            KeptWorkflows::None => Err(ReadFilesError::NotRunning.to_string()),
+        }
+    }
+
+    /// The workflows of the linked worktree the conversation `id` works in,
+    /// while they differ from `project`'s; none in no worktree, or while the
+    /// core holds none of them.
+    pub(crate) async fn worktree_workflows(&self, id: &ConversationId, project: &ProjectWorkflows) -> Option<Rc<ProjectWorkflows>> {
+        if !self.works_in_worktree(id).await {
+            return None;
+        }
+        let own = self.project_workflows(id, true).await.ok()?;
+        (!project.offers_same(&own)).then_some(own)
+    }
+
+    /// The Workflow menu's list for a new conversation that works in `directory`
+    /// of the paired device `device`, before its first message gives it a record.
+    ///
+    /// What the backend stored of the directory, at once; else it is read now
+    /// through device access, which wakes nothing, and stored. A refusal while
+    /// the device's runner is not connected and nothing is stored.
+    pub async fn device_workflows(
+        &self,
+        device: &DeviceId,
+        directory: &str,
+    ) -> Result<KeptWorkflowList, DeviceWorkflowsRefusal> {
+        let store = self.store();
+        let stored = store.device_workflows(device.clone(), directory.to_owned())
+            .await
+            .map_err(DeviceWorkflowsRefusal::Storage)?;
+        if let Some(stored) = stored {
+            return Ok(KeptWorkflowList::Read {
+                list: stored.list,
+                read_at: stored.read_at,
+            });
+        }
+        let remote = self.devices().device_access(device).await.ok_or(DeviceWorkflowsRefusal::Offline)?;
+        let paths = remote.identity().paths;
+        let remote = &remote;
+        let found = search_workflows(paths, directory, |reads| async move { look_files(remote, &reads).await })
+            .await
+            .map_err(DeviceWorkflowsRefusal::Device)?
+            .map_err(|NoDirectory| DeviceWorkflowsRefusal::NoDirectory)?;
+        let list = found.menu();
+        store.keep_device_workflows(device.clone(), directory.to_owned(), list.clone())
+            .await
+            .map_err(DeviceWorkflowsRefusal::Storage)?;
+        Ok(KeptWorkflowList::Read {
+            list,
+            read_at: self.services().clock.now(),
+        })
+    }
+
+    /// `demi agent workflows list` for the conversation `id`.
+    pub(crate) async fn workflow_listing(&self, id: &ConversationId) -> Result<WorkflowListing, String> {
+        let chosen = self.workflow_choice(id).await?;
+        let found = self
+            .project_workflows(id, false)
+            .await
+            .map_err(|error| format!("the project's workflows cannot be read: {error}"))?;
+        let listed = |found: &ProjectWorkflows, worktree: bool| {
+            found
+                .files
+                .iter()
+                .map(|file| ListedWorkflow {
+                    id: file.id.clone(),
+                    worktree,
+                    name: file.read.as_ref().ok().map(|workflow| workflow.name.clone()),
+                    path: file.path.clone(),
+                    unavailable: file.read.as_ref().err().cloned(),
+                })
+                .collect::<Vec<_>>()
+        };
+        let mut workflows = listed(&found, false);
+        // The worktree's, after the project's, while they differ; while they
+        // do not, a worktree's choice is the project's row, as in the menu.
+        let mut chosen = chosen;
+        match self.worktree_workflows(id, &found).await {
+            Some(worktree) => workflows.extend(listed(&worktree, true)),
+            None => {
+                if let WorkflowChoice::Workflow { worktree, .. } = &mut chosen {
+                    *worktree = false;
+                }
+            }
+        }
+        Ok(WorkflowListing {
+            chosen,
+            directory: found.directory.clone(),
+            unavailable: found.unavailable.clone(),
+            workflows,
+        })
+    }
+
+    /// Makes `choice` the conversation `id`'s Workflow menu choice, as an
+    /// agent asks with `demi agent workflows use`, through the menu's own
+    /// change (`apply_patch`), which announces it to the page.
+    ///
+    /// A workflow is chosen only as the menu offers it: listed in what the
+    /// core holds and usable; otherwise it is refused with why, and the
+    /// choice stays. A workflow is the project's, or the worktree's when only
+    /// the worktree has the id; one asked for as the worktree's that is the
+    /// same as the project's is the project's, as the menu lists it. Answers
+    /// the choice made and the chosen workflow's name, none for Global
+    /// Workflow and No Subagents. Unlike the user's pick in the menu, it is
+    /// not remembered as the project's workflow, since the user did not make
+    /// it.
+    pub(crate) async fn choose_workflow(
+        &self,
+        id: &ConversationId,
+        choice: WorkflowChoice,
+    ) -> Result<(WorkflowChoice, Option<String>), String> {
+        let mut choice = choice;
+        let name = match &mut choice {
+            WorkflowChoice::Default | WorkflowChoice::None => None,
+            WorkflowChoice::Workflow { id: chosen, worktree } => {
+                if *worktree && !self.works_in_worktree(id).await {
+                    return Err("this conversation works in no git worktree of its project".to_owned());
+                }
+                let mut found = self
+                    .project_workflows(id, false)
+                    .await
+                    .map_err(|reason| format!("the project's workflows cannot be read: {reason}"))?;
+                let own = self.worktree_workflows(id, &found).await;
+                match own {
+                    Some(own) if *worktree || (found.get(chosen).is_none() && own.get(chosen).is_some()) => {
+                        found = own;
+                        *worktree = true;
+                    }
+                    _ => *worktree = false,
+                }
+                let place = if *worktree { "the worktree" } else { "the project" };
+                let chosen = &*chosen;
+                let Some(directory) = &found.directory else {
+                    return Err("this project has no workflows: no directory from the project's directory up to the repository's root has .demi/workflows/".to_owned());
+                };
+                if let Some(reason) = &found.unavailable {
+                    return Err(format!("the workflows in {directory} cannot be used: {reason}"));
+                }
+                let Some(file) = found.get(chosen) else {
+                    return Err(format!(
+                        "{place} has no workflow \"{chosen}\"; demi agent workflows list lists them"
+                    ));
+                };
+                if let Some(reason) = file.reason() {
+                    return Err(format!("workflow \"{chosen}\" cannot be used: {reason}"));
+                }
+                file.read.as_ref().ok().map(|workflow| workflow.name.clone())
+            }
+        };
+        let patch = ConversationPatch {
+            workflow: Some(choice.clone()),
+            ..ConversationPatch::default()
+        };
+        let update = self
+            .apply_patch(id, patch)
+            .await
+            .map_err(|error| error.to_string())?
+            .ok_or("the conversation is gone")?;
+        for result in update.results {
+            if let FieldResult::Failed { message, .. } = result {
+                return Err(message);
+            }
+        }
+        Ok((choice, name))
+    }
+
+    /// The Workflow menu choice of the conversation `id`.
+    pub(crate) async fn workflow_choice(&self, id: &ConversationId) -> Result<WorkflowChoice, String> {
+        let record = self
+            .store().conversation(id.clone())
+            .await
+            .map_err(|error| error.to_string())?
+            .ok_or("the conversation is gone")?;
+        Ok(record.workflow)
+    }
+
+    /// The profiles the spawns of the conversation `id` use now: the
+    /// user's settings, none, or the chosen workflow's as its file reads,
+    /// each profile's model looked for in the user's provider entries in
+    /// their order.
+    pub(crate) async fn conversation_profiles(
+        &self,
+        id: &ConversationId,
+    ) -> Result<ConversationProfiles, String> {
+        let (chosen, worktree) = match self.workflow_choice(id).await? {
+            WorkflowChoice::Default => return Ok(ConversationProfiles::Settings),
+            WorkflowChoice::None => return Ok(ConversationProfiles::Off),
+            WorkflowChoice::Workflow { id, worktree } => (id, worktree),
+        };
+        let found = self.project_workflows(id, worktree).await?;
+        if let Some(reason) = found.unavailable(&chosen) {
+            return Ok(ConversationProfiles::Unavailable { id: chosen, worktree, reason });
+        }
+        let file = found.get(&chosen).expect("an available workflow is listed");
+        let workflow = file.read.as_ref().ok().expect("an available workflow reads");
+        let scope = self.scope().await.map_err(|error| error.to_string())?;
+        let mut profiles = Vec::with_capacity(workflow.profiles.len());
+        for profile in &workflow.profiles {
+            let (model, context_limit) = match &profile.model {
+                None => (None, None),
+                Some(model) => {
+                    let chosen = self.workflow_selection(&scope, profile, model, &file.path).await;
+                    match chosen.and_then(|selection| {
+                        let tokens = workflow_context(profile, &selection, &file.path)?;
+                        Ok((selection, tokens))
+                    }) {
+                        Ok((selection, tokens)) => (Some(Ok(selection)), tokens),
+                        Err(missing) => (Some(Err(missing)), None),
+                    }
+                }
+            };
+            let provider_name = model.as_ref().and_then(|model| model.as_ref().ok()).and_then(|selection| {
+                scope
+                    .entries
+                    .iter()
+                    .find(|entry| entry.id.as_str() == selection.provider_id)
+                    .map(|entry| entry.label.clone())
+            });
+            profiles.push(WorkflowChild {
+                name: profile.id.clone(),
+                description: profile.description.clone(),
+                instructions: profile.instructions.clone(),
+                can_spawn: profile.spawning,
+                model,
+                provider_name,
+                context_limit,
+            });
+        }
+        Ok(ConversationProfiles::Workflow(ChosenWorkflow {
+            id: chosen,
+            worktree,
+            name: workflow.name.clone(),
+            profiles,
+            user_profiles: workflow.user_profiles,
+            subagent_instructions: workflow.subagent_instructions.clone(),
+        }))
+    }
+
+    /// The selection a workflow profile's model `model` makes now: in the
+    /// entry the profile names, else the first of the user's entries that
+    /// offers it, with its effort and tier; or what is missing, which the
+    /// file at `path` changes.
+    async fn workflow_selection(
+        &self,
+        scope: &Scope,
+        profile: &WorkflowProfile,
+        model: &str,
+        path: &str,
+    ) -> Result<ModelSelection, String> {
+        let provider_id = match &profile.provider {
+            Some(named) => named_entry(scope, named, model)
+                .map_err(|reason| format!("its provider in {path}: {reason}"))?,
+            None => first_offering(scope, model).ok_or_else(|| {
+                format!(
+                    "no provider entry of the user's offers model \"{model}\"; change the profile's model in {path}, or ask the user to add a provider that offers it"
+                )
+            })?,
+        };
+        let chosen = ModelSettings {
+            provider_id,
+            model_id: model.to_owned(),
+            thinking_effort: profile.effort.as_ref().map(|effort| {
+                if effort == EFFORT_OFF {
+                    THINKING_OFF.to_owned()
+                } else {
+                    effort.clone()
+                }
+            }),
+            service_tier_id: profile.tier.clone(),
+        };
+        self.chosen_selection(&chosen).await.map_err(|refusal| match refusal {
+            ChangeRefusal::SettingUnavailable(UnavailableSetting::Effort(effort)) => format!(
+                "model \"{model}\" does not offer the effort \"{effort}\"; change the profile's effort in {path}"
+            ),
+            ChangeRefusal::SettingUnavailable(UnavailableSetting::Tier(tier)) => format!(
+                "model \"{model}\" does not offer the service tier \"{tier}\"; change the profile's tier in {path}"
+            ),
+            other => format!("model \"{model}\" cannot be used: {other}"),
+        })
+    }
+
+    /// The text of the file `path`, read against `directory`, on the
+    /// conversation `id`'s device.
+    pub(crate) async fn workflow_file_text(
+        &self,
+        id: &ConversationId,
+        directory: &str,
+        path: &str,
+    ) -> Result<String, String> {
+        let paths = self.primary_device_paths(id).await.map_err(|error| error.to_string())?;
+        // The device reads the path against the directory as a shell there
+        // does, following links before `..`.
+        let read = DeviceRead::new(paths.beside(directory, path), WORKFLOW_FILE_MAX_BYTES + 1);
+        let (mut found, _) = self
+            .device_core()
+            .read_files(id, std::slice::from_ref(&read), &CancellationToken::new())
+            .await
+            .map_err(|error| error.to_string())?;
+        match found.pop() {
+            Some(DeviceFile::Missing | DeviceFile::Other) | None => Err(format!("no file {path}")),
+            Some(answer) => workflow_text(answer).map_err(|reason| format!("{path}: {reason}")),
+        }
+    }
+}
+
+/// The tokens of the Context a workflow's profile names for its model's
+/// selection `selection`, none for the user's limit; or why the model does
+/// not offer it, which the file at `path` changes.
+fn workflow_context(
+    profile: &WorkflowProfile,
+    selection: &ModelSelection,
+    path: &str,
+) -> Result<Option<u32>, String> {
+    let window = selection.model.context_window;
+    let tokens = profile.context.and_then(|choice| choice.tokens(window));
+    crate::subagents::check_context(Some((&selection.model.id, window)), tokens)
+        .map_err(|refusal| format!("{refusal}; change the profile's context in {path}"))?;
+    Ok(tokens)
+}

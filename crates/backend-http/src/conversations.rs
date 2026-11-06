@@ -6,7 +6,7 @@
 //! - listing the caller's conversations;
 //! - changing their fields one patch at a time or in a batch;
 //! - forking one, acknowledging its output and deleting it;
-//! - its lane of the page connection, which the caller's shard serves once
+//! - its lane of the page connection, which the caller's core serves once
 //!   it opened.
 //!
 //! A conversation the caller does not own answers like a missing one.
@@ -15,10 +15,10 @@ use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use demi_backend_database::conversation_index::{ConversationRecord, Creation};
-use demi_backend_database::conversation_attachments::{self, AttachmentNumber};
-use demi_backend_database::tree;
-use demi_backend_page_sync::Part;
+use demi_core_store::conversation_index::{ConversationRecord, Creation};
+use demi_core_store::{conversation_attachments::{self, AttachmentNumber}};
+use demi_core_store::tree;
+use demi_core_sync::Part;
 use demi_runner_client::OpenedRead;
 use demi_device_interface::ByteRange;
 use demi_web_api_protocol::workflows::ConversationWorkflowList;
@@ -37,9 +37,9 @@ use super::error::ApiError;
 use super::gate::AuthUser;
 use super::attached_devices;
 use super::query::QueryParams;
-use demi_backend_user_shard::conversation::{AgentsError, ForkRefusal};
+use demi_core::conversation::{AgentsError, ForkRefusal};
 use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::sync::etag_of;
+use demi_core_sync::etag_of;
 
 fn not_found() -> ApiError {
     ApiError::new(
@@ -50,7 +50,7 @@ fn not_found() -> ApiError {
 }
 
 /// The caller's conversation the path names; one of another user answers
-/// like a missing one, so a request only ever reaches its owner's shard.
+/// like a missing one, so a request only ever reaches its owner's core.
 pub(super) async fn owned(
     services: &Services,
     user: &UserId,
@@ -58,10 +58,11 @@ pub(super) async fn owned(
 ) -> Result<ConversationRecord, ApiError> {
     let id = ConversationId::try_from(id).map_err(|_| not_found())?;
     let record = services
-        .control
+        .stores
+        .of(user)
+        .await?
         .conversation(id)
         .await?
-        .filter(|record| record.owner == *user)
         .ok_or_else(not_found)?;
     tracing::Span::current().record("conversation_id", tracing::field::display(&record.id));
     Ok(record)
@@ -78,7 +79,7 @@ pub(super) async fn list(
     let conversations = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.conversation_summaries(archived).await })
+        .call(move |core, _| async move { core.conversation_summaries(archived).await })
         .await??;
     Ok(Json(Conversations { conversations }))
 }
@@ -104,7 +105,7 @@ pub(super) async fn create(
     let (creation, first_message) = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.create_conversation_sending(request).await })
+        .call(move |core, _| async move { core.create_conversation_sending(request).await })
         .await?
         .map_err(attached_devices::refused)?;
     let (status, record) = match creation {
@@ -122,9 +123,9 @@ pub(super) async fn create(
     let (conversation, metadata) = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move {
-            let conversation = shard.conversation_summary(record.clone()).await?;
-            Ok::<_, demi_backend_database::StorageError>((conversation, shard.conversation_metadata(record).await?))
+        .call(move |core, _| async move {
+            let conversation = core.conversation_summary(record.clone()).await?;
+            Ok::<_, demi_core_store::StorageError>((conversation, core.conversation_metadata(record).await?))
         })
         .await??;
     Ok((status, Json(CreatedConversation { conversation, metadata, first_message })))
@@ -157,8 +158,7 @@ pub(super) async fn attachment_file(
         )
     };
     let number: AttachmentNumber = attachment.parse().map_err(|_| no_file())?;
-    let row = services
-        .conversations
+    let row = services.stores.of(&user.id).await?.databases()
         .read(&record.id, move |connection| conversation_attachments::read(connection, number))
         .await
         .map_err(ApiError::conversation_unreadable)?
@@ -169,9 +169,9 @@ pub(super) async fn attachment_file(
     let found = state
         .shards
         .of(&user.id)
-        .call(move |shard, cancel| async move {
-            shard
-                .device_shard()
+        .call(move |core, cancel| async move {
+            core
+                .device_core()
                 .look_at_device_on(&conversation, &source.device, &cancel, async |device| {
                     // A read of no bytes opens the file, as a `HEAD` of
                     // `fs/raw` does; a path that is no regular file fails it.
@@ -200,7 +200,7 @@ pub(super) async fn patch(
     let update = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.apply_patch(&id, patch).await })
+        .call(move |core, _| async move { core.apply_patch(&id, patch).await })
         .await??
         .ok_or_else(not_found)?;
     let failures: Vec<&FieldResult> = update
@@ -244,7 +244,7 @@ pub(super) async fn delete(
     let deleted = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.delete_conversation(&id).await })
+        .call(move |core, _| async move { core.delete_conversation(&id).await })
         .await??;
     if deleted {
         Ok(StatusCode::NO_CONTENT)
@@ -264,10 +264,10 @@ pub(super) async fn batch(
     let results = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move {
+        .call(move |core, _| async move {
             let mut results = Vec::with_capacity(items.len());
             for item in items {
-                let result = match shard.apply_patch(&item.id, item.patch).await? {
+                let result = match core.apply_patch(&item.id, item.patch).await? {
                     Some(ConversationUpdate {
                         conversation,
                         results,
@@ -285,7 +285,7 @@ pub(super) async fn batch(
                 };
                 results.push(result);
             }
-            Ok::<_, demi_backend_database::StorageError>(results)
+            Ok::<_, demi_core_store::StorageError>(results)
         })
         .await??;
     Ok((StatusCode::MULTI_STATUS, Json(BatchAnswer { results })))
@@ -303,11 +303,11 @@ pub(super) async fn detail(
     let detail = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move {
+        .call(move |core, _| async move {
             let id = record.id.clone();
-            let conversation = shard.conversation_summary(record.clone()).await?;
-            let metadata = shard.conversation_metadata(record).await?;
-            let (agents, entries) = shard.conversation_agents(&id).await.map_err(|error| match error {
+            let conversation = core.conversation_summary(record.clone()).await?;
+            let metadata = core.conversation_metadata(record).await?;
+            let (agents, entries) = core.conversation_agents(&id).await.map_err(|error| match error {
                 AgentsError::Device(error) => ApiError::from(error),
                 AgentsError::Unreadable(error) => ApiError::new(
                     StatusCode::INTERNAL_SERVER_ERROR,
@@ -339,7 +339,7 @@ pub(super) async fn workflows(
     let workflows = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move { shard.conversation_workflows(&record.id).await })
+        .call(move |core, _| async move { core.conversation_workflows(&record.id).await })
         .await?;
     Ok(Json(workflows))
 }
@@ -357,10 +357,10 @@ pub(super) async fn fork(
     let (forked, conversation, metadata) = state
         .shards
         .of(&user.id)
-        .call(move |shard, _| async move {
-            let forked = shard.fork(source, id, block_id).await?;
-            let conversation = shard.conversation_summary(forked.record.clone()).await?;
-            let metadata = shard.conversation_metadata(forked.record.clone()).await?;
+        .call(move |core, _| async move {
+            let forked = core.fork(source, id, block_id).await?;
+            let conversation = core.conversation_summary(forked.record.clone()).await?;
+            let metadata = core.conversation_metadata(forked.record.clone()).await?;
             Ok::<_, ForkRefusal>((forked, conversation, metadata))
         })
         .await?
@@ -409,8 +409,7 @@ pub(super) async fn read(
 ) -> Result<StatusCode, ApiError> {
     let services = &state.services;
     let record = owned(services, &user.id, &id).await?;
-    let output = services
-        .conversations
+    let output = services.stores.of(&user.id).await?.databases()
         .read(&record.id, tree::output_revision)
         .await
         .map_err(ApiError::conversation_unreadable)?
@@ -422,9 +421,7 @@ pub(super) async fn read(
             "Cannot read beyond current output",
         ));
     }
-    let read = services
-        .control
-        .mark_conversation_read(record.id.clone(), revision)
+    let read = services.stores.of(&user.id).await?.mark_conversation_read(record.id.clone(), revision)
         .await?;
     if read {
         services.sync.mark(&user.id, Part::Conversation(record.id));
@@ -433,7 +430,7 @@ pub(super) async fn read(
 }
 
 /// The lane of the caller's conversation `id`, which opens only for one that
-/// is not archived, and which the caller's shard serves until it ends.
+/// is not archived, and which the caller's core serves until it ends.
 pub(super) async fn open_lane(state: &AppState, user: &UserId, id: &str) -> Result<Opened, ApiError> {
     let record = owned(&state.services, user, id).await?;
     if record.archived() {
@@ -449,11 +446,11 @@ pub(super) async fn open_lane(state: &AppState, user: &UserId, id: &str) -> Resu
     Ok(Opened {
         conversation: Some(conversation),
         ..Opened::new(move |lane, reader| async move {
-            // A shard that is closing takes no lane: it drops, and the
+            // A core that is closing takes no lane: it drops, and the
             // connection closes as the backend does.
             let _ = shards
                 .of(&user)
-                .adopt(move |shard| shard.serve_conversation_lane(record, lane, reader))
+                .adopt(move |core| core.serve_conversation_lane(record, lane, reader))
                 .await;
         })
     })

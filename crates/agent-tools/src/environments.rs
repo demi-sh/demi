@@ -135,7 +135,7 @@ impl Environments {
 
     /// Ends each command whose start still waits for its device, in every
     /// environment made so far, as the user's Stop does
-    /// (`crates/backend-device-access/src/access.rs`).
+    /// (`crates/core-device-access/src/access.rs`).
     pub async fn stop_waiting(&self) {
         let made: Vec<Rc<dyn ShellEnvironment>> = self
             .slots

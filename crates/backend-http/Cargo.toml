@@ -12,19 +12,22 @@ doctest = false
 bench = false
 
 [dependencies]
+demi-core-devices = { path = "../core-devices" }
 demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
 demi-agent-store = { path = "../agent-store" }
 demi-shared-artifacts = { path = "../shared-artifacts" }
 demi-backend-accounts = { path = "../backend-accounts" }
 demi-backend-cloud = { path = "../backend-cloud" }
-demi-backend-device-access = { path = "../backend-device-access" }
-demi-backend-blobs = { path = "../backend-blobs" }
-demi-backend-providers = { path = "../backend-providers" }
+demi-core-device-access = { path = "../core-device-access" }
+demi-core-blobs = { path = "../core-blobs" }
+demi-core-providers = { path = "../core-providers" }
 demi-backend-runners = { path = "../backend-runners" }
 demi-backend-user-shard = { path = "../backend-user-shard" }
+demi-core = { path = "../core" }
 demi-backend-database = { path = "../backend-database" }
-demi-backend-page-sync = { path = "../backend-page-sync" }
-demi-backend-permissions = { path = "../backend-permissions" }
+demi-core-store = { path = "../core-store" }
+demi-core-sync = { path = "../core-sync" }
+demi-core-permissions = { path = "../core-permissions" }
 demi-plugin-host = { path = "../plugin-host" }
 demi-plugin-interface = { path = "../plugin-interface" }
 demi-command-protocol = { path = "../command-protocol" }
