@@ -103,13 +103,20 @@ export class Process {
       // cancels what is left of the body.
       stream.once('close', () => body.destroy())
     }
+    // The request's signal cancels it until it is answered; then the
+    // response's body does, as its reader cancels it. A server such as
+    // Deno's aborts the signal once the handler answered, while the body
+    // still streams.
     const abort = () => stream.close(http2.constants.NGHTTP2_CANCEL)
     if (request.signal.aborted) {
       abort()
     }
     request.signal.addEventListener('abort', abort, { once: true })
-    stream.once('close', () => request.signal.removeEventListener('abort', abort))
     const answer = await answered(stream)
+      .catch((error: unknown) => {
+        throw request.signal.aborted ? request.signal.reason : error
+      })
+      .finally(() => request.signal.removeEventListener('abort', abort))
     const status = Number(answer[':status'])
     const responseHeaders = new Headers()
     for (const [name, value] of Object.entries(answer)) {

@@ -90,7 +90,7 @@ import { createGalleryChangeSet, createGalleryProject, gallerySides, PROJECT_ROO
 import { galleryBrowser, type GalleryBrowser } from '../fixtures/live-browser'
 import { galleryAttachmentOrigin, galleryConversationFiles, namedCodeFiles, namedFilesMarkdown } from '../fixtures/message-files'
 import Switch from '@demicodes/web-ui/ui/Switch.vue'
-import { provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
+import { pageMediaViewer, provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
 import GalleryMessageFiles from '../components/GalleryMessageFiles.vue'
 import { credentialMarkdown, galleryCredentials } from '../fixtures/credentials'
 import GalleryAgentLinks from '../components/GalleryAgentLinks.vue'
@@ -808,13 +808,13 @@ const sessionFiles = {
 /** The user's credentials the credential cards name. */
 const sessionCredentials = galleryCredentials()
 // The session's pictures and videos open in the Media tab of the frame's windows, as a conversation's do.
-provideMediaViewer({
+provideMediaViewer(pageMediaViewer({
   reveal: () => {
     frameWork.openIn({ intent: 'media', payload: {} })
     view.value = 'frame'
     return true
   },
-})
+}))
 // The tabs specimen starts on an empty strip, which only the agent's tabs fill.
 const exhibitWork = useWorkTabs('file', { browser: galleryBrowser([]) })
 /** The agent opens a page and shows it in the tabs specimen, as `demi browser tab new` and `open --show` do. */

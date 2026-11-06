@@ -306,10 +306,10 @@ export const useConversations = defineStore('conversations', () => {
   const history = createConversationHistoryReads(
     () => lifetime.signal,
     (conversation) => cache.get(conversation.id)?.runtime != null,
-    () => session.user?.id ?? null,
+    () => session.owner,
   )
   /** The copies of the conversations opened here, for opening offline. */
-  const copies = createConversationCopies(() => items.value, () => session.user?.id ?? null)
+  const copies = createConversationCopies(() => items.value, () => session.owner)
   /**
    * Counts the times New gave the user the draft already shown, whose
    * composer then takes the focus again.
@@ -765,7 +765,7 @@ export const useConversations = defineStore('conversations', () => {
         recordSync.changed(item)
       }
     }
-    const userId = session.user?.id ?? product.snapshot?.user?.id
+    const userId = session.owner ?? product.snapshot?.user?.id
     if (!userId) {
       return
     }
@@ -803,7 +803,7 @@ export const useConversations = defineStore('conversations', () => {
    * at once; the IndexedDB writes still under way may be lost with the page.
    */
   function keepLastWords(): void {
-    const userId = session.user?.id
+    const userId = session.owner
     if (!userId) {
       return
     }
@@ -850,7 +850,7 @@ export const useConversations = defineStore('conversations', () => {
   }
 
   async function restoreLocalDrafts(): Promise<void> {
-    const userId = session.user?.id
+    const userId = session.owner
     if (!userId) {
       return
     }
@@ -969,7 +969,8 @@ export const useConversations = defineStore('conversations', () => {
     signal: AbortSignal,
     saved?: SavedDraft,
   ): Promise<void> {
-    if (restored.has(conversation.id) || !session.user) {
+    const owner = session.owner
+    if (restored.has(conversation.id) || !owner) {
       return
     }
     // What the page restores from the web browser's storage, which answers when
@@ -981,7 +982,7 @@ export const useConversations = defineStore('conversations', () => {
     let composer: { text: string; comments: WaitingComment[]; over: number | null; attachmentIds: string[] } | null = null
     let typed = false
     try {
-      const draft = saved ?? (await readDraft(session.user.id, conversation.id))
+      const draft = saved ?? (await readDraft(owner, conversation.id))
       signal.throwIfAborted()
       if (restored.has(conversation.id)) {
         // Another call of this restore came first.
@@ -1026,7 +1027,7 @@ export const useConversations = defineStore('conversations', () => {
       }
       // What a page of the conversation held as it closed is newer than the
       // record, whose last writes may not have made it.
-      const words = takeLastWords(session.user.id, conversation.id)
+      const words = takeLastWords(owner, conversation.id)
       if (words) {
         // The messages on their way then; a file of theirs the record lacks
         // is known by its upload, or is gone.
@@ -1765,7 +1766,7 @@ export const useConversations = defineStore('conversations', () => {
 
   /** Shows the conversation's copy on disk; answers whether it did. */
   async function showCopy(conversation: Conversation, signal: AbortSignal): Promise<boolean> {
-    const userId = session.user?.id
+    const userId = session.owner
     if (!userId) {
       return false
     }
@@ -2340,7 +2341,7 @@ export const useConversations = defineStore('conversations', () => {
 
   /** A subagent the page keeps shows what the disk keeps of it, when the page holds none of it. */
   async function showChildFromDisk(conversation: Conversation, id: string): Promise<void> {
-    const userId = session.user?.id
+    const userId = session.owner
     const agent = conversation.subagents.find((each) => each.id === id)
     if (!userId || !agent || agent.history.windows.length > 0) {
       return
@@ -2680,7 +2681,7 @@ export const useConversations = defineStore('conversations', () => {
    * toast. Answers whether every one was deleted.
    */
   async function remove(ids: string[]): Promise<boolean> {
-    const userId = session.user?.id ?? product.snapshot?.user?.id
+    const userId = session.owner ?? product.snapshot?.user?.id
     const forget = (id: string) => {
       restored.delete(id)
       savedDrafts.delete(id)

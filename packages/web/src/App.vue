@@ -13,7 +13,7 @@ import { pageLog } from '@demicodes/web-ui/infra/log'
 import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
 import { usePhone } from '@demicodes/web-ui/ui/phone'
 import { useAppShortcuts } from '@demicodes/web-ui/composables/useAppShortcuts'
-import type { SavedScope, SidebarConversation, SidebarReorder, SidebarUpdate } from '@demicodes/web-ui/sidebar/types'
+import type { SavedScope, SidebarReorder, SidebarUpdate } from '@demicodes/web-ui/sidebar/types'
 import { keptComputed } from '@demicodes/web-ui/infra/keep-same'
 import { updateOffered } from '@demicodes/web-ui/settings/server-upgrade'
 import AppSidebar from '@demicodes/web-ui/sidebar/AppSidebar.vue'
@@ -27,15 +27,11 @@ import UpdateFailedScreen from '@demicodes/web-ui/ui/UpdateFailedScreen.vue'
 import UpdatingScreen from '@demicodes/web-ui/ui/UpdatingScreen.vue'
 import { update } from './state/update'
 import MediaViewer from '@demicodes/web-ui/files/MediaViewer.vue'
-import { provideBlobUrl } from '@demicodes/web-ui/agent/media-source'
-import { provideKeepPicture } from '@demicodes/web-ui/agent/comments/pictures'
-import { provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
 import DevicePairingDialog from '@demicodes/web-ui/devices/DevicePairingDialog.vue'
 import HandoffDialog from '@demicodes/web-ui/auth/HandoffDialog.vue'
 import PasskeyOffer from '@demicodes/web-ui/auth/PasskeyOffer.vue'
 import SearchDialog from '@demicodes/web-ui/search/SearchDialog.vue'
 import type { MessageRow, MessageSource, SearchRow } from '@demicodes/web-ui/search/search'
-import { provideSendTargets } from '@demicodes/web-ui/agent/send-to-conversation'
 import { searchConversation, searchConversations } from './api/search'
 import { useDevicePairing } from '@demicodes/web-ui/devices/pairing'
 import SettingsDialog from './settings/SettingsDialog.vue'
@@ -47,26 +43,18 @@ import { useConversations } from './conversation/store'
 import { useConversationNavigation } from './conversation/navigation'
 import { useWorkspaces } from './state/workspaces'
 import { useWork } from './conversation/work'
+import { provideShownConversation, shownConversation, sidebarRow } from './conversation/shown'
 import { useResources } from './state/resources'
 import { useSession } from './auth/session'
 import { claimDevice, useInstallCommands } from './devices/pairing'
-import { blobUrl, keepPicture } from './api/uploads'
-import { providePageHost } from '@demicodes/web-ui/plugins/page'
-import { productPageHost } from './plugins/host'
 import { useProduct } from './state/product'
 import { usePasskeySignals } from './auth/passkeys'
 import { useSessions } from './auth/handoff'
 import { usePasskeyOffer } from './auth/passkey-offer'
 import PasswordChoice from './auth/PasswordChoice.vue'
-import { attend, attended } from './state/attention'
-provideBlobUrl(blobUrl)
-provideKeepPicture(keepPicture)
-/** How many recent conversations the search window lists before the user types. */
-const RECENT_CONVERSATIONS = 20
 const product = useProduct()
 // The password manager follows the account's email and passkeys.
 usePasskeySignals()
-providePageHost(productPageHost())
 keepFileTree()
 // A page of another build than the backend serves loads itself again, once
 // per build; one that still gets another says so. While the update screen
@@ -85,47 +73,20 @@ watch(
   },
   { immediate: true },
 )
-// A conversation's pictures and videos open in its Attachments window,
-// and in the viewer's window while no page the user has on opens it.
-const mediaViewer = provideMediaViewer({
-  reveal: () => {
-    const conversationId = activeId.value
-    if (conversationId === null || !work.canOpen('media')) {
-      return false
-    }
-    work.openIn(conversationId, { intent: 'media', payload: {} })
-    return true
-  },
-})
 const session = useSession()
 const conversations = useConversations()
 const resources = useResources()
 const passkeyOffer = usePasskeyOffer()
 /**
- * The sidebar's rows: each conversation's own fields and the device it runs on. Every field is
- * named, so a field the row type gains fails to compile here, and a row reads none of the
- * conversation's other state, which changes as it streams.
- *
- * A row that says what it said stays the same object, so a change of one conversation,
- * such as its status as it starts or ends, draws its row alone again.
+ * The sidebar's rows (`sidebarRow`). A row that says what it said stays the
+ * same object, so a change of one conversation, such as its status as it
+ * starts or ends, draws its row alone again.
  */
 const workspaces = useWorkspaces()
 const sidebarConversations = keptComputed(() =>
-  conversations.listed.filter((conversation) => conversation.workspaceId === workspaces.current).map(
-    (conversation): { [Field in keyof Required<SidebarConversation>]: SidebarConversation[Field] } => ({
-      id: conversation.id,
-      title: conversation.title,
-      updatedAt: conversation.updatedAt,
-      status: conversation.status,
-      projectId: conversation.projectId,
-      pinned: conversation.pinned,
-      unread: conversation.unread,
-      needsYou: conversation.needsYou,
-      device: resources.conversationDevice(conversation.target),
-      scheduled: conversation.scheduled,
-      worktree: conversation.worktree,
-    }),
-  ),
+  conversations.listed
+    .filter((conversation) => conversation.workspaceId === workspaces.current)
+    .map((conversation) => sidebarRow(conversation, resources)),
 )
 // The widths follow the dividers frame by frame; the preference takes them when a resize settles.
 const sidebarWidth = ref(resources.sidebarWidth)
@@ -157,43 +118,6 @@ const searchIn = computed<MessageSource | null>(() => {
 const handoffOpen = ref(false)
 const sessions = useSessions()
 const handoffHost = computed(() => sessions.handoffHost(() => pageRoute.value.fullPath))
-/** The conversations of the tab's workspace the backend has, the most recently active first. */
-const activeConversations = computed<SearchRow[]>(() =>
-  conversations.items
-    .filter((conversation) => conversation.persistence === 'synced' && conversation.workspaceId === workspaces.current)
-    .toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .map((conversation) => ({
-      conversationId: conversation.id,
-      title: conversation.title,
-      titleRanges: [],
-      archived: conversation.archived,
-      lastActiveAt: conversation.updatedAt,
-      match: null,
-    })),
-)
-/** What the search window lists before the user types: the conversations most recently active. */
-const recentConversations = keptComputed(() => activeConversations.value.slice(0, RECENT_CONVERSATIONS))
-// Send to Conversation: the search window's sources, and the words go to the end of the chosen draft.
-provideSendTargets({
-  recent: () => activeConversations.value,
-  search: searchConversations,
-  describe: (id) => {
-    const row = sidebarConversations.value.find((conversation) => conversation.id === id)
-    if (!row)
-      return null
-    return { status: row, project: resources.projects.find((project) => project.id === row.projectId)?.name ?? null }
-  },
-  shown: () => product.activeConversationId,
-  send: (to, words) => {
-    const shown = conversations.items.find((item) => item.id === product.activeConversationId)
-    const id = to ?? create(shown?.projectId ?? null)
-    if (to !== null)
-      open(to)
-    const target = conversations.items.find((item) => item.id === id)
-    if (target)
-      conversations.appendToDraft(target, words)
-  },
-})
 function openSearchResult(row: SearchRow): void {
   searchOpen.value = false
   openAt(row.conversationId, null, row.match?.blockId ?? null)
@@ -232,17 +156,9 @@ watch(
 const activeId = computed(() =>
   typeof pageRoute.value.params.id === 'string' ? pageRoute.value.params.id : null,
 )
-// The tab's workspace is the shown conversation's; this browser remembers the
-// one it shows last, and the conversation it showed last in each.
-watch(activeId, (id) => { workspaces.shownConversation = id }, { immediate: true })
-watch(
-  () => conversations.items.find((item) => item.id === activeId.value),
-  (shown) => {
-    if (shown) {
-      workspaces.showed(shown)
-    }
-  },
-)
+const shown = shownConversation(activeId, router)
+provideShownConversation(shown)
+const { mediaViewer, openInBrowserWindow, recentConversations } = shown
 watch(() => workspaces.current, (id) => {
   if (id) {
     workspaces.chose(id)
@@ -302,49 +218,6 @@ const findable = computed(() => {
 })
 // Each conversation has its work; the frame shows the open conversation's.
 const work = useWork()
-// Before its work arrives: what the work held when the conversation came on screen decides what opens it on a phone.
-watch(activeId, (conversationId) => work.shown(conversationId), { immediate: true })
-// What the viewer shows is the open conversation's: another's Media tab
-// shows the medium it showed, found again in its own transcript.
-watch(activeId, () => mediaViewer.close())
-// The open conversation's tabs are read with no window open too, since the frame then mounts no
-// window: a tab a kind asks to show opens its window.
-watch(
-  [activeId, () => activeId.value !== null && work.recorded(activeId.value)],
-  ([conversationId]) => {
-    if (conversationId !== null) {
-      work.load(conversationId)
-    }
-  },
-  { immediate: true },
-)
-/** A link's Open in Browser Window: a new tab of the shown conversation's browser, while a page the user has on opens one. */
-const openInBrowserWindow = computed(() => {
-  const conversationId = activeId.value
-  if (conversationId === null || !work.canOpen('web')) {
-    return undefined
-  }
-  return (url: string) => work.openIn(conversationId, { intent: 'web', payload: { url } })
-})
-// The shown conversation is read while the user attends the page, and a
-// change of it is the user's action, from the sidebar, a link, Back or a
-// notification.
-watch(activeId, () => attend(), { immediate: true })
-watch(
-  [
-    activeId,
-    attended,
-    () => conversations.items.find((item) => item.id === activeId.value)?.unread,
-    () => conversations.items.find((item) => item.id === activeId.value)?.needsYou,
-    () => conversations.items.find((item) => item.id === activeId.value)?.load,
-  ],
-  () => {
-    if (activeId.value) {
-      conversations.markRead(activeId.value)
-    }
-  },
-  { immediate: true },
-)
 /** The page shows the signed-in product, with its sidebar; a sign-in page and a handoff code's do not. */
 const productShown = computed(() => session.signedIn && route.path !== '/handoff')
 // The tab says what the sidebar's dots say, and a sign-in page only its name.

@@ -4,6 +4,7 @@
 import { z } from 'zod'
 import {
   cloudIsolationSchema,
+  coreStateSchema,
   credentialDtoSchema,
   passkeyListSchema,
   portForwardDtoSchema,
@@ -35,6 +36,13 @@ export const heldListsShape = {
 /** The state a read of `GET /state` gives: the whole product state, with the lists a client holds. */
 export const readStateSchema = productStateSchema.extend(heldListsShape)
 export type ReadState = z.infer<typeof readStateSchema>
+
+/**
+ * The state a read of a core's own `GET /state` gives, as a program's page
+ * reads it through the program: the core's part of the product state, with
+ * the lists a client holds.
+ */
+export const coreReadStateSchema = coreStateSchema.extend(heldListsShape)
 
 /**
  * The state a client holds: each part is missing until it is known, from

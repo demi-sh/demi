@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { useRouter, type RouteLocationRaw } from 'vue-router'
+import { useRouter, type RouteLocationRaw, type Router } from 'vue-router'
 import type { CreateProject } from '@demicodes/protocol'
 import { useResources } from '../state/resources'
 import { useConversations } from './store'
@@ -30,10 +30,9 @@ function newConversationAt(id: string, projectId: string | null, workspaceId: st
 /**
  * The page's ways into a conversation, shared by the sidebar, the keyboard
  * shortcuts, the search window and the New Project dialog, so each opens one
- * the same way.
+ * the same way: through the router of the component that asks, or `router`.
  */
-export function useConversationNavigation() {
-  const router = useRouter()
+export function useConversationNavigation(router: Router = useRouter()) {
   const resources = useResources()
   const conversations = useConversations()
   const workspaces = useWorkspaces()

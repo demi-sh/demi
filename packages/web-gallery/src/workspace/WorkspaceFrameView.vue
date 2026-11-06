@@ -5,7 +5,7 @@ import AppSidebar from '@demicodes/web-ui/sidebar/AppSidebar.vue'
 import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
 import { provideLiveCalls } from '@demicodes/web-ui/agent/live-calls'
 import { useCallTerminals } from '@demicodes/web-ui/agent/terminals'
-import { provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
+import { pageMediaViewer, provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
 import { providePageHost, sidebarEntries } from '@demicodes/web-ui/plugins/page'
 import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
 import GalleryComposer from '../components/GalleryComposer.vue'
@@ -73,12 +73,12 @@ const files = galleryConversationFiles(project.source, ({ path, line }) => {
 })
 
 // A picture or a video a message shows opens in Attachments, as the product's does.
-provideMediaViewer({
+provideMediaViewer(pageMediaViewer({
   reveal: () => {
     work.openIn({ intent: 'media', payload: {} })
     return true
   },
-})
+}))
 
 const sidebarOpen = ref(false)
 const projects = ref(demoProjects())

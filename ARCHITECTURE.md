@@ -502,6 +502,7 @@ plugin-widget -> plugin-sdk
 plugin-skills -> plugin-sdk
 plugin-web -> plugin-sdk
 web -> conversation-client, plugin-browser, plugin-changes, plugin-file-browser, plugin-mobile, plugin-sdk, plugin-skills, plugin-web, plugin-widget, protocol, utils, web-ui
+web-components -> web
 browse -> web
 web-gallery -> conversation-client, plugin-browser, plugin-changes, plugin-file-browser, plugin-mobile, plugin-sdk, plugin-skills, plugin-web, plugin-widget, protocol, utils, web-ui
 site -> protocol, web-gallery, web-ui

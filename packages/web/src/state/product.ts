@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { z } from 'zod'
 import {
   schemaRefusal,
+  coreReadStateSchema,
   known,
   partEvent,
   partOf,
@@ -31,6 +32,7 @@ import { backendUnreachable, connectionCause, connectionState, type ConnectionSt
 import { reloadFailedMedia } from '@demicodes/web-ui/files/media-reload'
 import { t } from './locales/text'
 import { ApiError, apiRequest, logReadAnswered, logReadFailed, notifySessionEnded, readResponse, unreachable as backendNotReached, waitForBackendWith } from '../api/client'
+import { programPage } from '../program-page'
 import { noteUpdating } from './update'
 import { LIST_ROUTES, isListPart, type ListPart } from './lists'
 
@@ -679,7 +681,8 @@ export const useProduct = defineStore('product', () => {
     if (named.success) {
       servedBuild.value = named.data.webBuild ?? null
     }
-    const parsed = readStateSchema.safeParse(body)
+    // A program's page reads its core's part of the state, which names none of the server's.
+    const parsed = (programPage() ? coreReadStateSchema : readStateSchema).safeParse(body)
     if (!parsed.success) {
       // A state of another build, whose contract may say what this page
       // cannot read, only names the build to load.

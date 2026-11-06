@@ -376,14 +376,21 @@ function pagePlace(): ViewerPlace {
 const mediaViewerKey: InjectionKey<MediaViewerState> = Symbol('media-viewer')
 
 /**
- * Gives the components below the page's one viewer, which `MediaViewer`
- * draws, or the Attachments window (`MediaView`) when `options` reveal
- * it. A page provides it at its root, or a conversation's page where it has
- * the conversation's windows, so the viewer stays open while the transcript
- * beneath it changes, even when the row that opened it goes.
+ * The page's one viewer, which `MediaViewer` draws, or the Attachments
+ * window (`MediaView`) when `options` reveal it.
  */
-export function provideMediaViewer(options: MediaViewerOptions = {}): MediaViewerState {
-  const viewer = createMediaViewer(pagePlace, options)
+export function pageMediaViewer(options: MediaViewerOptions = {}): MediaViewerState {
+  return createMediaViewer(pagePlace, options)
+}
+
+/**
+ * Gives the components below `viewer`, the page's own by default. A page
+ * provides it at its root, or a conversation's page where it has the
+ * conversation's windows, so the viewer stays open while the transcript
+ * beneath it changes, even when the row that opened it goes; the elements of
+ * a program's page each provide the page's one.
+ */
+export function provideMediaViewer(viewer: MediaViewerState = pageMediaViewer()): MediaViewerState {
   provide(mediaViewerKey, viewer)
   return viewer
 }

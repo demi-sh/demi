@@ -4,6 +4,7 @@ import { httpStatusLine, isAbortError } from '@demicodes/utils'
 import { coded, environmental, errorFields } from '@demicodes/web-ui/infra/errors'
 import { pageLog } from '@demicodes/web-ui/infra/log'
 import { noteUpdating } from '../state/update'
+import { programPage } from '../program-page'
 
 // Every control operation is an ordinary HTTP request: one answer, a status and an
 // error the caller can show, visible in the network and the backend's log, and
@@ -255,9 +256,13 @@ function reachedOrNot(error: unknown): unknown {
   return unreachable(error) ? environmental(error) : error
 }
 
-/** The URL of an API path, for what the web browser loads itself: an image, a player, a download. */
+/**
+ * The URL of an API path, for a request and for what the web browser loads
+ * itself: an image, a player, a download. On a program's page it is below
+ * where the program forwards the core's routes.
+ */
 export function apiUrl(path: string): string {
-  return `/api${path}`
+  return `${programPage()?.api ?? '/api'}${path}`
 }
 
 /** How long a request may take unless it says otherwise. */

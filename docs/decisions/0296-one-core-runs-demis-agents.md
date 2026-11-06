@@ -149,8 +149,8 @@ before:
    core's connection.
 6. 0301: the TypeScript SDK, over the web app's own clients, with the core
    and runner binaries of its build.
-7. 0302: a program's page shows a conversation and its work with the web
-   app's own views.
+7. 0302: a program's page shows a conversation with the web app's own
+   views.
 
 ## Spike
 

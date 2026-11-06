@@ -325,7 +325,8 @@ conversation already.
 ## Showing conversations on your pages
 
 [`@demicodes/web-components`](../web-components/README.md) shows a
-conversation and its work panel on your own pages, with the app's own views.
+conversation on your own pages with the app's own views: its transcript,
+its composer, and its work in windows with a taskbar.
 Your server forwards the pages' requests with `core.fetch(request, base)`
 and their connection with `core.accept(socket, url)`, which takes a
 WebSocket of the standard interface, as Deno's `upgradeWebSocket` and the

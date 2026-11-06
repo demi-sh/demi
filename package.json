@@ -6,6 +6,7 @@
   "workspaces": [
     "packages/conversation-client",
     "packages/sdk",
+    "packages/web-components",
     "packages/utils",
     "packages/protocol",
     "packages/web-ui",

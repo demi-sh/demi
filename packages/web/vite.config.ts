@@ -142,14 +142,50 @@ function sharedPage(): Plugin {
   }
 }
 
-export default defineConfig({
-  plugins: [vue(), tailwindcss(), webBuild(), serviceWorker(), appleTouchIcon(), directHotUpdates(), sharedPage()],
+/** What the app's build and the elements' share: the same sources, read the same way. */
+const shared = {
   // The repository's `.env` carries the local development account
   // (`DEMI_DEV_EMAIL`, `DEMI_DEV_PASSWORD`); the sign-in page fills it in
   // during development only.
   envDir: resolve(import.meta.dirname, '../..'),
   envPrefix: ['VITE_', 'DEMI_DEV_'],
   define: { 'import.meta.env.DEMI_VERSION': JSON.stringify(buildVersion()) },
+  resolve: {
+    alias: {
+      '@': resolve(import.meta.dirname, 'src'),
+      '@demicodes/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
+    },
+  },
+}
+
+/**
+ * The elements' build (`vite build --mode elements`): the second entry of
+ * the web app, its views as custom elements (`src/elements/main.ts`), one
+ * module and one stylesheet with what they load later beside them, in the
+ * `@demicodes/web-components` package.
+ */
+const elements = defineConfig({
+  ...shared,
+  // A library build leaves `process.env.NODE_ENV` to the bundler that takes
+  // it; the elements' module runs in the browser as it is.
+  define: { ...shared.define, 'process.env.NODE_ENV': JSON.stringify('production') },
+  plugins: [vue(), tailwindcss()],
+  build: {
+    outDir: resolve(import.meta.dirname, '../web-components/dist'),
+    emptyOutDir: true,
+    license: { fileName: '.vite/license.json' },
+    lib: {
+      entry: resolve(import.meta.dirname, 'src/elements/main.ts'),
+      formats: ['es'],
+      fileName: 'demi-web-components',
+      cssFileName: 'demi-web-components',
+    },
+  },
+})
+
+export default defineConfig(({ mode }) => mode === 'elements' ? elements : {
+  ...shared,
+  plugins: [vue(), tailwindcss(), webBuild(), serviceWorker(), appleTouchIcon(), directHotUpdates(), sharedPage()],
   build: {
     // The npm packages the bundle holds, each with its license and the
     // text of its license file, from the bundle's own module graph:
@@ -160,12 +196,6 @@ export default defineConfig({
         index: resolve(import.meta.dirname, 'index.html'),
         share: resolve(import.meta.dirname, 'share.html'),
       },
-    },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(import.meta.dirname, 'src'),
-      '@demicodes/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
     },
   },
   server: {

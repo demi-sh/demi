@@ -17,6 +17,7 @@ import { apiRequest, ApiError, jsonBody, readResponse } from '../api/client'
 import { unsubscribeOnSignOut } from '../state/notifications'
 import { signalUnknownPasskey, signWithPasskey } from './webauthn'
 import { forgetAccount } from '../state/account-data'
+import { programPage } from '../program-page'
 
 type User = UserDto
 type SessionState =
@@ -97,6 +98,18 @@ export const useSession = defineStore('session', {
     signedIn: (state) => state.current.status === 'signedIn',
     user: (state) =>
       state.current.status === 'signedIn' ? state.current.user : null,
+    /**
+     * Whose the data the web browser keeps for the page is, such as its
+     * drafts: the signed-in user's, or on a program's page, the core's the
+     * program forwards; none before either is known.
+     */
+    owner: (state): string | null => {
+      const program = programPage()
+      if (program) {
+        return `program:${program.api}`
+      }
+      return state.current.status === 'signedIn' ? state.current.user.id : null
+    },
   },
   actions: {
     /**

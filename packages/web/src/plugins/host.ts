@@ -6,7 +6,7 @@ import { disposePluginStores } from '@demicodes/web-ui/plugins/stores'
 import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
 import { workspaceName } from '@demicodes/web-ui/workspaces/workspaces'
 import { userStreamOf } from '@demicodes/web-ui/transport/user-stream'
-import { apiRequest, jsonBody, readResponse } from '../api/client'
+import { apiRequest, apiUrl, jsonBody, readResponse } from '../api/client'
 import { conversationFiles } from '../conversation/files'
 import { directRoute } from '../direct'
 import { directStream } from '../direct/operations'
@@ -102,7 +102,7 @@ export function productPageHost(): PageHost {
   }
   return {
     pages: () => PLUGIN_PAGES,
-    blockDocument: (plugin, tag, id) => `/api/plugins/${encodeURIComponent(plugin)}/blocks/${encodeURIComponent(tag)}/${encodeURIComponent(id)}`,
+    blockDocument: (plugin, tag, id) => apiUrl(`/plugins/${encodeURIComponent(plugin)}/blocks/${encodeURIComponent(tag)}/${encodeURIComponent(id)}`),
     userState: (plugin) => product.snapshot?.pluginStates?.[plugin],
     // On once the backend has it on, as the page shows a switch at once and
     // the backend serves its blocks only after; off at once either way.

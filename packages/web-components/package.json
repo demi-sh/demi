@@ -1,0 +1,31 @@
+{
+  "name": "@demicodes/web-components",
+  "description": "Demi's conversation view as a custom element, for a program's page that runs Demi's agents with @demicodes/sdk.",
+  "version": "0.24.0",
+  "private": false,
+  "type": "module",
+  "exports": {
+    ".": "./dist/demi-web-components.js",
+    "./style.css": "./dist/demi-web-components.css"
+  },
+  "devDependencies": {
+    "@demicodes/web": "workspace:^"
+  },
+  "license": "Apache-2.0",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run --cwd ../web vite build --mode elements"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/demi-sh/demi.git",
+    "directory": "packages/web-components"
+  },
+  "homepage": "https://github.com/demi-sh/demi/tree/main/packages/web-components#readme",
+  "bugs": "https://github.com/demi-sh/demi/issues"
+}

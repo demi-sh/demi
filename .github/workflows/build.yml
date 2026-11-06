@@ -329,11 +329,14 @@ jobs:
           name: web
           path: packages/web/dist
           retention-days: 1
-      # The SDK's build, which its main npm package carries.
+      # The builds of the other packages, the npm packages the SDK's job
+      # packs, at their places in the repository.
       - uses: actions/upload-artifact@v7
         with:
-          name: sdk-dist
-          path: packages/sdk/dist
+          name: packages
+          path: |
+            packages/*/dist
+            !packages/web/dist
           retention-days: 1
 
   # The npm packages a program runs Demi's agents with, packed: the SDK with
@@ -360,8 +363,8 @@ jobs:
           merge-multiple: true
       - uses: actions/download-artifact@v8
         with:
-          name: sdk-dist
-          path: ${{ runner.temp }}/sdk-dist
+          name: packages
+          path: packages
       - uses: actions/download-artifact@v8
         with:
           name: xtask-x86_64-unknown-linux-musl
