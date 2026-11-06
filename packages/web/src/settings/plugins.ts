@@ -3,8 +3,8 @@ import { defineStore } from 'pinia'
 import { SerialQueue } from '@demicodes/utils'
 import { errorCode, reportError } from '@demicodes/web-ui/infra/errors'
 import { apiRequest, jsonBody } from '../api/client'
-import type { PluginSwitch } from '../api/generated/web-api'
-import { known, useProduct, withPart } from '../state/product'
+import { known, withPart, type PluginSwitch } from '@demicodes/protocol'
+import { useProduct } from '../state/product'
 
 /**
  * The user's plugin switches, and those of the plugins' features. A switch shows at once, and a

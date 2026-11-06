@@ -1,18 +1,18 @@
 import { computed } from 'vue'
 import { defineStore } from 'pinia'
-import { IDLE_COMPACTION_CONTEXT } from '@demicodes/protocol'
-import { SerialQueue } from '@demicodes/utils'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import { t } from './locales/text'
-import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
+  IDLE_COMPACTION_CONTEXT,
   userPreferencesSchema,
   type BrowserLocale,
   type ContextLimitChange,
   type Preferences,
   type PreferencesPatch,
   type ShortcutsPatch,
-} from '../api/generated/web-api'
+} from '@demicodes/protocol'
+import { SerialQueue } from '@demicodes/utils'
+import { reportError } from '@demicodes/web-ui/infra/errors'
+import { t } from './locales/text'
+import { apiRequest, jsonBody, readResponse } from '../api/client'
 import { useProduct, type Answer, type ProductChange } from './product'
 import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
 import { shortcutSet } from '@demicodes/web-ui/ui/shortcut'

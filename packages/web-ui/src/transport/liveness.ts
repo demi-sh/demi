@@ -40,15 +40,11 @@
  * `connection.broken` (a connection it let go) to its log, as lines of
  * information, never as error reports.
  */
+import { reconnectWait, SILENCE_MS } from '@demicodes/conversation-client'
 import { readonly, ref } from 'vue'
 import { defaultDocument, defaultNavigator, defaultWindow, useDocumentVisibility, useEventListener } from '@vueuse/core'
 import { PAGE_ID, PAGE_PARAMETER, pageLog } from '../infra/log'
 
-/** Two and a half of the longest heartbeat, the backend's 30 seconds: a connection silent this long is broken. */
-const SILENCE_MS = 75_000
-/** The first wait before a connection or a lane connects again; each later one doubles, up to the longest. */
-const FIRST_WAIT_MS = 1_000
-const LONGEST_WAIT_MS = 30_000
 /** The shortest wait while the backend restarts; each is up to twice as long. */
 const RESTART_WAIT_MS = 1_000
 /**
@@ -114,19 +110,6 @@ const waiting = new Set<() => void>()
 /** Logs why the page let go of its connection named `name`, which it then connects again. */
 function logBroken(name: string, why: string): void {
   pageLog.info('connection.broken', { connection: name, why })
-}
-
-/**
- * The wait before connecting again after `failures` (one or more) consecutive
- * connections ended or could not be made.
- *
- * - It is a second, then twice as long each time, up to 30 seconds.
- * - Each is shortened by a random part of up to half, so that the pages of all users
- *   do not return at once after a restart.
- */
-function reconnectWait(failures: number): number {
-  const longest = Math.min(FIRST_WAIT_MS * 2 ** (failures - 1), LONGEST_WAIT_MS)
-  return longest * (1 - Math.random() / 2)
 }
 
 /**

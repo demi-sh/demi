@@ -1,5 +1,14 @@
 import { markRaw, type Raw } from 'vue'
-import type { ClientContent } from '@demicodes/protocol'
+import type {
+  ClientContent,
+  ConversationDraft,
+  DraftComment,
+  DraftFile,
+  DraftSavingComment,
+  ListedSavedMessage,
+  Revisions,
+  SavedListing,
+} from '@demicodes/protocol'
 import { SerialQueue } from '@demicodes/utils'
 import type { HeadlineText } from '@demicodes/web-ui/ui/ui-text'
 import { Slot, type SlotChange } from '@demicodes/web-ui/infra/slot'
@@ -11,7 +20,6 @@ import { ApiError } from '../api/client'
 import { OVER_ANY } from './drafts'
 import { saveDraft } from '../api/drafts'
 import { deleteSaved, postSaved, putSaved, saveFromDraft } from '../api/saved'
-import type { ConversationDraft, DraftComment, DraftFile, DraftSavingComment, ListedSavedMessage, Revisions, SavedListing } from '../api/generated/web-api'
 import type { Conversation, ProductAttachment } from '../state/types'
 import { t } from './locales/text'
 

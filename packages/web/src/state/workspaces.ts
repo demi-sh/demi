@@ -7,16 +7,17 @@ import { groupDot, type DotSource } from '@demicodes/web-ui/sidebar/conversation
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   workspaceAnswerSchema,
+  known,
   type ConversationTarget,
   type ChangeWorkspace,
   type CreateWorkspace,
   type WorkspaceMove,
   type WorkspaceOrder,
-} from '../api/generated/web-api'
+} from '@demicodes/protocol'
 import { useConversations } from '../conversation/store'
 import type { Conversation } from './types'
 import { t } from './locales/text'
-import { known, useProduct } from './product'
+import { useProduct } from './product'
 import { useResources } from './resources'
 
 /**

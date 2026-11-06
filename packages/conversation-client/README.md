@@ -1,9 +1,13 @@
 # @demicodes/conversation-client
 
-The browser's client of Demi's conversation lane. It exports three things:
+The client of a Demi core's page connection, which the web app and
+[`@demicodes/sdk`](../sdk/README.md) both use. It exports four things:
 
+- `PageConnection` keeps the page connection open and carries its lanes; a
+  host it is given opens the socket and hears how the connection stands.
 - `ConversationClient` opens a conversation, sends messages, edits, steers and
-  aborts, and keeps the transcript current from the backend's patches.
+  aborts, and keeps the transcript current from the core's patches;
+  `createConversationClient` makes one on a conversation's lane.
 - `createWebSocketTransport` carries its frames over anything shaped as a
   WebSocket, such as a conversation's lane of the page connection.
 - `applyTranscriptPatches` applies a patch list to a transcript.
@@ -16,14 +20,11 @@ refuse it.
 The following example opens a conversation and sends a message:
 
 ```ts
-import { ConversationClient, createWebSocketTransport } from '@demicodes/conversation-client'
-import { openLane } from '@demicodes/web-ui/transport/page-connection'
+import { createConversationClient } from '@demicodes/conversation-client'
+import { pageConnection } from '@demicodes/web-ui/transport/page-connection'
 
-// Each connection opens the conversation's lane, and carries frames once it is open.
-const client = new ConversationClient(() => new Promise((resolve) => {
-  const lane = openLane({ kind: 'conversation', conversation: id }, 'conversation lane')
-  lane.addEventListener('open', () => resolve(createWebSocketTransport(lane)), { once: true })
-}))
+// The client opens the conversation's lane of the page connection.
+const client = createConversationClient(pageConnection, id)
 client.subscribe((event) => {
   if (event.type === 'transcript_patch') {
     render(event.blocks)
@@ -33,8 +34,8 @@ await client.open()
 await client.submit([{ type: 'text', text: 'Fix the failing test.' }])
 ```
 
-Demi has no TypeScript SDK. The client drives a conversation the backend runs.
-It does not run Demi's agent itself
+The client drives a conversation a core runs. It does not run Demi's agent
+itself: a program runs cores with `@demicodes/sdk`
 ([ARCHITECTURE.md](../../ARCHITECTURE.md)).
 
 Part of [Demi](../../README.md). The package is under the Apache License 2.0.

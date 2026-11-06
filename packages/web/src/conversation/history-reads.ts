@@ -19,8 +19,12 @@ import {
   transcriptPageSchema,
   wholeBlockSchema,
   type TranscriptPage,
-} from '../api/generated/web-api'
-import type { Block, CacheChart, ConversationAttachment, InstructionEntry, ProviderFailureFacts } from '@demicodes/protocol'
+  type Block,
+  type CacheChart,
+  type ConversationAttachment,
+  type InstructionEntry,
+  type ProviderFailureFacts,
+} from '@demicodes/protocol'
 import { describeAttachments, describeReplyBlocks } from './activity'
 import { viewRead } from '@demicodes/web-ui/infra/view-timing'
 

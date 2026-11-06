@@ -1,5 +1,6 @@
-# Builds everything a release publishes, and publishes nothing: canary.yml
-# publishes a push's build once its checks have passed too.
+# Builds everything a release publishes, and the SDK's npm packages, which no
+# release publishes; it publishes nothing: canary.yml publishes a push's build
+# once its checks have passed too.
 #
 # Starting it:
 #
@@ -36,6 +37,9 @@
 #   programs (12 jobs) -+-> server release amd64: root, image
 #   server (2 jobs) ----+
 #   web ----------------+-> server release arm64: root, image
+#
+#   programs, web ------+-> SDK: its npm packages
+#   core (6 jobs) ------+
 #
 # No job compiles or compresses what another already did: a command-program job
 # packages its programs, which compresses them, and a runner job compresses its
@@ -121,7 +125,7 @@ jobs:
   # Each target's programs in two jobs, the runner and the command programs,
   # so no runner compiles two targets or two groups one after the other.
   programs:
-    name: ${{ matrix.group }} ${{ matrix.target }}
+    name: ${{ matrix.group.name }} ${{ matrix.target }}
     needs: version
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -129,15 +133,21 @@ jobs:
       # at the server release that needs them all.
       fail-fast: false
       matrix:
-        target:
+        target: &targets
           - aarch64-apple-darwin
           - x86_64-apple-darwin
           - x86_64-unknown-linux-musl
           - aarch64-unknown-linux-musl
           - x86_64-pc-windows-msvc
           - aarch64-pc-windows-msvc
-        group: [runner, commands]
-        include:
+        group:
+          - name: runner
+            packages: --package demi-runner
+          - name: commands
+            # demi-mobile's iOS helper is built on the aarch64-apple-darwin
+            # job, with that runner's Xcode (`crates/plugin-mobile/command/src/ios/mod.rs`).
+            packages: --package demi-file --package demi-fetch --package demi-browser --package demi-claude-code --package demi-mobile
+        include: &platforms
           - target: aarch64-apple-darwin
             runner: macos-26
           - target: x86_64-apple-darwin
@@ -152,16 +162,10 @@ jobs:
           - target: aarch64-pc-windows-msvc
             runner: windows-11-arm
             msvc: arm64
-          - group: runner
-            packages: --package demi-runner
-          - group: commands
-            # demi-mobile's iOS helper is built on the aarch64-apple-darwin
-            # job, with that runner's Xcode (`crates/plugin-mobile/command/src/ios/mod.rs`).
-            packages: --package demi-file --package demi-fetch --package demi-browser --package demi-claude-code --package demi-mobile
-    defaults:
+    defaults: &bash
       run:
         shell: bash
-    steps:
+    steps: &program-steps
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.commit || github.sha }}
@@ -170,7 +174,7 @@ jobs:
           msvc: ${{ matrix.msvc }}
       - uses: ./.github/actions/rust-cache
         with:
-          key: ${{ matrix.target }}-${{ matrix.group }}
+          key: ${{ matrix.target }}-${{ matrix.group.name }}
       - uses: ./.github/actions/stamp-version
         with:
           version: ${{ needs.version.outputs.version }}
@@ -179,18 +183,18 @@ jobs:
       # with them the backend they compile.
       - name: Build
         if: runner.os != 'Windows'
-        run: cargo run --locked --package xtask --no-default-features -- native build --target ${{ matrix.target }} ${{ matrix.packages }}
+        run: cargo run --locked --package xtask --no-default-features -- native build --target ${{ matrix.target }} ${{ matrix.group.packages }}
       # Not in bash: Git's /usr/bin/link comes before MSVC's link.exe there.
       - name: Build
         if: runner.os == 'Windows'
         shell: pwsh
-        run: cargo run --locked --package xtask --no-default-features -- native build --target ${{ matrix.target }} ${{ matrix.packages }}
+        run: cargo run --locked --package xtask --no-default-features -- native build --target ${{ matrix.target }} ${{ matrix.group.packages }}
       # Demi's own certificate, the same in every release, so macOS keeps
       # the user's grants to the runner across updates
       # (`crates/runner/src/autostart.rs`). Signed
       # before packaging, which hashes the program as it ships.
       - name: Sign the runner
-        if: runner.os == 'macOS' && matrix.group == 'runner'
+        if: runner.os == 'macOS' && matrix.group.name == 'runner'
         env:
           CERTIFICATE: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}
           PASSWORD: ${{ secrets.MACOS_SIGNING_CERTIFICATE_PASSWORD }}
@@ -214,10 +218,12 @@ jobs:
           security delete-keychain "$keychain"
       # Packaging compresses each program into the cache, by its SHA-256,
       # where the server release finds the copies made, so it compresses
-      # none itself; what packaging publishes is thrown away.
+      # none itself; what packaging publishes is thrown away. The process
+      # is downloaded by no device: the SDK's packages carry it as it is.
       - name: Compress the programs
+        if: matrix.group.name != 'core'
         run: |
-          for argument in ${{ matrix.packages }}; do
+          for argument in ${{ matrix.group.packages }}; do
             [ "$argument" != --package ] || continue
             cargo run --locked --package xtask --no-default-features -- native package \
               --package "$argument" --target ${{ matrix.target }} \
@@ -225,20 +231,40 @@ jobs:
           done
       - uses: ./.github/actions/collect-programs
         with:
-          name: native-${{ matrix.target }}-${{ matrix.group }}
+          name: native-${{ matrix.target }}-${{ matrix.group.name }}
       - uses: actions/upload-artifact@v7
+        if: matrix.group.name != 'core'
         with:
-          name: compressed-${{ matrix.target }}-${{ matrix.group }}
+          name: compressed-${{ matrix.target }}-${{ matrix.group.name }}
           path: compressed
           retention-days: 1
       # The server release of this architecture, which builds its image too,
       # runs the xtask this job built rather than compiling its own.
       - uses: actions/upload-artifact@v7
-        if: runner.os == 'Linux' && matrix.group == 'runner'
+        if: runner.os == 'Linux' && matrix.group.name == 'runner'
         with:
           name: xtask-${{ matrix.target }}
           path: target/debug/xtask
           retention-days: 1
+
+  # Each target's process the SDK runs cores in, as the programs are built:
+  # a job of its own, so the server release, which does not carry it, does
+  # not wait for it.
+  core:
+    name: ${{ matrix.group.name }} ${{ matrix.target }}
+    needs: version
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      # Every job's result in one run: the SDK's job needs them all.
+      fail-fast: false
+      matrix:
+        target: *targets
+        group:
+          - name: core
+            packages: --package demi-core-api
+        include: *platforms
+    defaults: *bash
+    steps: *program-steps
 
   server:
     name: server ${{ matrix.target }}
@@ -303,6 +329,63 @@ jobs:
           name: web
           path: packages/web/dist
           retention-days: 1
+      # The SDK's build, which its main npm package carries.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdk-dist
+          path: packages/sdk/dist
+          retention-days: 1
+
+  # The npm packages a program runs Demi's agents with, packed: the SDK with
+  # every command package's descriptor, one package for each target with its
+  # process, runner and command programs, the web components, and the
+  # packages they depend on (`crates/xtask/src/sdk_release.rs`).
+  sdk:
+    name: SDK
+    needs: [version, programs, core, web]
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.commit || github.sha }}
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: native-*-{runner,commands,core}
+          path: ${{ runner.temp }}/native
+          merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: compressed-*-commands
+          path: compressed
+          merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: sdk-dist
+          path: ${{ runner.temp }}/sdk-dist
+      - uses: actions/download-artifact@v8
+        with:
+          name: xtask-x86_64-unknown-linux-musl
+          path: ${{ runner.temp }}/xtask
+      - name: Gather the executables
+        run: |
+          chmod +x "$RUNNER_TEMP/xtask/xtask"
+          mkdir -p native-target
+          for archive in "$RUNNER_TEMP"/native/native-*.tar; do
+            tar -xf "$archive" -C native-target
+          done
+      - name: Assemble the packages
+        run: |
+          "$RUNNER_TEMP/xtask/xtask" sdk-release --publish --output "$RUNNER_TEMP/sdk" \
+            --artifacts native-target --compressed compressed
+          mkdir -p dist/sdk
+          for package in "$RUNNER_TEMP"/sdk/*/; do
+            npm pack "$package" --pack-destination dist/sdk
+          done
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdk
+          path: dist/sdk
+          retention-days: 1
 
   # Each Linux architecture's server release in one job: its root, whose
   # files/ holds every target's programs, and the Cloud image built from it,
@@ -332,7 +415,7 @@ jobs:
           ref: ${{ inputs.commit || github.sha }}
       - uses: actions/download-artifact@v8
         with:
-          pattern: native-*
+          pattern: native-*-{runner,commands,server}
           path: ${{ runner.temp }}/native
           merge-multiple: true
       - uses: actions/download-artifact@v8

@@ -1,10 +1,9 @@
 import { computed, type ComputedRef } from 'vue'
-import { REPLY_BLOCKS_PER_READ } from '@demicodes/protocol'
+import { REPLY_BLOCKS_PER_READ, replyBlocksAnswerSchema } from '@demicodes/protocol'
 import type { ReplyBlockLookup } from '@demicodes/web-ui/markdown/types'
 import { pageLog } from '@demicodes/web-ui/infra/log'
 import { errorFields } from '@demicodes/web-ui/infra/errors'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
-import { replyBlocksAnswerSchema } from '../api/generated/web-api'
 import { describeReplyBlocks, replyBlockKey } from './activity'
 import { useConversations } from './store'
 

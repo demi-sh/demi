@@ -15,12 +15,17 @@
  * plugin on or off, which the lane says so that the page offers again at
  * once.
  */
-import { schemaRefusal } from '@demicodes/protocol'
+import {
+  schemaRefusal,
+  directMessageSchema,
+  type DirectMessage,
+  type DirectPeer as PeerName,
+  type DirectRequest,
+} from '@demicodes/protocol'
 import { reportError } from '@demicodes/web-ui/infra/errors'
 import { t } from './locales/text'
 import { waitToReconnect, type ReconnectWait } from '@demicodes/web-ui/transport/liveness'
 import { Lane, openLane } from '@demicodes/web-ui/transport/page-connection'
-import { directMessageSchema, type DirectMessage, type DirectPeer as PeerName, type DirectRequest } from '../api/generated/web-api'
 import { ChannelFailed, type PeerSignaling } from './peer'
 
 /** An offer the runner did not answer. */

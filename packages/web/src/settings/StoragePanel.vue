@@ -12,7 +12,7 @@ import {
   storageRulesSchema,
   storageSchema,
   type Storage,
-} from '../api/generated/web-api'
+} from '@demicodes/protocol'
 import { useProduct } from '../state/product'
 import { deviceLabel, deviceMarkOf, targetKindOf } from '../state/devices'
 import { useSettingsAddress } from './address'

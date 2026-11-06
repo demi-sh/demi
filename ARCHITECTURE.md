@@ -491,6 +491,7 @@ The following graph lists the TypeScript packages:
 protocol -> none
 utils -> none
 conversation-client -> protocol, utils
+sdk -> conversation-client, protocol
 web-ui -> conversation-client, protocol, utils
 plugin-sdk -> web-ui
 plugin-browser -> plugin-sdk, utils

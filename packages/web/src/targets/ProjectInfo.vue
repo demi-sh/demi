@@ -6,7 +6,7 @@ import MoveConversationDialog from '@demicodes/web-ui/targets/MoveConversationDi
 import { useMoveQuestion } from '@demicodes/web-ui/targets/move-question'
 import { homePath } from '@demicodes/web-ui/files/paths'
 import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import type { ConversationTarget } from '../api/generated/web-api'
+import type { ConversationTarget } from '@demicodes/protocol'
 import type { Conversation, Project } from '../state/types'
 import { useResources } from '../state/resources'
 import { targetKindOf, deviceLabel } from '../state/devices'

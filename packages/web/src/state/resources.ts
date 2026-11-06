@@ -8,16 +8,17 @@ import type { RememberedChoices } from '@demicodes/web-ui/agent/starting-choices
 import { t } from './locales/text'
 import {
   projectAnswerSchema,
+  known,
   type ChangeProject,
   type ConversationTarget,
   type CreateProject,
   type DeviceDto,
   type SavedScopeSwitch,
   type SidebarReorder,
-} from '../api/generated/web-api'
-import type { SavedScope } from '@demicodes/protocol'
+  type SavedScope,
+} from '@demicodes/protocol'
 import { useSession } from '../auth/session'
-import { known, useProduct } from './product'
+import { useProduct } from './product'
 import { usePreferences } from './preferences'
 import { modelInfo, providerView, setupOf, wireApi } from './catalog'
 import { SIDEBAR_WIDTH } from '@demicodes/web-ui/sidebar/sidebar-width'

@@ -1,5 +1,5 @@
 import { deviceDownloading, deviceInstalled, type DeviceArtifact, type DeviceDownload } from '@demicodes/web-ui/devices/installed'
-import type { PageState } from './lists'
+import type { PageState } from '@demicodes/protocol'
 
 /** What `deviceId` holds of `packages`, a plugin's (`crates/runner-command-packages/src/cache.rs`). */
 export function packageInstalled(

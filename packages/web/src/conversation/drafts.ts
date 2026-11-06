@@ -1,7 +1,6 @@
 import { z } from 'zod'
-import { schemaRefusal, workflowChoiceSchema } from '@demicodes/protocol'
+import { schemaRefusal, workflowChoiceSchema, conversationSummarySchema, draftFileSchema } from '@demicodes/protocol'
 import { waitingCommentSchema } from '@demicodes/web-ui/agent/comments/comments'
-import { conversationSummarySchema, draftFileSchema } from '../api/generated/web-api'
 import { messageEditStateSchema } from '@demicodes/web-ui/agent/message-editing'
 import { modelSettingsSchema } from '@demicodes/web-ui/agent/model-selection'
 import { copiedStoredFileSchema } from '@demicodes/web-ui/agent/message-input/copied-message'

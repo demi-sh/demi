@@ -10,8 +10,14 @@ import {
   schemaRefusal,
   versionSchema,
   versionsSchema,
+  conversationMetadataSchema,
+  userDtoSchema,
+  readStateSchema,
   type ProviderFailureFacts,
   type Version,
+  type UserDto,
+  type PageState,
+  type ReadState,
 } from '@demicodes/protocol'
 import { reportError } from '@demicodes/web-ui/infra/errors'
 import { pageLog } from '@demicodes/web-ui/infra/log'
@@ -19,12 +25,6 @@ import { viewSupplied } from '@demicodes/web-ui/infra/view-timing'
 import { heldTranscript, type HeldBlock, type HeldTranscript, type TranscriptWindow } from '@demicodes/web-ui/transport/protocol'
 import { heldAccount, holds } from './account-owner'
 import { pageBuild } from './product'
-import {
-  conversationMetadataSchema,
-  userDtoSchema,
-  type UserDto,
-} from '../api/generated/web-api'
-import { readStateSchema, type PageState, type ReadState } from './lists'
 import { IndexedDatabase } from '@demicodes/web-ui/infra/indexed-db'
 import { t } from './locales/text'
 

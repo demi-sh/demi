@@ -47,11 +47,10 @@ if (existsSync(paths.socket)) {
  * with. A slot's change of branch changes those too, and a server that kept
  * the old ones would reject the new backend's answers.
  */
-const webApi = Bun.resolveSync('@demicodes/web/src/api/generated/web-api', import.meta.dir)
 const code = [
   import.meta.dir,
-  webApi,
-  Bun.resolveSync('@demicodes/protocol', dirname(webApi)),
+  // The protocol's sources, its generated contracts among them.
+  dirname(Bun.resolveSync('@demicodes/protocol', import.meta.dir)),
   // What the transcript's rules read of the product: where a reader is at the end, and how long a fold takes.
   Bun.resolveSync('@demicodes/web-ui/composables/scroll-bottom', import.meta.dir),
   Bun.resolveSync('@demicodes/web-ui/ui/fold', import.meta.dir),

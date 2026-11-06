@@ -119,7 +119,8 @@ pub fn protocol() -> Vec<Root> {
     ]
 }
 
-/// `packages/web/src/api/generated`: every REST request and response body.
+/// `@demicodes/protocol`'s `web-api.ts`: every REST request and response
+/// body, which the web app and a program's SDK send and read.
 pub fn web() -> Vec<Root> {
     use api::{
         attachments, auth, cloud, conversations, credentials, devices, diagnostics, drafts, error, files, instructions, port_forwards,
@@ -152,6 +153,7 @@ pub fn web() -> Vec<Root> {
         sends::<sessions::VerifyPassword>(),
         sends::<sessions::HandoffRequest>(),
         sends::<sessions::HandoffSpend>(),
+        receives::<state::CoreState>(),
         receives::<state::ProductState>(),
         receives::<state::UpdateState>(),
         receives::<server_upgrade::ServerUpgrade>(),
@@ -324,5 +326,11 @@ pub fn web() -> Vec<Root> {
         receives::<direct::TextOpened>(),
         receives::<direct::VideoOpened>(),
         receives::<direct::Listed>(),
+        // A program's process and the starter lane of its cores
+        // (`crates/core-api/src/process/mod.rs`).
+        sends::<api::cores::OpenCore>(),
+        receives::<api::cores::OpenedCore>(),
+        receives::<api::starter::StarterRequest>(),
+        sends::<api::starter::StarterAnswer>(),
     ]
 }

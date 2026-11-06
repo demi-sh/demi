@@ -5,13 +5,16 @@ import type {
   SettingsWireApi,
 } from '@demicodes/web-ui/settings/types'
 import { providerLogo } from '@demicodes/web-ui/settings/vendor-logos'
-import { appliedContextLimit, type AuthState, type RuntimeState, type WireApi } from '@demicodes/protocol'
-import type {
-  AccountDto,
-  CatalogModel,
-  CatalogProvider,
-  ProviderState,
-} from '../api/generated/web-api'
+import {
+  appliedContextLimit,
+  type AuthState,
+  type RuntimeState,
+  type WireApi,
+  type AccountDto,
+  type CatalogModel,
+  type CatalogProvider,
+  type ProviderState,
+} from '@demicodes/protocol'
 
 /**
  * The package of the CLI that `providerId`'s requests start on the Cloud, by

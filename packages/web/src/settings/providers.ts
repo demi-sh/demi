@@ -2,7 +2,32 @@ import { t } from './locales/text'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useSession } from '../auth/session'
-import { fileExtensionSchema } from '@demicodes/protocol'
+import {
+  fileExtensionSchema,
+  codeTakenSchema,
+  loginStartedSchema,
+  modelSearchResultsSchema,
+  newShareKeySchema,
+  providerAnswerSchema,
+  shareKeysSchema,
+  providerCliSchema,
+  testResultSchema,
+  known,
+  type AccountOrder,
+  type ActivateAccount,
+  type ConfiguredModel,
+  type CreateProvider,
+  type MediaPatch,
+  type SearchPatch,
+  type ProviderOrder,
+  type ProviderPatch,
+  type ListedLogin,
+  type LoginState,
+  type LoginCode,
+  type QuotaRequest,
+  type SubscriptionLogin,
+  type TestRequest,
+} from '@demicodes/protocol'
 import { SerialQueue, isAbortError } from '@demicodes/utils'
 import { errorMessage, reportError, shownError, type ShownError } from '@demicodes/web-ui/infra/errors'
 import type { ProviderLoginPhase } from '@demicodes/web-ui/settings/types'
@@ -25,33 +50,9 @@ import {
   type SettingsWireApi,
 } from '@demicodes/web-ui/settings/types'
 import { ApiError, apiRequest, jsonBody, readResponse } from '../api/client'
-import {
-  codeTakenSchema,
-  loginStartedSchema,
-  modelSearchResultsSchema,
-  newShareKeySchema,
-  providerAnswerSchema,
-  shareKeysSchema,
-  providerCliSchema,
-  testResultSchema,
-  type AccountOrder,
-  type ActivateAccount,
-  type ConfiguredModel,
-  type CreateProvider,
-  type MediaPatch,
-  type SearchPatch,
-  type ProviderOrder,
-  type ProviderPatch,
-  type ListedLogin,
-  type LoginState,
-  type LoginCode,
-  type QuotaRequest,
-  type SubscriptionLogin,
-  type TestRequest,
-} from '../api/generated/web-api'
 import { useResources } from '../state/resources'
 import { usePreferences } from '../state/preferences'
-import { known, useProduct } from '../state/product'
+import { useProduct } from '../state/product'
 import { PROTOCOLS, type ProductProvider } from '../state/catalog'
 
 export const useProviderSettings = defineStore('provider-settings', () => {

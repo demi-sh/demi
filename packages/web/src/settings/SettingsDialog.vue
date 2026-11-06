@@ -33,16 +33,17 @@ import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   emailChangeStartedSchema,
   identitySchema,
+  known,
   type EmailChangeConfirm,
   type EmailChangeStart,
   type NicknamePatch,
   type PasswordChange,
-} from '../api/generated/web-api'
+} from '@demicodes/protocol'
 import { useSession } from '../auth/session'
 import { usePasskeys } from '../auth/passkeys'
 import { useSessions } from '../auth/handoff'
 import { useResources } from '../state/resources'
-import { known, useProduct } from '../state/product'
+import { useProduct } from '../state/product'
 import { usePreferences } from '../state/preferences'
 import { useNotifications } from '../state/notifications'
 import { useConversations } from '../conversation/store'

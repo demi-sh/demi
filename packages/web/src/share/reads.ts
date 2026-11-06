@@ -1,4 +1,10 @@
-import type { ReplyBlockFacts } from '@demicodes/protocol'
+import {
+  sharedConversationSchema,
+  sharedTranscriptPageSchema,
+  type ReplyBlockFacts,
+  type SharedConversation,
+  type SharedTranscriptPage,
+} from '@demicodes/protocol'
 import { oneRunPerKey } from '@demicodes/utils'
 import type { BlobUrl } from '@demicodes/web-ui/agent/media-source'
 import { pageBeside, shownWindow } from '@demicodes/web-ui/agent/history'
@@ -7,12 +13,6 @@ import type { SharedItem } from '@demicodes/web-ui/share/shared-items'
 import { addWindow, type HeldTranscript } from '@demicodes/web-ui/transport/protocol'
 import { ApiError, apiRequest, apiUrl, readResponse } from '../api/client'
 import { createReading } from '../conversation/reading'
-import {
-  sharedConversationSchema,
-  sharedTranscriptPageSchema,
-  type SharedConversation,
-  type SharedTranscriptPage,
-} from '../api/generated/web-api'
 
 /**
  * The public routes of share `token`, the only ones its page calls: the page's
