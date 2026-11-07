@@ -3,7 +3,6 @@
   "open": { "listFailed": "Impossible de charger les simulateurs", "loading": "Chargement des simulateurs…", "none": "Aucun simulateur", "here": "Ouvert", "running": "En cours", "elsewhere": "Une autre conversation l’a ouvert.", "unavailable": "Non disponible", "opening": "Ouverture de {name}…", "booting": "Démarrage de {name}…" },
   "platforms": { "ios": "iOS", "android": "Android" },
   "toolbar": {
-    "model": "({model})",
     "rotateLeft": "Pivoter à gauche",
     "rotateRight": "Pivoter à droite",
     "appearance": "Changer d’apparence",

@@ -5,7 +5,7 @@ import DeviceView from './DeviceView.vue'
 import { drawsWebgl } from './webgl'
 import type { MobileDevicesController } from './controller'
 import { POSTURE_DEGREES, deviceControls, type DeviceControl } from './controls'
-import { MobilePlatformLogo, type MobileTabData } from './kind'
+import type { MobileTabData } from './kind'
 import type { Posture } from '../generated/plugin'
 import { t } from '../locales/text'
 
@@ -15,11 +15,11 @@ import { t } from '../locales/text'
  *
  * The toolbar:
  *
- * - Starts with the device's system's logo and name where the whole name fits,
- *   then its model in grey where that fits too, never on a phone, whose tab
- *   names the device.
- * - Holds the panel's controls, each the operation of the command that does the
- *   same.
+ * - Starts with the panel's controls, each the operation of the command that
+ *   does the same.
+ * - Ends with the device's model in grey where it fits whole, when it says
+ *   more than the tab's name, which the tab already shows with its system's
+ *   logo; never on a phone.
  */
 const props = defineProps<{
   conversation: string
@@ -49,9 +49,10 @@ watch(recording, (now, was) => {
 })
 /**
  * The device's model as its driver reads it: the runner's once it said, the
- * tab's until then; none when the driver knows none.
+ * tab's until then; none when the driver knows none, or when it is the
+ * device's name, such as a simulator named iPhone 17 Pro.
  */
-const model = computed(() => device.model)
+const model = computed(() => (device.model && device.model !== props.data.name ? device.model : null))
 /** The controls of the device's platform, the tab's until the runner says: Back on Android alone. */
 const controls = computed(() => deviceControls(device.platform ?? props.data.platform, device.fold?.kind ?? null))
 /**
@@ -129,20 +130,12 @@ const actions = computed<ToolbarAction[]>(() => controls.value.map((control) => 
 <template>
   <div class="flex min-h-0 flex-1 flex-col">
     <Toolbar :actions="actions" :overlay-store="overlays" :more-label="t('toolbar.more')">
-      <template #leading>
-        <!-- The name and the model each show whole or not at all: beside the
-             empty first item each fits on the one line, or wraps to the next,
-             which the row cuts off, the model first, as it comes after the name.
-             A phone's window title already names the device. -->
-        <div class="flex h-10 min-w-0 flex-1 flex-wrap items-center overflow-hidden phone:invisible">
+      <template #trailing>
+        <!-- The model shows whole or not at all: beside the empty first item it
+             fits on the one line, or wraps to the next, which the row cuts off. -->
+        <div v-if="model" class="flex h-10 min-w-0 flex-1 flex-wrap items-center justify-end overflow-hidden phone:invisible">
           <span class="h-10 w-0" />
-          <span class="flex h-10 items-center gap-1.5 whitespace-nowrap pl-2 text-[13px] text-fg-body" :class="model ? 'pr-1' : 'pr-2'">
-            <MobilePlatformLogo :platform="data.platform" class="text-fg-subtle" />
-            {{ data.name }}
-          </span>
-          <span v-if="model" class="flex h-10 items-center whitespace-nowrap pr-2 text-[13px] text-fg-subtle">
-            {{ t('toolbar.model', { model }) }}
-          </span>
+          <span class="flex h-10 items-center whitespace-nowrap px-2 text-[13px] text-fg-subtle">{{ model }}</span>
         </div>
       </template>
     </Toolbar>

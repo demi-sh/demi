@@ -27,12 +27,12 @@ export interface ToolbarAction {
 }
 
 /**
- * A panel's toolbar: what leads it, such as a name, in the `leading` slot, then its
- * actions.
+ * A panel's toolbar: its actions from the start, then what ends it, such as a
+ * device's model, in the `trailing` slot, against the bar's end.
  *
- * The actions that do not fit the bar's width go, from its end, into a More menu (»)
- * at the end, as a macOS window's toolbar puts them. The leading content takes what
- * room the actions leave.
+ * The actions that do not fit the bar's width go, from their end, into a More
+ * menu (») after the last one shown, as a macOS window's toolbar puts them. The
+ * trailing content takes what room the actions leave.
  */
 const props = defineProps<{
   actions: readonly ToolbarAction[]
@@ -77,9 +77,6 @@ watch(() => props.actions.map((action) => `${action.label}:${action.group ?? fal
 
 <template>
   <div ref="bar" class="relative flex h-10 flex-none items-center gap-0.5 border-b border-line px-2">
-    <div class="flex min-w-0 flex-1 items-center">
-      <slot name="leading" />
-    </div>
     <div
       v-for="(action, index) in actions"
       :key="index"
@@ -138,6 +135,9 @@ watch(() => props.actions.map((action) => `${action.label}:${action.group ?? fal
           </Menu>
         </template>
       </Dropdown>
+    </div>
+    <div class="flex min-w-0 flex-1 items-center justify-end">
+      <slot name="trailing" />
     </div>
   </div>
 </template>

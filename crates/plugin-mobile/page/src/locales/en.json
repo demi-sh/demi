@@ -3,7 +3,6 @@
   "open": { "listFailed": "Couldn’t Load Simulators", "loading": "Loading Simulators…", "none": "No Simulators", "here": "Open", "running": "Running", "elsewhere": "Another conversation has it open.", "unavailable": "Not Available", "opening": "Opening {name}…", "booting": "Starting {name}…" },
   "platforms": { "ios": "iOS", "android": "Android" },
   "toolbar": {
-    "model": "({model})",
     "rotateLeft": "Rotate Left",
     "rotateRight": "Rotate Right",
     "appearance": "Toggle Appearance",

@@ -3,7 +3,6 @@
   "open": { "listFailed": "No se pudieron cargar los simuladores", "loading": "Cargando simuladores…", "none": "No hay simuladores", "here": "Abierto", "running": "En ejecución", "elsewhere": "Otro chat lo tiene abierto.", "unavailable": "No disponible", "opening": "Abriendo {name}…", "booting": "Iniciando {name}…" },
   "platforms": { "ios": "iOS", "android": "Android" },
   "toolbar": {
-    "model": "({model})",
     "rotateLeft": "Girar a la izquierda",
     "rotateRight": "Girar a la derecha",
     "appearance": "Cambiar apariencia",
