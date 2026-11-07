@@ -5,6 +5,7 @@ import type { HeadlineText, TitleText } from '@demicodes/web-ui/ui/ui-text'
 import { FIRST_BLOCKS, type ClientComment, type ClientContent, type MessageComment } from '@demicodes/protocol'
 import { commentsReplaced, inReadingOrder, type DraftMessage, type MessageFiles, type ReplyCommenting, type ShownComment, type WaitingComment } from '@demicodes/web-ui/agent/comments/comments'
 import { ConversationCache, type CachedConversation } from '@demicodes/web-ui/agent/conversation-cache'
+import { isRunning } from '@demicodes/web-ui/agent/conversation-status'
 import { NO_COST, agentCost, conversationCost, recentOf, type CostShown, type CostWindow } from '@demicodes/web-ui/agent/context-cost'
 import { latestBlocks, type TranscriptReveal } from '@demicodes/web-ui/agent/history'
 import { conversationTitle } from '@demicodes/web-ui/agent/conversation-title'
@@ -383,6 +384,9 @@ export const useConversations = defineStore('conversations', () => {
     // A turn Demi resumes after a restart runs again without the user.
     if (status === 'running' || status === 'compacting' || status === 'resuming') {
       return 'active'
+    }
+    if (status === 'awaiting_commands') {
+      return 'awaiting_commands'
     }
     // A turn the process died under is a failure, like a provider's; only the
     // user's own Stop is an abort.
@@ -2195,7 +2199,7 @@ export const useConversations = defineStore('conversations', () => {
   /** The conversations whose turn runs, as the list says it. */
   const listedRunning = computed(() => new Set(
     (product.snapshot?.conversations ?? [])
-      .filter((record) => summaryStatus(record.status) === 'active')
+      .filter((record) => isRunning(summaryStatus(record.status)))
       .map((record) => record.id),
   ))
 
@@ -2205,7 +2209,7 @@ export const useConversations = defineStore('conversations', () => {
    * page holds no session of.
    */
   function running(conversation: Conversation): boolean {
-    return conversation.status === 'active' || listedRunning.value.has(conversation.id)
+    return isRunning(conversation.status) || listedRunning.value.has(conversation.id)
   }
 
   /**

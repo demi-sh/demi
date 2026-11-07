@@ -2,9 +2,21 @@ import type { SessionPhase } from '@demicodes/protocol'
 import type { StatusDotTone } from '../ui/StatusDot.vue'
 import type { ConversationState } from './types'
 import { isSubagentRunning, type SubagentRecord } from './subagents'
+import { sessionWorks } from './session-status'
 import { isTerminalRunning, type TerminalRecord } from './terminals'
 
-export type ConversationStatus = 'idle' | 'active' | 'done' | 'error' | 'aborted'
+/**
+ * Where a conversation, an agent or a command stands. `active` is a model at
+ * work, whose dot breathes; `awaiting_commands` runs only for a command, as a
+ * conversation whose agent waits for one, or the command itself, whose dot
+ * is steady.
+ */
+export type ConversationStatus = 'idle' | 'active' | 'awaiting_commands' | 'done' | 'error' | 'aborted'
+
+/** Whether it runs, a model at work or not: it cannot be archived, and its dot is the accent. */
+export function isRunning(status: ConversationStatus): boolean {
+  return status === 'active' || status === 'awaiting_commands'
+}
 
 /**
  * The tone of a conversation's status dot wherever it shows, a sidebar row's, a
@@ -25,6 +37,7 @@ export type ConversationStatus = 'idle' | 'active' | 'done' | 'error' | 'aborted
 export function statusTone(status: ConversationStatus): StatusDotTone | null {
   switch (status) {
     case 'active':
+    case 'awaiting_commands':
       return 'accent'
     case 'done':
       return 'success'
@@ -42,20 +55,25 @@ export function isCompacting(phase: SessionPhase): boolean {
 }
 
 /**
- * A conversation remains active until its root and all children finish, and
- * while a command that is not a service runs, whose end wakes its agent. A
- * service runs until stopped, so it never keeps the conversation active, nor
- * does the root's compaction while idle, which nobody asked for; the backend
- * counts the same way (`crates/agent-server/src/server/tree.rs`).
+ * How a conversation runs, or null while it does not: active while a model
+ * works, the root's or a running child's, and awaiting commands while it runs
+ * only because a child is live or a command that is not a service runs, whose
+ * end wakes its agent. A service runs until stopped, so it never keeps the
+ * conversation running, nor does the root's compaction while idle, which
+ * nobody asked for; the backend counts the same way
+ * (`crates/agent-server/src/server/tree.rs`).
  */
-export function isConversationActive(
+export function conversationRun(
   phase: ConversationState['phase'],
-  subagents: readonly Pick<SubagentRecord, 'phase'>[] = [],
+  subagents: readonly Pick<SubagentRecord, 'phase' | 'sessionPhase'>[] = [],
   terminals: readonly Pick<TerminalRecord, 'phase' | 'service'>[] = [],
-): boolean {
-  return (
-    (phase !== 'idle' && phase !== 'compacting_idle') ||
-    subagents.some((agent) => isSubagentRunning(agent.phase)) ||
-    terminals.some((terminal) => isTerminalRunning(terminal.phase) && !terminal.service)
-  )
+): 'active' | 'awaiting_commands' | null {
+  const live = subagents.filter((agent) => isSubagentRunning(agent.phase))
+  if (sessionWorks(phase) || live.some((agent) => sessionWorks(agent.sessionPhase))) {
+    return 'active'
+  }
+  if (live.length > 0 || terminals.some((terminal) => isTerminalRunning(terminal.phase) && !terminal.service)) {
+    return 'awaiting_commands'
+  }
+  return null
 }

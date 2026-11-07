@@ -269,7 +269,7 @@ function closeTab(id: string): void {
         v-context-menu="tabMenu(agent.id)"
       >
         <template #mark>
-          <AgentMark :phase="agent.phase" :size="ICON_PX.markIn28" />
+          <AgentMark :run="agent" :size="ICON_PX.markIn28" />
         </template>
       </TabItem>
     </template>

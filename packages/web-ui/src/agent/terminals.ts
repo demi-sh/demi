@@ -467,11 +467,12 @@ export function chipLabel(kind: ChipKind, count: number): string {
 /**
  * A command's mark: running, done, or stopped; a stopped command is never
  * shown as done, and neither is a lost one, which its row tags grey as a
- * stopped one.
+ * stopped one. A running command is what its agent awaits, never a model at
+ * work: its dot is steady.
  */
 export function terminalStatus(phase: TerminalPhase): ConversationStatus {
   if (phase === 'running') {
-    return 'active'
+    return 'awaiting_commands'
   }
   if (phase === 'aborted' || phase === 'lost') {
     return 'aborted'

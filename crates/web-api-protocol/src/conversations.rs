@@ -526,8 +526,9 @@ pub enum UnreadEnd {
     Failed,
 }
 
-/// Where a conversation stands: running or compacting while its live tree
-/// works, resuming while Demi takes up by itself a turn a restart of the
+/// Where a conversation stands: running or compacting while a model of its
+/// live tree works, awaiting commands while it runs only for a command it
+/// awaits, resuming while Demi takes up by itself a turn a restart of the
 /// backend interrupted, interrupted when its last checkpoint was saved in a
 /// turn and no session is live, otherwise what its latest terminal block
 /// says, or idle.
@@ -535,6 +536,9 @@ pub enum UnreadEnd {
 #[serde(rename_all = "snake_case")]
 pub enum ConversationStatus {
     Running,
+    /// The tree runs only because a command it awaits still runs: no
+    /// agent's session works and no input waits for one.
+    AwaitingCommands,
     Compacting,
     /// From the start that took the turn's mark until the turn runs again or
     /// its resume settles otherwise; a page shows it as running.

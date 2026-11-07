@@ -71,7 +71,7 @@ impl Shard {
         let live = self
             .agent()
             .tree(&root_of(&record.id))
-            .map(|tree| (tree.is_running(), tree.root().session().phase()));
+            .map(|tree| (LiveRun::of(tree.is_running(), tree.agents_work()), tree.root().session().phase()));
         let facts = self.summary_facts(&record.id).await;
         let resolved = self.device_shard().resolve_target(&record).await?;
         let archived = record.archived();
@@ -240,19 +240,38 @@ fn last_turn(turn: &EndedTurn) -> LastTurn {
     }
 }
 
-/// A conversation's status: running or compacting while its live tree will
-/// go on working without the user, or a command that is not a service still
-/// runs; resuming while the shard resumes its turn a restart interrupted;
-/// interrupted when its checkpoint was saved in a turn and no tree is live;
-/// else what its latest terminal block says. `live` is whether the live tree
-/// is running, and its root's phase.
-fn status(live: Option<(bool, SessionPhase)>, resuming: bool, facts: &SummaryFacts) -> ConversationStatus {
+/// Whether a live tree runs, and whether a model works in it.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum LiveRun {
+    Working,
+    AwaitingCommands,
+    Resting,
+}
+
+impl LiveRun {
+    fn of(running: bool, agents_work: bool) -> Self {
+        match (running, agents_work) {
+            (false, _) => Self::Resting,
+            (true, true) => Self::Working,
+            (true, false) => Self::AwaitingCommands,
+        }
+    }
+}
+
+/// A conversation's status: running or compacting while a model of its live
+/// tree works, awaiting commands while the tree runs only for a command
+/// that is not a service; resuming while the shard resumes its turn a
+/// restart interrupted; interrupted when its checkpoint was saved in a turn
+/// and no tree is live; else what its latest terminal block says. `live` is
+/// how the live tree runs, and its root's phase.
+fn status(live: Option<(LiveRun, SessionPhase)>, resuming: bool, facts: &SummaryFacts) -> ConversationStatus {
     match live {
-        Some((true, SessionPhase::Compacting)) => return ConversationStatus::Compacting,
-        Some((true, _)) => return ConversationStatus::Running,
+        Some((LiveRun::Working, SessionPhase::Compacting)) => return ConversationStatus::Compacting,
+        Some((LiveRun::Working, _)) => return ConversationStatus::Running,
+        Some((LiveRun::AwaitingCommands, _)) => return ConversationStatus::AwaitingCommands,
         _ if resuming => return ConversationStatus::Resuming,
         None if facts.phase != SessionPhase::Idle => return ConversationStatus::Interrupted,
-        Some((false, _)) | None => {}
+        Some((LiveRun::Resting, _)) | None => {}
     }
     match facts.last {
         Some(Terminal::Response) => ConversationStatus::Completed,

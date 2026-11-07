@@ -18,7 +18,7 @@ export interface StatusDotProps {
   tone: StatusDotTone | null
   /** xs is 4px, sm 6px. */
   size?: 'xs' | 'sm'
-  /** A live status: the dot breathes (opacity and size, 2.4 s); still under reduced motion. */
+  /** A model at work: the dot breathes (opacity and size, 2.4 s), in step with every other; still under reduced motion. */
   breathing?: boolean
   /** Hollow: a ring in the tone's color instead of a filled dot. */
   ring?: boolean
@@ -51,6 +51,19 @@ const RING_TONE: Record<StatusDotTone, string> = {
   attention: 'border-on-attention',
 }
 
+/**
+ * Every breathing dot keeps the page's one beat: each time its breath starts,
+ * as it appears, starts to breathe or shows again after it was hidden, it is
+ * placed at the start of the page's clock, so all brighten and dim together
+ * wherever and whenever they appeared.
+ */
+function keepBeat(event: AnimationEvent): void {
+  for (const animation of (event.currentTarget as Element).getAnimations()) {
+    if (animation instanceof CSSAnimation && animation.animationName === event.animationName)
+      animation.startTime = 0
+  }
+}
+
 const classes = computed(() => [
   props.size === 'xs' ? 'size-1' : 'size-1.5',
   props.tone ? (props.ring ? `border ${RING_TONE[props.tone]}` : TONE[props.tone]) : 'opacity-0',
@@ -67,6 +80,7 @@ const classes = computed(() => [
     :role="label ? 'img' : undefined"
     :aria-label="label"
     :aria-hidden="label ? undefined : 'true'"
+    @animationstart="keepBeat"
   />
 </template>
 

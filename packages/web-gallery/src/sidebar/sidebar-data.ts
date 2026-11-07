@@ -1,7 +1,7 @@
 import { GALLERY_MARKS } from '../fixtures/device-marks'
 import type { SavedScope, SidebarAccount, SidebarConversation, SidebarProject } from '@demicodes/web-ui/sidebar/types'
 import { productWould } from '../product-would'
-import { isConversationActive } from '@demicodes/web-ui/agent/conversation-status'
+import { conversationRun } from '@demicodes/web-ui/agent/conversation-status'
 import { ago } from '../fixtures/time'
 
 const HOUR = 60 * 60 * 1000
@@ -147,7 +147,18 @@ export function demoConversations(): SidebarConversation[] {
       id: 'c-child-running',
       title: 'Parent finished · subagent still running',
       updatedAt: ago(60 * 1000),
-      status: isConversationActive('idle', [{ phase: 'running' }]) ? 'active' : 'idle',
+      status: conversationRun('idle', [{ phase: 'running', sessionPhase: 'running' }]) ?? 'idle',
+      projectId: null,
+      pinned: false,
+      unread: null,
+    },
+    {
+      // The agent ended its turn to wait for a build it left running: the
+      // accent dot holds still until the build's end wakes it.
+      id: 'c-build-waits',
+      title: 'Agent waits for the nightly build',
+      updatedAt: ago(90 * 1000),
+      status: conversationRun('idle', [], [{ phase: 'running', service: false }]) ?? 'idle',
       projectId: null,
       pinned: false,
       unread: null,

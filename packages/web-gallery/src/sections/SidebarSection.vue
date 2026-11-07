@@ -6,6 +6,7 @@ import { t as sidebarText } from '@demicodes/web-ui/sidebar/locales/text'
 import { computed, onBeforeUnmount, ref, watchEffect, type Ref } from 'vue'
 import { moveBefore } from '@demicodes/utils'
 import type { SidebarConversation, SidebarProject, SidebarProjectDevice, SidebarReorder, UnreadEnd } from '@demicodes/web-ui/sidebar/types'
+import { isRunning } from '@demicodes/web-ui/agent/conversation-status'
 import { conversationTitle } from '@demicodes/web-ui/agent/conversation-title'
 import type { SidebarGroup } from '@demicodes/web-ui/sidebar/list-model'
 import { RestoreSweep } from '../fixtures/restore-sweep'
@@ -369,7 +370,7 @@ function archiveRows(list: Ref<SidebarConversation[]>, ids: string[]): void {
     archivedRows.value = without(archivedRows.value, back)
   }
   const toast = showArchived(ids.length, () => bringBack(ids))
-  const refused = rows.filter((conversation) => conversation.status === 'active')
+  const refused = rows.filter((conversation) => isRunning(conversation.status))
   if (!refused.length) {
     return
   }
@@ -418,7 +419,7 @@ async function deleteProject(specimen: 'demo' | 'marks', id: string): Promise<vo
   const [projectList, list] = specimen === 'demo' ? [projects, conversations] : [markProjectList, markConversations]
   await slow()
   const rows = list.value.filter((conversation) => conversation.projectId === id)
-  if (rows.some((conversation) => conversation.status === 'active')) {
+  if (rows.some((conversation) => isRunning(conversation.status))) {
     reportError(sidebarText('refused.deleteProject'), refusal('turn_in_flight'), {
       site: 'refused.deleteProject',
       userVisible: true,
@@ -531,6 +532,7 @@ function statusRows(): SidebarConversation[] {
   })
   return [
     row('s-running', 'Running', 'active', null),
+    row('s-awaiting', 'Waiting for its command', 'awaiting_commands', null),
     row('s-done-unread', 'Answer that came while away', 'done', 'answered'),
     row('s-done-read', 'Answer read before', 'done', null),
     row('s-failed-unread', 'Failure that came while away', 'error', 'failed'),
@@ -982,7 +984,7 @@ onBeforeUnmount(() => {
 
     <GallerySection
       title="Status Dots"
-      note="A row’s dot says what the conversation’s work is doing, in the tones its tab and an agent’s link wear: the accent breathing while it runs, green once finished and red once failed; yellow while a request waits for the user, the same size as every other dot and with nothing around it, over every other dot. Every color but the running blue says there is something new to see: once the user reads it the row settles into the faint ring, as Mail’s unread mark does, whether it is an answer, a failure or a request; a request read but not answered still waits in its conversation, and only the dot settles. Only a turn the user asked for lights green or red: one that another conversation or a schedule started lights nothing, and an answer not yet read keeps its green when such a turn fails after it. An answer not yet read also shows in a brighter title. Open a row to read it, or use Mark Read to read every row as another device of the user’s would. What happens while the user has a row open is read as it happens, so New Events lights each read row again except the open one. A later event lights the dot again: a turn that fails after the user read the last one turns it red. A Stop is the user’s own decision, and a stopped row, like one that has run nothing yet, keeps the faint ring of a settled row. An agent’s tab and link have no read state and stay green once the agent finished. Reset gives the specimen its rows again."
+      note="A row’s dot says what the conversation’s work is doing, in the tones its tab and an agent’s link wear: the accent breathing while a model works, all rows in one beat, and still while the conversation only waits for a command it left running, green once finished and red once failed; yellow while a request waits for the user, the same size as every other dot and with nothing around it, over every other dot. Every color but the running blue says there is something new to see: once the user reads it the row settles into the faint ring, as Mail’s unread mark does, whether it is an answer, a failure or a request; a request read but not answered still waits in its conversation, and only the dot settles. Only a turn the user asked for lights green or red: one that another conversation or a schedule started lights nothing, and an answer not yet read keeps its green when such a turn fails after it. An answer not yet read also shows in a brighter title. Open a row to read it, or use Mark Read to read every row as another device of the user’s would. What happens while the user has a row open is read as it happens, so New Events lights each read row again except the open one. A later event lights the dot again: a turn that fails after the user read the last one turns it red. A Stop is the user’s own decision, and a stopped row, like one that has run nothing yet, keeps the faint ring of a settled row. An agent’s tab and link have no read state and stay green once the agent finished. Reset gives the specimen its rows again."
     >
       <div class="specimen-row specimen-row-wide items-start">
         <GallerySpecimen variant="every state · live">

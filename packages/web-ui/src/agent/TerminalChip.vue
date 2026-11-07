@@ -10,8 +10,8 @@ import { chipLabel, runningOfKind, shownKind, type ChipKind, type TerminalRecord
  * The Running chip, or the Service chip: one chip whose `kind` says which
  * commands it counts, its icon and its dot. A command that went to the
  * background and is not a service is work in progress, so Running has the
- * breathing dot; a service that runs is in its settled state, so Service has
- * the pulse line and no dot.
+ * accent dot, steady since a command is not a model at work; a service that
+ * runs is in its settled state, so Service has the pulse line and no dot.
  */
 const props = defineProps<{
   terminals: readonly TerminalRecord[]
@@ -39,7 +39,6 @@ const expanded = computed(() => shownKind(props.terminals, props.activeId ?? nul
     v-bind="{ [KEEPS_WINDOWS]: '' }"
     v-if="running.length"
     :dot="kind === 'command' ? 'accent' : undefined"
-    :breathing="kind === 'command'"
     :aria-expanded="expanded"
     aria-haspopup="dialog"
     @click="emit('open')"
