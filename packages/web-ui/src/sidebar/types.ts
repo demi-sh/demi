@@ -30,6 +30,9 @@ export type SidebarProjectDevice =
     device: SidebarDevice
   }
 
+/** How a turn the user asked for and has not read ended. */
+export type UnreadEnd = 'answered' | 'failed'
+
 export interface SidebarConversation {
   id: string
   /** Null for the placeholder, which shows as New conversation in the reader's language. */
@@ -40,8 +43,11 @@ export interface SidebarConversation {
   /** Null for a plain conversation that runs in no project. */
   projectId: string | null
   pinned: boolean
-  /** Finished or failed while the user was elsewhere and not opened since. */
-  unread: boolean
+  /**
+   * How the latest turn the user asked for ended, while it is not read: green for an answer, red
+   * for a failure. Null once read, and for a turn another conversation or a schedule started.
+   */
+  unread: UnreadEnd | null
   /**
    * A permission request waits for the user's decision and has not been read: the yellow dot. A
    * request read but not answered still waits in the conversation, but its row is settled.

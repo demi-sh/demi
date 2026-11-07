@@ -18,6 +18,9 @@
 //! (`demi_agent_session::AgentSession::take_turn_end_asked_by_user`), and its
 //! agent tells what is worth telling with `demi notify send`. A schedule's
 //! run queued behind the user's turn never hides it (§ Telling turns apart).
+//! The same end, kept on the conversation's row, is what alone marks the
+//! conversation unread in the sidebar, so a dot and a notification never
+//! disagree.
 //!
 //! A turn the user stopped notifies nothing, since the user was there, and
 //! the end of a turn notifies no session one of whose pages is in front of
@@ -55,8 +58,10 @@ use std::time::Duration;
 
 use demi_agent_session::{EndedTurn, TurnOutcome};
 use demi_backend_database::StorageError;
+use demi_backend_database::conversation_index::AskedEnd;
 use demi_backend_database::push::StoredPushSubscription;
 use demi_backend_device_access::root_of;
+use demi_backend_page_sync::Part;
 use demi_shared_types::BlockId;
 use demi_web_api_protocol::ids::ConversationId;
 use demi_web_api_protocol::permissions::PermissionRequestId;
@@ -242,9 +247,31 @@ impl Shard {
                 };
                 let this = self.this();
                 let conversation = conversation.clone();
-                self.tasks()
-                    .spawn_local(async move { this.notify_turn_end(conversation, ended).await });
+                self.tasks().spawn_local(async move {
+                    this.mark_asked_end(&conversation, &ended).await;
+                    this.notify_turn_end(conversation, ended).await;
+                });
             }
+        }
+    }
+
+    /// Keeps `ended` on the conversation's row, which marks it unread until
+    /// the user reads it: the output revision at this rest holds the turn's
+    /// end.
+    async fn mark_asked_end(&self, conversation: &ConversationId, ended: &EndedTurn) {
+        let end = AskedEnd {
+            revision: self.summary_facts(conversation).await.revision,
+            failed: ended.outcome == TurnOutcome::Failed,
+        };
+        match self.services().control.keep_asked_end(conversation.clone(), end).await {
+            Ok(true) => self.mark(Part::Conversation(conversation.clone())),
+            Ok(false) => {}
+            Err(error) => tracing::warn!(
+                event = "conversation.asked_end_unsaved",
+                %conversation,
+                %error,
+                "the end of a turn the user asked for was not kept, so it shows as read"
+            ),
         }
     }
 

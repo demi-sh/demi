@@ -872,7 +872,7 @@ export const useConversations = defineStore('conversations', () => {
           status: 'idle',
           revision: 0,
           readRevision: 0,
-          unread: false,
+          unread: null,
         })
         conversation.persistence = draft.local.phase
         conversation.load = 'ready'
@@ -2772,7 +2772,7 @@ export const useConversations = defineStore('conversations', () => {
         : { kind: 'cloud' },
       revision: 0,
       readRevision: 0,
-      unread: false,
+      unread: null,
       permissionRequests: 0,
       unreadPermissionRequests: 0,
       createdAt: now,
@@ -2981,7 +2981,9 @@ export const useConversations = defineStore('conversations', () => {
     const change = product.change(`conversation:${id}`, (state) =>
       withConversation(state, id, (record) => {
         const readRevision = Math.max(record.readRevision, revision)
-        return { ...record, readRevision, unread: record.revision > readRevision, unreadPermissionRequests: 0 }
+        // Read through the entry's revision, the page read the end its mark
+        // stands for; read short of it, the backend's next entry says.
+        return { ...record, readRevision, unread: record.revision > readRevision ? record.unread : null, unreadPermissionRequests: 0 }
       }))
     const waiting = acknowledgements.get(id)
     if (waiting) {

@@ -1,14 +1,15 @@
 import type { StatusDotTone } from '../ui/StatusDot.vue'
-import { statusTone } from '../agent/conversation-status'
-import type { SidebarConversation } from './types'
+import { statusTone, type ConversationStatus } from '../agent/conversation-status'
+import type { SidebarConversation, UnreadEnd } from './types'
 
 /**
  * The tone of a conversation's sidebar dot, which the row and the browser tab both
  * read:
  *
  * - Yellow while a permission request waits unread, over every other mark.
- * - Otherwise the conversation's state: the accent while it runs, green or red until
- *   it is read.
+ * - The accent while it runs.
+ * - Green or red by how the latest turn the user asked for ended, until it is read,
+ *   whatever turns another conversation or a schedule started ran after it.
  * - None for a settled row.
  */
 export function conversationDotTone(
@@ -16,8 +17,13 @@ export function conversationDotTone(
 ): StatusDotTone | null {
   if (conversation.needsYou)
     return 'attention'
-  return statusTone(conversation.status, { read: !conversation.unread })
+  if (conversation.status === 'active')
+    return statusTone('active')
+  return conversation.unread === null ? null : statusTone(UNREAD_STATUS[conversation.unread])
 }
+
+/** The status whose tone each unread end wears. */
+const UNREAD_STATUS: Record<UnreadEnd, ConversationStatus> = { answered: 'done', failed: 'error' }
 
 /** The dots that say something is new, the most urgent first. */
 export const NEWS_TONES = ['danger', 'attention', 'success'] as const

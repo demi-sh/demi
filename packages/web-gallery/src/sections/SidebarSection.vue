@@ -5,7 +5,7 @@ import { reportError } from '@demicodes/web-ui/infra/errors'
 import { t as sidebarText } from '@demicodes/web-ui/sidebar/locales/text'
 import { computed, onBeforeUnmount, ref, watchEffect, type Ref } from 'vue'
 import { moveBefore } from '@demicodes/utils'
-import type { SidebarConversation, SidebarProject, SidebarProjectDevice, SidebarReorder } from '@demicodes/web-ui/sidebar/types'
+import type { SidebarConversation, SidebarProject, SidebarProjectDevice, SidebarReorder, UnreadEnd } from '@demicodes/web-ui/sidebar/types'
 import { conversationTitle } from '@demicodes/web-ui/agent/conversation-title'
 import type { SidebarGroup } from '@demicodes/web-ui/sidebar/list-model'
 import { RestoreSweep } from '../fixtures/restore-sweep'
@@ -226,7 +226,7 @@ const anatomy: [string, string][] = [
   ],
   [
     'Row',
-    'A title and one quiet dot: yellow while a permission request waits for the user and has not been read, over every other mark; otherwise the tone the conversation wears on its tab, the accent breathing while it runs, green once finished and red once failed until the user reads it, and a faint ring once a finished answer, a failure or a request is read, when stopped or when nothing has run yet (Status Dots). An answer not yet read also shows in a brighter title. A cut title ends in an ellipsis and shows whole in its tooltip. Archive appears on hover, to the left of the device’s mark, with Unpin before it on a pinned row; rename is inline. A conversation in a linked worktree of its project shows the worktree’s mark after the bolt, its name, git’s, read aloud. The pin, the bolt, the worktree’s mark, the device’s mark and the buttons rest in one grey, on a selected row and in dark mode too; only the button under the pointer darkens and shows its fill, as Finder’s eject button does, and the marks never change on hover. A row, like every block of the sidebar, keeps 8px from both of its edges, whether the system shows scrollbars or overlays them: the list’s scrollbar floats over that margin and takes no room.'
+    'A title and one quiet dot: yellow while a permission request waits for the user and has not been read, over every other mark; otherwise the tone the conversation wears on its tab, the accent breathing while it runs, green once a turn the user asked for finished and red once it failed until the user reads it, and a faint ring once a finished answer, a failure or a request is read, when stopped or when nothing has run yet (Status Dots). An answer not yet read also shows in a brighter title. A cut title ends in an ellipsis and shows whole in its tooltip. Archive appears on hover, to the left of the device’s mark, with Unpin before it on a pinned row; rename is inline. A conversation in a linked worktree of its project shows the worktree’s mark after the bolt, its name, git’s, read aloud. The pin, the bolt, the worktree’s mark, the device’s mark and the buttons rest in one grey, on a selected row and in dark mode too; only the button under the pointer darkens and shows its fill, as Finder’s eject button does, and the marks never change on hover. A row, like every block of the sidebar, keeps 8px from both of its edges, whether the system shows scrollbars or overlays them: the list’s scrollbar floats over that margin and takes no room.'
   ],
   [
     'Selection',
@@ -299,7 +299,7 @@ function create(projectId: string | null): void {
   emptyDrafts.add(id)
   workspaceOf.value = { ...workspaceOf.value, [id]: workspaceId.value }
   conversations.value = [
-    { id, title: null, updatedAt: new Date().toISOString(), status: 'idle', projectId, pinned: false, unread: false },
+    { id, title: null, updatedAt: new Date().toISOString(), status: 'idle', projectId, pinned: false, unread: null },
     ...conversations.value,
   ]
   show(id)
@@ -438,7 +438,7 @@ async function deleteProject(specimen: 'demo' | 'marks', id: string): Promise<vo
  */
 function hoverRows(): SidebarConversation[] {
   const row = (id: string, title: string, pinned: boolean, device?: SidebarConversation['device'], scheduled?: boolean, worktree?: string): SidebarConversation => ({
-    id, title, pinned, device, scheduled, worktree, updatedAt: '2026-10-10T09:00:00Z', status: 'done', projectId: null, unread: false,
+    id, title, pinned, device, scheduled, worktree, updatedAt: '2026-10-10T09:00:00Z', status: 'done', projectId: null, unread: null,
   })
   const laptop = { kind: 'paired', name: 'MacBook Pro', state: 'online', mark: GALLERY_MARKS.mac } as const
   const server = { kind: 'paired', name: 'build-01', state: 'online', mark: GALLERY_MARKS.ubuntu } as const
@@ -482,7 +482,7 @@ function markProjects(): SidebarProject[] {
 }
 function markRows(): SidebarConversation[] {
   const row = (id: string, title: string, projectId: string | null, pinned: boolean, device?: SidebarConversation['device']): SidebarConversation => ({
-    id, title, projectId, pinned, device, updatedAt: '2026-10-10T09:00:00Z', status: 'done', unread: false,
+    id, title, projectId, pinned, device, updatedAt: '2026-10-10T09:00:00Z', status: 'done', unread: null,
   })
   return [
     row('m-online', 'Profile the indexer', null, false, { kind: 'paired', name: 'MacBook Pro', state: 'online', mark: GALLERY_MARKS.mac }),
@@ -521,25 +521,27 @@ function pinMarks(ids: string[], pinned: boolean): void {
  * product's read acknowledgement settles them. A request read still waits for the decision.
  */
 function read(conversation: SidebarConversation): SidebarConversation {
-  return { ...conversation, unread: false, needsYou: false }
+  return { ...conversation, unread: null, needsYou: false }
 }
 
 /** A row for each state a conversation's dot shows, read and unread where it matters; a title says what happened, never whether it was read. */
 function statusRows(): SidebarConversation[] {
-  const row = (id: string, title: string, status: SidebarConversation['status'], unread: boolean, needsYou?: boolean): SidebarConversation => ({
+  const row = (id: string, title: string, status: SidebarConversation['status'], unread: UnreadEnd | null, needsYou?: boolean): SidebarConversation => ({
     id, title, status, unread, needsYou, updatedAt: '2026-10-10T09:00:00Z', projectId: null, pinned: false,
   })
   return [
-    row('s-running', 'Running', 'active', false),
-    row('s-done-unread', 'Answer that came while away', 'done', true),
-    row('s-done-read', 'Answer read before', 'done', false),
-    row('s-failed-unread', 'Failure that came while away', 'error', true),
-    row('s-failed-read', 'Failure read before', 'error', false),
-    row('s-waiting-unread', 'Request that came while away', 'done', false, true),
-    row('s-waiting-read', 'Request read, still waiting', 'done', false, false),
-    row('s-needs-you', 'Needs you while running', 'active', false, true),
-    row('s-stopped', 'Stopped', 'aborted', false),
-    row('s-idle', 'Nothing run yet', 'idle', false),
+    row('s-running', 'Running', 'active', null),
+    row('s-done-unread', 'Answer that came while away', 'done', 'answered'),
+    row('s-done-read', 'Answer read before', 'done', null),
+    row('s-failed-unread', 'Failure that came while away', 'error', 'failed'),
+    row('s-failed-read', 'Failure read before', 'error', null),
+    row('s-other-done', 'Another conversation’s turn', 'done', null),
+    row('s-other-failed', 'Answer, then others’ failure', 'error', 'answered'),
+    row('s-waiting-unread', 'Request that came while away', 'done', null, true),
+    row('s-waiting-read', 'Request read, still waiting', 'done', null, false),
+    row('s-needs-you', 'Needs you while running', 'active', null, true),
+    row('s-stopped', 'Stopped', 'aborted', null),
+    row('s-idle', 'Nothing run yet', 'idle', null),
   ]
 }
 /**
@@ -551,7 +553,7 @@ function foldRows(): SidebarConversation[] {
   return demoConversations().map((conversation) => (
     conversation.projectId === null || conversation.projectId === 'p-dotfiles'
       ? conversation
-      : { ...conversation, needsYou: false, unread: false }
+      : { ...conversation, needsYou: false, unread: null }
   ))
 }
 /** The project conversation Ask for Permission in a Project makes wait, which is not the open one. */
@@ -583,10 +585,10 @@ function selectFold(id: string): void {
 const statusConversations = ref(statusRows())
 const statusActive = ref<string | null>(null)
 /** The rows a later event lights again, and what lights: an answer, a failure or a request. */
-const STATUS_EVENTS: Record<string, 'unread' | 'needsYou'> = {
-  's-done-read': 'unread',
-  's-failed-read': 'unread',
-  's-waiting-read': 'needsYou',
+const STATUS_EVENTS: Record<string, Partial<Pick<SidebarConversation, 'unread' | 'needsYou'>>> = {
+  's-done-read': { unread: 'answered' },
+  's-failed-read': { unread: 'failed' },
+  's-waiting-read': { needsYou: true },
 }
 const statusUnread = computed(() => statusConversations.value.some((c) => c.unread || c.needsYou))
 /** A later event lights a read row again, except the open one: the user reads that as it happens. */
@@ -604,7 +606,7 @@ function newStatusEvents(): void {
     if (!lights || c.id === statusActive.value) {
       return c
     }
-    return { ...c, [lights]: true }
+    return { ...c, ...lights }
   })
 }
 
@@ -980,7 +982,7 @@ onBeforeUnmount(() => {
 
     <GallerySection
       title="Status Dots"
-      note="A row’s dot says what the conversation’s work is doing, in the tones its tab and an agent’s link wear: the accent breathing while it runs, green once finished and red once failed; yellow while a request waits for the user, the same size as every other dot and with nothing around it, over every other dot. Every color but the running blue says there is something new to see: once the user reads it the row settles into the faint ring, as Mail’s unread mark does, whether it is an answer, a failure or a request; a request read but not answered still waits in its conversation, and only the dot settles. An answer not yet read also shows in a brighter title. Open a row to read it, or use Mark Read to read every row as another device of the user’s would. What happens while the user has a row open is read as it happens, so New Events lights each read row again except the open one. A later event lights the dot again: a turn that fails after the user read the last one turns it red. A Stop is the user’s own decision, and a stopped row, like one that has run nothing yet, keeps the faint ring of a settled row. An agent’s tab and link have no read state and stay green once the agent finished. Reset gives the specimen its rows again."
+      note="A row’s dot says what the conversation’s work is doing, in the tones its tab and an agent’s link wear: the accent breathing while it runs, green once finished and red once failed; yellow while a request waits for the user, the same size as every other dot and with nothing around it, over every other dot. Every color but the running blue says there is something new to see: once the user reads it the row settles into the faint ring, as Mail’s unread mark does, whether it is an answer, a failure or a request; a request read but not answered still waits in its conversation, and only the dot settles. Only a turn the user asked for lights green or red: one that another conversation or a schedule started lights nothing, and an answer not yet read keeps its green when such a turn fails after it. An answer not yet read also shows in a brighter title. Open a row to read it, or use Mark Read to read every row as another device of the user’s would. What happens while the user has a row open is read as it happens, so New Events lights each read row again except the open one. A later event lights the dot again: a turn that fails after the user read the last one turns it red. A Stop is the user’s own decision, and a stopped row, like one that has run nothing yet, keeps the faint ring of a settled row. An agent’s tab and link have no read state and stay green once the agent finished. Reset gives the specimen its rows again."
     >
       <div class="specimen-row specimen-row-wide items-start">
         <GallerySpecimen variant="every state · live">

@@ -105,7 +105,7 @@ export function wokenConversations(): SidebarConversation[] {
       status: 'done',
       projectId: null,
       pinned: false,
-      unread: false,
+      unread: null,
       scheduled: true,
       device: { kind: 'paired', name: 'MacBook Pro', state: 'online', mark: GALLERY_MARKS.mac },
     },
@@ -116,7 +116,7 @@ export function wokenConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: null,
       pinned: false,
-      unread: false,
+      unread: null,
       scheduled: true,
     },
   ]

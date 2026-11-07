@@ -189,7 +189,6 @@ pub(crate) fn conversation_parts(
                     shard.follow_failed_turn(&conversation);
                     shard.follow_turn_end(&conversation);
                     shard.follow_suggested_replies(&conversation);
-                    shard.follow_idle_compaction_end(&conversation);
                     // A conversation no longer loaded keeps no project files.
                     if shard.agent().tree(root).is_none() {
                         shard.project_files().release(&conversation);

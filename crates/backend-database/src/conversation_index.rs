@@ -45,6 +45,9 @@ pub struct ConversationRecord {
     /// The output revision the user last acknowledged; it only moves
     /// forward.
     pub read_revision: u64,
+    /// The latest end of a turn the user asked for, which alone marks the
+    /// conversation unread, while it is above `read_revision`.
+    pub asked_end: AskedEnd,
     /// Where it runs (`crates/backend-database/src/selection.rs`).
     pub target: Selection,
     /// Advanced by every change of the conversation's execution context,
@@ -83,6 +86,21 @@ impl ConversationRecord {
     pub fn archived(&self) -> bool {
         self.archived_at.is_some()
     }
+
+    /// The end of a turn the user asked for that the user has not read.
+    pub fn unread_end(&self) -> Option<AskedEnd> {
+        (self.asked_end.revision > self.read_revision).then_some(self.asked_end)
+    }
+}
+
+/// The end of a turn the user asked for, as the index keeps it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct AskedEnd {
+    /// The conversation's output revision at the rest after it; 0 before
+    /// the first.
+    pub revision: u64,
+    /// Whether it ended with an error rather than an answer.
+    pub failed: bool,
 }
 
 /// A change a user asks of a conversation, which `Shard::transition`
@@ -251,7 +269,8 @@ pub enum Creation {
 /// at one moment, a project's conversations, keeps that order too.
 const CONVERSATION_ORDER: &str = "archived_at DESC, pinned DESC, sort_order, id";
 
-const CONVERSATION_COLUMNS: &str = "id, user_id, workspace_id, title, title_origin, archived_at, pinned, read_revision, target_kind, target_device_id,
+const CONVERSATION_COLUMNS: &str = "id, user_id, workspace_id, title, title_origin, archived_at, pinned, read_revision,
+     asked_end_revision, asked_end_failed, target_kind, target_device_id,
      target_path, target_project_id, target_worktree_name, target_worktree_path, context_version, model, workflow_kind,
      workflow_id, workflow_worktree, created_at, updated_at, devices_revision,
      COALESCE((SELECT revision FROM conversation_drafts WHERE conversation_id = conversations.id), 0) AS draft_revision,
@@ -555,12 +574,18 @@ impl ControlService {
         .await
     }
 
-    /// Acknowledges the output up to `revision` and nothing else, for output
-    /// nobody asked for, such as a compaction while idle: the permission
-    /// requests that wait stay unread. Answers whether it changed.
-    pub async fn mark_output_read(&self, id: ConversationId, revision: u64) -> Result<bool, StorageError> {
-        self.call(move |connection, _| Ok(read_output(connection, &id, revision)? > 0))
-            .await
+    /// Keeps `end` as the conversation's latest end of a turn the user asked
+    /// for, unless it keeps a later one. Answers whether it changed.
+    pub async fn keep_asked_end(&self, id: ConversationId, end: AskedEnd) -> Result<bool, StorageError> {
+        self.call(move |connection, _| {
+            Ok(connection.execute(
+                "UPDATE conversations SET asked_end_revision = ?2, asked_end_failed = ?3
+                 WHERE id = ?1
+                   AND (asked_end_revision < ?2 OR (asked_end_revision = ?2 AND asked_end_failed <> ?3))",
+                params![id.as_str(), revision_column(end.revision), end.failed],
+            )? > 0)
+        })
+        .await
     }
 
     /// Applies `change` in one transaction. An archived conversation takes
@@ -889,6 +914,14 @@ fn conversation_row(row: &Row<'_>) -> Result<ConversationRecord, StorageError> {
             "read_revision",
             u64::try_from(row.get::<_, i64>("read_revision")?),
         )?,
+        asked_end: AskedEnd {
+            revision: decode(
+                TABLE,
+                "asked_end_revision",
+                u64::try_from(row.get::<_, i64>("asked_end_revision")?),
+            )?,
+            failed: row.get("asked_end_failed")?,
+        },
         target: target_row(row)?,
         context_version: decode(
             TABLE,

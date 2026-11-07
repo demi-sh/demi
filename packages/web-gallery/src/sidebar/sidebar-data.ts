@@ -150,7 +150,7 @@ export function demoConversations(): SidebarConversation[] {
       status: isConversationActive('idle', [{ phase: 'running' }]) ? 'active' : 'idle',
       projectId: null,
       pinned: false,
-      unread: false,
+      unread: null,
     },
     {
       // Not sent yet, its draft holds text: the placeholder title, which
@@ -161,7 +161,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: null,
       pinned: false,
-      unread: false,
+      unread: null,
     },
     {
       id: 'c-shift',
@@ -170,7 +170,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'done',
       projectId: null,
       pinned: false,
-      unread: true,
+      unread: 'answered',
       // Runs on a paired device that is online: the row's end shows it.
       device: { kind: 'paired', name: 'alex-mbp', state: 'online', mark: GALLERY_MARKS.mac },
     },
@@ -181,7 +181,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'done',
       projectId: null,
       pinned: false,
-      unread: true,
+      unread: 'answered',
       // A permission request waits: the yellow mark wins over the finished one.
       needsYou: true,
     },
@@ -193,7 +193,7 @@ export function demoConversations(): SidebarConversation[] {
       projectId: null,
       // Pinned on an offline device: the device's mark stands left of the pin.
       pinned: true,
-      unread: false,
+      unread: null,
       device: { kind: 'paired', name: 'build-01', state: 'offline', mark: GALLERY_MARKS.ubuntu },
     },
     {
@@ -203,7 +203,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: null,
       pinned: false,
-      unread: false,
+      unread: null,
       // Its device was removed since: the mark has no dot.
       device: { kind: 'removed' },
     },
@@ -215,7 +215,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'active',
       projectId: 'p-demi',
       pinned: true,
-      unread: false,
+      unread: null,
       // Running, open, and a subagent asks: the yellow mark wins over the breathing one.
       needsYou: true,
       // In a linked worktree of the project: its mark joins the row's end, after the pin.
@@ -228,7 +228,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'done',
       projectId: 'p-demi',
       pinned: false,
-      unread: true,
+      unread: 'answered',
       // In a linked worktree of the project, by git's name: its mark alone ends the row.
       worktree: '2',
     },
@@ -239,7 +239,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-demi',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-rate',
@@ -248,7 +248,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'error',
       projectId: 'p-demi',
       pinned: false,
-      unread: true
+      unread: 'failed'
     },
     {
       id: 'c-tabs',
@@ -257,7 +257,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-demi',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-shell',
@@ -266,7 +266,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-demi',
       pinned: false,
-      unread: false
+      unread: null
     },
     // renderfarm
     {
@@ -276,7 +276,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'aborted',
       projectId: 'p-assets',
       pinned: false,
-      unread: true
+      unread: null
     },
     {
       id: 'c-exif',
@@ -285,7 +285,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-assets',
       pinned: false,
-      unread: false
+      unread: null
     },
     // dotfiles-and-machine-setup-scripts
     {
@@ -296,7 +296,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'done',
       projectId: 'p-dotfiles',
       pinned: false,
-      unread: true
+      unread: 'answered'
     },
     // The other projects, one conversation each, so the list shows them.
     {
@@ -306,7 +306,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-demi-mini',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-api-pages',
@@ -315,7 +315,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-api-work',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-api-port',
@@ -324,7 +324,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-api-old',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-album',
@@ -333,7 +333,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-photo-album',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-build-ssh',
@@ -342,7 +342,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-dotfiles-build',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-old-parser',
@@ -351,7 +351,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-old',
       pinned: false,
-      unread: false
+      unread: null
     },
     {
       id: 'c-notebook',
@@ -360,7 +360,7 @@ export function demoConversations(): SidebarConversation[] {
       status: 'idle',
       projectId: 'p-notebooks',
       pinned: false,
-      unread: false
+      unread: null
     },
   ]
 }
