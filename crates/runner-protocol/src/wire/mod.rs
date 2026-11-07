@@ -122,7 +122,7 @@ pub use messages::{
     ArtifactOwner, AutostartUnavailable, ChangeKind, Descriptor, DirEntry, DirectoryFile, FileHash, FileRead, FileStat, OpenedFile, file_version, names_version, GitBranches, GitChange, GitChanges,
     GitCommit, GitCommitEntry, GitCommitFile, GitLog, GitLogEntry, GitRepositories, commit_time,
     HelloErrorCode, DeviceArtifact, DeviceDownload, DeviceIdentity, Inbound, JobArtifactOwner, ProgramsArtifactOwner, JobFileChange, JobPathChange, KeptEnd, KeptJob, Kernel, LinkTarget, LinkedWorktree,
-    LookPath, Looked, SymbolicLink, OperatingSystem, Outbound, OutputLengths, OutputStream, PipeRef, FileOffer,
+    LookPath, Looked, SymbolicLink, OperatingSystem, Outbound, Hardware, Gpu, Usage, OutputLengths, OutputStream, PipeRef, FileOffer,
     Resume, RunnerInfo, RunnerPlatform, ResidentErrorCode, Signal, SpawnError, SpawnErrorKind,
     StreamArtifactOwner, WriteExists,
 };

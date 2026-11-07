@@ -108,6 +108,7 @@ mod forward;
 #[cfg(windows)]
 mod git;
 mod device_log;
+mod machine;
 mod management;
 mod pairs;
 mod registration;
@@ -576,17 +577,19 @@ async fn runner(cli: Cli) -> io::Result<u8> {
     let canonical_home = dunce::canonicalize(&home).unwrap_or_else(|_| home.clone());
     let identity = identity(canonical_home.to_string_lossy().into_owned(), scratch_root)?;
     let login_shell = env.get("SHELL").filter(|path| !path.is_empty()).cloned();
+    let kernel = kernel();
     let runner = wire::RunnerInfo {
         native_target: Some(host_target().into()),
         name: name.unwrap_or_else(|| identity.hostname.clone()),
         platform: PLATFORM,
-        os: operating_system(),
+        os: machine::operating_system(kernel.as_ref()),
         version: installation
             .release
             .unwrap_or_else(|| demi_shared_artifacts::BUILD_VERSION.into()),
+        hardware: machine::hardware(&canonical_home),
+        booted_at: machine::booted_at(),
         identity,
-        kernel: kernel(),
-        memory: memory(),
+        kernel,
         shell: login_shell,
         managed: boot
             .as_ref()
@@ -852,51 +855,6 @@ async fn uninstalled(directory: &Path, revocation: &Revocation) -> io::Result<u8
     println!("{}", removed.told(directory));
     autostart::Registration::of(directory, &home()?)?.remove().await;
     Ok(0)
-}
-
-/// The device's operating system as the hello names it (`crates/runner/src/connection/mod.rs`). A release the system does not tell leaves
-/// its name alone.
-fn operating_system() -> wire::OperatingSystem {
-    use sysinfo::System;
-    let named = |name: String, release: Option<String>| match release {
-        Some(release) => format!("{name} {release}"),
-        None => name,
-    };
-    // Darwin's own name is the kernel's; the product version is macOS's.
-    #[cfg(target_os = "macos")]
-    let name = named("macOS".to_owned(), System::os_version());
-    // The product name, such as `Windows 11 Pro`, with its build number.
-    #[cfg(windows)]
-    let name = named(
-        System::long_os_version().unwrap_or_else(|| "Windows".to_owned()),
-        System::kernel_version().map(|build| format!("(build {build})")),
-    );
-    #[cfg(any(target_os = "macos", windows))]
-    let distribution = None;
-    // The distribution's name and version from os-release, such as
-    // `Ubuntu 26.04`, and its `ID`, such as `ubuntu`.
-    #[cfg(not(any(target_os = "macos", windows)))]
-    let name = named(
-        System::name().unwrap_or_else(|| "Linux".to_owned()),
-        System::os_version(),
-    );
-    #[cfg(not(any(target_os = "macos", windows)))]
-    let distribution = Some(System::distribution_id()).filter(|id| !id.is_empty());
-    wire::OperatingSystem {
-        name,
-        distribution,
-        arch: std::env::consts::ARCH.to_owned(),
-    }
-}
-
-/// The device's physical memory in bytes, which the hello reports
-/// (`crates/provider-claude-code/src/idle.rs`).
-fn memory() -> u64 {
-    use sysinfo::{MemoryRefreshKind, RefreshKind, System};
-    System::new_with_specifics(
-        RefreshKind::nothing().with_memory(MemoryRefreshKind::nothing().with_ram()),
-    )
-    .total_memory()
 }
 
 /// The kernel as `uname -s` and `uname -r` print it, read natively, which

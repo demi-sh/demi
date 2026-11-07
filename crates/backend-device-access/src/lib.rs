@@ -85,6 +85,7 @@ pub mod forward_commands;
 pub mod device_commands;
 pub mod kept;
 pub mod lease;
+mod machine;
 pub mod plugin_files;
 pub mod remote_files;
 pub mod shells;

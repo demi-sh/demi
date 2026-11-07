@@ -64,7 +64,7 @@ use demi_device_interface::{
 };
 use demi_web_api_protocol::conversations::ConversationTarget;
 use demi_shared_types::{
-    StreamKind,
+    StreamKind, Timestamp,
     output::{Cell, Fields, Table, warning},
 };
 use demi_backend_runners::claims::ClaimRefusal;
@@ -77,14 +77,15 @@ use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
 use crate::DeviceShard;
+use crate::machine::Machine;
 use crate::access::{DeviceRole, ReachableDevice};
 use crate::transition::ChangeRefusal;
 
 const SUMMARY: &str =
-    "The devices this conversation reaches: list them, show the primary one, run a command on another, pair a computer, attach or detach one, move this conversation to another device, forward a port from one device to another.";
+    "The devices this conversation reaches: list them with their machines and how busy each is, show one in full or the primary one, run a command on another, pair a computer, attach or detach one, move this conversation to another device, forward a port from one device to another.";
 
 /// The group's entry in the model's capability index.
-const ENTRY: &str = "Devices: list, run a command on another, attach, detach, move the conversation, forward ports, pair.";
+const ENTRY: &str = "Devices and their machines: list, show, run a command on another, attach, detach, move the conversation, forward ports, pair.";
 
 const MOVE_SUMMARY: &str = "Make another device where this conversation runs, or another directory there: `demi device move <device> <directory>`, the device by name or id from `demi device list` (`Cloud` for the user's Cloud), the directory an absolute path that exists there. The move applies at once: commands already running finish where they are, every later command runs there, and the device it leaves stays attached.";
 
@@ -96,7 +97,9 @@ const PAIR_SUMMARY: &str = "Pair the computer whose installer shows `<code>` wit
 
 const DETACH_SUMMARY: &str = "Detach an attached device, by name or id from `demi device list`, at once; this conversation's commands that run there end.";
 
-const LIST_SUMMARY: &str = "List the user's devices and the Cloud, each with what it is to this conversation: name, id, status (a stopped Cloud wakes for work), role (primary, attached, subagent for a device only a subagent works on, or none) and the directory commands start in. `demi device shell --device` and `demi device move` take any of them; one the conversation does not reach asks the user once.";
+const LIST_SUMMARY: &str = "List the user's devices and the Cloud, each with what it is to this conversation: name, id, status (a stopped Cloud wakes for work), role (primary, attached, subagent for a device only a subagent works on, or none), its system, CPU, memory and disk with how busy each is now, and the directory commands start in. `demi device shell --device` and `demi device move` take any of them; one the conversation does not reach asks the user once.";
+
+const SHOW_SUMMARY: &str = "Show one device of `demi device list`, by name or id, in full: its system, processor, GPUs, memory, disk, uptime and runner release, with how busy it is now.";
 
 const CURRENT_SUMMARY: &str = "Show the primary device, where the shell tool's commands run: its name, id, status, project and directory.";
 
@@ -106,6 +109,14 @@ const SHELL_SUMMARY: &str = "Run a script in another device's bash, as ssh does:
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct NoArgs {}
+
+/// The input of `demi device show`.
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ShowArgs {
+    /// Device name or id from demi device list
+    device: String,
+}
 
 /// The input of `demi device attach`.
 #[derive(Deserialize, JsonSchema)]
@@ -186,6 +197,13 @@ pub fn device_group(shard: Weak<dyn DeviceShard>) -> GroupBuilder {
                 .input::<NoArgs>()
                 .json_output::<Vec<ListedDevice>>()
                 .bind(TypedRpc::new(verb(shard.clone(), list))),
+        )
+        .leaf(
+            LeafBuilder::rpc("show", SHOW_SUMMARY)
+                .input::<ShowArgs>()
+                .positionals(["device"])
+                .json_output::<ListedDevice>()
+                .bind(TypedRpc::new(verb(shard.clone(), show))),
         )
         .leaf(
             LeafBuilder::rpc("current", CURRENT_SUMMARY)
@@ -408,6 +426,7 @@ pub(crate) fn named_device<'a>(
 
 /// A device as `demi device list` lists it.
 #[derive(Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 struct ListedDevice {
     /// The name `--device` takes: the one this conversation reaches it by,
     /// `Cloud` for the Cloud.
@@ -423,6 +442,12 @@ struct ListedDevice {
     /// Where a shell there starts; null for a device the conversation does
     /// not reach, or one whose directory is not known yet.
     directory: Option<String>,
+    #[serde(flatten)]
+    machine: Machine,
+    /// The runner release it last connected with; null before its first.
+    runner: Option<String>,
+    /// When its runner was last connected; null before its first.
+    last_seen: Option<Timestamp>,
 }
 
 fn role_word(role: DeviceRole) -> &'static str {
@@ -448,7 +473,85 @@ fn device_state(kind: DeviceKind, state: DeviceState) -> &'static str {
 /// order of their roles.
 async fn list(shard: Rc<dyn DeviceShard>, call: Call<NoArgs>, port: RpcPort) -> Result<u8, RpcError> {
     let conversation = conversation_of(&call.invocation)?;
-    let reached = reachable(&*shard, &conversation).await?;
+    let (listed, cloud) = listed_devices(&*shard, &conversation).await?;
+    if !cloud {
+        let note = "the Cloud is not created yet; it is made when a conversation first runs there";
+        port.stderr(warning(&call.invocation.path.join(" "), note)).await?;
+    }
+    if call.invocation.json {
+        return print_json(&port, &listed).await;
+    }
+    let mut table = Table::new(["name", "id", "status", "role", "system", "cpu", "memory", "disk", "directory"]);
+    for device in &listed {
+        table.row::<Cell>([
+            device.name.as_str().into(),
+            device.id.as_str().into(),
+            device.status.into(),
+            device.role.into(),
+            device.machine.system_cell().into(),
+            device.machine.cpu_cell().into(),
+            device.machine.memory_cell().into(),
+            device.machine.disk_cell().into(),
+            device.directory.as_deref().into(),
+        ]);
+    }
+    port.stdout(table.render()).await?;
+    Ok(0)
+}
+
+/// Shows the device `list` lists by the name or id given: by the name the
+/// conversation reaches it by first, then by its id, then by its own name.
+async fn show(shard: Rc<dyn DeviceShard>, call: Call<ShowArgs>, port: RpcPort) -> Result<u8, RpcError> {
+    let conversation = conversation_of(&call.invocation)?;
+    let (listed, _) = listed_devices(&*shard, &conversation).await?;
+    let wanted = call.args.device.as_str();
+    let Some(device) = listed
+        .iter()
+        .find(|device| device.name == wanted)
+        .or_else(|| listed.iter().find(|device| device.id == wanted))
+    else {
+        return Err(RpcError::Failed(format!("{wanted}: no device of this name or id (see `demi device list`)")));
+    };
+    if call.invocation.json {
+        return print_json(&port, device).await;
+    }
+    let machine = &device.machine;
+    let mut fields = Fields::new();
+    fields
+        .field("Name", device.name.as_str())
+        .field("ID", device.id.as_str())
+        .field("Status", device.status)
+        .field("Role", device.role)
+        .field("Directory", device.directory.as_deref())
+        .field("System", machine.system_line())
+        .field("CPU", machine.cpu_line());
+    let gpus = machine.gpu_lines();
+    if gpus.is_empty() {
+        fields.field("GPU", None::<String>);
+    }
+    for gpu in gpus {
+        fields.field("GPU", gpu);
+    }
+    fields
+        .field("Memory", machine.memory_line())
+        .field("Disk", machine.disk_line())
+        .field("Up", machine.up_line())
+        .field("Runner", device.runner.as_deref());
+    if machine.usage.is_none() {
+        fields.field("Last seen", device.last_seen);
+    }
+    port.stdout(fields.render()).await?;
+    Ok(0)
+}
+
+/// The user's devices as `list` and `show` tell them, those the conversation
+/// reaches first, in the order of their roles, and whether the Cloud is made
+/// yet.
+async fn listed_devices(
+    shard: &dyn DeviceShard,
+    conversation: &ConversationId,
+) -> Result<(Vec<ListedDevice>, bool), RpcError> {
+    let reached = reachable(shard, conversation).await?;
     let control = shard.control();
     let failed = |error: demi_backend_database::StorageError| RpcError::Failed(error.to_string());
     let cloud = control
@@ -459,10 +562,7 @@ async fn list(shard: Rc<dyn DeviceShard>, call: Call<NoArgs>, port: RpcPort) -> 
         .paired_devices(shard.user().clone())
         .await
         .map_err(failed)?;
-    if cloud.is_none() {
-        let note = "the Cloud is not created yet; it is made when a conversation first runs there";
-        port.stderr(warning(&call.invocation.path.join(" "), note)).await?;
-    }
+    let now = shard.clock().now();
     let mut listed: Vec<(Option<DeviceRole>, ListedDevice)> = cloud
         .iter()
         .chain(&paired)
@@ -481,6 +581,9 @@ async fn list(shard: Rc<dyn DeviceShard>, call: Call<NoArgs>, port: RpcPort) -> 
                     status: device_state(device.kind, shard.devices().state(&device.id)),
                     role: reach.map(|reach| role_word(reach.role)),
                     directory: reach.map(|reach| reach.path.clone()).filter(|path| !path.is_empty()),
+                    machine: Machine::of(device, shard.devices().link(&device.id).as_ref(), now),
+                    runner: device.runner_version.clone(),
+                    last_seen: device.last_seen_at,
                 },
             )
         })
@@ -491,22 +594,7 @@ async fn list(shard: Rc<dyn DeviceShard>, call: Call<NoArgs>, port: RpcPort) -> 
         Some(DeviceRole::Agent) => 2,
         None => 3,
     });
-    let listed: Vec<ListedDevice> = listed.into_iter().map(|(_, listed)| listed).collect();
-    if call.invocation.json {
-        return print_json(&port, &listed).await;
-    }
-    let mut table = Table::new(["name", "id", "status", "role", "directory"]);
-    for device in &listed {
-        table.row::<Cell>([
-            device.name.as_str().into(),
-            device.id.as_str().into(),
-            device.status.into(),
-            device.role.into(),
-            device.directory.as_deref().into(),
-        ]);
-    }
-    port.stdout(table.render()).await?;
-    Ok(0)
+    Ok((listed.into_iter().map(|(_, listed)| listed).collect(), cloud.is_some()))
 }
 
 /// Prints `value` as one JSON value.

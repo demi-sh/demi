@@ -247,6 +247,8 @@ pub struct LinkOptions {
     pub shell: Option<String>,
     /// The device's physical memory in bytes, from its `hello`.
     pub memory: u64,
+    /// When the device's machine started, from its `hello`.
+    pub booted_at: wire::Timestamp,
     pub pipes: Pipes,
     pub policy: Rc<dyn LinkPolicy>,
     /// How often to ping; none turns liveness off.
@@ -335,6 +337,11 @@ pub(crate) struct Inner {
     kernel: Option<wire::Kernel>,
     shell: Option<String>,
     memory: u64,
+    booted_at: wire::Timestamp,
+    /// How busy the machine is, as the runner last reported; none before its
+    /// first report. It goes with the connection: a report means nothing
+    /// once the device is gone.
+    usage: RefCell<Option<wire::Usage>>,
     /// The device's jobs, which outlive the connection.
     device_jobs: DeviceJobs,
     /// The device's session, which this connection carries on.
@@ -757,6 +764,8 @@ impl Link {
             kernel: options.kernel,
             shell: options.shell,
             memory: options.memory,
+            booted_at: options.booted_at,
+            usage: RefCell::default(),
             device_jobs: options.jobs.clone(),
             session: options.session.clone(),
             control,
@@ -948,6 +957,17 @@ impl Link {
     /// it.
     pub fn memory(&self) -> u64 {
         self.0.memory
+    }
+
+    /// When the device's machine started, as the runner's hello reported it.
+    pub fn booted_at(&self) -> wire::Timestamp {
+        self.0.booted_at
+    }
+
+    /// How busy the device's machine is, as its runner last reported; none
+    /// before its first report, which comes a second after it connects.
+    pub fn usage(&self) -> Option<wire::Usage> {
+        self.0.usage.borrow().clone()
     }
 
     /// The `SHELL` a process the runner starts inherits, as its hello
@@ -1655,6 +1675,9 @@ impl Link {
                 self.answer(&id, Expected::Http, Answer::Http(HttpHead { status, headers }));
             }
             Outbound::HttpFailed { id, message } => self.refuse(&id, DeviceError::failed(None, message)),
+            Outbound::Usage { usage } => {
+                self.0.usage.replace(Some(usage));
+            }
             Outbound::DirectRefused { id, code, message } => {
                 let answer = Answer::Direct(DirectAnswer::Refused(code, message));
                 self.answer(&id, Expected::DirectOffer, answer);

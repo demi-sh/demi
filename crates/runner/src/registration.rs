@@ -257,6 +257,7 @@ pub async fn run(options: Options, stop: CancellationToken) -> io::Result<Ending
             },
         )
         .await?;
+    let usage = crate::machine::report_usage(runner.identity.home_dir.clone().into());
     let registered = Registered {
         installed: options.installed.map(Arc::new),
         managed: options.managed,
@@ -269,6 +270,7 @@ pub async fn run(options: Options, stop: CancellationToken) -> io::Result<Ending
         residents: registry.handle(),
         cached: registry.installed(),
         downloading: registry.downloading(),
+        usage,
         dispatcher,
         index,
         paths,

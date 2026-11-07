@@ -44,7 +44,7 @@ use demi_runner_client::{
     socket_frame,
 };
 use demi_device_interface::{DeviceIdentity, DeviceKey};
-use demi_runner_protocol::wire::{self, AutostartUnavailable, DeviceArtifact, Inbound, OperatingSystem};
+use demi_runner_protocol::wire::{self, AutostartUnavailable, DeviceArtifact, Hardware, Inbound, OperatingSystem};
 use demi_runner_protocol::values::BackendUrl;
 use demi_web_api_protocol::devices::{DeviceDto, DeviceKind, DeviceLogo, DeviceMark, DeviceState};
 use demi_web_api_protocol::ids::{DeviceId, UserId};
@@ -1105,7 +1105,7 @@ impl DeviceRecorder {
     }
 
     /// Records what `device`'s runner said in its hello: its operating system,
-    /// its release, its instance, its home and why it will not start by itself
+    /// its machine, its release, its instance, its home and why it will not start by itself
     /// after a restart, and that it was connected just now. It advances the
     /// execution contexts the report changes
     /// (`crates/backend-database/src/selection.rs`).
@@ -1117,6 +1117,7 @@ impl DeviceRecorder {
         &self,
         device: DeviceId,
         os: OperatingSystem,
+        hardware: Hardware,
         version: String,
         instance: u64,
         home: String,
@@ -1124,7 +1125,7 @@ impl DeviceRecorder {
     ) -> Option<FirstHome> {
         let first = match self
             .control
-            .set_device_runner(device.clone(), os, version, instance, home, autostart_unavailable)
+            .set_device_runner(device.clone(), os, hardware, version, instance, home, autostart_unavailable)
             .await
         {
             Ok(first) => first,
