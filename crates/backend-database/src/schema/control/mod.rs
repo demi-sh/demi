@@ -83,6 +83,7 @@ mod from_0_1_5979_subscription_devices;
 mod from_0_1_5979_archived_at;
 mod from_0_1_5979_cloud_isolation;
 mod from_0_1_5979_device_requests;
+mod from_0_1_5979_asked_ends;
 mod from_0_1_5979_format_3;
 mod from_0_1_5979_media_jobs;
 mod from_0_1_5979_network_policy;
@@ -409,5 +410,9 @@ pub(super) const HISTORY: &[Shipped] = &[
     Shipped {
         sql: include_str!("from_0_1_5979_devices.sql"),
         migration: from_0_1_5979_devices::MIGRATION,
+    },
+    Shipped {
+        sql: include_str!("from_0_1_5979_asked_ends.sql"),
+        migration: from_0_1_5979_asked_ends::MIGRATION,
     },
 ];

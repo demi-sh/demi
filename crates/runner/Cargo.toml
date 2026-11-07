@@ -30,7 +30,7 @@ serde_json.workspace = true
 sha2 = "0.10"
 shlex = "2"
 subtle = "2"
-sysinfo = { version = "0.39", default-features = false, features = ["system"] }
+sysinfo = { version = "0.39", default-features = false, features = ["disk", "system"] }
 thiserror.workspace = true
 tokio.workspace = true
 tokio-tungstenite = { version = "0.29", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
@@ -47,14 +47,17 @@ libc = "0.2"
 # The account's login shell and name, from the user database.
 uzers = "0.12"
 
-# The user's region, which a runner's `LANG` names.
+# The user's region, which a runner's `LANG` names, and the machine's GPUs,
+# which IOKit's registry tells.
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFPreferences", "CFPropertyList", "CFString"] }
+objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFData", "CFNumber", "CFPreferences", "CFPropertyList", "CFString"] }
+objc2-io-kit = { version = "0.3", default-features = false, features = ["std", "libc"] }
 
-# The standard handles a runner in the background points at its log, and
-# the `Run` value that starts it at logon.
+# The standard handles a runner in the background points at its log, the
+# `Run` value that starts it at logon, and the machine's GPUs, which SetupAPI
+# lists.
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_Registry"] }
+windows-sys = { version = "0.61", features = ["Win32_Devices_DeviceAndDriverInstallation", "Win32_Foundation", "Win32_System_Console", "Win32_System_Registry"] }
 
 # sha2's ARM hardware backend is opt-in; artifact verification must not use
 # its unoptimized software fallback on supported Unix ARM devices.

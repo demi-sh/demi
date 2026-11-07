@@ -1652,6 +1652,12 @@ pub enum Outbound {
         id: String,
         message: String,
     },
+    /// How busy the machine is, sent one second after the connection opens
+    /// and every 10 seconds after.
+    Usage {
+        #[garde(dive)]
+        usage: Usage,
+    },
     /// Every artifact this runner's cache holds, once the connection is
     /// online and whenever an install or a retirement changes them
     /// (`crates/runner-command-packages/src/cache.rs`).
@@ -1870,10 +1876,13 @@ pub struct RunnerInfo {
     )]
     #[garde(dive)]
     pub kernel: Option<Kernel>,
-    /// The device's physical memory in bytes, which bounds how many idle Claude
-    /// Code processes its machine keeps
+    /// The machine, which `demi device list` and `show` tell, and whose memory
+    /// bounds how many idle Claude Code processes it keeps
     /// (`crates/provider-claude-code/src/idle.rs`).
-    pub memory: u64,
+    #[garde(dive)]
+    pub hardware: Hardware,
+    /// When the machine started, which its uptime is counted from.
+    pub booted_at: Timestamp,
     /// The `SHELL` of the device environment, which every process the
     /// runner starts inherits; none when it names none.
     #[serde(
@@ -2046,6 +2055,66 @@ pub struct OperatingSystem {
     /// `aarch64`.
     #[garde(length(chars, min = 1, max = 64))]
     pub arch: String,
+}
+
+/// What a device's machine is, read once when its runner starts and kept by
+/// the backend, so an offline device still tells it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Hardware {
+    /// The processor's name, such as `Apple M4 Pro`; none when the system
+    /// does not tell it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(inner(length(chars, min = 1, max = 256)))]
+    pub cpu: Option<String>,
+    /// Logical cores, which a CPU percentage is a share of.
+    #[garde(skip)]
+    pub cores: u32,
+    /// Physical memory in bytes.
+    #[garde(skip)]
+    pub memory: u64,
+    /// The size in bytes of the volume that holds the home; none when no
+    /// volume is found for it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(skip)]
+    pub disk: Option<u64>,
+    #[garde(dive)]
+    pub gpus: Vec<Gpu>,
+}
+
+/// One of a machine's GPUs.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Gpu {
+    /// Such as `NVIDIA GeForce RTX 4090`, or the vendor's name with the PCI
+    /// ids when the system has no name for it.
+    #[garde(length(chars, min = 1, max = 256))]
+    pub name: String,
+    /// Its own memory in bytes; none for one that shares the system's.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(skip)]
+    pub memory: Option<u64>,
+}
+
+/// How busy a device's machine is, which its runner reports every 10
+/// seconds and the backend keeps only while the device is connected.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, garde::Validate)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Usage {
+    /// The whole machine's processor use, 0 to 100, averaged since the
+    /// report before.
+    #[garde(range(min = 0.0, max = 100.0))]
+    pub cpu_percent: f32,
+    /// Physical memory in use: the total less what the system says is
+    /// available.
+    #[garde(skip)]
+    pub memory_used: u64,
+    /// The home's volume's free bytes, as the system's file manager counts
+    /// them, read every 5 minutes; none when no volume is found for the
+    /// home.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(skip)]
+    pub disk_available: Option<u64>,
 }
 
 /// A device's kernel as `uname -s` and `uname -r` print it, read once when
@@ -2643,8 +2712,10 @@ impl Outbound {
     pub fn carriage(&self) -> Carriage {
         // Every message is named, so a new one is classified when it is added.
         match self {
+            // A report a drop lost is not sent again: the next one replaces it.
             Self::Hello { .. }
-            | Self::Pong { .. } => Carriage::Connection,
+            | Self::Pong { .. }
+            | Self::Usage { .. } => Carriage::Connection,
             Self::Revoke { .. }
             | Self::Installed { .. }
             | Self::Downloading { .. }

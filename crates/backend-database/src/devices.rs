@@ -10,7 +10,7 @@
 //! Whether a device is online is its runner connection's, not a record's.
 
 use demi_runner_protocol::pairs::PairRoute;
-use demi_runner_protocol::wire::{AutostartUnavailable, DeviceArtifact, OperatingSystem, RunnerPlatform};
+use demi_runner_protocol::wire::{AutostartUnavailable, DeviceArtifact, Hardware, OperatingSystem, RunnerPlatform};
 use demi_shared_types::Timestamp;
 use demi_web_api_protocol::devices::{DeviceKind, DeviceLogo, DeviceRoute};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, ProjectId};
@@ -97,6 +97,9 @@ pub struct DeviceRecord {
     /// runner last reported (`crates/runner/src/autostart.rs`);
     /// none when it does, or before its runner first said.
     pub autostart_unavailable: Option<AutostartUnavailable>,
+    /// The machine its runner last reported; none before its runner first
+    /// reported it.
+    pub hardware: Option<Hardware>,
 }
 
 impl DeviceRecord {
@@ -194,7 +197,7 @@ pub struct DeviceChange {
 }
 
 const DEVICE_COLUMNS: &str =
-    "id, user_id, kind, name, platform, claimed_at, last_seen_at, installed, os, runner_version, runner_instance, cloud_started_at, route, mark_number, machine, home, autostart_unavailable";
+    "id, user_id, kind, name, platform, claimed_at, last_seen_at, installed, os, runner_version, runner_instance, cloud_started_at, route, mark_number, machine, home, autostart_unavailable, hardware";
 
 /// The name and platform of the one device a user's Cloud is.
 pub const CLOUD_NAME: &str = "Cloud";
@@ -245,6 +248,7 @@ impl ControlService {
                 machine: None,
                 home: None,
                 autostart_unavailable: None,
+                hardware: None,
             })
         })
         .await
@@ -476,12 +480,13 @@ impl ControlService {
         .await
     }
 
-    /// Records the operating system, the runner release, the instance and the home
+    /// Records the operating system, the machine, the runner release, the instance and the home
     /// `device`'s runner reported in its hello, and advances the execution context
     /// of each conversation whose context the report changes
     /// (`crates/backend-database/src/selection.rs`).
     ///
-    /// The execution context advances:
+    /// The execution context advances, never for the machine, which no context
+    /// names:
     ///
     /// - When the system changed, for the conversations whose primary device the
     ///   device is.
@@ -503,6 +508,7 @@ impl ControlService {
         &self,
         device: DeviceId,
         os: OperatingSystem,
+        hardware: Hardware,
         runner_version: String,
         runner_instance: u64,
         home: String,
@@ -538,8 +544,8 @@ impl ControlService {
             };
             transaction.execute(
                 "UPDATE devices SET os = ?1, runner_version = ?2, runner_instance = ?3, mark_number = ?4,
-                   home = ?5, autostart_unavailable = ?6
-                 WHERE id = ?7",
+                   home = ?5, autostart_unavailable = ?6, hardware = ?7
+                 WHERE id = ?8",
                 params![
                     to_json(&os),
                     runner_version,
@@ -547,6 +553,7 @@ impl ControlService {
                     mark_number,
                     recorded,
                     autostart_unavailable.as_ref().map(to_json),
+                    to_json(&hardware),
                     device.as_str()
                 ],
             )?;
@@ -1072,6 +1079,10 @@ fn device_row(row: &Row<'_>) -> Result<DeviceRecord, StorageError> {
         home: row.get("home")?,
         autostart_unavailable: match row.get::<_, Option<String>>("autostart_unavailable")? {
             Some(text) => Some(json("devices", "autostart_unavailable", &text)?),
+            None => None,
+        },
+        hardware: match row.get::<_, Option<String>>("hardware")? {
+            Some(text) => Some(json("devices", "hardware", &text)?),
             None => None,
         },
     })

@@ -209,7 +209,12 @@ CREATE TABLE devices (
   -- its runner last reported it, JSON, autostart reason format 1, the
   -- runner wire's `AutostartUnavailable` (runner.md § Starting with the
   -- computer); none when it does, or before its runner first said.
-  autostart_unavailable TEXT
+  autostart_unavailable TEXT,
+  -- The machine its runner last reported, JSON, the runner wire's
+  -- `Hardware`: its processor, memory, home volume's size and GPUs; none
+  -- before its runner first reported it since the release that began
+  -- keeping it.
+  hardware TEXT
 ) STRICT;
 CREATE UNIQUE INDEX devices_one_machine ON devices (user_id, machine) WHERE kind = 'managed';
 

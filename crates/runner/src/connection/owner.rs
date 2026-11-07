@@ -87,6 +87,9 @@ pub struct Registered {
     pub cached: watch::Receiver<Vec<wire::DeviceArtifact>>,
     /// What the artifact cache is downloading.
     pub downloading: watch::Receiver<Vec<demi_runner_command_packages::cache::Downloading>>,
+    /// How busy the machine is, as its last reading says
+    /// (`crates/runner/src/machine.rs`); none before the first.
+    pub usage: watch::Receiver<Option<wire::Usage>>,
     pub dispatcher: Arc<Dispatcher>,
     /// Where the current connection publishes its live contexts.
     pub index: watch::Sender<Arc<ContextIndex>>,
@@ -178,6 +181,7 @@ struct Owner<'r> {
     cached: watch::Receiver<Vec<wire::DeviceArtifact>>,
     /// What the artifact cache is downloading.
     downloading: watch::Receiver<Vec<demi_runner_command_packages::cache::Downloading>>,
+    usage: watch::Receiver<Option<wire::Usage>>,
     /// Whether this connection asked the backend to revoke the device.
     revoke_asked: bool,
     /// The pages' peers the backend introduced on this connection
@@ -275,6 +279,7 @@ pub async fn serve(
         ),
         cached: registered.cached.clone(),
         downloading: registered.downloading.clone(),
+        usage: registered.usage.clone(),
         revoke_asked: false,
         direct,
         own,
@@ -339,6 +344,9 @@ impl Owner<'_> {
                 Ok(()) = self.downloading.changed(), if management.phase() == Phase::Online => {
                     self.report_downloading()?;
                 }
+                Ok(()) = self.usage.changed(), if management.phase() == Phase::Online => {
+                    self.report_usage()?;
+                }
                 arrival = transport.input.recv() => match arrival {
                     Some(arrival) => {
                         let end = match arrival.message {
@@ -378,6 +386,15 @@ impl Owner<'_> {
             .collect();
         let frame =
             wire::encode(&wire::Outbound::Downloading { downloads }).map_err(io::Error::other)?;
+        self.send(frame)
+    }
+
+    /// Reports how busy the machine is, when it has been read.
+    fn report_usage(&mut self) -> io::Result<()> {
+        let Some(usage) = self.usage.borrow_and_update().clone() else {
+            return Ok(());
+        };
+        let frame = wire::encode(&wire::Outbound::Usage { usage }).map_err(io::Error::other)?;
         self.send(frame)
     }
 
@@ -472,6 +489,7 @@ impl Owner<'_> {
                 self.online().await?;
                 self.report_installed().await?;
                 self.report_downloading()?;
+                self.report_usage()?;
             }
             Inbound::ClaimPending { claim_token } if management.phase() != Phase::Online => {
                 management.set_phase(Phase::ClaimPending);
@@ -502,6 +520,7 @@ impl Owner<'_> {
                 // A device paired again may hold artifacts from before.
                 self.report_installed().await?;
                 self.report_downloading()?;
+                self.report_usage()?;
             }
             Inbound::HelloError { code, reason } => {
                 tracing::warn!(event = "runner.registration_refused", code = %code, %reason, "the backend refused the runner's registration");
