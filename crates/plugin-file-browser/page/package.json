@@ -1,6 +1,6 @@
 {
   "name": "@demicodes/plugin-file-browser",
-  "description": "The file browser plugin's page: the File view, a pinned work panel kind.",
+  "description": "The file browser plugin's page: the File view, a pinned tab kind.",
   "version": "0.0.0",
   "private": true,
   "type": "module",

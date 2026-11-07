@@ -61,7 +61,7 @@ mod oauth;
 mod passkeys;
 mod push;
 mod page_client;
-mod panel;
+mod work;
 mod permissions;
 mod plugins;
 mod port_forwards;
@@ -571,7 +571,7 @@ fn router(state: AppState, closing: CancellationToken, web_directory: Option<Pat
         )
         .route("/conversations/{id}/cost/recent", get(cost::recent))
         .route("/conversations/{id}/search", get(search::search_in))
-        .route("/conversations/{id}/panel/changes", post(panel::change))
+        .route("/conversations/{id}/work/changes", post(work::change))
         .route("/conversations/{id}/suggested-replies/used", post(suggested_replies::used))
         .route(
             "/conversations/{id}/draft",

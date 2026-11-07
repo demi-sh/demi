@@ -21,7 +21,7 @@ defineProps<{
     role="status"
   >
     <WifiOff :size="20" class="mb-1 text-fg-faint" aria-hidden="true" />
-    <span class="text-[13px] text-fg-muted">{{ t('panel.deviceOffline', { name }) }}</span>
-    <span class="text-caption text-fg-faint">{{ t('panel.deviceOfflineDetail') }}</span>
+    <span class="text-[13px] text-fg-muted">{{ t('work.deviceOffline', { name }) }}</span>
+    <span class="text-caption text-fg-faint">{{ t('work.deviceOfflineDetail') }}</span>
   </div>
 </template>

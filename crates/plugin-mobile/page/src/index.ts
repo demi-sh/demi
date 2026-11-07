@@ -1,5 +1,5 @@
 // The `mobile` plugin's page (`packages/plugin-sdk/src/index.ts`): its `mobile`
-// work panel kind (a device's live view), its store of each conversation's
+// tab kind (a device's live view), its store of each conversation's
 // simulators, and the types of
 // its state, parameters, results and stream, generated from the plugin's
 // manifest.

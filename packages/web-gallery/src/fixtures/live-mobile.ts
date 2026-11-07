@@ -10,7 +10,7 @@
  *   screen in the frame the view draws, encodes it as the helper would and
  *   speaks the `mobile` protocol.
  *
- * The panel's tabs, controls, touches and the agent's activity show here.
+ * The window's tabs, controls, touches and the agent's activity show here.
  */
 import { LIVE_CONTROL_FRAME, LIVE_VIDEO_CODEC, type LiveActivity, type ViewerInput } from '@demicodes/protocol'
 import {
@@ -38,10 +38,10 @@ import { PluginCallError } from '@demicodes/web-ui/plugins/page'
 import type { DeviceDownload } from '@demicodes/web-ui/devices/installed'
 import { encodeControl, encodeVideo } from '@demicodes/web-ui/live/frames'
 import type { OpenUserStream, UserStreamHandlers } from '@demicodes/web-ui/plugins/streams'
-import type { PanelTab } from '@demicodes/web-ui/agent/panel-tabs'
+import type { WorkTab } from '@demicodes/web-ui/agent/work-tabs'
 import { shallowRef } from 'vue'
 import { productWould } from '../product-would'
-import type { GalleryPanel } from './panel'
+import type { GalleryWorkRecord } from './work-record'
 import type { GalleryPlugin } from './plugins'
 import { PROJECT_ROOT } from './project'
 
@@ -120,8 +120,8 @@ interface OpenDevice {
   touch: { x: number; y: number; at: number } | null
   activity: LiveActivity
   recording: boolean
-  /** Whether the panel's Record started the running or last recording, whose video its next Stop takes even after the agent ended it. */
-  panelRecording: boolean
+  /** Whether the window's Record started the running or last recording, whose video its next Stop takes even after the agent ended it. */
+  controlRecording: boolean
   /** A foldable's hinge, from 0° closed to 180° flat; an Android foldable is at one or the other. */
   degrees: number
   /** A hinged foldable's lit display, which the guest keeps between the angles that switch it. */
@@ -279,7 +279,7 @@ function turned(mark: LiveButtonMark, orientation: Orientation): LiveButtonMark 
 }
 
 /** The device a `mobile` tab shows. */
-function shows(tab: PanelTab): string | undefined {
+function shows(tab: WorkTab): string | undefined {
   return mobileTabDataSchema.safeParse(tab.data).data?.device
 }
 
@@ -306,11 +306,11 @@ export interface GalleryScreen {
 
 export interface GalleryMobile {
   plugin: GalleryPlugin
-  /** The panel tab of a device its user closed: the device closes, as `demi mobile close` does. */
-  removed(tab: PanelTab): void
+  /** The work tab of a device its user closed: the device closes, as `demi mobile close` does. */
+  removed(tab: WorkTab): void
   /**
    * The agent opens a simulator with `demi mobile open`, the one of `model`
-   * when it is given, else the next one: its tab joins the panel.
+   * when it is given, else the next one: its tab joins the Simulators window.
    */
   agentOpens(model?: string): Promise<void>
   /** The agent taps each open device at a point of its screen, as `demi mobile tap` does. */
@@ -337,7 +337,7 @@ export interface GalleryMobile {
   runnerUpdates(): void
 }
 
-export function galleryMobile(panel: GalleryPanel, screen: GalleryScreen | null = null): GalleryMobile {
+export function galleryMobile(work: GalleryWorkRecord, screen: GalleryScreen | null = null): GalleryMobile {
   const open = new Map<string, OpenDevice>()
   /** The simulators that run, by native id: the first one at first, as a device's own use may have left it. */
   const booted = new Set<string>(SIMULATORS.slice(0, 1).map((simulator) => simulator.nativeId))
@@ -386,12 +386,12 @@ export function galleryMobile(panel: GalleryPanel, screen: GalleryScreen | null 
     let shown = [...open.values()].find((each) => each.simulator === simulator)
     if (!shown) {
       numbers += 1
-      shown = { id: `m${numbers}`, simulator, orientation: 'portrait', dark: false, screen: 'home', scrolled: 0, off: false, touch: null, activity: { active: false }, recording: false, panelRecording: false, degrees: 0, lit: 'outer' }
+      shown = { id: `m${numbers}`, simulator, orientation: 'portrait', dark: false, screen: 'home', scrolled: 0, off: false, touch: null, activity: { active: false }, recording: false, controlRecording: false, degrees: 0, lit: 'outer' }
       open.set(shown.id, shown)
     }
-    if (!panel.all.some((tab) => tab.kind === 'mobile' && shows(tab) === shown.id)) {
+    if (!work.all.some((tab) => tab.kind === 'mobile' && shows(tab) === shown.id)) {
       const data = { device: shown.id, nativeId: simulator.nativeId, name: simulator.name, platform: simulator.platform, model: simulator.model }
-      panel.apply({ type: 'create', tab: { id: `mobile-${shown.id}`, kind: 'mobile', data } })
+      work.apply({ type: 'create', tab: { id: `mobile-${shown.id}`, kind: 'mobile', data } })
     }
     changed(shown.id)
     return shown
@@ -401,8 +401,8 @@ export function galleryMobile(panel: GalleryPanel, screen: GalleryScreen | null 
     clearTimeout(lingering.get(id))
     lingering.delete(id)
     if (open.delete(id)) {
-      for (const tab of panel.all.filter((each) => each.kind === 'mobile' && shows(each) === id)) {
-        panel.apply({ type: 'remove', id: tab.id })
+      for (const tab of work.all.filter((each) => each.kind === 'mobile' && shows(each) === id)) {
+        work.apply({ type: 'remove', id: tab.id })
       }
       changed(id)
     }
@@ -525,12 +525,12 @@ export function galleryMobile(panel: GalleryPanel, screen: GalleryScreen | null 
         const { device: id, action } = recordDeviceSchema.parse(params)
         const shown = device(id)
         await beat(action === 'stop' ? 600 : 200)
-        // A recording the panel started that ended by itself still gives the panel its video.
-        if (action === 'stop' && !shown.recording && shown.panelRecording) {
-          shown.panelRecording = false
+        // A recording the window started that ended by itself still gives the window its video.
+        if (action === 'stop' && !shown.recording && shown.controlRecording) {
+          shown.controlRecording = false
           return stoppedRecording(shown)
         }
-        shown.panelRecording = action === 'start'
+        shown.controlRecording = action === 'start'
         return record(shown, action === 'start')
       }
     }
@@ -856,7 +856,7 @@ class MobileView {
           this.frame()
         }
         break
-      // The gallery draws its pictures at one size, whatever the panel shows.
+      // The gallery draws its pictures at one size, whatever the window shows.
       case 'unshown':
       case 'shown':
       case 'keyframe':

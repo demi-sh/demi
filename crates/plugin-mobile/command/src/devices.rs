@@ -107,14 +107,14 @@ pub struct OpenDevice {
     /// The agent's commands under way, which the input and the read queues
     /// run at once.
     commands: Mutex<Vec<Arc<UnderWay>>>,
-    /// The recording the panel started and has not taken the video of: the
-    /// panel's Stop takes it whether the recording still runs or ended by
-    /// itself, at its limit.
-    panel_recording: Mutex<Option<RecordingId>>,
+    /// The recording the window's controls started and has not taken the
+    /// video of: the window's Stop takes it whether the recording still runs
+    /// or ended by itself, at its limit.
+    control_recording: Mutex<Option<RecordingId>>,
     /// Counts the changes of what the device's views say of it besides its
     /// screen, such as its recording, which only its own views follow.
     changes: watch::Sender<u64>,
-    /// The commands that act on the device, the user's panel controls and
+    /// The commands that act on the device, the user's controls and
     /// the agent's taps, swipes, typing and keys, rotations and appearance,
     /// take turns in the order they arrive (`crates/plugin-mobile/command/src/live.rs`).
     pub inputs: tokio::sync::Mutex<()>,
@@ -122,7 +122,7 @@ pub struct OpenDevice {
     /// `record`, take turns apart from the input, which never waits for
     /// them.
     pub reads: tokio::sync::Mutex<()>,
-    /// The files the panel's Screenshot and Record wrote into the
+    /// The files the window's Screenshot and Record wrote into the
     /// conversation's scratch directory, removed when the device closes
     /// (`crates/plugin-mobile/command/src/live.rs`).
     pub saved: Mutex<Vec<std::path::PathBuf>>,
@@ -163,7 +163,7 @@ impl OpenDevice {
             agent: Mutex::default(),
             recording: Mutex::new(None),
             commands: Mutex::new(Vec::new()),
-            panel_recording: Mutex::new(None),
+            control_recording: Mutex::new(None),
             changes: watch::Sender::new(0),
             saved: Mutex::default(),
             inputs: tokio::sync::Mutex::new(()),
@@ -185,15 +185,15 @@ impl OpenDevice {
         recording.as_ref().map(|recording| recording.live.clone()).filter(|live| !live.ended().is_cancelled())
     }
 
-    /// The panel started the recording `id`.
-    pub fn panel_started(&self, id: RecordingId) {
-        *self.panel_recording.lock().expect("the panel's recording is intact") = Some(id);
+    /// The window's controls started the recording `id`.
+    pub fn control_started(&self, id: RecordingId) {
+        *self.control_recording.lock().expect("the control's recording is intact") = Some(id);
     }
 
-    /// The recording the panel started, which its Stop takes the video of;
+    /// The recording the window's controls started, which its Stop takes the video of;
     /// none once taken.
-    pub fn panel_takes(&self) -> Option<RecordingId> {
-        self.panel_recording.lock().expect("the panel's recording is intact").take()
+    pub fn control_takes(&self) -> Option<RecordingId> {
+        self.control_recording.lock().expect("the control's recording is intact").take()
     }
 
     /// Ends the recording of the device, if one runs, for `reason`, and
@@ -355,7 +355,7 @@ impl Drop for AgentUsing {
 /// Why a device closed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Closing {
-    /// `close`, or its panel tab closed.
+    /// `close`, or its work tab closed.
     Asked,
     /// The conversation was released.
     Released,
@@ -383,7 +383,7 @@ impl Closing {
 struct Resuming {
     /// What the record holds of it.
     entry: Opened,
-    /// The files the device's panel saved and its unfinished recording,
+    /// The files the device's window saved and its unfinished recording,
     /// which go to the connection that replaces the lost one.
     carried: Vec<std::path::PathBuf>,
     /// The device's log, which the new connection follows on; a new one for

@@ -6,10 +6,10 @@
 //! work runs in, its root's latest ended turn, from that same checkpoint, the
 //! cost of its rows of no agent, and each list its view shows whole under its
 //! revision: its messages saved for later as the composer lists them, the
-//! states plugins hold for its work panel's tabs, its attached devices, its
+//! states plugins hold for its work's tabs, its attached devices, its
 //! directory's workflows and its permission requests. Each is read with an
-//! indexed query that touches no transcript row. The work panel's tabs are the
-//! entry's, so the page draws the panel as soon as the conversation is listed.
+//! indexed query that touches no transcript row. The work's tabs are the
+//! entry's, so the page draws the work as soon as the conversation is listed.
 //!
 //! The persisted facts come from a read-only connection, so listing hundreds of
 //! conversations takes no writer from a running one.
@@ -25,7 +25,7 @@ use demi_web_api_protocol::conversations::{
 };
 use demi_web_api_protocol::attached_devices::{AttachedDevice, ConversationDevices};
 use demi_web_api_protocol::ids::{ConversationId, ProviderId};
-use demi_web_api_protocol::panel::WorkPanel;
+use demi_web_api_protocol::work::Work;
 use demi_web_api_protocol::shares::ConversationShare;
 use futures_util::future::try_join_all;
 use tokio_util::sync::CancellationToken;
@@ -41,14 +41,14 @@ impl Shard {
         archived: bool,
     ) -> Result<Vec<ConversationSummary>, StorageError> {
         let control = &self.services().control;
-        let (records, mut panels) = futures_util::future::try_join(
+        let (records, mut works) = futures_util::future::try_join(
             control.conversations(self.user().clone(), archived),
-            control.panels(self.user().clone(), archived),
+            control.works(self.user().clone(), archived),
         )
         .await?;
         try_join_all(records.into_iter().map(|record| {
-            let panel = readable(&record.id, panels.remove(&record.id).unwrap_or_else(|| Ok(WorkPanel::empty())));
-            self.summarize(record, panel)
+            let work = readable(&record.id, works.remove(&record.id).unwrap_or_else(|| Ok(Work::empty())));
+            self.summarize(record, work)
         }))
         .await
     }
@@ -63,11 +63,11 @@ impl Shard {
         &self,
         record: ConversationRecord,
     ) -> Result<ConversationSummary, StorageError> {
-        let panel = readable(&record.id, self.services().control.panel(record.id.clone()).await);
-        self.summarize(record, panel).await
+        let work = readable(&record.id, self.services().control.work(record.id.clone()).await);
+        self.summarize(record, work).await
     }
 
-    async fn summarize(&self, record: ConversationRecord, panel: WorkPanel) -> Result<ConversationSummary, StorageError> {
+    async fn summarize(&self, record: ConversationRecord, work: Work) -> Result<ConversationSummary, StorageError> {
         let live = self
             .agent()
             .tree(&root_of(&record.id))
@@ -94,7 +94,7 @@ impl Shard {
             permission_requests: record.permission_requests,
             unread_permission_requests: record.unread_permission_requests,
             scheduled: record.scheduled,
-            panel,
+            work,
         })
     }
 
@@ -134,9 +134,9 @@ impl Shard {
                 attached_at,
             })
             .collect();
-        let panel_states = self
+        let tab_states = self
             .plugins()
-            .panel_states(record.id.clone(), CancellationToken::new())
+            .tab_states(record.id.clone(), CancellationToken::new())
             .await
             .map_err(StorageError::from)?;
         let permissions = demi_backend_permissions::read(self.permission_shard(), &record.id).await?;
@@ -162,7 +162,7 @@ impl Shard {
             notifications_card,
             other_cost,
             first_call_at,
-            panel_states,
+            tab_states,
             devices: ConversationDevices {
                 revision: record.devices_revision,
                 devices,
@@ -198,19 +198,19 @@ impl Shard {
     }
 }
 
-/// The panel `read` gives, or an empty one when the conversation's stored
-/// panel cannot be read: that conversation then shows no tabs, and the
+/// The work `read` gives, or an empty one when the conversation's stored
+/// work cannot be read: that conversation then shows no tabs, and the
 /// user's other conversations are listed as they are.
-fn readable(id: &ConversationId, read: Result<WorkPanel, StorageError>) -> WorkPanel {
+fn readable(id: &ConversationId, read: Result<Work, StorageError>) -> Work {
     read.unwrap_or_else(|error| {
         tracing::error!(
             event = "conversation_summary.read_failed",
             conversation = %id,
-            what = "work_panel",
+            what = "work",
             error = &error as &dyn std::error::Error,
-            "a conversation's work panel could not be read for its entry"
+            "a conversation's work could not be read for its entry"
         );
-        WorkPanel::empty()
+        Work::empty()
     })
 }
 

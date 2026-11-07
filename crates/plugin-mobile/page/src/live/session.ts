@@ -60,14 +60,14 @@ import {
   liveModuleMessageSchema,
   liveViewerMessageSchema,
   orientationSchema,
-  panelReasonSchema,
+  controlReasonSchema,
   type LiveDevice,
   type LiveFrame,
   type LiveModuleMessage,
   type LiveViewerMessage,
   type MobilePlatform,
   type Orientation,
-  type PanelReason,
+  type ControlReason,
   type Turn,
   type FoldDisplay,
   type LiveFold,
@@ -224,7 +224,7 @@ export interface DeviceSessionOptions {
    * arrive, with the notice's message, which only a reason the page quotes
    * from, such as the viewer's own text, is meant for.
    */
-  onNotice?: (reason: PanelReason, message: string) => void
+  onNotice?: (reason: ControlReason, message: string) => void
   /** The device closed: the session has ended. */
   gone?: () => void
   defect: (message: string, error: unknown) => void
@@ -616,7 +616,7 @@ export class DeviceSession {
       case 'heartbeat':
         break
       case 'notice': {
-        const reason = panelReasonSchema.safeParse(message.code)
+        const reason = controlReasonSchema.safeParse(message.code)
         if (!reason.success) {
           this.options.defect('The live view sent a notice of a reason the page does not know', reason.error)
         } else if (reason.data === LIVE_CAPTURE_FAILED || reason.data === LIVE_CAPTURE_UNAVAILABLE) {

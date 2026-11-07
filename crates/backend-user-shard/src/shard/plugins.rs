@@ -455,18 +455,18 @@ impl Shard {
 
 impl Shard {
     /// What `lost` names, kept on `device`, ended without its package
-    /// saying so: each plugin of such a package with panel tabs in a
+    /// saying so: each plugin of such a package with work tabs in a
     /// conversation that reaches the device hears it, for that conversation
     /// (`crates/command-protocol/src/messages.rs`).
     pub(crate) async fn package_lost(&self, device: &DeviceId, lost: Lost<'_>) {
         self.cli_package_lost(device, &lost);
-        let panelled = match self
+        let with_tabs = match self
             .services()
             .control
-            .panelled_conversations(self.user().clone())
+            .conversations_with_tabs(self.user().clone())
             .await
         {
-            Ok(panelled) => panelled,
+            Ok(with_tabs) => with_tabs,
             Err(error) => {
                 // The plugins then show what was lost until their packages
                 // next say something about the conversations.
@@ -475,7 +475,7 @@ impl Shard {
             }
         };
         let mut reaching = Vec::new();
-        for conversation in panelled {
+        for conversation in with_tabs {
             match reachable(self.device_shard(), &conversation).await {
                 Ok(devices) if devices.iter().any(|each| &each.device == device) => {
                     reaching.push(conversation);

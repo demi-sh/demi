@@ -20,7 +20,7 @@ import type { ReplyCommenting, WaitingComment } from '@demicodes/web-ui/agent/co
 import { galleryMessageFiles } from '@demicodes/web-gallery/fixtures/written-files'
 import { gallerySessionWork } from '@demicodes/web-gallery/fixtures/session-work'
 import { galleryBrowser } from '@demicodes/web-gallery/fixtures/live-browser'
-import { galleryFiles, useGalleryWork } from '@demicodes/web-gallery/fixtures/work-panel'
+import { galleryFiles, useGalleryWork } from '@demicodes/web-gallery/fixtures/work'
 import { createChangeSetOf, createGalleryProject } from '@demicodes/web-gallery/fixtures/project'
 import type { DemoId } from '@/features'
 import { Conversation, MODEL_SETTINGS, MODELS, PROVIDERS, Stopped } from './conversation'

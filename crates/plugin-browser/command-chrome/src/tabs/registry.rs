@@ -714,10 +714,10 @@ impl Context {
         created_by: BrowserCreatedBy,
     ) -> Result<BrowserTab> {
         let ended = self.ended.child_token();
-        // A tab the user opens in the panel starts at the size the panel
+        // A tab the user opens in a window starts at the size the window
         // gives it, and one a page opens at its opener's, as a browser's new
         // window takes the size of the one it came from: the popup of a page
-        // the user watches is shown at the panel's size from its first
+        // the user watches is shown at the window's size from its first
         // picture, and one an agent's page opens lays out as that page did.
         // Neither needs another size once its page commits. An agent's starts
         // at the unwatched viewport.

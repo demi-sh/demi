@@ -1,16 +1,16 @@
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { browserPage } from '@demicodes/plugin-browser'
 import { mobilePage } from '@demicodes/plugin-mobile'
-import { addedPanelTab } from '@demicodes/plugin-browser/live/tabs'
-import { PanelTabs, closePanelTabs, updatePanelTab } from '@demicodes/web-ui/agent/panel-changes'
+import { addedWorkTab } from '@demicodes/plugin-browser/live/tabs'
+import { WorkTabs, closeWorkTabs, updateWorkTab } from '@demicodes/web-ui/agent/work-changes'
 import {
   openIntent,
   pendingShows,
   shownSelection,
   type AppliedShows,
-  type PanelState,
+  type TabsState,
   type PinnedTabs,
-} from '@demicodes/web-ui/agent/panel-tabs'
+} from '@demicodes/web-ui/agent/work-tabs'
 import { selectTab } from '@demicodes/web-ui/agent/tab-close'
 import type { RequestEditSelection } from '@demicodes/web-ui/files/request-changes'
 import type { IntentRequest } from '@demicodes/web-ui/plugins/intents'
@@ -29,7 +29,7 @@ import { readGalleryEdit } from './blobs'
 import { galleryRequest } from './transcripts'
 import { galleryBrowser, type GalleryBrowser } from './live-browser'
 import { galleryMobile, type GalleryScreen } from './live-mobile'
-import { GalleryPanel, galleryBrowserPlugin } from './panel'
+import { GalleryWorkRecord, galleryBrowserPlugin } from './work-record'
 import { SLOT_ROOT, createSlotChangeSet, type createGalleryProject } from './project'
 import { sharedHistory } from './history'
 import { galleryHistory } from './browser-history'
@@ -68,18 +68,18 @@ export function galleryFiles(
   }
 }
 
-/** The conversation every gallery panel shows. */
+/** The conversation every gallery frame shows. */
 const CONVERSATION = 'gallery'
 
 /**
- * One work panel the way the product's work store holds it:
+ * One conversation's work the way the product's work store holds it:
  *
- * - Its selection history, the pinned tabs' data, and the tabs of a panel kept
+ * - Its selection history, the pinned tabs' data, and the tabs of a conversation's work kept
  *   as the backend keeps them, with the specimen's changes shown at once over
  *   them.
  * - The plugin pages' kinds, bound to it over the specimen's files and its own
  *   conversation browser, whose plugin opens and closes browser tabs for the
- *   panel's tabs as the backend's does.
+ *   work's tabs as the backend's does.
  *
  * Intents open in it as they open in the product.
  */
@@ -87,14 +87,14 @@ export function useGalleryWork(
   selection: string | null,
   { files, browser = galleryBrowser(), screen, pictures, pages, open: startsOpen = true }: {
     files: ConversationFileService
-    /** Whether the panel starts open, the first step of its history: a phone's starts closed, over the conversation. */
+    /** Whether a window starts in front, the first step of its history: a phone's starts closed, over the conversation. */
     open?: boolean
     browser?: GalleryBrowser
     /** The screen the simulators show in place of the gallery's own. */
     screen?: GalleryScreen
     /** Whether the web browser decodes the pictures; by default it asks the web browser, as the product does. */
     pictures?: () => Promise<boolean>
-    /** The plugin pages whose kinds the panel shows; every one the product shows by default. */
+    /** The plugin pages whose kinds the windows show; every one the product shows by default. */
     pages?: readonly AnyPluginPage[]
   },
 ) {
@@ -108,23 +108,23 @@ export function useGalleryWork(
   /** The plugins the specimen has turned off, as the user turns one off in Settings. */
   const off = reactive(new Set<string>())
   const enabled = (plugin: string) => !off.has(plugin)
-  const backend = new GalleryPanel()
+  const backend = new GalleryWorkRecord()
   const plugin = galleryBrowserPlugin(browser, backend)
-  // The conversation's simulators, whose plugin opens and closes devices for the panel's `mobile` tabs.
+  // The conversation's simulators, whose plugin opens and closes devices for the work's `mobile` tabs.
   const mobile = galleryMobile(backend, screen)
   // The browser tells the plugin of every change of its tabs, as the browser package does
   // (`crates/command-protocol/src/messages.rs`).
   watch(browser.listed, () => void plugin.tabsChanged())
-  // The browser's tabs stand in the panel in its order, as the product's would: the user's with the tab the
-  // user made for each, the agent's with the id the plugin gives them. A panel without the browser's page has none.
+  // The browser's tabs stand in the browser window in its order, as the product's would: the user's with the tab the
+  // user made for each, the agent's with the id the plugin gives them. A work without the browser's page has none.
   if (shown.some((page) => page.plugin === 'browser')) {
     for (const tab of browser.listed.value.tabs) {
-      const id = tab.createdBy.kind === 'user' ? `user-${tab.id}` : addedPanelTab(tab.id)
+      const id = tab.createdBy.kind === 'user' ? `user-${tab.id}` : addedWorkTab(tab.id)
       backend.apply({ type: 'create', tab: { id, kind: 'browser', data: { url: tab.url, tab: tab.id, title: tab.title } } })
     }
   }
-  const tabs = new PanelTabs(backend, (error) => {
-    productWould(`Report the Refused Panel Change: ${error instanceof Error ? error.message : String(error)}`)
+  const tabs = new WorkTabs(backend, (error) => {
+    productWould(`Report the Refused Work Change: ${error instanceof Error ? error.message : String(error)}`)
   })
   backend.removed = (tab) => {
     if (tab.kind === 'mobile') {
@@ -134,17 +134,17 @@ export function useGalleryWork(
     }
   }
   tabs.receive(backend.current())
-  backend.changed = (panel) => tabs.receive(panel)
+  backend.changed = (work) => tabs.receive(work)
   tabs.start()
 
   const history = ref<readonly string[]>(selection === null ? [] : [selection])
   const pinned = ref<PinnedTabs>({})
-  const panel = computed<PanelState>(() => ({ history: history.value, tabs: tabs.tabs.value }))
+  const tabsState = computed<TabsState>(() => ({ history: history.value, tabs: tabs.tabs.value }))
   /** Whether the address names a tab, whose window shows in front; a tab its kind asks to show names it. */
   const open = ref(startsOpen)
   /**
    * The web browser's history of the address, as the product's keeps it
-   * (`packages/web-ui/src/agent/panel-address.ts`): each move is a step, and
+   * (`packages/web-ui/src/agent/work-address.ts`): each move is a step, and
    * Back and Forward show the work as it was there.
    */
   const steps = galleryHistory(() => ({ open: open.value, history: history.value, pinned: pinned.value }), (step) => {
@@ -169,9 +169,9 @@ export function useGalleryWork(
       steps.step()
     }
   }
-  /** Each tab's showings the panel applied, as the product keeps them beside the history. */
+  /** Each tab's showings the windows applied, as the product keeps them beside the history. */
   let applied: AppliedShows = {}
-  // A tab its kind asks to show opens the panel and is selected once, as the product's work store does it.
+  // A tab its kind asks to show brings its window to the front and is selected once, as the product's work store does it.
   watch(() => tabs.tabs.value, (current) => {
     const pending = pendingShows(current, shown, enabled, applied)
     if (!pending) {
@@ -195,7 +195,7 @@ export function useGalleryWork(
   let lostTabs = 90
   /**
    * A browser tab on `url` whose browser tab the browser lost, as after a
-   * restart: the panel the backend keeps has it already, as it had before,
+   * restart: the work the backend keeps has it already, as it had before,
    * and the page selects it once it arrives, so its content asks the plugin
    * to open it again, as a shown lost tab does.
    */
@@ -211,7 +211,7 @@ export function useGalleryWork(
     tabs.change({ type: 'move', id, index })
   }
   function update(id: string, data: unknown) {
-    updatePanelTab(tabs, id, data)
+    updateWorkTab(tabs, id, data)
   }
   function updatePinned(kind: string, data: unknown, how?: TabUpdate) {
     pinned.value = { ...pinned.value, [kind]: data }
@@ -221,7 +221,7 @@ export function useGalleryWork(
       steps.step()
     }
   }
-  /** Closed tabs go at once; the panel shows what was selected before a closed one. */
+  /** Closed tabs go at once; the window shows what was selected before a closed one. */
   function closeTabs(ids: string[]) {
     const selection = {
       get history() {
@@ -231,12 +231,12 @@ export function useGalleryWork(
         history.value = next
       },
     }
-    closePanelTabs(selection, tabs, ids)
+    closeWorkTabs(selection, tabs, ids)
     steps.replace()
   }
-  /** Opens an intent as the product's work store does: what the panel already shows stays as it is. */
+  /** Opens an intent as the product's work store does: what the windows already show stays as it is. */
   function openIn(request: IntentRequest) {
-    const opened = openIntent({ panel: panel.value, pinned: pinned.value }, shown, enabled, request)
+    const opened = openIntent({ tabsState: tabsState.value, pinned: pinned.value }, shown, enabled, request)
     if (!opened) {
       return
     }
@@ -255,7 +255,7 @@ export function useGalleryWork(
       open: (_conversation, request) => openIn(request),
       canOpen: (intent) => intentKind(shown, enabled, intent) !== null,
     },
-    panel: {
+    work: {
       tabs: (_conversation, kind) => tabs.tabs.value.filter((tab) => tab.kind === kind).map((tab) => tab.data),
       select: (_conversation, _kind, id) => select(id),
       canGo: (_conversation, direction) => steps.canGo(direction),
@@ -264,8 +264,8 @@ export function useGalleryWork(
   })
   const kinds = useBoundKinds(() => shown.filter((page) => enabled(page.plugin)), host, () => CONVERSATION)
   /**
-   * Turns `plugin` on or off while the panel is open, as the user does in
-   * Settings: turned off, the backend closes its kinds' tabs in the panel and
+   * Turns `plugin` on or off while its window is open, as the user does in
+   * Settings: turned off, the backend closes its kinds' tabs in the work and
    * releases what its packages hold on the device, such as the browser, and the
    * shell disposes its stores; the other plugins' tabs and stores stay.
    */
@@ -288,14 +288,14 @@ export function useGalleryWork(
     }
     disposePluginStores(host.pinia, pluginId)
   }
-  /** What the panel shows, as its strip marks it. */
-  const selected = computed(() => shownSelection(panel.value, kinds.value))
+  /** What the windows show, as their strips mark it. */
+  const selected = computed(() => shownSelection(tabsState.value, kinds.value))
 
   /** A file pill, through the `edit` intent. */
   function selectEdit(edit: RequestEditSelection) {
     openIn({ intent: 'edit', payload: edit })
   }
-  /** The panel as it started: every tab closed, the first selection again. */
+  /** The work as it started: every tab closed, the first selection again. */
   function reset() {
     closeTabs(tabs.tabs.value.map((tab) => tab.id))
     history.value = selection === null ? [] : [selection]
@@ -304,7 +304,7 @@ export function useGalleryWork(
   }
   /**
    * The agent shows `tab` with `demi browser show`: the browser tells the
-   * plugin, which carries the count into the panel tab, which the panel then
+   * plugin, which carries the count into the work tab, which the work then
    * selects.
    */
   async function agentShows(tab: string) {
@@ -319,7 +319,7 @@ export function useGalleryWork(
     await plugin.settled()
   }
   return {
-    panel,
+    tabsState,
     pinned,
     open,
     close,

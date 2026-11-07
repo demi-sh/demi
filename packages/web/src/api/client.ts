@@ -6,7 +6,7 @@ import { pageLog } from '@demicodes/web-ui/infra/log'
 import { noteUpdating } from '../state/update'
 
 // Every control operation is an ordinary HTTP request: one answer, a status and an
-// error the caller can show, visible in the network panel and the backend's log, and
+// error the caller can show, visible in the network and the backend's log, and
 // retryable.
 //
 // A lane of the page connection carries only what a request cannot: bytes that flow while the user

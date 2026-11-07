@@ -128,8 +128,8 @@ export const README_SCENES: Record<string, ReadmeScene> = {
       devices.attached = [WINDOWS_PC_DEVICE]
       const desktop = document.documentElement.clientWidth > 600
       const cues: ReadmeCues = (window.demiReadme = { marks: {} })
-      // `demi mobile open` shows the device in the panel, as the product's
-      // does; the panel stands open from the start, so the conversation never
+      // `demi mobile open` shows the device in its window, as the product's
+      // does; the window stands open from the start, so the conversation never
       // narrows on camera.
       if (desktop) {
         await work.mobile.agentOpens('iPhone Duo')

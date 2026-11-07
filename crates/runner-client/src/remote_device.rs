@@ -794,7 +794,7 @@ impl RemoteDevice {
                 id,
                 root: root.into(),
                 path: path.into(),
-                // The Changes panel waits to show it.
+                // The Changes window waits to show it.
                 output: PipeRef { shown: true, ..output },
                 commit: commit.map(str::to_owned),
             }

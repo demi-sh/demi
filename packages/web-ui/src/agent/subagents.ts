@@ -247,7 +247,7 @@ export function childBrief(node: string | null, content: readonly MessageEditCon
  * The Agents window's tabs: the running children, and after them the
  * finished one picked from Completed.
  */
-export function subagentPanelTabs(
+export function subagentTabs(
   agents: readonly SubagentRecord[],
   activeId: string | null,
 ): SubagentRecord[] {

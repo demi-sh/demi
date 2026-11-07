@@ -3,7 +3,7 @@ import { watch } from 'vue'
 import SessionWindows from '@demicodes/web-ui/windows/SessionWindows.vue'
 import { useWindowStage } from '@demicodes/web-ui/windows/stage'
 import { gallerySessionWork } from '../fixtures/session-work'
-import type { GalleryWork } from '../fixtures/work-panel'
+import type { GalleryWork } from '../fixtures/work'
 
 /**
  * The product's windows of a conversation's work over one specimen's state,

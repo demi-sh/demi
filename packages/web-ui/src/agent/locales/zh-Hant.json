@@ -420,7 +420,7 @@
     "placeholder": "輸入網址",
     "label": "瀏覽器網址"
   },
-  "panel": {
+  "work": {
     "more": "更多",
     "reading": "正在讀取 {name}",
     "deviceOffline": "{name} 已離線。",

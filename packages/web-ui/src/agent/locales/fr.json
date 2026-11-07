@@ -420,7 +420,7 @@
     "placeholder": "Saisir une adresse",
     "label": "Adresse du navigateur"
   },
-  "panel": {
+  "work": {
     "more": "Plus",
     "reading": "Lecture de {name}",
     "deviceOffline": "{name} est hors ligne.",

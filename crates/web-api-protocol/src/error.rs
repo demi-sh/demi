@@ -235,11 +235,11 @@ pub enum ErrorCode {
     CurrentSession,
     /// The account has no session of that id.
     SessionNotFound,
-    /// The work panel holds as many tabs, or as much of their data, as it
+    /// The work holds as many tabs, or as much of their data, as it
     /// can.
-    PanelFull,
-    /// No plugin the user has on declares the work panel kind.
-    UnknownPanelKind,
+    WorkFull,
+    /// No plugin the user has on declares the tab kind.
+    UnknownTabKind,
     /// An archive, a target change or a detach is ending the conversation's
     /// file transfers and user streams; a new one waits for nothing and is
     /// refused.

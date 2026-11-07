@@ -1,6 +1,6 @@
 /**
  * A plugin's stores: what a page keeps live for as long as the user has its
- * plugin on, apart from any panel or conversation the page shows, as Pinia
+ * plugin on, apart from any window or conversation the page shows, as Pinia
  * stores the shell holds.
  *
  * - A page declares a store with `definePluginStore` and reaches it through

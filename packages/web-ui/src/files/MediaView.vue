@@ -38,7 +38,7 @@ import { t } from './locales/text'
  *   shows.
  */
 const props = defineProps<{
-  /** Whether the tab is the panel's selection. */
+  /** Whether the tab is the work's selection. */
   shown: boolean
   /** Where the medium it showed stands in the conversation's series, which it shows again after a reload. */
   place?: MediumPlace

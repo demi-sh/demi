@@ -3,7 +3,7 @@
 //!
 //! The host reaches both through [`PluginStore`] and [`PluginChanges`] alone:
 //! each user's switches and device directories, the plugins' values, secrets,
-//! reports and OAuth clients, each conversation's work panel and the device it
+//! reports and OAuth clients, each conversation's work and the device it
 //! works on.
 
 use std::collections::BTreeMap;
@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 use demi_plugin_interface::{DeviceDirectory, WorkspaceName};
 use demi_shared_types::{BlobRef, Timestamp};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, WorkspaceId};
-use demi_web_api_protocol::panel::{PanelChange, PanelEffect, WorkPanel};
+use demi_web_api_protocol::work::{WorkChange, WorkEffect, Work};
 use futures_util::future::LocalBoxFuture;
 use serde_json::Value;
 
@@ -102,14 +102,14 @@ pub struct PluginReport {
 
 /// What a request of changes came to.
 #[derive(Debug, Clone, PartialEq)]
-pub enum PanelOutcome {
-    /// The changes are in the panel, which is at `revision` now; each that
+pub enum WorkOutcome {
+    /// The changes are in the work, which is at `revision` now; each that
     /// had something to do did this.
     Changed {
         revision: u64,
-        effects: Vec<PanelEffect>,
+        effects: Vec<WorkEffect>,
     },
-    /// The changes had nothing to do; the panel stays at `revision`.
+    /// The changes had nothing to do; the work stays at `revision`.
     Unchanged {
         revision: u64,
     },
@@ -186,14 +186,14 @@ pub trait PluginStore {
         value: Value,
     ) -> Stored<'_, bool>;
 
-    /// The conversation's work panel.
-    fn panel(&self, conversation: ConversationId) -> Stored<'_, WorkPanel>;
+    /// The conversation's work.
+    fn work(&self, conversation: ConversationId) -> Stored<'_, Work>;
 
-    fn change_panel(&self, conversation: ConversationId, changes: Vec<PanelChange>) -> Stored<'_, PanelOutcome>;
+    fn change_work(&self, conversation: ConversationId, changes: Vec<WorkChange>) -> Stored<'_, WorkOutcome>;
 
-    /// Removes the tabs of `kinds` from every panel of `owner`'s
-    /// conversations, and answers the conversations whose panel changed.
-    fn close_panel_kinds(&self, owner: UserId, kinds: Vec<String>) -> Stored<'_, Vec<ConversationId>>;
+    /// Removes the tabs of `kinds` from the work of `owner`'s
+    /// conversations, and answers the conversations whose work changed.
+    fn close_tab_kinds(&self, owner: UserId, kinds: Vec<String>) -> Stored<'_, Vec<ConversationId>>;
 
     /// The device the conversation works on, from the records: none for a
     /// conversation whose device does not exist yet. It asks no device.
@@ -216,7 +216,7 @@ pub trait PluginChanges {
     /// The plugin's state for the user.
     fn plugin_changed(&self, plugin: String);
 
-    /// The conversation's entry in the list, which carries its work panel.
+    /// The conversation's entry in the list, which carries its work.
     fn conversation_changed(&self, conversation: ConversationId);
 
     /// The conversation's metadata, which carries each plugin's revision of

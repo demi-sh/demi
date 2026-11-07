@@ -1,7 +1,7 @@
 import { computed, defineComponent, h, onBeforeUnmount, type PropType } from 'vue'
 import { z } from 'zod'
 import { Smartphone } from '@lucide/vue'
-import { ICON_PX, SystemLogo, usePage, type PanelKind, type PanelWindow } from '@demicodes/plugin-sdk'
+import { ICON_PX, SystemLogo, usePage, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
 import MobileTabContent from './MobileTabContent.vue'
 import OpenMenu from './OpenMenu.vue'
 import OpeningStatus from './OpeningStatus.vue'
@@ -41,7 +41,7 @@ const MobileTabMark = defineComponent({
 })
 
 /** The simulators' window, a tab per simulator or emulator the conversation opened. */
-const simulatorsWindow: PanelWindow = { id: 'simulators', name: () => t('window.name'), icon: Smartphone }
+const simulatorsWindow: WindowKind = { id: 'simulators', name: () => t('window.name'), icon: Smartphone }
 
 /**
  * The `mobile` tab kind over `store`: a device's live view, whose content
@@ -49,7 +49,7 @@ const simulatorsWindow: PanelWindow = { id: 'simulators', name: () => t('window.
  * by the agent's command or the user's choice in the taskbar's Open
  * (`openMenu`), never as a blank tab, so the kind has no New entry.
  */
-export function mobileDeviceKind(store: MobileStore): PanelKind<MobileTabData> {
+export function mobileDeviceKind(store: MobileStore): TabKind<MobileTabData> {
   /** The conversation's simulators on the page, watched while the component is mounted. */
   function watching(conversation: string) {
     const watched = usePage().store(store).watch(conversation)
@@ -70,7 +70,7 @@ export function mobileDeviceKind(store: MobileStore): PanelKind<MobileTabData> {
     setup(props, { emit }) {
       const page = usePage()
       const controller = watching(props.conversation)
-      const shown = computed(() => new Set(page.panel.tabs(props.conversation, KIND).flatMap((data) => {
+      const shown = computed(() => new Set(page.work.tabs(props.conversation, KIND).flatMap((data) => {
         const parsed = mobileTabDataSchema.safeParse(data)
         return parsed.success ? [parsed.data.device] : []
       })))

@@ -1,5 +1,5 @@
 // The `browser` plugin's page (`packages/plugin-sdk/src/index.ts`): its
-// `browser` work panel kind with the live view, its store of each
+// `browser` tab kind with the live view, its store of each
 // conversation's browser, and the types of its state, parameters, results and
 // stream, generated from the plugin's manifest.
 import { definePage } from '@demicodes/plugin-sdk'

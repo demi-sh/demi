@@ -4,7 +4,7 @@ import { BrowserTabsError, asTabsError, type BrowserTabsApi } from './live/tabs'
 import { PluginCallError, type ConversationPlugin } from '@demicodes/plugin-sdk'
 import {
   browserTabsSchema,
-  panelReasonSchema,
+  controlReasonSchema,
   tabBoundSchema,
   tabMovedSchema,
   type BindTab,
@@ -28,7 +28,7 @@ const BIND_TIMEOUT_MS = 310_000
  * read, says which.
  */
 function tabsError(error: PluginCallError): BrowserTabsError {
-  const reason = panelReasonSchema.safeParse(error.reason)
+  const reason = controlReasonSchema.safeParse(error.reason)
   if (reason.success) {
     return BrowserTabsError.of(reason.data)
   }
@@ -49,7 +49,7 @@ function tabsError(error: PluginCallError): BrowserTabsError {
  * backend when the store releases that browser, as when the plugin is turned
  * off, is dropped and never sent (`packages/web-ui/src/plugins/page.ts`).
  */
-export function browserTabsApi(plugin: ConversationPlugin, select: (panelTab: string) => void): BrowserTabsApi {
+export function browserTabsApi(plugin: ConversationPlugin, select: (workTab: string) => void): BrowserTabsApi {
   const tabs = plugin.state(browserTabsSchema)
   const session = new AbortController()
   onScopeDispose(() => session.abort())
@@ -58,7 +58,7 @@ export function browserTabsApi(plugin: ConversationPlugin, select: (panelTab: st
       return await plugin.call(method, params, answer, { timeoutMs, signal: session.signal })
     } catch (error) {
       if (session.signal.aborted) {
-        // Dropped with the panel: the abort, which nothing reports.
+        // Dropped with the work: the abort, which nothing reports.
         throw error
       }
       // Anything but a refusal has no code.
@@ -78,8 +78,8 @@ export function browserTabsApi(plugin: ConversationPlugin, select: (panelTab: st
         return error ? tabsError(error) : null
       }),
     },
-    bind: async (panelTab) => {
-      const bound = await call('bind', { panelTab } satisfies BindTab, tabBoundSchema, BIND_TIMEOUT_MS)
+    bind: async (workTab) => {
+      const bound = await call('bind', { workTab } satisfies BindTab, tabBoundSchema, BIND_TIMEOUT_MS)
       return bound.tab
     },
     select,

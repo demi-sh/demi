@@ -46,7 +46,7 @@ import { keepFileTree } from './conversation/file-tree'
 import { useConversations } from './conversation/store'
 import { useConversationNavigation } from './conversation/navigation'
 import { useWorkspaces } from './state/workspaces'
-import { useWorkPanel } from './conversation/work'
+import { useWork } from './conversation/work'
 import { useResources } from './state/resources'
 import { useSession } from './auth/session'
 import { claimDevice, useInstallCommands } from './devices/pairing'
@@ -300,15 +300,15 @@ const findable = computed(() => {
   const id = activeId.value
   return conversations.items.find((item) => item.id === id)?.persistence === 'synced' ? id : null
 })
-// The panel opens per conversation; the frame shows the open conversation's.
-const work = useWorkPanel()
-// Before its panel arrives: what the panel held when the conversation came on screen decides what opens it on a phone.
+// Each conversation has its work; the frame shows the open conversation's.
+const work = useWork()
+// Before its work arrives: what the work held when the conversation came on screen decides what opens it on a phone.
 watch(activeId, (conversationId) => work.shown(conversationId), { immediate: true })
 // What the viewer shows is the open conversation's: another's Media tab
 // shows the medium it showed, found again in its own transcript.
 watch(activeId, () => mediaViewer.close())
-// The open conversation's tabs are read with its panel closed too, since the frame then mounts no
-// panel: a tab a kind asks to show opens it.
+// The open conversation's tabs are read with no window open too, since the frame then mounts no
+// window: a tab a kind asks to show opens its window.
 watch(
   [activeId, () => activeId.value !== null && work.recorded(activeId.value)],
   ([conversationId]) => {

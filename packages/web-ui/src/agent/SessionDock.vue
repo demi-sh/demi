@@ -47,7 +47,7 @@ const emit = defineEmits<{
 }>()
 
 // What waits for a decision stands over the dock's top and takes no room in it,
-// so a panel the dock opened keeps its size and place under it. The surface
+// so a window over the dock keeps its size and place under it. The surface
 // keeps the transcript clear of it.
 const coverRef = ref<HTMLElement>()
 const { height: coverHeight } = useElementSize(coverRef, { width: 0, height: 0 }, { box: 'border-box' })
@@ -160,7 +160,7 @@ const iconPx = useIconPx()
     </Transition>
     <!--
       What waits for the user's decision sits over the chips, below the
-      transcript, and over the lower part of an open panel.
+      transcript, and over the lower part of a window there.
     -->
     <div v-if="$slots.above" ref="coverRef" class="absolute inset-x-0 bottom-full pb-2">
       <slot name="above" />

@@ -66,7 +66,7 @@ fn an_archived_conversation_takes_its_last_activity_as_its_archive_time() {
 }
 
 #[test]
-fn a_panel_loses_its_widget_tabs_and_keeps_the_others() {
+fn a_conversations_work_loses_its_widget_tabs_and_keeps_the_others() {
     let shipped = include_str!("../../src/schema/control/from_0_1_5979.sql");
     let mut connection = Connection::open_in_memory().unwrap();
     connection.execute_batch(shipped).unwrap();
@@ -83,11 +83,11 @@ fn a_panel_loses_its_widget_tabs_and_keeps_the_others() {
         )
         .unwrap();
     migrate(DatabaseKind::Control, &mut connection).unwrap();
-    let panels = query(&connection, "SELECT conversation_id, revision, document FROM conversation_panels ORDER BY 1", |row| {
+    let works = query(&connection, "SELECT conversation_id, revision, document FROM conversation_work ORDER BY 1", |row| {
         Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?, row.get::<_, String>(2)?))
     });
     assert_eq!(
-        panels,
+        works,
         vec![
             ("c1".to_owned(), 5, r#"{"tabs":[{"id":"t1","kind":"file","data":{"path":"a.md"}}],"retired":["t0","t2"]}"#.to_owned()),
             ("c2".to_owned(), 2, r#"{"tabs":[{"id":"t1","kind":"file","data":{}}],"retired":[]}"#.to_owned()),

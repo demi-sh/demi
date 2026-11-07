@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 import type { z } from 'zod'
-import type { PanelTab } from '../panel-tabs'
+import type { WorkTab } from '../work-tabs'
 import type { TitleText } from '../../ui/ui-text'
 
 /** A command of a tab's menu that its kind offers, such as Reload. */
@@ -17,7 +17,7 @@ export interface TabCommand {
  * id, unique across plugins, its name and its icon, which its title bar and
  * its taskbar button show.
  */
-export interface PanelWindow {
+export interface WindowKind {
   id: string
   name(): string
   icon: Component
@@ -34,12 +34,12 @@ export interface PanelWindow {
  * know nothing else about a kind: the protocol, stream or routes its tabs use
  * stay behind `content`.
  */
-export interface PanelTabKind<Data = unknown> {
+export interface BoundTabKind<Data = unknown> {
   kind: string
   /** A tab's `data`, checked where the saved state enters the page. */
   schema: z.ZodType<Data>
   /** The window its tabs open in. */
-  window: PanelWindow
+  window: WindowKind
   /** The data of a new tab the window's + opens; absent, it opens tabs only by intents. */
   start?(): Data
   // A method, so kinds of different data fit one list of kinds.
@@ -60,15 +60,15 @@ export interface PanelTabKind<Data = unknown> {
   busy?(data: Data, id: string): boolean
   /**
    * The tab's content. Props: `tabId`, `data`, and `shown`, whether the tab is
-   * the panel's selection. Emits `update` with the tab's next `data` and,
+   * the work's selection. Emits `update` with the tab's next `data` and,
    * for a change that is no step of the history, a `TabUpdate` saying so;
-   * and `close` to have the panel close the tab as its user would.
+   * and `close` to have its window close the tab as its user would.
    */
   content: Component
   /**
-   * The kind has one tab in every conversation's panel, ahead of the user's
-   * tabs, which is never created, closed or saved; its data starts here and
-   * lives in the page's memory. Its id is the kind's id.
+   * The kind is its window's one view, such as Files, there in every
+   * conversation, which is never created, closed or saved; its data starts
+   * here and lives in the page's memory. Its id is the kind's id.
    */
   pinned?: { data(): Data }
   /**
@@ -95,17 +95,17 @@ export interface PanelTabKind<Data = unknown> {
   opening?: Component
 }
 
-/** A tab with its kind and checked data, or why the panel cannot show it. */
-export type ResolvedPanelTab =
-  | { tab: PanelTab; kind: PanelTabKind; data: unknown; title: string }
-  | { tab: PanelTab; kind: null; data: null; title: string }
+/** A tab with its kind and checked data, or why no window can show it. */
+export type ResolvedTab =
+  | { tab: WorkTab; kind: BoundTabKind; data: unknown; title: string }
+  | { tab: WorkTab; kind: null; data: null; title: string }
 
 /**
- * The tab as the panel shows it. A tab of an unknown kind, or whose data does
+ * The tab as the windows show it. A tab of an unknown kind, or whose data does
  * not fit its kind, stays in the strip and says so: the page never repairs or
  * drops a saved tab.
  */
-export function resolvePanelTab(tab: PanelTab, kinds: readonly PanelTabKind[]): ResolvedPanelTab {
+export function resolveTab(tab: WorkTab, kinds: readonly BoundTabKind[]): ResolvedTab {
   const kind = kinds.find((candidate) => candidate.kind === tab.kind)
   if (!kind) {
     return { tab, kind: null, data: null, title: tab.kind }

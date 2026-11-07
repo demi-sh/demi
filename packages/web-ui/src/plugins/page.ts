@@ -18,7 +18,7 @@ import {
 import { schemaRefusal } from '@demicodes/protocol'
 import type { Pinia } from 'pinia'
 import { z } from 'zod'
-import type { PanelTabKind, PanelWindow, TabCommand } from '../agent/panel-kinds/kind'
+import type { BoundTabKind, WindowKind, TabCommand } from '../agent/tab-kinds/kind'
 import type { DeviceArtifact, DeviceDownload } from '../devices/installed'
 import type { ChangeSetSource, ReadCallChange } from '../files/changes'
 import type { CommitHistorySource } from '../files/history'
@@ -35,11 +35,11 @@ import type { IntentName, IntentPayloads, IntentRequest } from './intents'
 import { pluginCache, type PluginCache } from './cache'
 import { pluginStore, type PluginStore } from './stores'
 import type { OpenUserStream } from './streams'
-import type { PanelPlace } from './place'
+import type { TabPlace } from './place'
 import type { Operation } from '../ui/operations'
 import type { HeadlineText, SentenceText } from '../ui/ui-text'
 
-export type { PanelWindow }
+export type { WindowKind }
 
 /**
  * A plugin's page: the object it declares with `definePage`, and the page
@@ -65,9 +65,9 @@ export type { PanelWindow }
  *   an operation of the page, which goes on when the component that showed the
  *   control goes. A control that only sends input to what the user watches, such
  *   as a simulator's Home, waits for nothing: the picture shows the effect.
- * - Tab kinds are data on the page, so the panel knows every kind of
- *   every page the user has on before it opens, and an intent can open a kind
- *   while the panel is closed.
+ * - Tab kinds are data on the page, so the conversation's windows know every
+ *   kind of every page the user has on before any opens, and an intent can
+ *   open a kind whose window is closed.
  * - Intents are the only way a page opens a tab. A control that opens one asks
  *   first whether any page does, and shows plain text otherwise.
  * - What follows from a tab being created or closed, such as the browser closing
@@ -75,7 +75,7 @@ export type { PanelWindow }
  * - What a page keeps live, such as a device's connection and last picture,
  *   lives in its stores (`./stores.ts`), from the plugin's first use while the
  *   user has it on until it is turned off; a component that shows it only
- *   follows it. The panel binds only the pages' kinds and holds no session,
+ *   follows it. The windows bind only the pages' kinds and hold no session,
  *   each page's apart, so turning one plugin on or off touches no other's.
  *
  * `web-ui` knows no plugin, no plugin's kind and no plugin's types, imports no
@@ -187,7 +187,7 @@ export interface ConversationFileService {
 
 /** Opening intents. */
 export interface IntentService {
-  /** Opens `request` in the conversation's panel; what the panel already shows stays as it is (`openIntent`). */
+  /** Opens `request` in the window of the kind that opens it; what the windows already show stays as it is (`openIntent`). */
   open(conversation: string, request: IntentRequest): void
   /** Whether any page the user has on opens `intent`; a control that would open it shows only then. */
   canOpen(intent: IntentName): boolean
@@ -275,23 +275,23 @@ export interface PageHost {
   deviceStarting(conversation: string): boolean
   files(conversation: string): ConversationFileService
   intents: IntentService
-  /** The panel tabs of one conversation. */
-  panel: {
-    /** The `data` of the panel's tabs of `kind`, as saved. */
+  /** The work tabs of one conversation. */
+  work: {
+    /** The `data` of the work's tabs of `kind`, as saved. */
     tabs(conversation: string, kind: string): unknown[]
     /**
-     * Selects the tab `id` of `kind` and opens the panel, as a browser
-     * selects the tab a click opened; a tab the panel does not have yet is
-     * selected once it arrives.
+     * Brings the window of the tab `id` of `kind` to the front on it, as a
+     * browser selects the tab a click opened; a tab the work does not have
+     * yet is shown once it arrives.
      */
     select(conversation: string, kind: string, id: string): void
     /**
      * Whether the web browser's Back or Forward would stay in the
-     * conversation's work panel, read reactively: an address bar of the
-     * panel offers it only then.
+     * conversation's windows, read reactively: an address bar in a window
+     * offers it only then.
      */
     canGo(conversation: string, direction: HistoryDirection): boolean
-    /** The web browser's Back or Forward, as the panel's address bar takes it. */
+    /** The web browser's Back or Forward, as the work's address bar takes it. */
     go(direction: HistoryDirection): void
   }
   /** The user's workspaces, read reactively. */
@@ -388,8 +388,8 @@ export interface PagePlugin {
 export interface PageContext {
   readonly plugin: PagePlugin
   readonly intents: IntentService
-  /** The panel tabs of the page's own kinds. */
-  readonly panel: PageHost['panel']
+  /** The work tabs of the page's own kinds. */
+  readonly work: PageHost['work']
   readonly settings: { open(section: string): void }
   /** The user's workspaces and the tab's, read reactively. */
   readonly workspaces: PageHost['workspaces']
@@ -430,7 +430,7 @@ export interface KindTab {
  * A tab kind, declared once on its page. Its functions are methods, so kinds of different
  * data fit one list.
  */
-export interface PanelKind<Data> {
+export interface TabKind<Data> {
   /** Its id, unique across plugins. */
   kind: string
   /** A tab's `data`, checked where saved state enters the page. */
@@ -439,7 +439,7 @@ export interface PanelKind<Data> {
    * The window its tabs open in, which the kinds of one window share, as the
    * same object: Media's and an attachment's tabs open in Attachments.
    */
-  window: PanelWindow
+  window: WindowKind
   /**
    * The data of a new tab, which the window's + and the taskbar's + open;
    * without it the kind opens tabs only by intents. Never for a pinned kind.
@@ -475,26 +475,26 @@ export interface PanelKind<Data> {
   /**
    * The tab's content.
    *
-   * - Props: `conversation`, `tabId`, `data`, and `shown`, whether the tab is the
-   *   panel's selection. What it keeps live beyond its mount is in its page's
-   *   stores.
+   * - Props: `conversation`, `tabId`, `data`, and `shown`, whether the tab is
+   *   the one its window shows, on screen. What it keeps live beyond its mount
+   *   is in its page's stores.
    * - Emits `update` with the tab's next `data` and, for a change that is no
-   *   step of the history, a `TabUpdate` that says so; and `close` to have the
-   *   panel close the tab as its user would.
+   *   step of the history, a `TabUpdate` that says so; and `close` to have its
+   *   window close the tab as its user would.
    */
   content: Component
   /**
-   * The kind has one tab in every conversation's panel, ahead of the user's
-   * tabs, which is never created, closed or saved; its data starts here and
-   * lives in the page's memory. Its id is the kind's id.
+   * The kind is its window's one view, such as Files, there in every
+   * conversation, which is never created, closed or saved; its data starts
+   * here and lives in the page's memory. Its id is the kind's id.
    */
   pinned?: { data(): Data }
   /**
-   * Where the pinned tab is, which the page's address holds while the panel
-   * shows it (`./place.ts`); without it the address names the tab alone. A
+   * Where the pinned tab is, which the page's address holds while its window
+   * is in front (`./place.ts`); without it the address names the tab alone. A
    * tab that is not pinned is named by its id, which says where it is.
    */
-  place?: PanelPlace<Data>
+  place?: TabPlace<Data>
   /**
    * What the tab's menu offers before its Close commands, such as a
    * browser tab's Reload, read when the menu opens.
@@ -503,7 +503,7 @@ export interface PanelKind<Data> {
   /**
    * How many times something asked that the user see the tab, from its
    * data. When the count rises above the one the page last applied for the
-   * tab, the panel opens and selects it, open or closed before.
+   * tab, its window comes to the front on it, open or closed before.
    */
   shows?(data: Data): number
   /** What the strip shows after a pinned tab's title, such as its counts. Props: `conversation`, `data`. */
@@ -568,7 +568,7 @@ export interface PluginPage {
   /** A section of the settings dialog. */
   settings?: PluginSettingsSection
   /** The kinds of tab it shows in the conversation's windows. */
-  kinds?: readonly PanelKind<unknown>[]
+  kinds?: readonly TabKind<unknown>[]
   /** The blocks it draws in replies. */
   blocks?: readonly ReplyBlock[]
 }
@@ -781,14 +781,14 @@ function deviceNumber(host: PageHost): number {
   return number
 }
 
-/** The context of `page` over `host`: its own plugin, and the panel tabs of its own kinds. */
+/** The context of `page` over `host`: its own plugin, and the work tabs of its own kinds. */
 export function pageContext(host: PageHost, page: AnyPluginPage): PageContext {
   const own = (kind: string) => {
     if (!(page.kinds ?? []).some((candidate) => candidate.kind === kind)) {
       throw new Error(`the page of ${page.plugin} has no kind ${kind}`)
     }
   }
-  // A call its caller dropped, as a panel that closed, failed nothing anyone
+  // A call its caller dropped, as a window that closed, failed nothing anyone
   // waits for: neither a toast nor the console says anything of it.
   const errors: PageContext['errors'] = {
     report: (message, error) => {
@@ -835,17 +835,17 @@ export function pageContext(host: PageHost, page: AnyPluginPage): PageContext {
       blockDocument: (tag, id) => host.blockDocument(page.plugin, tag, id),
     },
     intents: host.intents,
-    panel: {
+    work: {
       tabs(conversation, kind) {
         own(kind)
-        return host.panel.tabs(conversation, kind)
+        return host.work.tabs(conversation, kind)
       },
       select(conversation, kind, id) {
         own(kind)
-        host.panel.select(conversation, kind, id)
+        host.work.select(conversation, kind, id)
       },
-      canGo: (conversation, direction) => host.panel.canGo(conversation, direction),
-      go: (direction) => host.panel.go(direction),
+      canGo: (conversation, direction) => host.work.canGo(conversation, direction),
+      go: (direction) => host.work.go(direction),
     },
     settings: { open: (section) => host.openSettings(section) },
     workspaces: host.workspaces,
@@ -891,17 +891,17 @@ export const PageScope = defineComponent({
 })
 
 /**
- * The panel's kinds of `page` for `conversation`: each kind's functions and
+ * The work's kinds of `page` for `conversation`: each kind's functions and
  * components bound to the conversation and the page's context.
  */
-export function bindPage(page: AnyPluginPage, host: PageHost, conversation: string): PanelTabKind[] {
+export function bindPage(page: AnyPluginPage, host: PageHost, conversation: string): BoundTabKind[] {
   const context = pageContext(host, page)
   const tab: KindTab = { conversation, page: context }
   return (page.kinds ?? []).map((kind) => bindKind(kind, tab, context))
 }
 
 /**
- * The panel's kinds of the pages `pages()` names now, in their order, for
+ * The work's kinds of the pages `pages()` names now, in their order, for
  * `conversation()`. Each page is bound apart (`bindPage`): a page that joins is
  * bound, and the others keep the kinds they had, so turning one plugin on or
  * off remounts no other's tab; a change of conversation binds every page anew.
@@ -910,15 +910,15 @@ export function useBoundKinds(
   pages: () => readonly AnyPluginPage[],
   host: PageHost,
   conversation: () => string | null,
-): ComputedRef<PanelTabKind[]> {
-  const bound = shallowRef(new Map<string, PanelTabKind[]>())
+): ComputedRef<BoundTabKind[]> {
+  const bound = shallowRef(new Map<string, BoundTabKind[]>())
   let boundFor: string | null = null
   watch(
     [() => pages().map((page) => page.plugin).join(), conversation],
     () => {
       const now = conversation()
-      const kept = now === boundFor ? bound.value : new Map<string, PanelTabKind[]>()
-      const next = new Map<string, PanelTabKind[]>()
+      const kept = now === boundFor ? bound.value : new Map<string, BoundTabKind[]>()
+      const next = new Map<string, BoundTabKind[]>()
       if (now !== null) {
         for (const page of pages()) {
           next.set(page.plugin, kept.get(page.plugin) ?? bindPage(page, host, now))
@@ -932,8 +932,8 @@ export function useBoundKinds(
   return computed(() => [...bound.value.values()].flat())
 }
 
-/** `kind` as the panel shows it for one conversation. */
-function bindKind(kind: PanelKind<unknown>, tab: KindTab, context: PageContext): PanelTabKind {
+/** `kind` as the windows show it for one conversation. */
+function bindKind(kind: TabKind<unknown>, tab: KindTab, context: PageContext): BoundTabKind {
   const content = defineComponent({
     props: {
       tabId: { type: String, required: true },
@@ -997,7 +997,7 @@ export function intentKind(
   pages: readonly AnyPluginPage[],
   enabled: (plugin: string) => boolean,
   intent: IntentName,
-): PanelKind<unknown> | null {
+): TabKind<unknown> | null {
   for (const page of pages) {
     if (!enabled(page.plugin)) {
       continue

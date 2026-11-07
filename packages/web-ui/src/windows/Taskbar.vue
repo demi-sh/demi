@@ -79,7 +79,7 @@ export interface TaskbarOpen {
   /** Whether choosing it opens a new tab in its window. */
   newTab?: boolean
   /**
-   * The rows it offers as a submenu, its window's kind's (`PanelTabKind.openMenu`):
+   * The rows it offers as a submenu, its window's kind's (`BoundTabKind.openMenu`):
    * choosing one opens its window.
    */
   menu?: Component

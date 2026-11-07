@@ -22,7 +22,7 @@
 //!    conversation's `attachment` sequence, with the file it came from: the
 //!    invocation's device and the file's full path as that device writes it,
 //!    which a card of a file that is no image or video opens in the Files
-//!    panel in the copy's place while the page can read it.
+//!    window in the copy's place while the page can read it.
 //!
 //! The command returns no medium: the attachment is for the user.
 //!
@@ -464,7 +464,7 @@ async fn store(
     })
     .await??;
     // The full path of the file the device read, as it writes it, which a file
-    // card opens in the Files panel in the copy's place.
+    // card opens in the Files window in the copy's place.
     let (sha256, full_path) = match hash {
         // A file that grew past the limit since the device looked at its size
         // is refused all the same.

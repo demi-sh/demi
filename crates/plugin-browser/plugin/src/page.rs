@@ -6,10 +6,10 @@
 //! last reported, which the backend keeps, so reading it asks no device and
 //! works while the device is away. Closing, moving and stopping a tab operate the browser without
 //! waking it; opening a tab is work the user starts. Opening and closing
-//! browser tabs for panel tabs is the panel's work ([`crate::panel`]), through
+//! browser tabs for work tabs is [`crate::tabs`]'s, through
 //! the same operations.
 //!
-//! - A user waits in the panel, not in a script, so for a `user` caller
+//! - A user waits in a window, not in a script, so for a `user` caller
 //!   `tab.new`, `open`, `back`, `forward` and `reload` answer once their work
 //!   started, and the navigations name the number of the last tab list before
 //!   the request. The page ends its loading only on a list numbered after it.
@@ -19,7 +19,7 @@
 //! - A method that does not wake a stopped Cloud is admitted as a user stream
 //!   is and ends as one does (`conversation_busy` when streams end).
 //! - The reasons the methods, stream and device access can give are one closed
-//!   set ([`PanelReason`]) that the page must cover whole, so a reason without
+//!   set ([`ControlReason`]) that the page must cover whole, so a reason without
 //!   a sentence is a build error, never a fallback.
 
 use demi_command_declarations::NativeOperation;
@@ -39,8 +39,8 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::panel::{KIND, Work};
-use crate::reason::PanelReason;
+use crate::tabs::{KIND, Work};
+use crate::reason::ControlReason;
 
 /// The conversation state: the conversation browser's tabs, none while it
 /// does not run.
@@ -49,16 +49,16 @@ pub struct BrowserTabs {
     pub tabs: Vec<BrowserTab>,
 }
 
-/// `bind { panelTab }`: a browser tab for the panel tab, which Retry and
+/// `bind { workTab }`: a browser tab for the work tab, which Retry and
 /// Reload ask for.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct BindTab {
-    pub panel_tab: String,
+    pub work_tab: String,
 }
 
-/// What `bind` answers: the browser tab the panel tab shows now, so the page
-/// knows its data is up to date once it names that tab; none when the panel
+/// What `bind` answers: the browser tab the work tab shows now, so the page
+/// knows its data is up to date once it names that tab; none when the work
 /// no longer has the tab or no browser tab could be opened for it, which its
 /// data says.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -109,12 +109,12 @@ fn operation(name: &str) -> NativeOperation {
 }
 
 /// The page: its tab list, its methods, each declared with the operations
-/// it calls, and its panel kind, whose tabs the plugin brings up to date
+/// it calls, and its tab kind, whose tabs the plugin brings up to date
 /// whenever the browser package says the conversation's tabs changed.
 pub(crate) fn page() -> Page {
     Page::new("@demicodes/plugin-browser")
         .conversation_state(State::new::<BrowserTabs>().calls(operation("tab.list")).held())
-        .panel_kind(KIND)
+        .tab_kind(KIND)
         .method(
             Method::new::<BindTab, TabBound>("bind", Scope::Conversation)
                 .calls(operation("tab.new"))
@@ -135,7 +135,7 @@ pub(crate) fn page() -> Page {
             Method::new::<StopTab, TabMoved>("stop", Scope::Conversation)
                 .calls(operation("stop")),
         )
-        .reasons::<PanelReason>()
+        .reasons::<ControlReason>()
 }
 
 /// The conversation state: the browser's tabs as its package last reported
@@ -162,7 +162,7 @@ async fn reported(port: &PluginPort) -> Result<Option<BrowserTabs>, PluginError>
 
 /// Keeps `tabs` as what the package on `device` reported, at `revision`;
 /// answers whether `device` is the conversation's primary device, whose tabs
-/// its panel shows.
+/// its work shows.
 pub(crate) async fn keep(
     port: &PluginPort,
     device: &DeviceId,
@@ -240,8 +240,8 @@ async fn run_method(
 ) -> Result<Value, PluginError> {
     match method {
         "bind" => {
-            let BindTab { panel_tab } = decode(params)?;
-            let tab = work.bind(conversation, port, &panel_tab).await?;
+            let BindTab { work_tab } = decode(params)?;
+            let tab = work.bind(conversation, port, &work_tab).await?;
             to_value(TabBound { tab })
         }
         "navigate" => {
@@ -330,11 +330,11 @@ fn moved(navigated: Result<NavigationResult, PortFailure>) -> Result<TabMoved, P
 /// The tab a call names; one that is no tab's id is a tab the browser does
 /// not have.
 fn tab_id(tab: String) -> Result<TabId, PluginError> {
-    TabId::try_from(tab).map_err(|_| refusal(PanelReason::TabNotFound, "No such tab".to_owned()))
+    TabId::try_from(tab).map_err(|_| refusal(ControlReason::TabNotFound, "No such tab".to_owned()))
 }
 
 /// A refusal the page says in its words for `reason`.
-fn refusal(reason: PanelReason, message: String) -> PluginError {
+fn refusal(reason: ControlReason, message: String) -> PluginError {
     PluginError::refused(reason.to_string(), message)
 }
 
@@ -372,7 +372,7 @@ fn refused(failure: PortFailure) -> PluginError {
     }
     match failure {
         PortFailure::Refused(PortRefusal::Resident { message }) => {
-            refusal(PanelReason::BrowserUnavailable, message)
+            refusal(ControlReason::BrowserUnavailable, message)
         }
         failure => failure.into(),
     }

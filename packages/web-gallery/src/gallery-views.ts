@@ -51,7 +51,7 @@ function galleryViews(): Record<string, readonly GalleryViewOption[]> {
       { value: 'turns', label: t('views.session.turns') },
       { value: 'states', label: t('views.session.states') },
       { value: 'session', label: t('views.session.session') },
-      { value: 'panel', label: t('views.session.panel') },
+      { value: 'frame', label: t('views.session.frame') },
       { value: 'windows', label: t('views.session.windows') },
       { value: 'taskbar', label: t('views.session.taskbar') },
       { value: 'shared', label: t('views.session.shared') },

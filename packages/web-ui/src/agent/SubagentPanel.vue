@@ -10,7 +10,7 @@ import AgentMessageList from './AgentMessageList.vue'
 import AgentStatusBar from './AgentStatusBar.vue'
 import RequestOutputMeter from './RequestOutputMeter.vue'
 import { provideLiveCalls } from './live-calls'
-import { agentCompaction, subagentActivity, subagentPanelTabs, type SubagentRecord } from './subagents'
+import { agentCompaction, subagentActivity, subagentTabs, type SubagentRecord } from './subagents'
 import { useCallTerminals, type TerminalRecord } from './terminals'
 import { latestBlocks, shownWindow, windowEdges, type TranscriptReveal } from './history'
 import type { UsageLimits } from './context-usage'
@@ -22,7 +22,7 @@ import { shownError, type ShownError } from '../infra/errors'
 /**
  * What the Agents window shows: the child `activeId` names, its transcript
  * and its status bar, or that none runs. The window's tabs are the running
- * children and the one shown (`subagentPanelTabs`).
+ * children and the one shown (`subagentTabs`).
  */
 
 const props = withDefaults(
@@ -104,7 +104,7 @@ const emit = defineEmits<{
 /** The child it shows; none shows it empty, as it opens when no child runs. */
 const activeId = defineModel<string | null>('activeId', { required: true })
 
-const tabs = computed(() => subagentPanelTabs(props.agents, activeId.value))
+const tabs = computed(() => subagentTabs(props.agents, activeId.value))
 const active = computed(() => tabs.value.find((agent) => agent.id === activeId.value) ?? null)
 const commandOf = useCallTerminals(() => props.terminals)
 provideLiveCalls((toolUseId) => active.value ? commandOf(active.value.id, toolUseId) : undefined)

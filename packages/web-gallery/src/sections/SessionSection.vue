@@ -59,7 +59,7 @@ import { provideEditSelection } from '@demicodes/web-ui/agent/edit-selection'
 import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
 import GalleryWorkWindows from '../components/GalleryWorkWindows.vue'
 import { gallerySessionWork } from '../fixtures/session-work'
-import { galleryFiles, useGalleryWork, type GalleryWork } from '../fixtures/work-panel'
+import { galleryFiles, useGalleryWork, type GalleryWork } from '../fixtures/work'
 import { galleryHistory } from '../fixtures/browser-history'
 import {
   changePath,
@@ -77,8 +77,8 @@ import {
 import { LINKED_COMMIT, sharedHistory } from '../fixtures/history'
 import { COMMITS_HEIGHT } from '@demicodes/web-ui/files/file-view'
 import type { CommitHistorySource } from '@demicodes/web-ui/files/history'
-import { selectedTab } from '@demicodes/web-ui/agent/panel-tabs'
-import type { PanelTabKind } from '@demicodes/web-ui/agent/panel-kinds/kind'
+import { selectedTab } from '@demicodes/web-ui/agent/work-tabs'
+import type { BoundTabKind } from '@demicodes/web-ui/agent/tab-kinds/kind'
 import { BrowserTabsError, browserTabDataSchema, startingLabel, type StartingPhase } from '@demicodes/plugin-browser/live/tabs'
 import { SERVER_FAILED } from '../fixtures/plugins'
 import type { ChangeMode, ChangeSetSource, ChangeSources } from '@demicodes/web-ui/files/changes'
@@ -546,11 +546,11 @@ watch(
   },
   { immediate: true },
 )
-// The Panel view: the whole app frame, with the conversation's work in windows over it.
-const panelSidebarWidth = ref<number>(SIDEBAR_WIDTH.default)
-const panelProjects = ref(demoProjects())
-const panelConversations = ref(demoConversations())
-const panelActiveConversationId = ref<string | null>('c-login')
+// The Frame view: the whole app frame, with the conversation's work in windows over it.
+const frameSidebarWidth = ref<number>(SIDEBAR_WIDTH.default)
+const frameProjects = ref(demoProjects())
+const frameConversations = ref(demoConversations())
+const frameActiveConversationId = ref<string | null>('c-login')
 /** The frame's search window, over the sidebar's conversations and the session's messages, which belong to c-login. */
 const frameSearchOpen = ref(false)
 /** The message a search result opened the session at, until the session has shown it. */
@@ -558,7 +558,7 @@ const frameReveal = ref<TranscriptReveal | null>(null)
 /** The block a receipt's name in the Session view asked to bring into view, until the session has shown it. */
 const sessionReveal = ref<TranscriptReveal | null>(null)
 const frameSearchable = computed(() =>
-  panelConversations.value.map((conversation) => ({
+  frameConversations.value.map((conversation) => ({
     conversationId: conversation.id,
     title: conversation.title,
     archived: false,
@@ -582,13 +582,13 @@ function openFrameSearch(scoped: boolean): void {
 /** Opens the session at the message its search found, as the product does. */
 function openFrameMessage(row: MessageRow): void {
   frameSearchOpen.value = false
-  panelActiveConversationId.value = 'c-login'
+  frameActiveConversationId.value = 'c-login'
   frameReveal.value = { node: null, blockId: row.blockId }
 }
 /** Opens what the search found, as the product does: the conversation, at the message that matched. */
 function openFrameResult(row: SearchRow): void {
   frameSearchOpen.value = false
-  panelActiveConversationId.value = row.conversationId
+  frameActiveConversationId.value = row.conversationId
   frameReveal.value = row.match ? { node: null, blockId: row.match.blockId } : null
 }
 /**
@@ -684,7 +684,7 @@ function useChangeTab(
   then: (data: ChangeData) => ChangeData = (data) => data,
 ) {
   const tab = ref(then(request ? showRequestEdit(firstChangeData(), request) : showChange(firstChangeData(), mode, path)))
-  /** What the view showed, as the web browser's history keeps the product's panel. */
+  /** What the view showed, as the web browser's history keeps the product's windows. */
   const steps = galleryHistory(() => ({ open: true, data: tab.value }), (step) => (tab.value = step.data))
   /** A move of the view: a step Back returns from. */
   function move(next: ChangeData) {
@@ -770,9 +770,9 @@ const quotedTree = ref(false)
 const unchosenPath = ref<string | null>(null)
 const unchosenTree = ref(true)
 // The frame's conversation has opened no browser tab yet: its strip starts empty.
-const panelWork = useWorkTabs('change', { browser: galleryBrowser([]) })
+const frameWork = useWorkTabs('change', { browser: galleryBrowser([]) })
 /** The frame's work, which its conversation's windows show. */
-const panelSessionWork = gallerySessionWork(panelWork)
+const frameSessionWork = gallerySessionWork(frameWork)
 /** Opens the taskbar's prototype in a browser tab of its own, filling it. */
 function openTaskbarFrame() {
   window.open('/taskbar-frame', '_blank')
@@ -780,7 +780,7 @@ function openTaskbarFrame() {
 /** The agent opens a page, showing it to the user or checking it itself, as `demi browser tab new` and `open [--show]` do. */
 function agentOpens(show: boolean) {
   productWould(show ? 'The Agent Opens a Page and Shows It' : 'The Agent Opens a Page to Check It')
-  void panelWork.agentOpens(show ? 'https://example.test/orders' : 'https://example.test/docs', show)
+  void frameWork.agentOpens(show ? 'https://example.test/orders' : 'https://example.test/docs', show)
 }
 /**
  * Whether the conversation's device is online, as the attachments specimen's
@@ -788,31 +788,31 @@ function agentOpens(show: boolean) {
  * only while it is.
  */
 const deviceOnline = ref(true)
-/** The session's messages reach the gallery project: images from its fixtures, files opened in the frame's panel. */
+/** The session's messages reach the gallery project: images from its fixtures, files opened in the frame's windows. */
 const sessionFiles = {
   ...galleryConversationFiles(project.source, ({ path, line }) => {
-    // From the session page, which shows no panel, a click opens the frame's.
-    panelWork.openIn({ intent: 'file', payload: line === null ? { path } : { path, line } })
-    view.value = 'panel'
+    // From the session page, which shows no window, a click opens the frame's.
+    frameWork.openIn({ intent: 'file', payload: line === null ? { path } : { path, line } })
+    view.value = 'frame'
   }, ({ commit, root }) => {
-    panelWork.openIn({ intent: 'commit', payload: { commit, ...(root === undefined ? {} : { root }) } })
-    view.value = 'panel'
+    frameWork.openIn({ intent: 'commit', payload: { commit, ...(root === undefined ? {} : { root }) } })
+    view.value = 'frame'
   }, ({ path }) => {
-    panelWork.openIn({ intent: 'file', payload: { path, tree: true } })
-    view.value = 'panel'
+    frameWork.openIn({ intent: 'file', payload: { path, tree: true } })
+    view.value = 'frame'
   }, (id, { name, size, url }) => {
-    panelWork.openIn({ intent: 'attachment', payload: { id, name, size, url } })
-    view.value = 'panel'
+    frameWork.openIn({ intent: 'attachment', payload: { id, name, size, url } })
+    view.value = 'frame'
   }),
   attachmentOrigin: galleryAttachmentOrigin(project.source, () => deviceOnline.value),
 }
 /** The user's credentials the credential cards name. */
 const sessionCredentials = galleryCredentials()
-// The session's pictures and videos open in the Media tab of the frame's panel, as a conversation's do.
+// The session's pictures and videos open in the Media tab of the frame's windows, as a conversation's do.
 provideMediaViewer({
   reveal: () => {
-    panelWork.openIn({ intent: 'media', payload: {} })
-    view.value = 'panel'
+    frameWork.openIn({ intent: 'media', payload: {} })
+    view.value = 'frame'
     return true
   },
 })
@@ -928,13 +928,13 @@ const changeStale = useChangeTab('commits', 'src/auth/cookie.ts', {
 const browserWork = useWorkTabs('change', { path: '' })
 /** The browser tab the specimen shows, as its kind reads it. */
 const shownBrowserTab = computed(() => {
-  const tab = selectedTab(browserWork.panel.value, browserWork.kinds.value)
+  const tab = selectedTab(browserWork.tabsState.value, browserWork.kinds.value)
   const parsed = tab?.kind === 'browser' ? browserTabDataSchema.safeParse(tab.data) : null
   return parsed?.success ? (parsed.data.tab ?? null) : null
 })
-/** The browser tab the panel does not show that the agent shows next, as `demi browser show` would. */
+/** The browser tab the window does not show that the agent shows next, as `demi browser show` would. */
 const toShow = computed(() => browserWork.browser.listed.value.tabs.find((tab) => tab.id !== shownBrowserTab.value) ?? null)
-/** The agent shows that tab: once its job ends, the panel selects it, once per showing. */
+/** The agent shows that tab: once its job ends, its window comes to the front on it, once per showing. */
 function agentShows() {
   const tab = toShow.value
   if (tab === null) {
@@ -943,7 +943,7 @@ function agentShows() {
   productWould(`The Agent Shows ${tab.title || tab.id}`)
   void browserWork.agentShows(tab.id)
 }
-/** Closes the page behind the panel's back, as the agent's `tab close` would; the view finds it gone and the plugin removes its tab. */
+/** Closes the page behind the work's back, as the agent's `tab close` would; the view finds it gone and the plugin removes its tab. */
 function closeOnDevice() {
   const tab = shownBrowserTab.value
   if (tab !== null) {
@@ -954,7 +954,7 @@ function closeOnDevice() {
 function endBrowser() {
   browserWork.browser.end()
 }
-/** Turns the browser plugin off or on, as Settings does, while the panel stays open. */
+/** Turns the browser plugin off or on, as Settings does, while the work stays open. */
 function switchBrowserPlugin() {
   const on = !browserWork.enabled('browser')
   browserWork.setEnabled('browser', on)
@@ -1016,7 +1016,7 @@ function failNextOnServer() {
 }
 // The same conversation browser, viewed in a web browser that cannot decode H.264, such as a Chromium without
 // proprietary codecs.
-/** The device-offline specimen: the panel of a conversation whose primary device's runner is not connected. */
+/** The device-offline specimen: the windows of a conversation whose primary device's runner is not connected. */
 const offlineWork = useWorkTabs('change')
 const deviceOfflineName = ref<string | null>('alex-laptop')
 const undecodedWork = useWorkTabs('change', { path: '', pictures: async () => false })
@@ -1031,7 +1031,7 @@ function stopCapture() {
   browserWork.browser.stopCapture()
   // What it does shows on a browser tab: a specimen showing another kind shows its first browser tab.
   if (shownBrowserTab.value === null) {
-    const tab = browserWork.panel.value.tabs.find((candidate) => candidate.kind === 'browser')
+    const tab = browserWork.tabsState.value.tabs.find((candidate) => candidate.kind === 'browser')
     if (tab) {
       browserWork.select(tab.id)
     }
@@ -1040,7 +1040,7 @@ function stopCapture() {
 // A conversation its first send has not created: no page is bound beside it.
 const unstartedWork = useGalleryWork(null, { files, pages: [] })
 /**
- * A reload's first view of Files: the conversation is in the list, so the panel shows its frame and
+ * A reload's first view of Files: the conversation is in the list, so the window shows its frame and
  * tabs, and its opening has not brought the working directory yet. The first view says what it reads
  * from its start, and shows the view once the directory is known.
  */
@@ -1183,7 +1183,7 @@ function dockOfflineDevice(name: string): OfflineDevice {
   }
 }
 
-// The frame's and the Session view's pills open their requests in the frame's panel.
+// The frame's and the Session view's pills open their requests in the frame's windows.
 useGalleryTranscripts(() => ({
   blocks: session.blocks,
   subagents: session.subagents.map((agent) => ({ id: agent.id, blocks: latestBlocks(agent.history) })),
@@ -1191,7 +1191,7 @@ useGalleryTranscripts(() => ({
 const changesFlow = useTurnFlow({ id: 'gallery-changes', title: 'Cookie rename', blocks: changesDemoBlocks() })
 useGalleryTranscripts(() => ({ blocks: changesFlow.state.blocks, subagents: [] }))
 useGalleryTranscripts(() => ({ blocks: workFlow.state.blocks, subagents: [] }))
-/** The requests of the Request’s Changes specimens, which the panel under them reads as the product reads a conversation. */
+/** The requests of the Request’s Changes specimens, which the window under them reads as the product reads a conversation. */
 const signInBlocks = signInRequestBlocks('sign-in')
 const signInOffBlocks = signInRequestBlocks('sign-in-off')
 const signInOutsideBlocks = signInRequestBlocks('sign-in-outside')
@@ -1583,17 +1583,17 @@ onBeforeUnmount(() => {
         <GallerySpecimen variant="narrow · overflows" wide>
           <GalleryTabStripDrive width="32rem" />
         </GallerySpecimen>
-        <GallerySpecimen variant="crowded · panel width, the last of five selected" wide>
+        <GallerySpecimen variant="crowded · window width, the last of five selected" wide>
           <GalleryTabStripDrive width="37.25rem" :pages="5" select="last" />
         </GallerySpecimen>
-        <GallerySpecimen variant="overflowing · panel width, 25 tabs, the last selected" wide>
+        <GallerySpecimen variant="overflowing · window width, 25 tabs, the last selected" wide>
           <GalleryTabStripDrive width="37.25rem" :pages="25" select="last" />
         </GallerySpecimen>
         <GallerySpecimen variant="wide · pane width" wide>
           <GalleryTabStripDrive />
         </GallerySpecimen>
-        <GallerySpecimen variant="long file name · panel width, File selected" wide>
-          <GalleryTabStripDrive width="37.25rem" :pages="3" file="docs/notes/2026-10-17-crowded-work-panel-regression-investigation-notes.md" />
+        <GallerySpecimen variant="long file name · window width, File selected" wide>
+          <GalleryTabStripDrive width="37.25rem" :pages="3" file="docs/notes/2026-10-17-crowded-taskbar-regression-investigation-notes.md" />
         </GallerySpecimen>
       </GallerySection>
     </template>
@@ -2176,7 +2176,7 @@ onBeforeUnmount(() => {
 
       <GallerySection
         title="SessionDock"
-        note="What waits over the composer stacks one 8px step apart: the cards, then the chips, then the composer. The chips sit directly on the composer and nothing comes between them: a permission card, the offline device’s card or a notice stands above the chips. A part that is not there takes no room, so without chips a card sits one step above the composer, as the chips do without a card. The permission card stands over the dock’s top rather than in it: the transcript keeps clear of it, and a panel the dock opened keeps its place under it (Panel Under a Permission Card). The scroll-to-bottom control follows the chips, or stands at the row’s left end with none, and takes no room either: without a row it floats over the transcript where the row would be."
+        note="What waits over the composer stacks one 8px step apart: the cards, then the chips, then the composer. The chips sit directly on the composer and nothing comes between them: a permission card, the offline device’s card or a notice stands above the chips. A part that is not there takes no room, so without chips a card sits one step above the composer, as the chips do without a card. The permission card stands over the dock’s top rather than in it: the transcript keeps clear of it, and a window over the dock keeps its place under it (Window Under a Permission Card). The scroll-to-bottom control follows the chips, or stands at the row’s left end with none, and takes no room either: without a row it floats over the transcript where the row would be."
       >
         <div class="specimen-stack">
           <GallerySpecimen
@@ -2392,7 +2392,7 @@ onBeforeUnmount(() => {
       </GallerySection>
       <GallerySection
         title="Files in a Message"
-        note="Every link in a message wears an icon, so each reads as the kind of thing it opens. A file of the device a reply names is a link with the file's icon before its name, the icon the file tree shows, and 0.2em of space on each side, outside its underline, as an agent's link has; a commit link, [text](commit:3f2a9c1), or [text](commit:vendor/parser@3f2a9c1) for a commit of the repository in that folder, read as a relative link's path is, shows the commit icon the branch menu uses for a detached head before its text, spaced the same way, and a click opens the commit in the Change view of the frame's panel; a web page's link shows the link icon, spaced the same way, and opens in a new tab; a link whose text is an image, as a badge's is, wears none. A click on a file opens it in the File view of the frame's panel, and a #L42 after the path opens it at line 42, scrolled there and marked for a moment as a search result is. A link's color says where it leads: a web page's link is in the accent color, as a link on a page is, while a file's and a commit's read as part of the sentence, in the prose's color over a faint underline, as an agent's does, told apart by their icons, the commit icon in orange as Git's own mark; fixed colors for each kind would meet the accent the user picks (Settings › Appearance), an orange accent making the web's links read as commits. A link is one color: code in its text drops code's look and reads as the link's words, in the link's color, while code outside a link keeps its own; a Markdown document's links wear no icon and keep code's monospace and fill in the link's color (Markdown, Edge Cases, Shown As Document). Inline code that reads as a path, one with a slash or a name with an extension and an optional :line, opens too when the device has the file, as a link of words with the file's icon: the page asks the device once for the reply's paths together, after the reply is complete. Here the gallery answers for the device from its demo project, so src/auth/token.ts, which it lacks, stays code; a bare name such as cookie is never asked about."
+        note="Every link in a message wears an icon, so each reads as the kind of thing it opens. A file of the device a reply names is a link with the file's icon before its name, the icon the file tree shows, and 0.2em of space on each side, outside its underline, as an agent's link has; a commit link, [text](commit:3f2a9c1), or [text](commit:vendor/parser@3f2a9c1) for a commit of the repository in that folder, read as a relative link's path is, shows the commit icon the branch menu uses for a detached head before its text, spaced the same way, and a click opens the commit in the Change view of the frame's windows; a web page's link shows the link icon, spaced the same way, and opens in a new tab; a link whose text is an image, as a badge's is, wears none. A click on a file opens it in the File view of the frame's windows, and a #L42 after the path opens it at line 42, scrolled there and marked for a moment as a search result is. A link's color says where it leads: a web page's link is in the accent color, as a link on a page is, while a file's and a commit's read as part of the sentence, in the prose's color over a faint underline, as an agent's does, told apart by their icons, the commit icon in orange as Git's own mark; fixed colors for each kind would meet the accent the user picks (Settings › Appearance), an orange accent making the web's links read as commits. A link is one color: code in its text drops code's look and reads as the link's words, in the link's color, while code outside a link keeps its own; a Markdown document's links wear no icon and keep code's monospace and fill in the link's color (Markdown, Edge Cases, Shown As Document). Inline code that reads as a path, one with a slash or a name with an extension and an optional :line, opens too when the device has the file, as a link of words with the file's icon: the page asks the device once for the reply's paths together, after the reply is complete. Here the gallery answers for the device from its demo project, so src/auth/token.ts, which it lacks, stays code; a bare name such as cookie is never asked about."
       >
         <GallerySpecimen variant="links, a line, code in links, code paths the device has and lacks" wide>
           <GalleryMessageFiles :files="sessionFiles" :cwd="project.root" :content="namedFilesMarkdown" :code-files="namedCodeFiles(project.root)" />
@@ -3498,7 +3498,7 @@ onBeforeUnmount(() => {
       </GallerySection>
       <GallerySection
         title="Working Directory"
-        note="A child works in a directory of its own (What an Agent Runs On): here it was spawned into another checkout of the project, checkouts/2, and moved into src/auth. The page reads every relative path against the directory the child wrote it in, so its first link, src/auth/cookie.ts, opens the file of its checkout and not the conversation's file of the same name, and its second, cookie.ts, written after the move, opens the same file by its short name. The File view opens for that directory: its path bar shows the whole path and its tree is the checkout's. The file pill under the child's edit opens the Change view for the same directory, and the folder in the bar's left group opens the File view on the directory's tree. The panel's own tabs, here File, stay on the conversation's directory until a link of a child opens them for its own. The child's bar shows the branch checked out in its folder (What an Agent Runs On); pressing it opens the Change view in Commits mode on that folder and that branch, and Check Out Another Branch steps the child's folder through two branches and a detached HEAD, as a checkout would, the bar following at once. While a child runs, the File tab's caption, the directory's name, is a menu of the conversation's directories and the child's, with a check at the one shown; choosing the child's shows its tree. The menu lists the conversation's directory, each running child's, and the one shown, each once: stopping the child whose directory is shown leaves it in the menu, still checked, so the way back to the conversation's stays."
+        note="A child works in a directory of its own (What an Agent Runs On): here it was spawned into another checkout of the project, checkouts/2, and moved into src/auth. The page reads every relative path against the directory the child wrote it in, so its first link, src/auth/cookie.ts, opens the file of its checkout and not the conversation's file of the same name, and its second, cookie.ts, written after the move, opens the same file by its short name. The File view opens for that directory: its path bar shows the whole path and its tree is the checkout's. The file pill under the child's edit opens the Change view for the same directory, and the folder in the bar's left group opens the File view on the directory's tree. The work's own tabs, here File, stay on the conversation's directory until a link of a child opens them for its own. The child's bar shows the branch checked out in its folder (What an Agent Runs On); pressing it opens the Change view in Commits mode on that folder and that branch, and Check Out Another Branch steps the child's folder through two branches and a detached HEAD, as a checkout would, the bar following at once. While a child runs, the File tab's caption, the directory's name, is a menu of the conversation's directories and the child's, with a check at the one shown; choosing the child's shows its tree. The menu lists the conversation's directory, each running child's, and the one shown, each once: stopping the child whose directory is shown leaves it in the menu, still checked, so the way back to the conversation's stays."
       >
         <GalleryAgentDirectory />
       </GallerySection>
@@ -3510,7 +3510,7 @@ onBeforeUnmount(() => {
       </GallerySection>
       <GallerySection
         title="What an Agent Runs On"
-        note="The Agents window's bar says what a child is doing and what it runs on in segments, as an editor's status bar does: each item stands in its own segment, told apart by spacing, never by dividers. A segment that acts when pressed, the folder, the branch, Forked from agent N and the context indicator, shows a hover background over its whole extent, reaching to within the bar's small inset of the window's edge, the same on every side it touches, and Tab reaches it with a focus ring (one specimen pins that background, the branch’s included); a segment that only explains, the state, the profile and the model, shows its tip and no background. Two groups say what a child is doing and what it runs on. On the left: the child's state dot, the one its tab wears, breathing while its model works and still while it only waits for a command it left running (the cookie child), the state, Running, Finished, Stopped or Failed, how long the round has run, in the duration words of the reset times (42s, 16m 48s, 1h 5m) and counting with the page's clock while it runs, the device it works on when that is not the conversation's, by its name and glyph, which a move of the conversation leaves it on (that child's folder only explains and it shows no branch, as the File view looks at the conversation's device), the folder it works in, its own name with the whole path as its tip, which opens the File view on that directory's tree (a toast here, naming the directory; the next section opens a real panel), the branch checked out in that folder, after it, with the branch icon, or HEAD and the commit while HEAD is detached, nothing while the folder is in no repository or its device is away, which opens the Change view in Commits mode on that folder and branch (a toast here), and Forked from agent N for a fork, a link to that agent: its mark and the click of a message's link, which opens the Agents window on its tab here, shown in its own segment. The round is not shown. On the right: the profile as a tag, none for the inherit profile; the model's name as the model menu shows it, pointed at naming the provider and the full name, and for the inherit profile Inherited from this conversation; the effort, or Thinking off; Fast when it is on. Where the room runs out, Forked from gives way first, then the branch, then the model's name and the folder's name, which leaves the folder's icon and its tip; the state and the time always stay (the last four specimens, by width). The Agents window shows it as a bar along its bottom edge (an ended child's bar has no context indicator: finished, stopped and failed show none)."
+        note="The Agents window's bar says what a child is doing and what it runs on in segments, as an editor's status bar does: each item stands in its own segment, told apart by spacing, never by dividers. A segment that acts when pressed, the folder, the branch, Forked from agent N and the context indicator, shows a hover background over its whole extent, reaching to within the bar's small inset of the window's edge, the same on every side it touches, and Tab reaches it with a focus ring (one specimen pins that background, the branch’s included); a segment that only explains, the state, the profile and the model, shows its tip and no background. Two groups say what a child is doing and what it runs on. On the left: the child's state dot, the one its tab wears, breathing while its model works and still while it only waits for a command it left running (the cookie child), the state, Running, Finished, Stopped or Failed, how long the round has run, in the duration words of the reset times (42s, 16m 48s, 1h 5m) and counting with the page's clock while it runs, the device it works on when that is not the conversation's, by its name and glyph, which a move of the conversation leaves it on (that child's folder only explains and it shows no branch, as the File view looks at the conversation's device), the folder it works in, its own name with the whole path as its tip, which opens the File view on that directory's tree (a toast here, naming the directory; the next section opens a real window), the branch checked out in that folder, after it, with the branch icon, or HEAD and the commit while HEAD is detached, nothing while the folder is in no repository or its device is away, which opens the Change view in Commits mode on that folder and branch (a toast here), and Forked from agent N for a fork, a link to that agent: its mark and the click of a message's link, which opens the Agents window on its tab here, shown in its own segment. The round is not shown. On the right: the profile as a tag, none for the inherit profile; the model's name as the model menu shows it, pointed at naming the provider and the full name, and for the inherit profile Inherited from this conversation; the effort, or Thinking off; Fast when it is on. Where the room runs out, Forked from gives way first, then the branch, then the model's name and the folder's name, which leaves the folder's icon and its tip; the state and the time always stay (the last four specimens, by width). The Agents window shows it as a bar along its bottom edge (an ended child's bar has no context indicator: finished, stopped and failed show none)."
       >
         <GalleryReceipts :agents="agents" @abort="sessionFlow.abortSubagents" @abort-agent="sessionFlow.abortSubagent">
           <GallerySpecimen v-for="run in runLines" :key="run.id" :variant="runLineVariants[run.id] ?? run.name" wide>
@@ -3952,17 +3952,17 @@ onBeforeUnmount(() => {
       </GallerySection>
     </template>
 
-    <template v-if="view === 'panel'">
+    <template v-if="view === 'frame'">
       <GallerySection
         title="The Frame"
-        note="The app frame: the sidebar, then the conversation with its work in windows over it and the taskbar under it. A file, a change, a page or an attachment the conversation names opens in its window, floating in the middle of the area above the composer; Esc puts the front window away. Drag a window by its title bar to move it, onto the area’s right quarter to dock it beside the conversation; the taskbar’s buttons show, hide and pick a window’s tab, and its + menu opens one. Reset Panel restores the initial selections."
+        note="The app frame: the sidebar, then the conversation with its work in windows over it and the taskbar under it. A file, a change, a page or an attachment the conversation names opens in its window, floating in the middle of the area above the composer; Esc puts the front window away. Drag a window by its title bar to move it, onto the area’s right quarter to dock it beside the conversation; the taskbar’s buttons show, hide and pick a window’s tab, and its + menu opens one. Reset Windows restores the initial selections."
       >
         <GallerySpecimen variant="frame · live" wide>
           <!-- The well holds what the frame fixes to the window on a phone, the sidebar's
                drawer, so it covers this frame, not the specimens below. -->
           <GalleryOverlayWell size="tall" class="w-full">
           <div class="gallery-frame flex h-[44rem] w-full overflow-hidden">
-            <SidebarLayout v-model:width="panelSidebarWidth" class="w-full">
+            <SidebarLayout v-model:width="frameSidebarWidth" class="w-full">
               <template #sidebar>
                 <AppSidebar
                   :new-shortcut="appShortcuts().find((shortcut) => shortcut.id === 'new')?.keys"
@@ -3970,14 +3970,14 @@ onBeforeUnmount(() => {
                   :settings-shortcut="appShortcuts().find((shortcut) => shortcut.id === 'settings')?.keys"
                   @search="openFrameSearch(false)"
                   :account="demoAccount"
-                  :projects="panelProjects"
-                  @switch-saved-scope="(id, scope, to) => (panelProjects = savedScopeSwitched(panelProjects, id, scope, to))"
-                  :conversations="panelConversations"
-                  :active-id="panelActiveConversationId"
+                  :projects="frameProjects"
+                  @switch-saved-scope="(id, scope, to) => (frameProjects = savedScopeSwitched(frameProjects, id, scope, to))"
+                  :conversations="frameConversations"
+                  :active-id="frameActiveConversationId"
                   :section-entries="sidebarEntries(PLUGIN_PAGES, () => true)"
-                  @select="(id) => (panelActiveConversationId = id)"
-                  @archive="(ids) => (panelConversations = panelConversations.filter((conversation) => !ids.includes(conversation.id)))"
-                  @delete="(ids) => (panelConversations = panelConversations.filter((conversation) => !ids.includes(conversation.id)))"
+                  @select="(id) => (frameActiveConversationId = id)"
+                  @archive="(ids) => (frameConversations = frameConversations.filter((conversation) => !ids.includes(conversation.id)))"
+                  @delete="(ids) => (frameConversations = frameConversations.filter((conversation) => !ids.includes(conversation.id)))"
                   @open-settings="(section) => productWould(section ? `Open ${section} Settings` : 'Open Settings')"
                   @hand-off="productWould('Open Hand Off to Another Device')"
                   @sign-out="productWould('Sign Out')"
@@ -3989,12 +3989,12 @@ onBeforeUnmount(() => {
                 :reveal="frameReveal"
                 @revealed="frameReveal = null"
                 @reveal="(at) => (frameReveal = at)"
-                :work="panelSessionWork"
+                :work="frameSessionWork"
                 :share="shareService"
                 searchable
                 :find-shortcut="appShortcuts().find((shortcut) => shortcut.id === 'find')?.keys"
                 @find="openFrameSearch(true)"
-                :select-edit="panelWork.selectEdit"
+                :select-edit="frameWork.selectEdit"
                 :files="sessionFiles"
                 :pending-submissions="sessionFlow.pendingSubmissions.value"
                 :removing="sessionFlow.removing.value"
@@ -4044,7 +4044,7 @@ onBeforeUnmount(() => {
           </GalleryOverlayWell>
         </GallerySpecimen>
         <div class="flex gap-2">
-          <Button size="sm" @click="panelWork.reset">Reset Panel</Button>
+          <Button size="sm" @click="frameWork.reset">Reset Windows</Button>
           <!-- What the agent's `demi browser tab new` and `open` do, with `--show` or without: the browser tells the plugin of the new tab. -->
           <Button size="sm" @click="agentOpens(true)">Open and Show a Page as the Agent</Button>
           <Button size="sm" @click="agentOpens(false)">Open a Page to Check as the Agent</Button>
@@ -4102,7 +4102,7 @@ onBeforeUnmount(() => {
             <!-- What the agent's `demi browser show` does once its job ends. -->
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" :disabled="toShow === null" @click="agentShows">Show Another Tab as the Agent</Button>
-              <span>The panel selects the tab the agent shows, once per showing.</span>
+              <span>The browser window comes to the front on the tab the agent shows, once per showing.</span>
             </div>
             <!-- A notice the picture still shows through, as the device sends one for input it could not deliver. -->
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
@@ -4389,7 +4389,7 @@ onBeforeUnmount(() => {
         :conversation="session"
         has-provider
         :share="shareService"
-        :select-edit="(selection) => { panelWork.selectEdit(selection); view = 'panel' }"
+        :select-edit="(selection) => { frameWork.selectEdit(selection); view = 'frame' }"
         :files="sessionFiles"
         :edit-version="editVersion"
         :permission-requests="sessionRequests"

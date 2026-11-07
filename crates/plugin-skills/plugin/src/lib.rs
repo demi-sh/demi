@@ -346,7 +346,7 @@ impl Plugin for Instance {
                     let code = commands::run(&self.0, *invocation, &port).await?;
                     Ok(Reply::Exit { code })
                 }
-                Request::PanelTab { .. } => Err(PluginError::undeclared("panel kind")),
+                Request::TabClosed { .. } => Err(PluginError::undeclared("tab kind")),
                 Request::ReplyBlocks { .. } | Request::ReplyBlockDocument { .. } => {
                     Err(PluginError::undeclared("reply blocks"))
                 }

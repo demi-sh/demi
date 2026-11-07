@@ -420,7 +420,7 @@
     "placeholder": "アドレスを入力",
     "label": "ブラウザーのアドレス"
   },
-  "panel": {
+  "work": {
     "more": "その他",
     "reading": "{name}を読み取っています",
     "deviceOffline": "{name} はオフラインです。",

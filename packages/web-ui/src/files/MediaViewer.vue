@@ -51,10 +51,10 @@ const size = ref<PixelSize | null>(null)
 const zoom = ref<number | null>(null)
 const floating = ref<InstanceType<typeof FloatingWindow>>()
 // A medium the page shows in its Attachments window is not the window's.
-const open = computed(() => props.viewer.shown.value !== null && !props.viewer.inPanel.value)
+const open = computed(() => props.viewer.shown.value !== null && !props.viewer.inWindow.value)
 
 watch(() => props.viewer.shown.value, (shown, previous) => {
-  if (!shown || props.viewer.inPanel.value)
+  if (!shown || props.viewer.inWindow.value)
     return
   medium.value = shown
   size.value = shown.size ?? null

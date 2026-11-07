@@ -15,7 +15,7 @@ import { t } from '../locales/text'
  *
  * The toolbar:
  *
- * - Starts with the panel's controls, each the operation of the command that
+ * - Starts with the window's controls, each the operation of the command that
  *   does the same.
  * - Ends with the device's model in grey where it fits whole, when it says
  *   more than the tab's name, which the tab already shows with its system's
@@ -36,7 +36,7 @@ const device = props.session.device(props.data)
 /** Whether the device records, as the device says, whoever started it. */
 const recording = computed(() => device.recording)
 /**
- * Whether this panel started the recording that runs. A recording it started
+ * Whether this window started the recording that runs. A recording it started
  * that ends without its Stop, at the limit of its time or its size, gives it
  * the video all the same.
  */
@@ -112,7 +112,7 @@ function act(control: DeviceControl): Promise<void> | undefined {
   return undefined
 }
 
-/** The toolbar's actions, in the controls' order; those a narrow panel has no room for go into More. */
+/** The toolbar's actions, in the controls' order; those a narrow window has no room for go into More. */
 const actions = computed<ToolbarAction[]>(() => controls.value.map((control) => {
   const state = { recording: recording.value, fold: device.fold }
   const pressed = control.pressed?.(state) ?? false

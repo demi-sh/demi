@@ -6,7 +6,7 @@ import { BROWSER_TAB_KIND } from '@demicodes/plugin-browser/live/store'
 import { changesPage } from '@demicodes/plugin-changes'
 import { fileBrowserPage } from '@demicodes/plugin-file-browser'
 import { galleryBrowser } from '../fixtures/live-browser'
-import { galleryFiles, useGalleryWork } from '../fixtures/work-panel'
+import { galleryFiles, useGalleryWork } from '../fixtures/work'
 import { createGalleryProject } from '../fixtures/project'
 import GalleryWorkWindows from './GalleryWorkWindows.vue'
 
@@ -44,7 +44,7 @@ const work = useGalleryWork(null, {
   browser: galleryBrowser([]),
   pages: [changesPage, fileBrowserPage, browserPage()],
 })
-const { panel } = work
+const { tabsState } = work
 let opened = 0
 
 function openPage(): void {
@@ -81,7 +81,7 @@ let stopped = false
 
 /** The tabs in strip order. */
 function ids(): string[] {
-  return panel.value.tabs.map((tab) => tab.id)
+  return tabsState.value.tabs.map((tab) => tab.id)
 }
 
 function selectAt(index: number): void {

@@ -10,7 +10,7 @@ import { apiRequest, jsonBody, readResponse } from '../api/client'
 import { conversationFiles } from '../conversation/files'
 import { directRoute } from '../direct'
 import { directStream } from '../direct/operations'
-import { useWorkPanel } from '../conversation/work'
+import { useWork } from '../conversation/work'
 import { useConversations } from '../conversation/store'
 import { useProduct } from '../state/product'
 import { packageDownloading, packageInstalled } from '../state/installed'
@@ -36,7 +36,7 @@ import { usePluginSettings } from '../settings/plugins'
  * - What a conversation's primary device holds of its packages, from that
  *   device's in the product state, and whether that device is a Cloud that does
  *   not run, from the Cloud's state there.
- * - The shell's own services: the conversations' files, intents and panels, and
+ * - The shell's own services: the conversations' files, intents and work, and
  *   the settings dialog.
  * - The app's Pinia, which holds the plugins' stores; a plugin the user turns
  *   off has its stores disposed then, and only its own.
@@ -73,7 +73,7 @@ export function productPageHost(): PageHost {
     throw new Error('the plugin pages\' host is made in the app, which has its Pinia')
   }
   const product = useProduct()
-  const work = useWorkPanel()
+  const work = useWork()
   const resources = useResources()
   const settings = useSettingsAddress()
   const workspaces = useWorkspaces()
@@ -149,13 +149,11 @@ export function productPageHost(): PageHost {
       open: (conversation, request) => work.openIn(conversation, request),
       canOpen: (intent) => work.canOpen(intent),
     },
-    panel: {
+    work: {
       tabs: (conversation, kind) =>
-        work.stateFor(conversation).panel.tabs.filter((tab) => tab.kind === kind).map((tab) => tab.data),
-      select: (conversation, _kind, id) => {
-        work.select(conversation, id)
-        work.setOpen(conversation, true)
-      },
+        work.stateFor(conversation).tabsState.tabs.filter((tab) => tab.kind === kind).map((tab) => tab.data),
+      // Its window comes to the front on it once the tab is there, as a selection does.
+      select: (conversation, _kind, id) => work.select(conversation, id),
       canGo: (conversation, direction) => work.canGo(conversation, direction),
       go: (direction) => work.go(direction),
     },

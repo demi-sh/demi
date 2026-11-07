@@ -12,7 +12,7 @@ import { t } from '../locales/text'
  */
 const props = defineProps<{
   controller: MobileDevicesController
-  /** The devices whose tabs the panel holds now. */
+  /** The devices whose tabs the work holds now. */
   shown: ReadonlySet<string>
 }>()
 const emit = defineEmits<{ failed: [] }>()

@@ -37,7 +37,7 @@ function keptDevices(page: PageContext, conversation: string, options: MobileCon
   const devices = scope.run(() => new MobileDevicesController(
     mobileApi(page.plugin.conversation(conversation)),
     page.errors,
-    (id) => page.panel.select(conversation, KIND, id),
+    (id) => page.work.select(conversation, KIND, id),
     { cache: page.cache, ...options },
   ))!
   return {

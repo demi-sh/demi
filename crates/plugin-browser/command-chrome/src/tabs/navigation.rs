@@ -588,7 +588,7 @@ where
     });
 }
 
-/// The user's `open`, `reload`, `back` or `forward`: the work panel shows the
+/// The user's `open`, `reload`, `back` or `forward`: the browser window shows the
 /// page loading, so the navigation starts and the answer does not wait for it.
 pub async fn steer(
     tab: &BrowserTab,

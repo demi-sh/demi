@@ -5,7 +5,7 @@
 import { defineComponent, h } from 'vue'
 import { z } from 'zod'
 import { Image, Images } from '@lucide/vue'
-import { ICON_PX, type PanelKind, type PanelWindow } from '@demicodes/plugin-sdk'
+import { ICON_PX, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
 import { t } from './locales/text'
 import MediaTab from './MediaTab.vue'
 
@@ -26,13 +26,13 @@ const MediaMark = defineComponent({
 })
 
 /** Attachments' window: the conversation's pictures and videos, and each attachment opened. */
-export const attachmentsWindow: PanelWindow = { id: 'attachments', name: () => t('window.attachments'), icon: Images, openable: false }
+export const attachmentsWindow: WindowKind = { id: 'attachments', name: () => t('window.attachments'), icon: Images, openable: false }
 
 /**
  * The `media` kind: one tab, which every picture or video opened selects
  * again, showing it in place of the last.
  */
-export const mediaKind: PanelKind<MediaData> = {
+export const mediaKind: TabKind<MediaData> = {
   kind: 'media',
   schema: mediaDataSchema,
   window: attachmentsWindow,

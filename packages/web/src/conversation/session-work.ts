@@ -8,19 +8,19 @@ import { useProduct } from '../state/product'
 import { usePreferences } from '../state/preferences'
 import { executionFor } from '../targets/execution'
 import { useConversations } from './store'
-import { useWorkPanel } from './work'
+import { useWork } from './work'
 
 /**
  * The work of the conversation `conversationId()` names, as its windows show
  * it: its tabs and their address from the work store, the kinds of the plugin
- * pages the user has on bound to it, the layout its panel keeps, and the
+ * pages the user has on bound to it, the layout its work keeps, and the
  * user's pins from the preferences. A conversation its first send has not
  * created yet binds no page and has no tabs.
  */
 export function useSessionWork(conversationId: () => string | null): ComputedRef<SessionWork | undefined> {
   const product = useProduct()
   const preferences = usePreferences()
-  const work = useWorkPanel()
+  const work = useWork()
   const conversations = useConversations()
   const host = usePageHost()
   const kinds = useBoundKinds(
@@ -40,7 +40,7 @@ export function useSessionWork(conversationId: () => string | null): ComputedRef
     const item = conversations.items.find((entry) => entry.id === id)
     const execution = item ? executionFor(item) : null
     return {
-      panel: state.panel,
+      tabsState: state.tabsState,
       pinned: state.pinned,
       kinds: kinds.value,
       tabsRead: state.tabsRead,
@@ -49,7 +49,7 @@ export function useSessionWork(conversationId: () => string | null): ComputedRef
       deviceOffline: execution?.kind === 'device' && execution.state === 'offline' ? execution.name : null,
       open: state.open,
       select: (tab, how) => work.select(id, tab, how),
-      close: () => work.setOpen(id, false),
+      close: () => work.noneInFront(id),
       moveTab: (tab, index) => work.move(id, tab, index),
       updateTab: (tab, data) => work.update(id, tab, data),
       updatePinned: (kind, data, how) => work.updatePinned(id, kind, data, how),

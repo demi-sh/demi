@@ -1,5 +1,5 @@
 //! The live view of the conversation's browser: the user watches the tabs as
-//! the device renders them and operates them in the work panel while the agent
+//! the device renders them and operates them in its window while the agent
 //! keeps using `demi browser` commands on the same tabs.
 //!
 //! This module is the device's side: viewers, the capture of the tabs they watch,

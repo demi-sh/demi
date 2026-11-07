@@ -42,13 +42,13 @@ export function galleryAttachmentOrigin(
  *   for a click with a modifier or the middle button.
  * - The Device's answer about a reply's inline code paths is the gallery's: the
  *   files of its demo project, answered at once.
- * - A file link's Show in Files goes to `showInFiles`, which outside a panel
+ * - A file link's Show in Files goes to `showInFiles`, which outside the frame
  *   says what the product would do.
  * - A commit link's Copy Commit Hash reads the gallery's one repository.
  * - An attachment block's card opens its file through `openAttachment`, which
- *   outside a panel says what the product would do.
+ *   outside the frame says what the product would do.
  * - A subagent's bar reads its branch from `history` and opens it through
- *   `openBranch`, which outside a panel says what the product would do.
+ *   `openBranch`, which outside the frame says what the product would do.
  * - A widget's Share goes to `shareReplyBlock`, which says what the product
  *   would do; a session's opens its share dialog.
  */

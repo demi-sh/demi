@@ -32,7 +32,7 @@ provideKeepPicture(keepGalleryPicture)
 // files, as a conversation's does; a file a click opens says what the product would do.
 const project = createGalleryProject()
 const messageFiles = galleryConversationFiles(project.source, ({ path, line, root }) => {
-  // A child's link or folder says the directory the panel opens for.
+  // A child's link or folder says the directory the Files window opens for.
   const where = root === undefined ? '' : ` in ${baseName(root)}`
   productWould(path === ''
     ? `Open the Folder ${baseName(root ?? project.root)}`

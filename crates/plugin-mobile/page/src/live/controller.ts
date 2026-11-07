@@ -3,14 +3,14 @@
  * which the plugin's store keeps while the plugin is on (`./store.ts`): each
  * open device's live view, on a stream of its own, kept until the device
  * closes, and the
- * panel's controls, each the page method of the command that does the same;
+ * window's controls, each the page method of the command that does the same;
  * and the simulators the user opens from the taskbar's Open, until their
  * tabs are there.
  */
 import { ref, shallowRef, watch, type Ref } from 'vue'
 import { clientPlatform } from '@demicodes/utils'
 import { pageVisibility, picturesSupported, type HeadlineText, type PluginCache } from '@demicodes/plugin-sdk'
-import { LIVE_NO_FOCUSED_FIELD, type FoldResult, type PanelReason, type Simulator } from '../generated/plugin'
+import { LIVE_NO_FOCUSED_FIELD, type FoldResult, type ControlReason, type Simulator } from '../generated/plugin'
 import { MobileError, type MobileApi } from '../devices'
 import { DeviceSession } from './session'
 import type { MobileTabData } from './kind'
@@ -21,7 +21,7 @@ import { t } from '../locales/text'
  * A view notice's words: the reason's own, quoting the viewer's text the
  * notice carries where the reason is about it; never the runner's error text.
  */
-export function noticeText(reason: PanelReason, message: string): string {
+export function noticeText(reason: ControlReason, message: string): string {
   return reason === LIVE_NO_FOCUSED_FIELD ? t(`reasons.${reason}`, { text: message }) : t(`reasons.${reason}`)
 }
 
@@ -70,7 +70,7 @@ export class MobileDevicesController {
   constructor(
     readonly api: MobileApi,
     private readonly errors: MobileErrors,
-    /** Selects the tab `id` of the conversation's panel, once it is there. */
+    /** Selects the tab `id` of the conversation's work, once it is there. */
     private readonly select: (id: string) => void,
     options: MobileControllerOptions = {},
   ) {
@@ -113,7 +113,7 @@ export class MobileDevicesController {
       nativeId: data.nativeId ?? null,
       cache: this.cache,
       platform: this.platform,
-      onNotice: (reason: PanelReason, message: string) =>
+      onNotice: (reason: ControlReason, message: string) =>
         this.errors.report(t('failures.control'), new MobileError(reason, null, noticeText(reason, message))),
       // A device that closed takes its view along; its tab goes with it.
       gone: () => {
@@ -156,7 +156,7 @@ export class MobileDevicesController {
     }
   }
 
-  /** The devices whose tabs the panel holds now: their openings are done. */
+  /** The devices whose tabs the work holds now: their openings are done. */
   shown(devices: ReadonlySet<string>): void {
     if (this.openings.value.some((each) => each.device !== null && devices.has(each.device))) {
       this.openings.value = this.openings.value.filter((each) => each.device === null || !devices.has(each.device))
@@ -173,7 +173,7 @@ export class MobileDevicesController {
   }
 
   /**
-   * The video of a recording this panel started that ended without a press of
+   * The video of a recording this window started that ended without a press of
    * Stop, at its limit: the file on the runner's device that the content saves on the
    * user's computer. None when the runner holds none, as after the device
    * reconnected.

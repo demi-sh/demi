@@ -8,7 +8,7 @@
 //!   device's resident takes its simulators back under their handles, and a stopped
 //!   device's tabs stay as they were until it lists them again.
 //! - Closing a tab closes its device, as `demi mobile close` does.
-//! - A simulator the agent opens on an attached device has no tab: the panel shows
+//! - A simulator the agent opens on an attached device has no tab: the work shows
 //!   the conversation's device's simulators alone.
 //!
 //! One conversation's work runs one piece at a time.
@@ -19,7 +19,7 @@ use std::rc::Rc;
 
 use demi_plugin_interface::{PluginError, PluginPort};
 use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::panel::{CreatePanelTab, PanelTab};
+use demi_web_api_protocol::work::{CreateWorkTab, WorkTab};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tokio::sync::Mutex;
@@ -42,7 +42,7 @@ struct TabData {
 }
 
 impl TabData {
-    fn of(tab: &PanelTab) -> Option<Self> {
+    fn of(tab: &WorkTab) -> Option<Self> {
         (tab.kind == KIND)
             .then(|| serde_json::from_value(Value::Object(tab.data.clone())).ok())
             .flatten()
@@ -75,7 +75,7 @@ impl Work {
         &self,
         conversation: &ConversationId,
         port: &PluginPort,
-        tab: &PanelTab,
+        tab: &WorkTab,
     ) -> Result<(), PluginError> {
         let lock = self.lock(conversation);
         let _turn = lock.lock().await;
@@ -85,7 +85,7 @@ impl Work {
         }
     }
 
-    /// Reads the device's simulators and updates the panel: a tab for each simulator
+    /// Reads the device's simulators and updates the work's tabs: a tab for each simulator
     /// this conversation has open that has none, and each tab whose device
     /// is no longer open removed.
     pub async fn sync(
@@ -95,7 +95,7 @@ impl Work {
     ) -> Result<(), PluginError> {
         let lock = self.lock(conversation);
         let _turn = lock.lock().await;
-        // A stopped device's simulators are as the panel last showed them, until
+        // A stopped device's simulators are as the window last showed them, until
         // it lists them again.
         let Some(listed) = page::list(port).await? else {
             return Ok(());
@@ -114,8 +114,8 @@ impl Work {
             .iter()
             .filter_map(|simulator| simulator.open.as_ref().map(|device| (device.as_str(), simulator)))
             .collect();
-        let panel = port.panel_tabs().await?;
-        let bound: Vec<(String, TabData)> = panel
+        let work = port.work_tabs().await?;
+        let bound: Vec<(String, TabData)> = work
             .tabs
             .iter()
             .filter_map(|tab| TabData::of(tab).map(|data| (tab.id.clone(), data)))
@@ -136,18 +136,18 @@ impl Work {
             if !simulator.model.is_empty() {
                 data.insert("model".into(), Value::from(simulator.model.clone()));
             }
-            let create = CreatePanelTab {
+            let create = CreateWorkTab {
                 id: added_id(device),
                 kind: KIND.into(),
                 data,
                 index: None,
             };
-            port.create_panel_tab(create).await?;
+            port.create_tab(create).await?;
         }
         let present: HashSet<&str> = open.iter().map(|(device, _)| *device).collect();
         for (id, data) in &bound {
             if !present.contains(data.device.as_str()) {
-                port.remove_panel_tab(id.as_str()).await?;
+                port.remove_tab(id.as_str()).await?;
             }
         }
         Ok(())

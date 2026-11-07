@@ -438,14 +438,14 @@ function tree(): MemoryDirectory {
           agent: dir({
             ...files('packages/web-ui/src/agent', [
               'AgentMessageList.vue', 'ChatSession.vue', 'SessionDock.vue', 'SessionSurface.vue',
-              'TabItem.vue', 'TabStrip.vue', 'WorkPanel.vue', 'block-helpers.ts', 'tab-close.ts',
-              'tab-strip.ts', 'work-panel.ts',
+              'TabItem.vue', 'TabStrip.vue', 'Work.vue', 'block-helpers.ts', 'tab-close.ts',
+              'tab-strip.ts', 'work-windows.ts',
             ]),
             blocks: dir(files('packages/web-ui/src/agent/blocks', [
               'AssistantBlock.vue', 'ErrorBlock.vue', 'FileChangePills.vue', 'FunctionalBlock.vue',
               'ThinkingBlock.vue', 'ToolShellBlock.vue', 'UserBlock.vue',
             ])),
-            __tests__: dir(files('packages/web-ui/src/agent/__tests__', ['block-helpers.test.ts', 'work-panel.test.ts'])),
+            __tests__: dir(files('packages/web-ui/src/agent/__tests__', ['block-helpers.test.ts', 'work-windows.test.ts'])),
           }),
           files: dir(files('packages/web-ui/src/files', [
             'FileBrowser.vue', 'FileBrowserAddressBar.vue', 'FileIcon.vue', 'FileTree.vue', 'FileView.vue',
@@ -652,8 +652,8 @@ const changeSides: Record<string, ChangedSides> = {
     modified: '# getting-started\n\nInstall bun, then run the dev server.\n\nThe session cookie is named `session`.\n',
   },
   'docs/demi-next/web-application.md': generatedChange('docs/demi-next/web-application.md', 40, 6),
-  'packages/web-ui/src/agent/WorkPanel.vue': generatedChange('packages/web-ui/src/agent/WorkPanel.vue', 96, 7),
-  'packages/web-ui/src/agent/work-panel.ts': generatedChange('packages/web-ui/src/agent/work-panel.ts', 60, 8),
+  'packages/web-ui/src/agent/Work.vue': generatedChange('packages/web-ui/src/agent/Work.vue', 96, 7),
+  'packages/web-ui/src/agent/work-windows.ts': generatedChange('packages/web-ui/src/agent/work-windows.ts', 60, 8),
   'packages/web-ui/src/agent/blocks/FileChangePills.vue': generatedChange('packages/web-ui/src/agent/blocks/FileChangePills.vue', 84, 9),
   'packages/web-ui/src/files/FileTree.vue': generatedChange('packages/web-ui/src/files/FileTree.vue', 120, 10),
   // Staged new, then edited: VS Code marks it with the working tree's M.

@@ -17,7 +17,7 @@ const pane = usePaneWaiting()
     v-if="pane.waiting.value && pane.slow.value"
     class="visible absolute inset-0 z-10 select-none [&_p]:max-w-full [&_p]:truncate"
     status="loading"
-    :label="t('panel.reading', { name: pane.name.value })"
+    :label="t('work.reading', { name: pane.name.value })"
     data-pane-reading
   />
 </template>

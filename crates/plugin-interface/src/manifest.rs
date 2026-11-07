@@ -249,10 +249,10 @@ pub struct Page {
     pub conversation: Option<State>,
     #[serde(default)]
     pub methods: Vec<Method>,
-    /// The work panel kinds whose tabs the backend keeps and the plugin
-    /// takes part in (`crates/backend-http/src/panel.rs`).
+    /// The tab kinds whose tabs the backend keeps and the plugin
+    /// takes part in (`crates/backend-http/src/work.rs`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub panel_kinds: Vec<String>,
+    pub tab_kinds: Vec<String>,
     /// The reasons the page may be told a failure with, one closed set of
     /// snake_case words: its methods' and states' refusals, and what else
     /// reaches the page, so the page's types name each one and the page
@@ -288,7 +288,7 @@ impl Page {
             user: None,
             conversation: None,
             methods: Vec::new(),
-            panel_kinds: Vec::new(),
+            tab_kinds: Vec::new(),
             reasons: None,
             blocks: Vec::new(),
         }
@@ -312,10 +312,10 @@ impl Page {
         self
     }
 
-    /// The backend keeps the tabs of the work panel kind `kind`, which the
+    /// The backend keeps the tabs of the tab kind `kind`, which the
     /// plugin takes part in.
-    pub fn panel_kind(mut self, kind: impl Into<String>) -> Self {
-        self.panel_kinds.push(kind.into());
+    pub fn tab_kind(mut self, kind: impl Into<String>) -> Self {
+        self.tab_kinds.push(kind.into());
         self
     }
 
@@ -355,9 +355,9 @@ pub struct State {
     pub operations: Vec<NativeOperation>,
     /// The plugin holds this state between reads and keeps it as its device says
     /// it changes, so the backend sends what it holds with the conversation's
-    /// work panel (`crates/backend-http/src/panel.rs`) and the page shows both
+    /// work (`crates/backend-http/src/work.rs`) and the page shows both
     /// at once, with no read of its own by the page. A plugin that holds none
-    /// reads it only for a panel that has tabs of its kind.
+    /// reads it only for a conversation whose work has tabs of its kind.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub held: bool,
 }

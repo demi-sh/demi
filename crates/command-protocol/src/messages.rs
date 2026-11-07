@@ -41,7 +41,7 @@
 //!   hello names another instance than the device's last) or a Cloud stops.
 //!
 //! It goes to the plugin whose commands bind the package, when that plugin has
-//! panel tabs in a conversation that reaches the device, once for each such
+//! work tabs in a conversation that reaches the device, once for each such
 //! conversation. A plugin that shows nothing of a conversation has nothing to
 //! correct.
 

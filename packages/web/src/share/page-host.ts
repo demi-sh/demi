@@ -8,7 +8,7 @@ import { BLOCK_PAGES } from '../plugins/generated/blocks'
  * reply blocks, whose facts the share's pages bring with its texts and whose
  * documents its routes serve for the blocks its text names
  * (`crates/backend-http/src/shares.rs`). A shared page has no account, Device,
- * work panel or plugin calls, so whatever else a page asks of it is refused or
+ * work or plugin calls, so whatever else a page asks of it is refused or
  * empty; its plugins are on, as their blocks' facts came.
  */
 export function sharePageHost(token: string): PageHost {
@@ -30,8 +30,8 @@ export function sharePageHost(token: string): PageHost {
     downloading: () => [],
     deviceStarting: () => false,
     files: () => none('files'),
-    intents: { open: () => none('work panel'), canOpen: () => false },
-    panel: { tabs: () => [], select: () => none('work panel'), canGo: () => false, go: () => {} },
+    intents: { open: () => none('work'), canOpen: () => false },
+    work: { tabs: () => [], select: () => none('work'), canGo: () => false, go: () => {} },
     workspaces: { list: () => [], current: () => null },
     devices: { list: () => [] },
     openSettings: () => none('settings'),

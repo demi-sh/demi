@@ -61,7 +61,7 @@ const frameHost = ref<HTMLDivElement | null>(null)
 const screenBox = ref<HTMLDivElement | null>(null)
 const keys = ref<InstanceType<typeof DeviceKeys> | null>(null)
 const size = ref<Size>({ width: 0, height: 0 })
-/** The area's size once a change of it has held, as after a drag of the panel's edge. */
+/** The area's size once a change of it has held, as after a drag of the window's edge. */
 const settledSize = ref<Size>({ width: 0, height: 0 })
 const look = computed(() => props.session.state.look)
 /** The screen in points, as the look shows it. */
@@ -267,7 +267,7 @@ const { progress, progressText, waitingLabel } = deviceStatus(props)
 
 // The runner captures the screen no larger than the view shows it, in device
 // pixels, once the area's size settled: a larger size restarts its capture,
-// which a drag of the panel's edge would otherwise do at every step.
+// which a drag of the window's edge would otherwise do at every step.
 const settledScreen = computed(() => {
   const area = settledSize.value
   const current = look.value

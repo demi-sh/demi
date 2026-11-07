@@ -120,7 +120,7 @@ pub mod idle_compactions;
 pub mod interrupted_turns;
 pub mod managed;
 pub mod media_jobs;
-pub mod panels;
+pub mod work;
 pub mod plugin_reports;
 pub mod passkeys;
 mod path;

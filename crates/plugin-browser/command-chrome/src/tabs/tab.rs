@@ -202,7 +202,7 @@ impl BrowserTab {
     }
 
     /// Shows the tab to the user once more: its count rises, and the
-    /// user's work panel selects it when it learns of the count.
+    /// user's browser window shows it when it learns of the count.
     /// Nothing else changes in the browser.
     pub fn show(&self) {
         self.state.shows.send_modify(|shows| *shows += 1);

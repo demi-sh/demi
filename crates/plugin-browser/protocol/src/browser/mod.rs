@@ -238,7 +238,7 @@ closed_set! {
 
 closed_set! {
     /// Who decides a tab's viewport: the user's
-    /// panel, a phone, or the agent.
+    /// window, a phone, or the agent.
     #[derive(Default)]
     pub enum ViewportMode {
         #[default]
@@ -752,7 +752,7 @@ pub struct BrowserMessage {
 pub enum TabsChange {
     /// Every tab the conversation's browser has, at the package's own count
     /// of changes, and the latest tabs closed on purpose, by a command or by
-    /// their own page, which the work panel removes and tells from the tabs
+    /// their own page, which the work removes and tells from the tabs
     /// lost with the browser. An ended browser reports no tabs.
     Tabs {
         revision: u64,

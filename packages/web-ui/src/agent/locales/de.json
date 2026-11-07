@@ -420,7 +420,7 @@
     "placeholder": "Adresse eingeben",
     "label": "Browseradresse"
   },
-  "panel": {
+  "work": {
     "more": "Mehr",
     "reading": "{name} wird gelesen",
     "deviceOffline": "{name} ist offline.",

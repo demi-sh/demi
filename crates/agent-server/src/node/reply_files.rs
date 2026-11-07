@@ -295,7 +295,7 @@ async fn ask<H: DeviceResolver>(
         };
         let cwd = match runtime.conversation_placement().await {
             // The paths a child names on another device than the conversation's
-            // are not the files the conversation's panels show.
+            // are not the files the conversation's windows show.
             Ok(now) => match runtime.placement_at(&now) {
                 placement if placement.device == now.device => placement.directory,
                 _ => return keep(&session, &text.id, Vec::new()),

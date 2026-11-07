@@ -1,14 +1,14 @@
 //! The `browser` kind's tabs on the backend:
 //!
-//! - A panel tab is added for each tab the agent opens and each tab a page
+//! - A work tab is added for each tab the agent opens and each tab a page
 //!   opens, beside its opener.
-//! - A browser tab is opened again for a panel tab whose browser lost it, or
+//! - A browser tab is opened again for a work tab whose browser lost it, or
 //!   that failed to open, once its content asks.
-//! - The browser's tab is closed with its panel tab, and gone ones are marked.
+//! - The browser's tab is closed with its work tab, and gone ones are marked.
 //!
 //! One conversation's work runs one piece at a time, so a change is never based
 //! on what was read before an earlier change of the same conversation. The
-//! plugin never adds a panel tab for a browser tab it is opening for a panel
+//! plugin never adds a work tab for a browser tab it is opening for a work
 //! tab, and never marks a tab closed on a list read before the tab opened.
 //!
 //! # Rules
@@ -18,16 +18,16 @@
 //!   does not select; only a raised `shows` does.
 //! - A page's tab goes right after its opener, behind the tabs that opener
 //!   opened before, as Chrome places them. The agent's go at the end.
-//!   `openedBy` keeps this in the panel tab's data so a reload keeps the order.
+//!   `openedBy` keeps this in the work tab's data so a reload keeps the order.
 //! - A tab closed on purpose (the browser's list of closed tabs says so) is
 //!   removed. A tab lost with the browser stays, marked `closed`, and opens
 //!   again on its address when shown, as Chrome reloads a discarded tab. On
-//!   `package_lost` every panel tab is marked lost without reading the device,
+//!   `package_lost` every work tab is marked lost without reading the device,
 //!   whose browser is gone.
 //! - A device that cannot be reached for a moment changes no tab: the browser may
 //!   still run there.
 //! - `shows` is the agent's decision that the user sees a tab. `show` only
-//!   raises the count in the browser's list, and the panel applies a count once
+//!   raises the count in the browser's list, and the work applies a count once
 //!   per page, so the user's own selection after it stands.
 
 use std::cell::RefCell;
@@ -37,14 +37,14 @@ use std::rc::Rc;
 use demi_command_package_browser_protocol::browser::{BrowserCreatedBy, BrowserTab, TabId};
 use demi_plugin_interface::{PluginError, PluginPort, PortFailure, PortRefusal};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId};
-use demi_web_api_protocol::panel::{CreatePanelTab, PanelTab};
+use demi_web_api_protocol::work::{CreateWorkTab, WorkTab};
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use tokio::sync::Mutex;
 
 use crate::page;
-use crate::reason::PanelReason;
+use crate::reason::ControlReason;
 
 /// The kind whose tabs the plugin takes part in.
 pub const KIND: &str = "browser";
@@ -75,7 +75,7 @@ struct TabData {
     /// wrote it; absent while it never did.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     shows: Option<u64>,
-    /// The panel tab whose page opened it, by a link or script of the page,
+    /// The work tab whose page opened it, by a link or script of the page,
     /// which the plugin writes when it adds the tab.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     opened_by: Option<String>,
@@ -84,7 +84,7 @@ struct TabData {
 impl TabData {
     /// The data of `tab`; none for one that does not fit the kind, which
     /// the plugin leaves as it is.
-    fn of(tab: &PanelTab) -> Option<Self> {
+    fn of(tab: &WorkTab) -> Option<Self> {
         serde_json::from_value(Value::Object(tab.data.clone())).ok()
     }
 
@@ -97,7 +97,7 @@ impl TabData {
     }
 }
 
-/// The id of the panel tab for the browser's tab `tab` that the plugin
+/// The id of the work tab for the browser's tab `tab` that the plugin
 /// adds: a tab the user closed is never added again, since an id is used
 /// once.
 fn added_id(tab: &str) -> String {
@@ -108,7 +108,7 @@ fn added_id(tab: &str) -> String {
 #[derive(Default)]
 pub struct Work {
     locks: RefCell<HashMap<ConversationId, Rc<Mutex<()>>>>,
-    /// The browser tabs this plugin opened for panel tabs, by conversation,
+    /// The browser tabs this plugin opened for work tabs, by conversation,
     /// each with the number of the first list that names it, until a list
     /// that numbered arrives: one taken before the tab opened, which can
     /// arrive after, says nothing of it.
@@ -124,15 +124,15 @@ impl Work {
             .clone()
     }
 
-    /// Opens a browser tab for the panel tab `id`, unless it shows one.
+    /// Opens a browser tab for the work tab `id`, unless it shows one.
     ///
-    /// It opens a tab when the panel tab shows none:
+    /// It opens a tab when the work tab shows none:
     ///
     /// - one that failed to open, which Retry opens again;
     /// - one whose browser tab the browser lost, shown again.
     ///
-    /// It answers the browser tab the panel tab shows now. It answers none when
-    /// the panel no longer has the tab or it could not open one, which its data
+    /// It answers the browser tab the work tab shows now. It answers none when
+    /// the work no longer has the tab or it could not open one, which its data
     /// says: any step that fails is the tab's `failure`, which its content
     /// shows with Retry.
     pub async fn bind(
@@ -154,19 +154,19 @@ impl Work {
         match open_for(self, conversation, port, id, data).await {
             Ok(tab) => Ok(tab),
             Err(error) => {
-                port.update_panel_tab(id, fields([("failure", failure(&error))]))
+                port.update_tab(id, fields([("failure", failure(&error))]))
                     .await?;
                 Ok(None)
             }
         }
     }
 
-    /// Closes the browser's tab of a panel tab its user removed.
+    /// Closes the browser's tab of a work tab its user removed.
     pub async fn removed(
         &self,
         conversation: &ConversationId,
         port: &PluginPort,
-        tab: &PanelTab,
+        tab: &WorkTab,
     ) -> Result<(), PluginError> {
         let lock = self.lock(conversation);
         let _turn = lock.lock().await;
@@ -192,10 +192,10 @@ impl Work {
             return Ok(());
         }
         self.opened.borrow_mut().remove(conversation);
-        let panel = port.panel_tabs().await?;
-        for tab in panel.tabs.iter().filter(|tab| tab.kind == KIND) {
+        let work = port.work_tabs().await?;
+        for tab in work.tabs.iter().filter(|tab| tab.kind == KIND) {
             if TabData::of(tab).as_ref().and_then(TabData::live).is_some() {
-                port.update_panel_tab(tab.id.as_str(), fields([("closed", Value::Bool(true))]))
+                port.update_tab(tab.id.as_str(), fields([("closed", Value::Bool(true))]))
                     .await?;
             }
         }
@@ -203,7 +203,7 @@ impl Work {
     }
 
     /// Keeps the browser's tabs `listed`, as the package on the device `device`
-    /// reported them, and updates the panel from them:
+    /// reported them, and updates the work from them:
     ///
     /// - A tab is added for each tab the agent or a page opened, a page's
     ///   beside its opener's (`after_opened`) and the agent's after the others.
@@ -227,13 +227,13 @@ impl Work {
     ) -> Result<(), PluginError> {
         let lock = self.lock(conversation);
         let _turn = lock.lock().await;
-        // Another device's report waits in the store: the panel shows the
+        // Another device's report waits in the store: the work shows the
         // primary device's browser, and a conversation moved back finds it.
         if !page::keep(port, device, revision, listed.clone()).await? {
             return Ok(());
         }
-        let panel = port.panel_tabs().await?;
-        let bound: Vec<(String, TabData)> = panel
+        let work = port.work_tabs().await?;
+        let bound: Vec<(String, TabData)> = work
             .tabs
             .iter()
             .filter(|tab| tab.kind == KIND)
@@ -243,8 +243,8 @@ impl Work {
             .iter()
             .filter_map(|(_, data)| data.tab.as_deref())
             .collect();
-        // The panel's tabs in order, as this sync leaves them.
-        let mut order: Vec<Placed> = panel.tabs.iter().map(Placed::of).collect();
+        // The work's tabs in order, as this sync leaves them.
+        let mut order: Vec<Placed> = work.tabs.iter().map(Placed::of).collect();
         for tab in &listed {
             if tab.created_by == (BrowserCreatedBy::User {}) || shown.contains(tab.id.as_str()) {
                 continue;
@@ -253,13 +253,13 @@ impl Work {
             let index = opener.map(|at| after_opened(&order, at));
             let opened_by = opener.map(|at| order[at].id.clone());
             let id = added_id(tab.id.as_str());
-            let create = CreatePanelTab {
+            let create = CreateWorkTab {
                 id: id.clone(),
                 kind: KIND.into(),
                 data: added(tab, opened_by.as_deref()),
                 index,
             };
-            port.create_panel_tab(create).await?;
+            port.create_tab(create).await?;
             let placed = Placed {
                 id,
                 shows: Some(tab.id.to_string()),
@@ -289,10 +289,10 @@ impl Work {
             match present.get(browser_tab) {
                 None if lost || unlisted.contains(browser_tab) => {}
                 None if closed.iter().any(|tab| tab.as_str() == browser_tab) => {
-                    port.remove_panel_tab(id.as_str()).await?;
+                    port.remove_tab(id.as_str()).await?;
                 }
                 None => {
-                    port.update_panel_tab(id.as_str(), fields([("closed", Value::Bool(true))]))
+                    port.update_tab(id.as_str(), fields([("closed", Value::Bool(true))]))
                         .await?;
                 }
                 // The tab follows its page: its address and title as the list
@@ -319,7 +319,7 @@ impl Work {
                         follows.insert("shows".into(), Value::from(tab.shows));
                     }
                     if !follows.is_empty() {
-                        port.update_panel_tab(id.as_str(), follows).await?;
+                        port.update_tab(id.as_str(), follows).await?;
                     }
                 }
             }
@@ -328,8 +328,8 @@ impl Work {
     }
 }
 
-/// A panel tab as the sync places others beside it: the browser tab it
-/// shows, while the browser has it, and the panel tab that opened it.
+/// A work tab as the sync places others beside it: the browser tab it
+/// shows, while the browser has it, and the work tab that opened it.
 struct Placed {
     id: String,
     shows: Option<String>,
@@ -337,7 +337,7 @@ struct Placed {
 }
 
 impl Placed {
-    fn of(tab: &PanelTab) -> Self {
+    fn of(tab: &WorkTab) -> Self {
         let data = (tab.kind == KIND).then(|| TabData::of(tab)).flatten();
         Self {
             id: tab.id.clone(),
@@ -347,9 +347,9 @@ impl Placed {
     }
 }
 
-/// Where in `order` the panel tab stands that shows the browser tab whose
+/// Where in `order` the work tab stands that shows the browser tab whose
 /// page opened `tab`; none for a tab no page opened, or whose opener the
-/// panel does not show.
+/// work does not show.
 fn opener_of(order: &[Placed], tab: &BrowserTab) -> Option<usize> {
     let BrowserCreatedBy::Page { opener } = &tab.created_by else {
         return None;
@@ -359,7 +359,7 @@ fn opener_of(order: &[Placed], tab: &BrowserTab) -> Option<usize> {
         .position(|placed| placed.shows.as_deref() == Some(opener.as_str()))
 }
 
-/// Where a tab the panel tab at `at` opened goes: right after it, behind the
+/// Where a tab the work tab at `at` opened goes: right after it, behind the
 /// tabs it opened before that still stand right after it, as Chrome places
 /// the tabs a link opens.
 fn after_opened(order: &[Placed], at: usize) -> usize {
@@ -371,7 +371,7 @@ fn after_opened(order: &[Placed], at: usize) -> usize {
     at + 1 + run
 }
 
-/// Gives the panel tab `id`, with `data`, a browser tab on the address its user
+/// Gives the work tab `id`, with `data`, a browser tab on the address its user
 /// asked for last.
 ///
 /// - A tab whose browser tab opened but whose address could not load there
@@ -379,7 +379,7 @@ fn after_opened(order: &[Placed], at: usize) -> usize {
 ///   failed.
 /// - Any other tab opens one on its address.
 /// - If the user asked for another address meanwhile, the tab loads that one.
-/// - If the user closed the panel tab meanwhile, its browser tab closes.
+/// - If the user closed the work tab meanwhile, its browser tab closes.
 async fn open_for(
     work: &Work,
     conversation: &ConversationId,
@@ -388,7 +388,7 @@ async fn open_for(
     data: TabData,
 ) -> Result<Option<String>, PluginError> {
     // A new tab is bound before its page opens, so the list that names it
-    // finds it bound and adds no panel tab of its own. It starts loading its
+    // finds it bound and adds no work tab of its own. It starts loading its
     // address in the same call: a second call would cost the user another
     // round trip to the device. An address the device refuses makes no tab: if
     // the user asked for another meanwhile, the tab opens on that one.
@@ -423,7 +423,7 @@ async fn open_for(
         ("closed", Value::Null),
         ("failure", Value::Null),
     ]);
-    port.update_panel_tab(id, bound).await?;
+    port.update_tab(id, bound).await?;
     match data_of(port, id).await? {
         None => page::close(port, &tab).await.map(|()| None),
         // A new tab loads the address it was made on already.
@@ -442,12 +442,12 @@ fn failure(error: &PluginError) -> Value {
     let message = error.to_string();
     let (reason, status) = match error {
         PluginError::Refused { reason, .. } => {
-            (reason.parse::<PanelReason>().ok(), StatusCode::CONFLICT)
+            (reason.parse::<ControlReason>().ok(), StatusCode::CONFLICT)
         }
         PluginError::Port {
             refusal: PortRefusal::Device { code, status, .. },
         } => (
-            PanelReason::of_device(*code),
+            ControlReason::of_device(*code),
             StatusCode::from_u16(*status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
         ),
         _ => (None, StatusCode::INTERNAL_SERVER_ERROR),
@@ -458,19 +458,19 @@ fn failure(error: &PluginError) -> Value {
     }
 }
 
-/// The data of the panel tab `id`; none once the panel no longer has it.
+/// The data of the work tab `id`; none once the work no longer has it.
 async fn data_of(port: &PluginPort, id: &str) -> Result<Option<TabData>, PortFailure> {
-    let panel = port.panel_tabs().await?;
-    Ok(panel
+    let work = port.work_tabs().await?;
+    Ok(work
         .tabs
         .iter()
         .find(|tab| tab.id == id)
         .and_then(TabData::of))
 }
 
-/// The data of the panel tab the plugin adds for the browser's `tab`: its
+/// The data of the work tab the plugin adds for the browser's `tab`: its
 /// page's title names it in the strip until a view shows it, the times the
-/// agent showed it, once it did, and the panel tab `opener` whose page
+/// agent showed it, once it did, and the work tab `opener` whose page
 /// opened it.
 fn added(tab: &BrowserTab, opener: Option<&str>) -> Map<String, Value> {
     let mut data = fields([

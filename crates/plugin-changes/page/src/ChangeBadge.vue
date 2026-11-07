@@ -7,7 +7,7 @@ import { useShownDirectory } from './shown'
 /**
  * The strip's counts beside Change: the lines the working tree adds and
  * removes, none while it adds and removes none, as GitHub shows no counts
- * for a branch without changes. The badge shows while the panel is open, so
+ * for a branch without changes. The badge shows while its window is open, so
  * the working tree stays fresh as long.
  */
 const props = defineProps<{ conversation: string; data: ChangeData }>()

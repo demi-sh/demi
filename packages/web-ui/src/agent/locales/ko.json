@@ -420,7 +420,7 @@
     "placeholder": "주소 입력",
     "label": "브라우저 주소"
   },
-  "panel": {
+  "work": {
     "more": "더 보기",
     "reading": "{name} 읽는 중",
     "deviceOffline": "{name} 기기가 오프라인입니다.",

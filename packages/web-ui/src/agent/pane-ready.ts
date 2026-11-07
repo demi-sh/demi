@@ -30,7 +30,7 @@ import {
 // pane has already changed the tab and the address. After `PANE_WAIT_MS` of
 // the pane being shown and waiting, the area says what it waits for.
 //
-// The first view a panel shows, as the page loads or the panel opens,
+// The first view a window shows, as the page loads or the window opens,
 // says what it waits for from its start: the user has no view yet that the
 // sentence could interrupt, and an empty area tells them nothing. Only that
 // first wait; a later read in the same pane, as when another file is picked,
@@ -68,7 +68,7 @@ export function providePane(options: {
   name: () => string
   shown: () => boolean
   /**
-   * Whether this is the first view the panel shows: its first wait says what
+   * Whether this is the first view the windows show: its first wait says what
    * it waits for at once. Read once, as the pane is made.
    */
   first?: boolean

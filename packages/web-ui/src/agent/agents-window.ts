@@ -6,7 +6,7 @@ import type { OwnWindow } from '../windows/SessionWindows.vue'
 import { t as windowsText } from '../windows/locales/text'
 import AgentMark from './AgentMark.vue'
 import { agentMenu } from './agent-menu'
-import { agentName, subagentPanelTabs, type SubagentRecord } from './subagents'
+import { agentName, subagentTabs, type SubagentRecord } from './subagents'
 import { t } from './locales/text'
 
 /**
@@ -22,7 +22,7 @@ export function useAgentsWindow(
   actions: { stop: (id: string) => void; stopAll: () => void },
 ): { activeId: WritableComputedRef<string | null>; window: ComputedRef<OwnWindow> } {
   const picked = ref<string | null>(null)
-  const tabs = computed(() => subagentPanelTabs(agents(), picked.value))
+  const tabs = computed(() => subagentTabs(agents(), picked.value))
   const activeId = computed<string | null>({
     get: () => (tabs.value.some((tab) => tab.id === picked.value) ? picked.value : tabs.value[0]?.id ?? null),
     set: (id) => {

@@ -115,7 +115,7 @@ impl Orientation {
 }
 
 closed_set! {
-    /// What `rotate` asks for: an orientation, or the panel's quarter turn
+    /// What `rotate` asks for: an orientation, or the window's quarter turn
     /// from the one `demi-mobile` set.
     pub enum Rotation {
         Portrait = "portrait",
@@ -203,7 +203,7 @@ closed_set! {
 }
 
 closed_set! {
-    /// What `appearance` asks for: one of them, or the panel's toggle, which
+    /// What `appearance` asks for: one of them, or the window's toggle, which
     /// reads the appearance once and sets the other.
     pub enum AppearanceChoice {
         Light = "light",

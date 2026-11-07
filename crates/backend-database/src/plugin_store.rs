@@ -5,12 +5,12 @@
 use std::collections::BTreeMap;
 
 use demi_plugin_host::store::{
-    OAuthClient, PanelOutcome, PluginReport, PluginStore, PluginValue, SealedSecret, SecretRow, StoreError, Stored,
+    OAuthClient, WorkOutcome, PluginReport, PluginStore, PluginValue, SealedSecret, SecretRow, StoreError, Stored,
     ValueWrite, Written,
 };
 use demi_plugin_interface::{DeviceDirectory, WorkspaceName};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, WorkspaceId};
-use demi_web_api_protocol::panel::{PanelChange, WorkPanel};
+use demi_web_api_protocol::work::{WorkChange, Work};
 use futures_util::FutureExt;
 use serde_json::Value;
 
@@ -149,22 +149,22 @@ impl PluginStore for ControlService {
         .boxed_local()
     }
 
-    fn panel(&self, conversation: ConversationId) -> Stored<'_, WorkPanel> {
-        async move { ControlService::panel(self, conversation).await.map_err(StoreError::new) }.boxed_local()
+    fn work(&self, conversation: ConversationId) -> Stored<'_, Work> {
+        async move { ControlService::work(self, conversation).await.map_err(StoreError::new) }.boxed_local()
     }
 
-    fn change_panel(&self, conversation: ConversationId, changes: Vec<PanelChange>) -> Stored<'_, PanelOutcome> {
+    fn change_work(&self, conversation: ConversationId, changes: Vec<WorkChange>) -> Stored<'_, WorkOutcome> {
         async move {
-            ControlService::change_panel(self, conversation, changes)
+            ControlService::change_work(self, conversation, changes)
                 .await
                 .map_err(StoreError::new)
         }
         .boxed_local()
     }
 
-    fn close_panel_kinds(&self, owner: UserId, kinds: Vec<String>) -> Stored<'_, Vec<ConversationId>> {
+    fn close_tab_kinds(&self, owner: UserId, kinds: Vec<String>) -> Stored<'_, Vec<ConversationId>> {
         async move {
-            ControlService::close_panel_kinds(self, owner, kinds)
+            ControlService::close_tab_kinds(self, owner, kinds)
                 .await
                 .map_err(StoreError::new)
         }

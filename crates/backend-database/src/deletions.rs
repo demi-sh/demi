@@ -17,7 +17,7 @@
 //! A deletion goes in four steps:
 //!
 //! 1. One transaction of the control database removes the conversation's record
-//!    and every record that belongs to it (its draft, work panel, attached devices,
+//!    and every record that belongs to it (its draft, work, attached devices,
 //!    permission requests and grants, shares), except the usage ledger's rows,
 //!    which are the user's record of what was used. It records the deletion as
 //!    pending, from which commit no request finds the conversation.
@@ -56,7 +56,7 @@ pub struct PendingDeletion {
 
 impl ControlService {
     /// Step 1 of a deletion: removes `owner`'s conversation `id` with its draft,
-    /// work panel, attached devices, permission requests and grants, and records the
+    /// work, attached devices, permission requests and grants, and records the
     /// deletion as pending, in one transaction.
     ///
     /// Answers the id as the record spelled it, which names its database; none
@@ -77,7 +77,7 @@ impl ControlService {
                 return Ok(None);
             };
             let id = record.id;
-            // The draft, the panel and the permission records go with the
+            // The draft, the work and the permission records go with the
             // record through their foreign keys; the attached devices do not
             // cascade.
             transaction.execute(

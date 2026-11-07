@@ -1,7 +1,7 @@
 import { computed, ref, type ComputedRef } from 'vue'
 import type { SessionWork } from '@demicodes/web-ui/windows/session-work'
 import { readStage, type StageState } from '@demicodes/web-ui/windows/stage'
-import type { GalleryWork } from './work-panel'
+import type { GalleryWork } from './work'
 
 const PINS_KEY = 'demi-gallery.taskbar-pins'
 const LAYOUT_KEY = 'demi-gallery.windows.'
@@ -39,7 +39,7 @@ export function gallerySessionWork(
 ): ComputedRef<SessionWork> {
   const layout = keep === undefined ? null : readStage(readKept(LAYOUT_KEY + keep))
   return computed(() => ({
-    panel: work.panel.value,
+    tabsState: work.tabsState.value,
     pinned: work.pinned.value,
     kinds: work.kinds.value,
     tabsRead: true,

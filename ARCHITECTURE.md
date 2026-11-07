@@ -118,8 +118,8 @@ A shared mechanism goes where its use decides:
     `backend-device-access`, see `crates/backend-device-access/src/lib.rs`), which
     resolves the target and takes the file gate. What the agent and the user
     start there (a turn's tool, an upload, a download) wakes a stopped Cloud
-    and holds the gate for the operation; what the user only reads (the work
-    panel's files) lets the gate go before it calls the device, so a slow device
+    and holds the gate for the operation; what the user only reads (the Files
+    window's files) lets the gate go before it calls the device, so a slow device
     holds no transition, message or deletion; and restoring a conversation
     admits no device and wakes no Cloud. Nothing a page asks for and no step of a
     conversation waits for a device. There is no other way to a conversation's

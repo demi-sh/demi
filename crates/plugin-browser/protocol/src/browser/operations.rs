@@ -153,7 +153,7 @@ input!(@struct
     /// `tab.new`: makes an empty tab, starting the browser when it does not
     /// run.
     TabNewInput {
-        /// The address the new tab starts loading at once, so the work panel
+        /// The address the new tab starts loading at once, so the work
         /// opens a tab in one call. The model has no use for it, so the
         /// agent's command does not name it.
         #[serde(default, skip_serializing_if = "Option::is_none", with = "unwrap_or_skip")]
@@ -199,7 +199,7 @@ pub struct TabNewResult {
 
 input! {
     tab
-    /// `show`: asks the user's work panel to show a tab once the command's
+    /// `show`: asks the user's work to show a tab once the command's
     /// job ends.
     pub struct ShowInput {}
 }
@@ -240,7 +240,7 @@ pub struct TabListResult {
     pub tabs: Vec<BrowserTab>,
     pub truncated: bool,
     /// The latest tabs closed on purpose, by a command or by their own page,
-    /// for a `user` caller only: the work panel removes their tabs, and keeps
+    /// for a `user` caller only: the work removes their tabs, and keeps
     /// the tabs lost with the browser. The model has no use for it.
     #[serde(
         default,
@@ -1114,7 +1114,7 @@ input! {
 
 input! {
     tab
-    /// `viewport.reset`: returns a tab's viewport to the user's panel.
+    /// `viewport.reset`: returns a tab's viewport to the user's window.
     pub struct ViewportResetInput {}
 }
 

@@ -1,5 +1,5 @@
 //! The `file-browser` plugin: its identity, its page package, and the
-//! `attachment` and `media` panel kinds its page shows.
+//! `attachment` and `media` tab kinds its page shows.
 //!
 //! Its page, `@demicodes/plugin-file-browser`, shows:
 //!
@@ -18,10 +18,10 @@ use demi_plugin_interface::{
 };
 use futures_util::future::LocalBoxFuture;
 
-/// The panel kind of an attachment's tab, whose tabs the backend keeps.
+/// The tab kind of an attachment's tab, whose tabs the backend keeps.
 const ATTACHMENT_KIND: &str = "attachment";
 
-/// The panel kind of the Media tab, whose tab the backend keeps.
+/// The tab kind of the Media tab, whose tab the backend keeps.
 const MEDIA_KIND: &str = "media";
 
 /// The plugin's factory.
@@ -37,8 +37,8 @@ impl FileBrowser {
             "Opens the conversation's files in the Files window to read them, with a tree of the working directory.",
         );
         manifest.page = Some(Page::new("@demicodes/plugin-file-browser")
-            .panel_kind(ATTACHMENT_KIND)
-            .panel_kind(MEDIA_KIND));
+            .tab_kind(ATTACHMENT_KIND)
+            .tab_kind(MEDIA_KIND));
         Self { manifest }
     }
 }
@@ -69,7 +69,7 @@ struct Instance;
 impl Plugin for Instance {
     fn call(&self, request: Request, port: PluginPort) -> LocalBoxFuture<'_, Result<Reply, PluginError>> {
         match request {
-            Request::PanelTab { .. } => Box::pin(async { Ok(Reply::Done) }),
+            Request::TabClosed { .. } => Box::pin(async { Ok(Reply::Done) }),
             other => NoRequests.call(other, port),
         }
     }

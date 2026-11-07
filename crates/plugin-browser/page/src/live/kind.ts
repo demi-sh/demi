@@ -1,6 +1,6 @@
 import { defineComponent, h, onBeforeUnmount, type PropType } from 'vue'
 import { Globe, RotateCw } from '@lucide/vue'
-import { ICON_PX, usePage, type KindTab, type PanelKind, type PanelWindow } from '@demicodes/plugin-sdk'
+import { ICON_PX, usePage, type KindTab, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
 import BrowserTabContent from './BrowserTabContent.vue'
 import { t } from '../locales/text'
 import { BROWSER_TAB_KIND, type BrowserStore } from './store'
@@ -33,7 +33,7 @@ export function browserTabTitle(data: BrowserTabData, session: BrowserTabsContro
 }
 
 /** The browser's window, a tab per page. */
-const browserWindow: PanelWindow = { id: 'browser', name: () => t('window.name'), icon: Globe }
+const browserWindow: WindowKind = { id: 'browser', name: () => t('window.name'), icon: Globe }
 
 /**
  * The `browser` tab kind over `store`. Its content watches the conversation's
@@ -41,7 +41,7 @@ const browserWindow: PanelWindow = { id: 'browser', name: () => t('window.name')
  * and commands read it without watching; the panel sees only this
  * declaration.
  */
-export function browserTabKind(store: BrowserStore): PanelKind<BrowserTabData> {
+export function browserTabKind(store: BrowserStore): TabKind<BrowserTabData> {
   const browser = (tab: KindTab) => tab.page.store(store).of(tab.conversation).tabs
   const content = defineComponent({
     props: {

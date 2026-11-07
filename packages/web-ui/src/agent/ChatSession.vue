@@ -117,7 +117,7 @@ const props = withDefaults(defineProps<{
    * none, as with Suggested replies off.
    */
   suggestedReplies?: { blockId: string; replies: readonly string[] } | null
-  /** Whether the dock and the subagents' panel show the model's output (Settings › Agent › Output speed). */
+  /** Whether the dock and the Agents window show the model's output (Settings › Agent › Output speed). */
   outputSpeed?: boolean
   selectEdit?: EditSelectionHandler
   fork?: MessageForkHandler
@@ -180,7 +180,7 @@ const props = withDefaults(defineProps<{
   /**
    * A block to bring into view and mark for a moment, as a search result opened
    * at it or a report's title asks. The block is in the list, or in the
-   * subagent panel, which then shows that subagent.
+   * Agents window, which then shows that subagent.
    */
   reveal?: TranscriptReveal | null
   /**
@@ -196,13 +196,13 @@ const props = withDefaults(defineProps<{
   readBlock?: BlockReader
   /**
    * Reads the latest page of a subagent's transcript that the session does not
-   * send (`subagentsStreamed`), for its panel. The panel shows it loading
-   * meanwhile, and a failure with Retry. Absent, the panel reads nothing.
+   * send (`subagentsStreamed`), for its work. The window shows it loading
+   * meanwhile, and a failure with Retry. Absent, the window reads nothing.
    */
   readSubagentLatest?: (id: string) => Promise<void>
   /**
    * Whether the page has, or is opening, a session whose lane follows the
-   * children the panel shows and those read ahead, so that the panel reads
+   * children the window shows and those read ahead, so that the window reads
    * none itself.
    */
   subagentsStreamed?: boolean
@@ -376,11 +376,11 @@ const emit = defineEmits<{
    */
   showLatest: []
   /**
-   * Read the page of a subagent's transcript before the window its panel shows.
+   * Read the page of a subagent's transcript before the window its work shows.
    */
   readSubagent: [id: string]
   /**
-   * Read the page of a subagent's transcript after the window its panel
+   * Read the page of a subagent's transcript after the window its work
    * shows, which does not reach the transcript's end.
    */
   readSubagentAfter: [id: string]
@@ -484,7 +484,7 @@ const renameWidth = ref(TITLE_KEPT_PX)
 //   conversation list.
 // - The title, which opens the title sheet with what the desktop's header shows
 //   beside the title.
-// - The panel's button, drawn as the panel's tabs are counted on a phone
+// - The work's button, drawn as the work's tabs are counted on a phone
 //   browser's tab button.
 const phone = usePhone()
 const drawer = useSidebarDrawer()
@@ -493,7 +493,7 @@ const titleSheetOpen = ref(false)
  * The Tabs button's icon: the windows' tabs as a phone browser draws its tab
  * button.
  */
-const tabsIcon = computed(() => tabCountIcon(props.work?.panel.tabs.length ?? 0))
+const tabsIcon = computed(() => tabCountIcon(props.work?.tabsState.tabs.length ?? 0))
 /** Where the title sheet shows the conversation's place, while it is open. */
 const placeTarget = ref<HTMLElement | null>(null)
 /** The primary device's state on the title, while it is not ready to run. */
@@ -870,7 +870,7 @@ watch(
   (id) => emit('showSubagent', id),
   { immediate: true },
 )
-// A block in a subagent's transcript shows in the panel, on that subagent's
+// A block in a subagent's transcript shows in the Agents window, on that subagent's
 // tab.
 watch(
   () => props.reveal?.node,
@@ -921,7 +921,7 @@ watch(
         v-if="work"
         :icon="tabsIcon"
         variant="ghost"
-        :aria-label="work.panel.tabs.length > 0 ? t('session.tabsOpen', { count: work.panel.tabs.length }) : t('session.tabs')"
+        :aria-label="work.tabsState.tabs.length > 0 ? t('session.tabsOpen', { count: work.tabsState.tabs.length }) : t('session.tabs')"
         data-window-list
         @click="windowListOpen = true"
       />
@@ -1030,11 +1030,11 @@ watch(
         </div>
         <Dropdown v-if="share || searchable" :overlay-store="appOverlayStore">
           <template #trigger="{ isOpen }">
-            <Tooltip :content="t('panel.more')" class="shrink-0">
+            <Tooltip :content="t('work.more')" class="shrink-0">
               <IconButton
                 :icon="Ellipsis"
                 variant="ghost"
-                :aria-label="t('panel.more')"
+                :aria-label="t('work.more')"
                 :pressed="isOpen"
               />
             </Tooltip>

@@ -113,7 +113,7 @@ impl Plugin for Instance {
                 }
                 Request::Context { .. } => Err(PluginError::undeclared("context source")),
                 Request::ProjectSearch { .. } => Err(PluginError::undeclared("project search")),
-                Request::PanelTab { .. } => Err(PluginError::undeclared("panel kind")),
+                Request::TabClosed { .. } => Err(PluginError::undeclared("tab kind")),
                 Request::ReplyBlocks { .. } | Request::ReplyBlockDocument { .. } => {
                     Err(PluginError::undeclared("reply blocks"))
                 }

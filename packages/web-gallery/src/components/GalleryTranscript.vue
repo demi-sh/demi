@@ -11,7 +11,7 @@ import { useGalleryTranscripts } from '../fixtures/transcripts'
 /**
  * A block shown on its own, standing in the request `blocks` make, as a
  * message list would place it: its file pills open the request's changes
- * in the gallery's panel.
+ * in the gallery's windows.
  */
 const props = defineProps<{ blocks: Block[] }>()
 const requests = computed(() => storedRequests(props.blocks))

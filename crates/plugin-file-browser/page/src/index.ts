@@ -5,7 +5,7 @@
 // one Media tab of the conversation's pictures and videos.
 import { defineComponent, h, type PropType } from 'vue'
 import { File, FolderOpen } from '@lucide/vue'
-import { FileIcon, ICON_PX, baseName, definePage, type PanelKind, type PanelWindow } from '@demicodes/plugin-sdk'
+import { FileIcon, ICON_PX, baseName, definePage, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import { t } from './locales/text'
 import FileTab from './FileTab.vue'
@@ -14,7 +14,7 @@ import { attachmentKind } from './attachment'
 import { mediaKind } from './media'
 
 /** Files' window: the File view, with its tree. */
-const filesWindow: PanelWindow = { id: 'files', name: () => t('kind.title'), icon: FolderOpen }
+const filesWindow: WindowKind = { id: 'files', name: () => t('kind.title'), icon: FolderOpen }
 
 /** The file's own icon once the view shows one, a plain file before. */
 const FileMark = defineComponent({
@@ -25,7 +25,7 @@ const FileMark = defineComponent({
 })
 
 /** The `file` kind: the File view over the conversation's files service. */
-export const fileKind: PanelKind<FileData> = {
+export const fileKind: TabKind<FileData> = {
   kind: 'file',
   schema: fileDataSchema,
   window: filesWindow,

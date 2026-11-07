@@ -1,6 +1,6 @@
 import { shallowRef, watch, type ShallowRef } from 'vue'
-import type { PanelState, PinnedTabs } from '../agent/panel-tabs'
-import type { PanelTabKind } from '../agent/panel-kinds/kind'
+import type { TabsState, PinnedTabs } from '../agent/work-tabs'
+import type { BoundTabKind } from '../agent/tab-kinds/kind'
 import type { TabUpdate } from '../plugins/page'
 import { useWindowStage, type StageState, type WindowStageModel } from './stage'
 
@@ -11,11 +11,11 @@ import { useWindowStage, type StageState, type WindowStageModel } from './stage'
  * the gallery's from its fixture.
  */
 export interface SessionWork {
-  /** The tabs, in order, and what the address selected, the newest last. */
-  panel: PanelState
+  /** The tabs, in order, and the order they were shown in, the newest last, which each window shows its newest of. */
+  tabsState: TabsState
   pinned: PinnedTabs
   /** The kinds of the pages the user has on, bound to the conversation. */
-  kinds: readonly PanelTabKind[]
+  kinds: readonly BoundTabKind[]
   /** Whether the host has read the tabs: the ones a first read brings come with no motion. */
   tabsRead: boolean
   /** The conversation's first send has not created it yet: Files and Changes say when they come. */

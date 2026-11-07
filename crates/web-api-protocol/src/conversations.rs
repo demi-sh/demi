@@ -14,7 +14,7 @@ use crate::ids::{ConversationId, DeviceId, ProjectId, ProviderId, WorkspaceId};
 use crate::query::StrictBool;
 use crate::drafts::ConversationDraft;
 use crate::attached_devices::ConversationDevices;
-use crate::panel::{HeldState, WorkPanel};
+use crate::work::{HeldState, Work};
 use crate::permissions::ConversationPermissions;
 use crate::saved::SavedListing;
 use crate::shares::ConversationShare;
@@ -175,7 +175,7 @@ pub struct CreatedConversation {
 }
 
 /// A conversation as the list carries it: what the sidebar shows of it, and
-/// its work panel's tabs, which the page draws before it opens the
+/// its work's tabs, which the page draws before it opens the
 /// conversation. What a page shows only of an open conversation is its
 /// [`ConversationMetadata`], and what the backend keeps for itself, such as
 /// the owner, stays out.
@@ -234,11 +234,11 @@ pub struct ConversationSummary {
     /// an alarm clock; its schedules are in its metadata.
     #[garde(skip)]
     pub scheduled: bool,
-    /// The conversation's work panel: its tabs under the revision that counts
-    /// its changes. The page draws the panel's frame and tabs from it as soon
+    /// The conversation's work: its tabs under the revision that counts
+    /// its changes. The page draws the work's frame and tabs from it as soon
     /// as the conversation is listed.
     #[garde(dive)]
-    pub panel: WorkPanel,
+    pub work: Work,
 }
 
 /// What a page shows of an open conversation beside its sidebar entry, its
@@ -299,12 +299,12 @@ pub struct ConversationMetadata {
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<Timestamp>")]
     pub first_call_at: Option<Timestamp>,
-    /// The conversation states the plugins hold for its work panel's tabs,
-    /// each under its revision. The panel's tabs are the entry's
-    /// (`ConversationSummary::panel`), which the page has before it opens the
+    /// The conversation states the plugins hold for its work's tabs,
+    /// each under its revision. The work's tabs are the entry's
+    /// (`ConversationSummary::work`), which the page has before it opens the
     /// conversation.
     #[garde(dive)]
-    pub panel_states: Vec<HeldState>,
+    pub tab_states: Vec<HeldState>,
     /// The conversation's attached devices, under a revision an attach, a
     /// detach or a rename raises.
     pub devices: ConversationDevices,

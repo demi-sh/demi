@@ -26,7 +26,7 @@ import { useSettingsAddress } from '../settings/address'
 import { messageCredentials } from '../settings/credentials'
 import { useProduct } from '../state/product'
 import { usePreferences } from '../state/preferences'
-import { useWorkPanel } from './work'
+import { useWork } from './work'
 import { useSessionWork } from './session-work'
 import { usePermissions } from './permissions'
 import { useNotifications } from '../state/notifications'
@@ -62,7 +62,7 @@ async function continueWith(conversation: Parameters<typeof store.start>[0], pro
 const resources = useResources()
 const product = useProduct()
 const preferences = usePreferences()
-const work = useWorkPanel()
+const work = useWork()
 const permissions = usePermissions()
 const notifications = useNotifications()
 /** The card that asks the user to turn notifications on, while the conversation shows it, as this browser can answer it. */

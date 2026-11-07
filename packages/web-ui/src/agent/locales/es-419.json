@@ -420,7 +420,7 @@
     "placeholder": "Escribe una dirección",
     "label": "Dirección del navegador"
   },
-  "panel": {
+  "work": {
     "more": "Más",
     "reading": "Leyendo {name}",
     "deviceOffline": "{name} está sin conexión.",

@@ -4,7 +4,7 @@
 import type { Ref } from 'vue'
 import type { DeviceMark } from '@demicodes/web-ui/devices/mark'
 import type { SidebarConversation, SidebarProject } from '@demicodes/web-ui/sidebar/types'
-import type { GalleryWork } from '@demicodes/web-gallery/fixtures/work-panel'
+import type { GalleryWork } from '@demicodes/web-gallery/fixtures/work'
 import type { TerminalRecord } from '@demicodes/web-ui/agent/terminals'
 import type { WorkflowChoice, WorkflowList } from '@demicodes/web-ui/agent/workflow-menu'
 import type { ConversationSchedule, ScheduleTask } from '@demicodes/web-ui/schedules/types'

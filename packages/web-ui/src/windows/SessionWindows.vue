@@ -13,8 +13,8 @@ import Taskbar, { type TaskbarItem, type TaskbarOpen } from './Taskbar.vue'
 import WindowStage, { type StageWindowView } from './WindowStage.vue'
 import WorkWindowBody from './WorkWindowBody.vue'
 import type { WindowTab } from './WorkWindow.vue'
-import { windowHolding, workWindows, type WorkTab, type WorkWindow } from './work-windows'
-import type { PanelTabKind } from '../agent/panel-kinds/kind'
+import { windowHolding, workWindows, type ShownTab, type WorkWindow } from './work-windows'
+import type { BoundTabKind } from '../agent/tab-kinds/kind'
 import type { SessionWork } from './session-work'
 import { tabsToClose, type TabCloseScope } from '../agent/tab-close'
 import { rearranged } from '../ui/drag-order'
@@ -82,7 +82,7 @@ const listOpen = defineModel<boolean>('listOpen', { default: false })
 const phone = usePhone()
 const area = ref<InstanceType<typeof WindowStage> | null>(null)
 
-const windows = computed<WorkWindow[]>(() => (props.work ? workWindows(props.work.panel, props.work.pinned, props.work.kinds) : []))
+const windows = computed<WorkWindow[]>(() => (props.work ? workWindows(props.work.tabsState, props.work.pinned, props.work.kinds) : []))
 const workIds = computed(() => new Set(windows.value.map((window) => window.window.id)))
 function workOf(id: string): WorkWindow | undefined {
   return windows.value.find((window) => window.window.id === id)
@@ -147,7 +147,7 @@ const named = computed(() => {
   if (!work?.open) {
     return null
   }
-  const id = work.panel.history.at(-1) ?? null
+  const id = work.tabsState.history.at(-1) ?? null
   return id !== null && windowHolding(windows.value, id) ? id : null
 })
 // The address names a tab: its window comes in front.
@@ -192,11 +192,11 @@ const tabsById = computed(() => new Map(windows.value.flatMap((window) => window
 /**
  * Each tab's mark, as a window's tab and a taskbar's list draw it: one
  * component per tab and kind, which draws the tab's data as it reads now, so
- * a tab's data read anew, as each change of the panel reads it, redraws the
+ * a tab's data read anew, as each change of the work reads it, redraws the
  * mark and never mounts it again.
  */
-const marks = new Map<string, { kind: PanelTabKind; mark: Component }>()
-function markOf(tab: WorkTab): Component {
+const marks = new Map<string, { kind: BoundTabKind; mark: Component }>()
+function markOf(tab: ShownTab): Component {
   let kept = marks.get(tab.id)
   if (kept?.kind !== tab.kind) {
     const { id, kind } = tab
@@ -234,7 +234,7 @@ const closeMany: readonly { scope: Exclude<TabCloseScope, 'self'>; label: () => 
  * A tab's menu: what its kind offers, then the Close commands over the
  * window's tabs, as a web browser's tab menu. A pinned tab closes by none.
  */
-function tabMenu(window: WorkWindow, tab: WorkTab): (() => ContextMenuGroup[]) | undefined {
+function tabMenu(window: WorkWindow, tab: ShownTab): (() => ContextMenuGroup[]) | undefined {
   const own = tab.kind.commands?.(tab.data, tab.id) ?? []
   if (tab.pinned && own.length === 0) {
     return undefined
@@ -319,7 +319,7 @@ function reorder(id: string, from: number, to: number): void {
   const moved = tabs[from - offset]
   const before = tabs[to - offset]
   if (moved && before) {
-    work.moveTab(moved.id, work.panel.tabs.findIndex((tab) => tab.id === before.id))
+    work.moveTab(moved.id, work.tabsState.tabs.findIndex((tab) => tab.id === before.id))
   }
 }
 

@@ -420,7 +420,7 @@
     "placeholder": "输入地址",
     "label": "浏览器地址"
   },
-  "panel": {
+  "work": {
     "more": "更多",
     "reading": "正在读取 {name}",
     "deviceOffline": "{name} 已离线。",

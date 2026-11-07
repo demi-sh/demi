@@ -210,7 +210,7 @@ export interface MediaViewerState {
    * Whether the medium shown is in the Attachments window, which the
    * page's `reveal` opened, rather than in the viewer's window.
    */
-  inPanel: Readonly<ShallowRef<boolean>>
+  inWindow: Readonly<ShallowRef<boolean>>
   /**
    * Offers `series`, the media of a conversation's own transcript, in which
    * a restored Media tab finds the medium it showed (`restore`); the newest
@@ -248,7 +248,7 @@ export function createMediaViewer(where: () => ViewerPlace, { reveal }: MediaVie
   const sequence = shallowRef<MediaSequence | null>(null)
   /** Where the medium shown stood last, which tells the same medium apart where the transcript shows it twice. */
   const index = shallowRef(-1)
-  const inPanel = shallowRef(false)
+  const inWindow = shallowRef(false)
   /** The series the conversations' own transcripts offer, the newest last. */
   const offered = shallowRef<readonly MediaSequence[]>([])
 
@@ -316,10 +316,10 @@ export function createMediaViewer(where: () => ViewerPlace, { reveal }: MediaVie
     geometry,
     position,
     mediumPlace,
-    inPanel,
+    inWindow,
     show(medium, among) {
       open(medium, among ?? null, among ? locate(among(), medium, -1) : -1)
-      inPanel.value = reveal?.() ?? false
+      inWindow.value = reveal?.() ?? false
     },
     offer(series) {
       offered.value = [...offered.value, series]
@@ -334,7 +334,7 @@ export function createMediaViewer(where: () => ViewerPlace, { reveal }: MediaVie
         const medium = media[at]
         if (medium) {
           open(medium, series, at)
-          inPanel.value = true
+          inWindow.value = true
           return true
         }
       }

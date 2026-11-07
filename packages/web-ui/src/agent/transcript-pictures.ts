@@ -53,7 +53,7 @@ export function transcriptPictures(rows: readonly MessageListBlock[], context: T
 /**
  * The pictures each block's texts name, by the text, as the block's last
  * read found them. The list reads its pictures again on many changes around
- * them, such as a message's attachment answered or a panel opened, and
+ * them, such as a message's attachment answered or a window opened, and
  * reading a text lexes it whole, so a text is lexed once for each version of
  * it and a long transcript's unchanged messages never again.
  */

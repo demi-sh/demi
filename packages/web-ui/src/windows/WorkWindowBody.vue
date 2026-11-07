@@ -2,7 +2,7 @@
 import { computed, shallowRef, watch } from 'vue'
 import DeviceOfflinePage from '../agent/DeviceOfflinePage.vue'
 import PaneScope from '../agent/PaneScope.vue'
-import { keptContents } from '../agent/panel-tabs'
+import { keptContents } from '../agent/work-tabs'
 import type { TabUpdate } from '../plugins/page'
 import type { WorkWindow } from './work-windows'
 import { provideWindowDismiss } from './window-dismiss'
@@ -34,7 +34,7 @@ const emit = defineEmits<{
   updateTab: [id: string, data: unknown, how?: TabUpdate]
   updatePinned: [kind: string, data: unknown, how?: TabUpdate]
   closeTab: [id: string]
-  /** The tab its kind was opening was refused (`PanelTabKind.opening`). */
+  /** The tab its kind was opening was refused (`BoundTabKind.opening`). */
   openingFailed: []
 }>()
 

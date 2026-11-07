@@ -45,7 +45,7 @@ import { accountTaken, forgetAccount, takeAccount } from './state/account-data'
 import { onOwnerChange } from './state/account-owner'
 import { usePreferences } from './state/preferences'
 import { useNotifications } from './state/notifications'
-import { useWorkPanel } from './conversation/work'
+import { useWork } from './conversation/work'
 import { apiRequest, apiUrl, onSessionExpired } from './api/client'
 import { configurePageConnection } from '@demicodes/web-ui/transport/page-connection'
 import { sendPageLog } from './api/page-log'
@@ -117,9 +117,9 @@ const router = createRouter({
 router.beforeEach(() => historySettled())
 setHistoryTraversal((delta) => router.options.history.go(delta, false))
 const resources = useResources(pinia)
-// The work panel's state is the page's address while it shows a conversation;
+// The work's state is the page's address while it shows a conversation;
 // it follows the router from the first navigation on.
-const stopPanelAddress = useWorkPanel(pinia).attach(router)
+const stopWorkAddress = useWork(pinia).attach(router)
 const conversations = useConversations(pinia)
 const session = useSession(pinia)
 const product = useProduct(pinia)
@@ -431,7 +431,7 @@ if (import.meta.hot) {
     window.removeEventListener('focus', refreshVisible)
     document.removeEventListener('visibilitychange', refreshVisible)
     stopPhonePage()
-    stopPanelAddress()
+    stopWorkAddress()
     app.unmount()
     disposePinia(pinia)
   })

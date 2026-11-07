@@ -33,7 +33,7 @@ import { createSettingsState } from '../fixtures/settings'
 import { gallerySchedules, switched } from '../fixtures/schedules'
 import { gallerySubagents } from '../fixtures/subagents'
 import { galleryTerminals } from '../fixtures/terminals'
-import { galleryFiles, useGalleryWork } from '../fixtures/work-panel'
+import { galleryFiles, useGalleryWork } from '../fixtures/work'
 import { gallerySessionWork } from '../fixtures/session-work'
 import { createGalleryProject } from '../fixtures/project'
 import { PLUGIN_PAGES } from '../generated/pages'
@@ -106,7 +106,7 @@ const longModel = scene === 'long-model'
 const commandOf = useCallTerminals(() => session.terminals)
 provideLiveCalls((toolUseId) => commandOf(undefined, toolUseId))
 
-/** A file a message names opens in the panel, full screen, as the product opens it. */
+/** A file a message names opens in its window, full screen, as the product opens it. */
 const files = galleryConversationFiles(project.source, ({ path, line }) => {
   work.openIn({ intent: 'file', payload: line === null ? { path } : { path, line } })
 }, ({ commit, root }) => {

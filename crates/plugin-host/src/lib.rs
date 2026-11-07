@@ -23,7 +23,7 @@
 //! commands     in every open tree          gone: a call fails as any
 //!                                          unknown command does
 //! devices        opened again on demand      its packages' residents stop
-//! panel tabs   opened again on demand      closed
+//! work tabs   opened again on demand      closed
 //! data         kept either way
 //! ```
 //!
@@ -55,6 +55,6 @@ pub use features::FeatureError;
 pub use registry::{Registry, RegistryError};
 pub use user::{
     ReadOn,
-    ContextAsk, Lost, MediaCall, PageCall, PageCallError, PanelError, PluginToolset, ProductPort,
+    ContextAsk, Lost, MediaCall, PageCall, PageCallError, WorkError, PluginToolset, ProductPort,
     SwitchError, Switched, UserPlugins, VideoJob,
 };

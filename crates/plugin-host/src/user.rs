@@ -28,7 +28,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::store::StoreError;
-use crate::store::PanelOutcome;
+use crate::store::WorkOutcome;
 use crate::store::{PluginChanges, PluginStore, ValueWrite, Written};
 use demi_command_declarations::NativeOperation;
 use demi_device_interface::{CommandSet, GroupBuilder, JobCaller, PortError, RpcPort};
@@ -43,7 +43,7 @@ use demi_shared_types::{B64Bytes, BlobRef, MediaKind, NodeId, Timestamp, TurnId}
 use demi_web_api_protocol::conversations::PluginRevision;
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
-use demi_web_api_protocol::panel::{HeldState, PanelChange, PanelEffect, WorkPanel};
+use demi_web_api_protocol::work::{HeldState, WorkChange, WorkEffect, Work};
 use demi_web_api_protocol::plugins::{PluginEntry, PluginStateAnswer};
 use demi_web_api_protocol::workflows::WatchSubject;
 use futures_util::StreamExt as _;
@@ -268,14 +268,14 @@ pub enum PageCallError {
     Plugin(#[from] PluginError),
 }
 
-/// Why a change of a work panel was refused.
+/// Why a change of a work was refused.
 #[derive(Debug, thiserror::Error)]
-pub enum PanelError {
-    #[error("No plugin the user has on declares the panel kind \"{0}\"")]
+pub enum WorkError {
+    #[error("No plugin the user has on declares the tab kind \"{0}\"")]
     UnknownKind(String),
-    #[error("The work panel holds as many tabs, or as much data, as it can")]
+    #[error("The conversation holds as many tabs, or as much of their data, as it can")]
     Full,
-    #[error("The work panel's tabs would be over their size")]
+    #[error("The conversation's tabs would be over their size")]
     TooLarge,
     #[error("No conversation of that id")]
     Missing,
@@ -283,12 +283,12 @@ pub enum PanelError {
     Storage(#[from] StoreError),
 }
 
-impl PanelError {
+impl WorkError {
     /// The refusal as the port gives it to a plugin.
     fn refusal(self) -> PortFailure {
         let code = match &self {
-            Self::UnknownKind(_) => ErrorCode::UnknownPanelKind,
-            Self::Full => ErrorCode::PanelFull,
+            Self::UnknownKind(_) => ErrorCode::UnknownTabKind,
+            Self::Full => ErrorCode::WorkFull,
             Self::TooLarge => ErrorCode::TooLarge,
             Self::Missing => ErrorCode::ConversationNotFound,
             Self::Storage(_) => {
@@ -298,7 +298,7 @@ impl PanelError {
                 return storage(error);
             }
         };
-        PortFailure::Refused(PortRefusal::Panel {
+        PortFailure::Refused(PortRefusal::Work {
             code,
             message: self.to_string(),
         })
@@ -559,27 +559,27 @@ impl Shared {
         }
     }
 
-    /// Applies `change` to the conversation's panel and marks its entry in the
-    /// list, which carries the panel; answers the panel's revision and what
+    /// Applies `change` to the conversation's work and marks its entry in the
+    /// list, which carries the work; answers the work's revision and what
     /// the change did.
-    async fn apply_panel(
+    async fn apply_work(
         &self,
         conversation: &ConversationId,
-        changes: Vec<PanelChange>,
-    ) -> Result<(u64, Vec<PanelEffect>), PanelError> {
+        changes: Vec<WorkChange>,
+    ) -> Result<(u64, Vec<WorkEffect>), WorkError> {
         match self
             .store
-            .change_panel(conversation.clone(), changes)
+            .change_work(conversation.clone(), changes)
             .await?
         {
-            PanelOutcome::Changed { revision, effects } => {
+            WorkOutcome::Changed { revision, effects } => {
                 self.changes.conversation_changed(conversation.clone());
                 Ok((revision, effects))
             }
-            PanelOutcome::Unchanged { revision } => Ok((revision, Vec::new())),
-            PanelOutcome::Full => Err(PanelError::Full),
-            PanelOutcome::TooLarge => Err(PanelError::TooLarge),
-            PanelOutcome::Missing => Err(PanelError::Missing),
+            WorkOutcome::Unchanged { revision } => Ok((revision, Vec::new())),
+            WorkOutcome::Full => Err(WorkError::Full),
+            WorkOutcome::TooLarge => Err(WorkError::TooLarge),
+            WorkOutcome::Missing => Err(WorkError::Missing),
         }
     }
 
@@ -593,10 +593,10 @@ impl Shared {
     fn tell_owner(
         self: &Rc<Self>,
         conversation: ConversationId,
-        effect: PanelEffect,
+        effect: WorkEffect,
         enabled: &[bool],
     ) {
-        let PanelEffect::Removed(tab) = effect else {
+        let WorkEffect::Removed(tab) = effect else {
             return;
         };
         let Some(owner) = self
@@ -606,7 +606,7 @@ impl Shared {
         else {
             return;
         };
-        let request = Request::PanelTab {
+        let request = Request::TabClosed {
             user: self.user.clone(),
             conversation: conversation.clone(),
             tab,
@@ -780,7 +780,7 @@ impl UserPlugins {
     ///
     /// A plugin turned off loses its instance, which ends its requests under
     /// way, the tasks it started and its open user streams, and the tabs of
-    /// its kinds in every conversation's panel, an archived one's included.
+    /// its kinds in every conversation's work, an archived one's included.
     /// Its durable data stays.
     pub async fn switch(&self, plugin: &str, enabled: bool) -> Result<Option<Switched>, SwitchError> {
         let Some((index, registered)) = self.0.registry.plugin(plugin) else {
@@ -890,7 +890,7 @@ impl UserPlugins {
         unbound
     }
 
-    /// Removes the tabs of plugin `plugin`'s kinds from every panel of the
+    /// Removes the tabs of plugin `plugin`'s kinds from every work of the
     /// user's conversations, archived ones included, and marks the entry in the
     /// list of each that changed.
     async fn close_tabs(&self, plugin: usize) -> Result<(), StoreError> {
@@ -900,7 +900,7 @@ impl UserPlugins {
         let closed = self
             .0
             .store
-            .close_panel_kinds(self.0.user.clone(), page.panel_kinds.clone())
+            .close_tab_kinds(self.0.user.clone(), page.tab_kinds.clone())
             .await?;
         for conversation in closed {
             self.0.changes.conversation_changed(conversation);
@@ -1184,7 +1184,7 @@ impl UserPlugins {
     /// ended without its package saying so.
     ///
     /// Each plugin that binds such a package, that the user has on and that has
-    /// panel tabs in one of the conversations, receives `package_lost` for it
+    /// work tabs in one of the conversations, receives `package_lost` for it
     /// (`crates/command-protocol/src/messages.rs`). A plugin that shows nothing
     /// of a conversation has nothing to correct.
     pub async fn package_lost(&self, device: &DeviceId, lost: Lost<'_>, conversations: &[ConversationId]) {
@@ -1196,18 +1196,18 @@ impl UserPlugins {
             return;
         }
         for conversation in conversations {
-            let panel = match self.0.store.panel(conversation.clone()).await {
-                Ok(panel) => panel,
+            let work = match self.0.store.work(conversation.clone()).await {
+                Ok(work) => work,
                 Err(error) => {
                     // The plugin then shows the lost state until its
                     // package next says something about the conversation.
-                    tracing::warn!(event = "package_panel.read_failed", %conversation, error = &error as &dyn std::error::Error, "a lost package's panel could not be read");
+                    tracing::warn!(event = "package_tabs.read_failed", %conversation, error = &error as &dyn std::error::Error, "a lost package's work could not be read");
                     continue;
                 }
             };
             for &plugin in &plugins {
                 let registered = &self.0.registry.plugins[plugin];
-                if !panel.tabs.iter().any(|tab| registered.owns_kind(&tab.kind)) {
+                if !work.tabs.iter().any(|tab| registered.owns_kind(&tab.kind)) {
                     continue;
                 }
                 let request = Request::PackageLost {
@@ -1362,17 +1362,17 @@ impl UserPlugins {
             .collect()
     }
 
-    /// The conversation's work panel.
-    pub async fn panel(&self, conversation: ConversationId) -> Result<WorkPanel, StoreError> {
-        self.0.store.panel(conversation).await
+    /// The conversation's work.
+    pub async fn work(&self, conversation: ConversationId) -> Result<Work, StoreError> {
+        self.0.store.work(conversation).await
     }
 
     /// The held conversation states of the plugins the user has on whose
     /// conversation state is held, each as its plugin holds it now: a plugin
     /// that has none, or fails, adds nothing, and the page reads that state
-    /// itself. The page has the panel's tabs from the conversation's entry
+    /// itself. The page has the work's tabs from the conversation's entry
     /// already.
-    pub async fn panel_states(
+    pub async fn tab_states(
         &self,
         conversation: ConversationId,
         cancel: CancellationToken,
@@ -1406,31 +1406,31 @@ impl UserPlugins {
         Ok(states)
     }
 
-    /// A page's changes of the conversation's work panel, all or none: each tab
+    /// A page's changes of the conversation's work, all or none: each tab
     /// they create is of a kind a plugin the user has on declares.
     ///
-    /// Answers the panel's revision once the changes are in it and whether they
+    /// Answers the work's revision once the changes are in it and whether they
     /// changed it, and tells the kind's plugin of each tab the user created or
     /// removed.
-    pub async fn change_panel(
+    pub async fn change_work(
         &self,
         conversation: ConversationId,
-        changes: Vec<PanelChange>,
-    ) -> Result<(u64, bool), PanelError> {
+        changes: Vec<WorkChange>,
+    ) -> Result<(u64, bool), WorkError> {
         let enabled = self.enabled().await?;
         for change in &changes {
-            if let PanelChange::Create(create) = change {
+            if let WorkChange::Create(create) = change {
                 let owned = self
                     .0
                     .registry
                     .kind_owner(&create.kind)
                     .is_some_and(|owner| enabled[owner]);
                 if !owned {
-                    return Err(PanelError::UnknownKind(create.kind.clone()));
+                    return Err(WorkError::UnknownKind(create.kind.clone()));
                 }
             }
         }
-        let (revision, effects) = self.0.apply_panel(&conversation, changes).await?;
+        let (revision, effects) = self.0.apply_work(&conversation, changes).await?;
         let changed = !effects.is_empty();
         for effect in effects {
             self.0.tell_owner(conversation.clone(), effect, &enabled);
@@ -1770,29 +1770,29 @@ impl RequestPort {
                     workspaces: Workspaces { workspaces, current },
                 }
             }
-            PortMessage::PanelTabs => {
+            PortMessage::WorkTabs => {
                 let registered = &shared.registry.plugins[self.plugin];
-                let mut panel = shared
+                let mut work = shared
                     .store
-                    .panel(self.conversation()?.clone())
+                    .work(self.conversation()?.clone())
                     .await
                     .map_err(storage)?;
-                panel.tabs.retain(|tab| registered.owns_kind(&tab.kind));
-                PortAnswer::Panel { panel }
+                work.tabs.retain(|tab| registered.owns_kind(&tab.kind));
+                PortAnswer::Work { work }
             }
-            PortMessage::CreatePanelTab { tab } => {
+            PortMessage::CreateWorkTab { tab } => {
                 if !shared.registry.plugins[self.plugin].owns_kind(&tab.kind) {
-                    return Err(PanelError::UnknownKind(tab.kind).refusal());
+                    return Err(WorkError::UnknownKind(tab.kind).refusal());
                 }
-                self.panel_change(PanelChange::Create(tab)).await?
+                self.work_change(WorkChange::Create(tab)).await?
             }
-            PortMessage::UpdatePanelTab { id, data } => {
+            PortMessage::UpdateWorkTab { id, data } => {
                 self.own_tab(&id).await?;
-                self.panel_change(PanelChange::Update { id, data }).await?
+                self.work_change(WorkChange::Update { id, data }).await?
             }
-            PortMessage::RemovePanelTab { id } => {
+            PortMessage::RemoveWorkTab { id } => {
                 self.own_tab(&id).await?;
-                self.panel_change(PanelChange::Remove { id }).await?
+                self.work_change(WorkChange::Remove { id }).await?
             }
             PortMessage::ReadSecret { name } => PortAnswer::Secret {
                 secret: shared.read_secret(self.plugin, name.as_str()).await?,
@@ -1896,30 +1896,30 @@ fn job_failure(message: &str) -> PortFailure {
     PortFailure::Refused(PortRefusal::Media { refusal: MediaRefusal::Failed { message: message.into() } })
 }
 
-/// Applies a plugin's change of the request's conversation's panel.
-    async fn panel_change(&self, change: PanelChange) -> Result<PortAnswer, PortFailure> {
+/// Applies a plugin's change of the request's conversation's work.
+    async fn work_change(&self, change: WorkChange) -> Result<PortAnswer, PortFailure> {
         let conversation = self.conversation()?;
         let (revision, _) = self
             .shared
-            .apply_panel(conversation, vec![change])
+            .apply_work(conversation, vec![change])
             .await
             .map_err(|error| error.refusal())?;
-        Ok(PortAnswer::PanelRevision { revision })
+        Ok(PortAnswer::WorkRevision { revision })
     }
 
-    /// Refuses a change of a tab of another plugin's kind; a tab the panel
+    /// Refuses a change of a tab of another plugin's kind; a tab the work
     /// no longer has is the change's to answer.
     async fn own_tab(&self, id: &str) -> Result<(), PortFailure> {
-        let panel = self
+        let work = self
             .shared
             .store
-            .panel(self.conversation()?.clone())
+            .work(self.conversation()?.clone())
             .await
             .map_err(storage)?;
         let registered = &self.shared.registry.plugins[self.plugin];
-        match panel.tabs.iter().find(|tab| tab.id == id) {
+        match work.tabs.iter().find(|tab| tab.id == id) {
             Some(tab) if !registered.owns_kind(&tab.kind) => {
-                Err(PanelError::UnknownKind(tab.kind.clone()).refusal())
+                Err(WorkError::UnknownKind(tab.kind.clone()).refusal())
             }
             _ => Ok(()),
         }

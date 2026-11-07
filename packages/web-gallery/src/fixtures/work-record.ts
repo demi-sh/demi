@@ -1,16 +1,16 @@
 /**
- * A conversation's work panel as the backend keeps it, and the browser
- * plugin's part in its tabs, in memory: the gallery's panels change the way the product's do, a beat late, over the
+ * A conversation's work as the backend keeps it, and the browser
+ * plugin's part in its tabs, in memory: the gallery's windows change the way the product's do, a beat late, over the
  * gallery's own browser.
  */
-import { BrowserTabsError, addedPanelTab, browserTabDataSchema, type BrowserTabData, type TabFailure } from '@demicodes/plugin-browser/live/tabs'
+import { BrowserTabsError, addedWorkTab, browserTabDataSchema, type BrowserTabData, type TabFailure } from '@demicodes/plugin-browser/live/tabs'
 import { SERVER_FAILED } from './plugins'
-import { applyPanelChange, type PanelAnswer, type PanelBackend, type PanelChange, type PanelRead } from '@demicodes/web-ui/agent/panel-changes'
-import type { PanelTab } from '@demicodes/web-ui/agent/panel-tabs'
+import { applyWorkChange, type WorkAnswer, type WorkBackend, type WorkChange, type WorkRead } from '@demicodes/web-ui/agent/work-changes'
+import type { WorkTab } from '@demicodes/web-ui/agent/work-tabs'
 import type { BrowserTab } from '@demicodes/plugin-browser/generated/plugin'
 import type { GalleryBrowser } from './live-browser'
 
-/** How long the backend takes over a change of the panel. */
+/** How long the backend takes over a change of the work. */
 const CHANGE_MS = 120
 
 function beat(): Promise<void> {
@@ -18,37 +18,37 @@ function beat(): Promise<void> {
 }
 
 
-export class GalleryPanel implements PanelBackend {
+export class GalleryWorkRecord implements WorkBackend {
   private revision = 0
-  private tabs: readonly PanelTab[] = []
-  /** Every id the panel had, which is never used again. */
+  private tabs: readonly WorkTab[] = []
+  /** Every id the work had, which is never used again. */
   private readonly retired = new Set<string>()
   /**
    * Told of a tab its user removed, once the change is answered, as a kind's
    * plugin is; a tab the user created is none of the plugin's business.
    */
-  removed: ((tab: PanelTab) => void) | null = null
-  /** Each change, the plugin's included, with the panel as it is then, as the conversation's entry in the list brings it. */
-  changed: ((panel: PanelRead) => void) | null = null
+  removed: ((tab: WorkTab) => void) | null = null
+  /** Each change, the plugin's included, with the work as it is then, as the conversation's entry in the list brings it. */
+  changed: ((record: WorkRead) => void) | null = null
 
-  /** The panel as it is now, as the conversation's entry in the list carries it. */
-  current(): PanelRead {
+  /** The work as it is now, as the conversation's entry in the list carries it. */
+  current(): WorkRead {
     return { revision: this.revision, tabs: this.tabs.map((tab) => ({ ...tab })) }
   }
 
   /**
-   * A page's changes, as one change of the panel: the kind's plugin hears
+   * A page's changes, as one change of the work: the kind's plugin hears
    * of each tab its user removed.
    */
-  async send(changes: readonly PanelChange[]): Promise<PanelAnswer> {
+  async send(changes: readonly WorkChange[]): Promise<WorkAnswer> {
     await beat()
     const before = this.revision
     const removed = changes.flatMap((change) => this.change(change) ?? [])
     if (this.revision > before) {
       // The request counts as one change, however many it made.
       this.revision = before + 1
-      const panel = this.current()
-      queueMicrotask(() => this.changed?.(panel))
+      const record = this.current()
+      queueMicrotask(() => this.changed?.(record))
     }
     for (const tab of removed) {
       queueMicrotask(() => this.removed?.(tab))
@@ -57,22 +57,22 @@ export class GalleryPanel implements PanelBackend {
   }
 
   /** Applies the plugin's `change`, which no plugin is told of. */
-  apply(change: PanelChange): void {
+  apply(change: WorkChange): void {
     const before = this.revision
     this.change(change)
     if (this.revision > before) {
-      const panel = this.current()
-      queueMicrotask(() => this.changed?.(panel))
+      const record = this.current()
+      queueMicrotask(() => this.changed?.(record))
     }
   }
 
   /** Applies `change`, counting it in the revision when it changes the tabs; answers the tab it removed, if any. */
-  private change(change: PanelChange): PanelTab | null {
+  private change(change: WorkChange): WorkTab | null {
     if (change.type === 'create' && (this.retired.has(change.tab.id) || this.tab(change.tab.id))) {
       return null
     }
     const removed = change.type === 'remove' ? this.tab(change.id) : null
-    const next = applyPanelChange(this.tabs, change)
+    const next = applyWorkChange(this.tabs, change)
     if (JSON.stringify(next) === JSON.stringify(this.tabs)) {
       return null
     }
@@ -84,36 +84,36 @@ export class GalleryPanel implements PanelBackend {
     return removed
   }
 
-  tab(id: string): PanelTab | null {
+  tab(id: string): WorkTab | null {
     return this.tabs.find((tab) => tab.id === id) ?? null
   }
 
-  get all(): readonly PanelTab[] {
+  get all(): readonly WorkTab[] {
     return this.tabs
   }
 }
 
 /** The data of a `browser` tab; none for one that does not fit, which the plugin leaves as it is. */
-function browserData(tab: PanelTab | null): BrowserTabData | null {
+function browserData(tab: WorkTab | null): BrowserTabData | null {
   const parsed = browserTabDataSchema.safeParse(tab?.data)
   return parsed.success ? parsed.data : null
 }
 
-/** The browser tab a panel tab shows, while the browser has it. */
+/** The browser tab a work tab shows, while the browser has it. */
 function live(data: BrowserTabData): string | undefined {
   return data.closed ? undefined : data.tab
 }
 
 /**
- * The panel tab that shows the browser tab whose page opened `tab`; none for
- * a tab no page opened, or whose opener the panel does not show.
+ * The work tab that shows the browser tab whose page opened `tab`; none for
+ * a tab no page opened, or whose opener the work does not have.
  */
-function openerFor(panel: GalleryPanel, tab: BrowserTab): string | undefined {
+function openerFor(record: GalleryWorkRecord, tab: BrowserTab): string | undefined {
   if (tab.createdBy.kind !== 'page') {
     return undefined
   }
   const opener = tab.createdBy.opener
-  return panel.all.find((each) => {
+  return record.all.find((each) => {
     const data = each.kind === 'browser' ? browserData(each) : null
     return data !== null && live(data) === opener
   })?.id
@@ -123,10 +123,10 @@ function openerFor(panel: GalleryPanel, tab: BrowserTab): string | undefined {
  * Where a tab `opener` opened goes: right after it, behind the tabs it opened
  * before that still stand right after it, as Chrome places the tabs a link
  * opens and the backend's plugin places them; after the others (undefined)
- * when the panel no longer has the opener.
+ * when the work no longer has the opener.
  */
-function openedIndex(panel: GalleryPanel, opener: string): number | undefined {
-  const tabs = panel.all
+function openedIndex(record: GalleryWorkRecord, opener: string): number | undefined {
+  const tabs = record.all
   const at = tabs.findIndex((tab) => tab.id === opener)
   if (at < 0) {
     return undefined
@@ -138,12 +138,12 @@ function openedIndex(panel: GalleryPanel, opener: string): number | undefined {
   return end
 }
 
-/** The browser plugin's part in the panel's `browser` tabs, as the backend's plugin does it. */
+/** The browser plugin's part in the work's `browser` tabs, as the backend's plugin does it. */
 export interface GalleryBrowserPlugin {
-  /** Opens a browser tab for the panel tab, unless it shows one; answers the tab it shows then, as the plugin does. */
-  bind(panelTab: string): Promise<string | null>
-  /** Closes the browser tab of a panel tab its user removed. */
-  removed(tab: PanelTab): Promise<void>
+  /** Opens a browser tab for the work tab, unless it shows one; answers the tab it shows then, as the plugin does. */
+  bind(workTab: string): Promise<string | null>
+  /** Closes the browser tab of a work tab its user removed. */
+  removed(tab: WorkTab): Promise<void>
   /**
    * The browser told the plugin its tabs changed: adds the agent's and the
    * pages' tabs, removes the ones closed on purpose and marks the ones the browser lost.
@@ -153,7 +153,7 @@ export interface GalleryBrowserPlugin {
   settled(): Promise<void>
 }
 
-export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPanel): GalleryBrowserPlugin {
+export function galleryBrowserPlugin(browser: GalleryBrowser, record: GalleryWorkRecord): GalleryBrowserPlugin {
   // One piece of the conversation's work at a time, as the plugin does it.
   let turn: Promise<void> = Promise.resolve()
   function inTurn<T>(work: () => Promise<T>): Promise<T> {
@@ -164,8 +164,8 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPane
   }
 
   return {
-    bind: (panelTab) => inTurn(async () => {
-      const data = browserData(panel.tab(panelTab))
+    bind: (workTab) => inTurn(async () => {
+      const data = browserData(record.tab(workTab))
       if (!data) {
         return null
       }
@@ -178,8 +178,8 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPane
         // new tab, bound before its page opens, as the backend's plugin does.
         const made = shown === undefined
         const tab = shown ?? (await browser.newTab()).id
-        panel.apply({ type: 'update', id: panelTab, data: { tab, closed: null, failure: null } })
-        const now = browserData(panel.tab(panelTab))
+        record.apply({ type: 'update', id: workTab, data: { tab, closed: null, failure: null } })
+        const now = browserData(record.tab(workTab))
         if (!now) {
           await browser.close(tab)
           return null
@@ -195,7 +195,7 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPane
         const message = error instanceof Error ? error.message : String(error)
         const reason = error instanceof BrowserTabsError ? error.reason : null
         const failure: TabFailure = reason ? { code: reason, message } : { status: SERVER_FAILED, message }
-        panel.apply({ type: 'update', id: panelTab, data: { failure } })
+        record.apply({ type: 'update', id: workTab, data: { failure } })
         return null
       }
     }),
@@ -209,7 +209,7 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPane
     settled: () => turn,
     tabsChanged: () => inTurn(async () => {
       const listed = browser.listed.value.tabs
-      const bound = panel.all
+      const bound = record.all
         .filter((tab) => tab.kind === 'browser')
         .map((tab) => ({ id: tab.id, data: browserData(tab) }))
       const shown = new Set(bound.map((tab) => tab.data?.tab))
@@ -219,13 +219,13 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPane
           if (tab.shows > 0) {
             data.shows = tab.shows
           }
-          const opener = openerFor(panel, tab)
+          const opener = openerFor(record, tab)
           if (opener !== undefined) {
             data.openedBy = opener
           }
           // Beside its opener, as the backend's plugin places it.
-          const index = opener === undefined ? undefined : openedIndex(panel, opener)
-          panel.apply({ type: 'create', tab: { id: addedPanelTab(tab.id), kind: 'browser', data }, index })
+          const index = opener === undefined ? undefined : openedIndex(record, opener)
+          record.apply({ type: 'create', tab: { id: addedWorkTab(tab.id), kind: 'browser', data }, index })
         }
       }
       for (const { id, data } of bound) {
@@ -235,9 +235,9 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPane
         }
         const present = listed.find((candidate) => candidate.id === tab)
         if (!present && browser.closedOnPurpose.has(tab)) {
-          panel.apply({ type: 'remove', id })
+          record.apply({ type: 'remove', id })
         } else if (!present) {
-          panel.apply({ type: 'update', id, data: { closed: true } })
+          record.apply({ type: 'update', id, data: { closed: true } })
         } else {
           // The tab follows its page's address and title, and the agent's
           // showings, which each page selects once. One whose page failed to
@@ -253,7 +253,7 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, panel: GalleryPane
             follows.shows = present.shows
           }
           if (Object.keys(follows).length > 0) {
-            panel.apply({ type: 'update', id, data: follows })
+            record.apply({ type: 'update', id, data: follows })
           }
         }
       }

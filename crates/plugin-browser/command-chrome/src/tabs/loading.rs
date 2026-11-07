@@ -2,7 +2,7 @@
 //! main frame, followed for the tab's lifetime.
 //!
 //! Each change counts as a change of what the browser shows, so the live view
-//! sends its viewers the tab list again and the work panel shows the page
+//! sends its viewers the tab list again and the browser window shows the page
 //! loading only while it does. The address a navigation the user started loads
 //! is kept until its document commits or it ends, as Chrome's address bar shows
 //! it meanwhile.

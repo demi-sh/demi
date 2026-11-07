@@ -189,5 +189,5 @@ export type GalleryHistory = ReturnType<typeof galleryHistory>
 /** The gallery's latest commit on `main`, by its abbreviation, as a message links it. */
 export const LINKED_COMMIT = commitId(1).slice(0, 7)
 
-/** The gallery's one repository, which every Commits specimen and the panel's Change tab read. */
+/** The gallery's one repository, which every Commits specimen and the work's Change tab read. */
 export const sharedHistory = galleryHistory()

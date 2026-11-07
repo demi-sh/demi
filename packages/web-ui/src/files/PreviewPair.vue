@@ -4,7 +4,7 @@
  * committed one and the working tree's, or a call's before and after.
  *
  * - An added file has only the second, a deleted file only the first.
- * - The columns stack when the panel is narrow.
+ * - The columns stack when the window is narrow.
  */
 withDefaults(defineProps<{ before?: string; after?: string }>(), {
   before: 'Committed',

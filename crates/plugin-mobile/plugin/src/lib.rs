@@ -5,17 +5,17 @@
 //! - the `demi mobile` group, every leaf bound to an operation of the
 //!   `demi.mobile` command package, which runs it on the device;
 //! - the `mobile` user stream of the live view, one per device a page shows;
-//! - the methods behind the panel's controls, each the operation of the command
+//! - the methods behind the window's controls, each the operation of the command
 //!   that does the same;
 //! - the `mobile` kind's tabs on the backend.
 //!
-//! It is a plugin as the browser is: the commands, the panel and the device-side
+//! It is a plugin as the browser is: the commands, the window and the device-side
 //! drivers are its own, and nothing in the agent, the backend or the runner
 //! knows a simulator.
 
 mod commands;
 pub mod page;
-mod panel;
+mod tabs;
 pub mod reason;
 
 use std::rc::Rc;
@@ -67,7 +67,7 @@ impl PluginFactory for Mobile {
     fn instance(&self) -> Rc<dyn Plugin> {
         Rc::new(Instance {
             commands: commands(),
-            work: panel::Work::default(),
+            work: tabs::Work::default(),
         })
     }
 }
@@ -112,7 +112,7 @@ fn commands() -> CommandPlugin {
 /// calls, its kind's tabs and the package's messages reach it.
 struct Instance {
     commands: CommandPlugin,
-    work: panel::Work,
+    work: tabs::Work,
 }
 
 impl Plugin for Instance {
@@ -141,7 +141,7 @@ impl Plugin for Instance {
                 // The user closed a device's tab. The plugin adds the
                 // kind's tabs itself, for each device the conversation
                 // opens, by the agent's command or the user's Open.
-                Request::PanelTab {
+                Request::TabClosed {
                     conversation, tab, ..
                 } => {
                     self.work.removed(&conversation, &port, &tab).await?;

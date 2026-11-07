@@ -6,7 +6,7 @@ import type { MessageFiles } from '../markdown/types'
 
 /**
  * Opens a request's changes, through the `edit` intent, on a pill's click; what
- * the panel already shows stays as it is (`openIntent`). /
+ * the windows already show stay as they are (`openIntent`).
  */
 export type EditSelectionHandler = (selection: RequestEditSelection) => void
 

@@ -14,7 +14,7 @@ import { KeptSessions, definePluginStore, type KeptSession, type PageContext, ty
 import { browserTabsApi } from '../tabs'
 import { BrowserTabsController, type BrowserTabsOptions } from './tabs'
 
-/** The kind's name, which the page's tabs and the plugin's panel tabs carry. */
+/** The kind's name, which the page's tabs and the plugin's work tabs carry. */
 export const BROWSER_TAB_KIND = 'browser'
 
 /** One conversation's browser as the store keeps it. */
@@ -40,7 +40,7 @@ function keptBrowser(page: PageContext, conversation: string, options: BrowserTa
   const tabs = scope.run(() => new BrowserTabsController(
     browserTabsApi(
       page.plugin.conversation(conversation),
-      (panelTab) => page.panel.select(conversation, BROWSER_TAB_KIND, panelTab),
+      (workTab) => page.work.select(conversation, BROWSER_TAB_KIND, workTab),
     ),
     page.errors,
     options,

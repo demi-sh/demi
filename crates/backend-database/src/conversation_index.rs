@@ -66,9 +66,9 @@ pub struct ConversationRecord {
     pub saved: u64,
     /// The revision of that list, 0 before its first change.
     pub saved_revision: u64,
-    /// The revision of the conversation's work panel, 0 before its first
+    /// The revision of the conversation's work, 0 before its first
     /// change.
-    pub panel_revision: u64,
+    pub work_revision: u64,
     /// The revision of the conversation's attached devices, raised by each
     /// change of them; 0 before the first.
     pub devices_revision: u64,
@@ -279,7 +279,7 @@ const CONVERSATION_COLUMNS: &str = "id, user_id, workspace_id, title, title_orig
       WHERE conversation_id = conversations.id
          OR project_id = (SELECT id FROM projects
                             WHERE id = conversations.target_project_id AND saved_scope = 'project')) AS saved,
-     COALESCE((SELECT revision FROM conversation_panels WHERE conversation_id = conversations.id), 0) AS panel_revision,
+     COALESCE((SELECT revision FROM conversation_work WHERE conversation_id = conversations.id), 0) AS work_revision,
      (SELECT count(*) FROM permission_requests WHERE conversation_id = conversations.id AND decision IS NULL) AS permission_requests,
      (SELECT count(*) FROM permission_requests WHERE conversation_id = conversations.id AND decision IS NULL AND NOT read) AS unread_permission_requests,
      EXISTS (SELECT 1 FROM schedules WHERE conversation_id = conversations.id) AS scheduled";
@@ -947,10 +947,10 @@ fn conversation_row(row: &Row<'_>) -> Result<ConversationRecord, StorageError> {
             "saved_revision",
             u64::try_from(row.get::<_, i64>("saved_revision")?),
         )?,
-        panel_revision: decode(
-            "conversation_panels",
+        work_revision: decode(
+            "conversation_work",
             "revision",
-            u64::try_from(row.get::<_, i64>("panel_revision")?),
+            u64::try_from(row.get::<_, i64>("work_revision")?),
         )?,
         devices_revision: decode(
             TABLE,

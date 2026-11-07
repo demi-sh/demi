@@ -1252,7 +1252,7 @@ impl Conversations {
     /// Installs Chrome for an operation that starts the conversation's
     /// browser on a device that has none, before the operation's own time
     /// runs: the agent's first `tab new` works instead of failing, and a tab
-    /// the user opens in the panel opens once Chrome is in place. Its lines
+    /// the user opens in the browser window opens once Chrome is in place. Its lines
     /// go to standard error, as the operation's output is its own.
     async fn install_first(&self, command: &BrowserOperation, context: &mut InvocationContext) -> Result<()> {
         let starts = matches!(
@@ -1352,7 +1352,7 @@ impl Conversations {
             if let Some(url) = &input.url {
                 demi_command_package_browser_chrome::tabs::navigation::start_loading(&tab, url)?;
             }
-            // The user's new tab answers at once: the work panel shows its
+            // The user's new tab answers at once: the browser window shows its
             // loading. The agent's names its viewport when the tab reports it
             // in time; the tab is made either way.
             let viewport = if user {
@@ -1409,7 +1409,7 @@ impl Conversations {
         let id = command.tab().ok_or(BrowserError::TabNotFound)?;
         let tab = &environment.tab(id, cancellation, command.timeout()).await?;
         if matches!(command, BrowserOperation::Show(_)) {
-            // Only the request is recorded: the user's panel shows the tab
+            // Only the request is recorded: the user's browser window shows the tab
             // once the job ends.
             tab.show();
             return Ok(CommandOutput::Json(output::value(ShowResult {
@@ -1648,7 +1648,7 @@ impl Conversations {
         if let BrowserOperation::Open(input) = command
             && input.show == Some(true)
         {
-            // The page opened: the user's panel shows the tab once the job
+            // The page opened: the user's browser window shows the tab once the job
             // ends, as show does.
             tab.show();
         }

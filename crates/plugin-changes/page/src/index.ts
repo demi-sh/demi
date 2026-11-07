@@ -4,7 +4,7 @@
 // subagent's branch.
 import { defineComponent, h } from 'vue'
 import { FileDiff, GitCompare } from '@lucide/vue'
-import { ICON_PX, definePage, type PanelKind, type PanelWindow } from '@demicodes/plugin-sdk'
+import { ICON_PX, definePage, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import { t } from './locales/text'
 import ChangeBadge from './ChangeBadge.vue'
@@ -16,10 +16,10 @@ const ChangeMark = defineComponent({
 })
 
 /** Changes' window: the Change view alone. */
-const changesWindow: PanelWindow = { id: 'changes', name: () => t('kind.title'), icon: GitCompare }
+const changesWindow: WindowKind = { id: 'changes', name: () => t('kind.title'), icon: GitCompare }
 
 /** The `change` kind: the Change view over the conversation's files service. */
-export const changeKind: PanelKind<ChangeData> = {
+export const changeKind: TabKind<ChangeData> = {
   kind: 'change',
   schema: changeDataSchema,
   window: changesWindow,
