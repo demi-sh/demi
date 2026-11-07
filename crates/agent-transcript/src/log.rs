@@ -457,11 +457,14 @@ impl TranscriptLog {
             }
         }))
         .collect();
+        let cut = self.cuts_asked_end(&self.blocks, &blocks);
         self.blocks = blocks;
         // A rewritten path, as an edit or a switch of versions makes, says
-        // anew whose its last turn is; an end kept before it may be gone.
+        // anew whose its last turn is.
         self.asking = self.held_turn();
-        self.asked_end = None;
+        if cut {
+            self.asked_end = None;
+        }
         PatchBatch {
             revision: self.revision,
             patches,
@@ -544,11 +547,25 @@ impl TranscriptLog {
         if position < self.start || position >= self.len() {
             return;
         }
+        let cut = self.cuts_asked_end(&self.blocks[position - self.start..], &[]);
         self.blocks.truncate(position - self.start);
         self.versions.split_off(&(position + 1));
         self.journal.truncate(position);
         self.asking = self.held_turn();
-        self.asked_end = None;
+        if cut {
+            self.asked_end = None;
+        }
+    }
+
+    /// Whether putting `next` in place of `gone` takes away the kept end of a
+    /// turn the user asked for, as an edit before it does; a rewrite after
+    /// it, as a later turn's retry makes, keeps it, and so does one of a
+    /// window that no longer holds it.
+    fn cuts_asked_end(&self, gone: &[Block], next: &[Block]) -> bool {
+        self.asked_end.as_ref().is_some_and(|end| {
+            let held = |blocks: &[Block]| blocks.iter().any(|block| block.id() == &end.id);
+            held(gone) && !held(next)
+        })
     }
 
     /// The stopped marker a Stop leaves.

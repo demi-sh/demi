@@ -14,23 +14,22 @@ export type ConversationStatus = 'idle' | 'active' | 'done' | 'error' | 'aborted
  * - finished: green
  * - failed: red
  *
- * Green and red say there is something new to see. Where the place knows
- * whether it was read, as a sidebar row, a read answer or failure settles. An
- * agent's tab and link have no read state, pass no `outcome`, and stay green or
- * red.
+ * Green and red say there is something new to see. An agent's tab and link
+ * have no read state and stay green or red; a sidebar row says what is unread
+ * instead (`conversationDotTone`).
  *
  * A Stop is the user's own decision, neither finished nor failed. Like a
  * conversation that has run nothing yet, it has no tone: the place's settled
  * look.
  */
-export function statusTone(status: ConversationStatus, outcome?: { read: boolean }): StatusDotTone | null {
+export function statusTone(status: ConversationStatus): StatusDotTone | null {
   switch (status) {
     case 'active':
       return 'accent'
     case 'done':
-      return outcome?.read ? null : 'success'
+      return 'success'
     case 'error':
-      return outcome?.read ? null : 'danger'
+      return 'danger'
     case 'aborted':
     case 'idle':
       return null

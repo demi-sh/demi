@@ -214,8 +214,12 @@ pub struct ConversationSummary {
     /// never with the user's input alone.
     #[garde(range(max = MAX_SAFE_INTEGER))]
     pub revision: u64,
-    /// Whether output is newer than the read revision.
-    pub unread: bool,
+    /// How the latest turn the user asked for ended, while the user has not
+    /// read it; null otherwise. A turn another conversation or a schedule
+    /// started marks nothing.
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[schemars(with = "Nullable<UnreadEnd>")]
+    pub unread: Option<UnreadEnd>,
     /// How many permission requests of the conversation wait for the user,
     /// which the sidebar shows as the needs-you mark.
     #[garde(range(max = MAX_SAFE_INTEGER))]
@@ -511,6 +515,15 @@ pub struct ModelSettings {
     #[schemars(with = "Nullable<String>")]
     #[garde(skip)]
     pub service_tier_id: Option<String>,
+}
+
+/// How a turn the user asked for and has not read ended: the sidebar's dot
+/// is green for an answer and red for an error.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum UnreadEnd {
+    Answered,
+    Failed,
 }
 
 /// Where a conversation stands: running or compacting while its live tree

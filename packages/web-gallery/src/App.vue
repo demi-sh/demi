@@ -47,9 +47,9 @@ const mediaViewer = provideMediaViewer()
 // Send to Conversation lists the search window's conversations; a pick says what the product would do.
 const sendable = searchConversations()
 const sendLooks: Record<string, SendTargetLook> = {
-  'search-ts2307': { status: { status: 'active', unread: false }, project: 'demi' },
-  'search-login': { status: { status: 'done', unread: true }, project: 'demi' },
-  'search-wording': { status: { status: 'idle', unread: false }, project: null },
+  'search-ts2307': { status: { status: 'active', unread: null }, project: 'demi' },
+  'search-login': { status: { status: 'done', unread: 'answered' }, project: 'demi' },
+  'search-wording': { status: { status: 'idle', unread: null }, project: null },
 }
 provideSendTargets({
   recent: () => sendable.toSorted((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt)).map(({ messages: _, ...row }) => ({ ...row, titleRanges: [], match: null })),

@@ -528,6 +528,11 @@ CREATE TABLE conversations (
   notifications_card TEXT CHECK (notifications_card IN ('shown', 'dismissed')),
   -- The workspace it is in: its project's, when it is in one.
   workspace_id TEXT NOT NULL REFERENCES workspaces (id),
+  -- The latest end of a turn the user asked for: the output revision at the
+  -- rest after it, 0 before the first, and whether it ended with an error.
+  -- The conversation is unread while it is above read_revision.
+  asked_end_revision INTEGER NOT NULL DEFAULT 0 CHECK (asked_end_revision >= 0),
+  asked_end_failed INTEGER NOT NULL DEFAULT 0 CHECK (asked_end_failed IN (0, 1)),
   CHECK (
     (target_kind = 'cloud'
       AND target_device_id IS NULL AND target_project_id IS NULL)

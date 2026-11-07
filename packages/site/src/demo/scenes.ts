@@ -240,14 +240,14 @@ export function sidebarRows({ state }: Conversation): SidebarConversation[] {
       status: state.phase === 'running' ? 'active' : 'done',
       projectId: PROJECTS.find((each) => each.path === state.cwd)?.id ?? null,
       pinned: false,
-      unread: false,
+      unread: null,
     },
-    { id: 'c-interviews', title: 'Summarize the customer interviews', updatedAt: ago(40), status: 'done', projectId: null, pinned: false, unread: true },
-    { id: 'c-laptops', title: 'Compare three laptop models', updatedAt: ago(180), status: 'idle', projectId: null, pinned: false, unread: false },
-    { id: 'c-budget', title: 'Q3 budget questions', updatedAt: ago(600), status: 'idle', projectId: null, pinned: false, unread: false },
-    { id: 'c-checkout', title: 'Fix the flaky checkout test', updatedAt: ago(90), status: 'done', projectId: 'p-shop', pinned: false, unread: false },
-    { id: 'c-release', title: 'Draft the release notes', updatedAt: ago(300), status: 'idle', projectId: 'p-shop', pinned: false, unread: false },
-    { id: 'c-reading', title: 'Reading list for June', updatedAt: ago(900), status: 'idle', projectId: 'p-notes', pinned: false, unread: false },
+    { id: 'c-interviews', title: 'Summarize the customer interviews', updatedAt: ago(40), status: 'done', projectId: null, pinned: false, unread: 'answered' },
+    { id: 'c-laptops', title: 'Compare three laptop models', updatedAt: ago(180), status: 'idle', projectId: null, pinned: false, unread: null },
+    { id: 'c-budget', title: 'Q3 budget questions', updatedAt: ago(600), status: 'idle', projectId: null, pinned: false, unread: null },
+    { id: 'c-checkout', title: 'Fix the flaky checkout test', updatedAt: ago(90), status: 'done', projectId: 'p-shop', pinned: false, unread: null },
+    { id: 'c-release', title: 'Draft the release notes', updatedAt: ago(300), status: 'idle', projectId: 'p-shop', pinned: false, unread: null },
+    { id: 'c-reading', title: 'Reading list for June', updatedAt: ago(900), status: 'idle', projectId: 'p-notes', pinned: false, unread: null },
   ]
 }
 

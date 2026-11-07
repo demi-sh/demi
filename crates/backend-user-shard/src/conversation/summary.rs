@@ -21,7 +21,7 @@ use demi_backend_database::tree::{self, EndedTurn, SummaryFacts, Terminal};
 use demi_shared_types::{ModelSelection, SessionPhase};
 use demi_web_api_protocol::conversations::{
     ConversationMetadata, ConversationShares, ConversationStatus, ConversationSummary, LastTurn, ModelSettings,
-    TurnOutcome,
+    TurnOutcome, UnreadEnd,
 };
 use demi_web_api_protocol::attached_devices::{AttachedDevice, ConversationDevices};
 use demi_web_api_protocol::ids::{ConversationId, ProviderId};
@@ -77,7 +77,7 @@ impl Shard {
         let archived = record.archived();
         let resuming = self.restart_resumes().contains(&record.id);
         Ok(ConversationSummary {
-            unread: facts.revision > record.read_revision && !self.idle_compactions().keeps_read(&record.id),
+            unread: record.unread_end().map(|end| if end.failed { UnreadEnd::Failed } else { UnreadEnd::Answered }),
             status: status(live, resuming, &facts),
             target: record.target.shown(&resolved),
             worktree: record.target.worktree().map(|worktree| worktree.name.clone()),
