@@ -10,18 +10,18 @@ import type { AgentEntry, ConversationAttachment, ReplyBlockFacts, Version } fro
 import { boundedHistory, latestBlocks } from '@demicodes/web-ui/agent/history'
 import type { Conversation, SideRecord } from '../state/types'
 import { settleSent, sideRecord } from './side-records'
-import { isConversationActive } from '@demicodes/web-ui/agent/conversation-status'
+import { conversationRun } from '@demicodes/web-ui/agent/conversation-status'
 import { isCompactionDivider } from '@demicodes/web-ui/agent/visible-blocks'
 import { followFrame, isTerminalRunning } from '@demicodes/web-ui/agent/terminals'
 import { subagentEntryFields } from '@demicodes/web-ui/agent/subagents'
 
 /** Map agent events to the product's child and terminal presentation records. */
 export function updateLiveStatus(conversation: Conversation): void {
-  if (
-    conversation.resuming
-    || isConversationActive(conversation.phase, conversation.subagents, conversation.terminals)
-  ) {
-    conversation.status = 'active'
+  const run = conversation.resuming
+    ? 'active'
+    : conversationRun(conversation.phase, conversation.subagents, conversation.terminals)
+  if (run) {
+    conversation.status = run
     return
   }
   // A compaction's divider, and the context after it, end no turn: the status

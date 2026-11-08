@@ -2,6 +2,7 @@ import type { AgentCost, AgentEntry, ContextUsage, JobModel, JobPhase, PendingCa
 import type { AgentActivity } from './agent-activity'
 import type { HeldTranscript } from '@demicodes/conversation-client'
 import type { ConversationStatus } from './conversation-status'
+import { sessionWorks } from './session-status'
 import type { MessageEditContent } from './message-editing'
 import { effortWord } from './reasoning'
 import { formatSpan } from '../ui/dates'
@@ -23,6 +24,12 @@ export interface AgentRun {
   /** The number of the agent it was forked from; null for one not forked. */
   forkedFrom: number | null
   phase: SubagentPhase
+  /**
+   * What its session does while it is live, as its entry says: a child idle
+   * beside a command it left running shows no Requesting row, and its dot
+   * does not breathe.
+   */
+  sessionPhase: SessionPhase
   startedAt: string
   endedAt?: string
   /**
@@ -52,11 +59,6 @@ export interface SubagentRecord extends AgentRun {
    * Agents window and `agent:` links show only the children that are.
    */
   onPath: boolean
-  /**
-   * What its session does while it is live, as its entry says: a child idle
-   * beside a command it left running shows no Requesting row.
-   */
-  sessionPhase: SessionPhase
   startedAt: string
   endedAt?: string
   /**
@@ -193,14 +195,15 @@ export function firstRunningSubagentId(
 }
 
 
-export function subagentStatus(phase: SubagentPhase): ConversationStatus {
-  if (phase === 'running') {
-    return 'active'
+/** An agent's status: a model at work while its round runs and its session works, else awaiting what it left running. */
+export function subagentStatus(run: Pick<AgentRun, 'phase' | 'sessionPhase'>): ConversationStatus {
+  if (run.phase === 'running') {
+    return sessionWorks(run.sessionPhase) ? 'active' : 'awaiting_commands'
   }
-  if (phase === 'error') {
+  if (run.phase === 'error') {
     return 'error'
   }
-  if (phase === 'aborted') {
+  if (run.phase === 'aborted') {
     return 'aborted'
   }
   return 'done'

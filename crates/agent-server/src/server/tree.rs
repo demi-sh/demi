@@ -849,6 +849,26 @@ impl<H: DeviceResolver> Tree<H> {
             || session.awaited_commands().iter().any(|command| self.live.has_ended(command))
     }
 
+    /// Whether a model works in the running conversation: the root's session
+    /// runs (but for its compaction while idle) or input waits for it, the
+    /// report of a command that ended waits to be taken in, or a child
+    /// starts, delivers its completion, or has a session that runs. A
+    /// conversation that runs while none does only awaits its commands.
+    pub fn agents_work(&self) -> bool {
+        let session = self.root.session();
+        let status = session.status();
+        (session.phase() != SessionPhase::CompactingIdle && !quiescent(&status))
+            || status.input
+            || session.awaited_commands().iter().any(|command| self.live.has_ended(command))
+            || !self.starting.borrow().is_empty()
+            || self.delivering.get() > 0
+            || self
+                .children
+                .borrow()
+                .values()
+                .any(|child| !quiescent(&child.node().session().status()))
+    }
+
     /// Ends every command of the tree's nodes whose start still waits for
     /// its device, as the user's Stop does.
     pub async fn stop_waiting(&self) {

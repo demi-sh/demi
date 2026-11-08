@@ -3,6 +3,7 @@ import type { ShownError } from '../infra/errors'
 import { isCompactionDivider } from './visible-blocks'
 import type { MenuDevice } from '../targets/types'
 import { t } from './locales/text'
+import type { SessionPhase } from '@demicodes/protocol'
 
 /** Sidebar conversation list, or a session that is not reconnecting. */
 export type ListLoad = 'ready' | 'loading' | 'failed'
@@ -318,4 +319,9 @@ export function endsWithErrorRecord(blocks: readonly RecordCandidate[]): boolean
  */
 function isLateInput(block: RecordCandidate): boolean {
   return block.type === 'agent_message' || (block.type === 'wakeup' && block.placement === 'steer')
+}
+
+/** Whether a session's phase is a model at work: any but resting, or a compaction while idle, which nobody asked for. */
+export function sessionWorks(phase: SessionPhase): boolean {
+  return phase !== 'idle' && phase !== 'compacting_idle'
 }

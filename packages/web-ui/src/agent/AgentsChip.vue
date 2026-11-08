@@ -4,7 +4,7 @@ import { Bot } from '@lucide/vue'
 import { useIconPx } from '../ui/icon-metrics'
 import SessionDockChip from './SessionDockChip.vue'
 import { KEEPS_WINDOWS } from '../ui/window-stack'
-import { agentsChipLabel, type SubagentRecord } from './subagents'
+import { agentsChipLabel, subagentStatus, type SubagentRecord } from './subagents'
 
 const props = defineProps<{
   agents: readonly SubagentRecord[]
@@ -17,6 +17,9 @@ const emit = defineEmits<{
 
 const icons = useIconPx()
 const label = computed(() => agentsChipLabel(props.agents))
+// It breathes while a model of a running agent works, and is steady while
+// they only await their commands.
+const working = computed(() => props.agents.some((agent) => subagentStatus(agent) === 'active'))
 </script>
 
 <template>
@@ -28,7 +31,7 @@ const label = computed(() => agentsChipLabel(props.agents))
     v-bind="{ [KEEPS_WINDOWS]: '' }"
     v-if="label"
     dot="accent"
-    breathing
+    :breathing="working"
     :aria-expanded="open === true"
     aria-haspopup="dialog"
     @click="emit('open')"

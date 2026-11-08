@@ -23,6 +23,6 @@ const markPlace = computed(() => props.element.querySelector<HTMLElement>('[data
 
 <template>
   <Teleport v-if="agent && markPlace" :to="markPlace">
-    <AgentMark :phase="agent.run?.phase ?? null" :size="ICON_PX.in28" />
+    <AgentMark :run="agent.run" :size="ICON_PX.in28" />
   </Teleport>
 </template>

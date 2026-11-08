@@ -121,7 +121,8 @@ const elapsedMs = useElapsedTime(
 const time = computed(() => formatSpan(elapsedMs.value ?? 0))
 // The dot of the agent's tab, drawn in the flow; a Stop, like a child that ran
 // nothing, has none.
-const tone = computed(() => statusTone(subagentStatus(props.run.phase)))
+const status = computed(() => subagentStatus(props.run))
+const tone = computed(() => statusTone(status.value))
 const effort = computed(() => runEffortWords(props.run.model))
 const agents = useMessageAgents()
 function openForked(): void {
@@ -164,7 +165,7 @@ const forkedSentence = computed(() => around('subagents.forkedFrom', 'agent'))
   <div data-window-bar class="status-bar @container flex h-8 phone:h-row shrink-0 items-stretch border-t border-line text-chrome text-fg-muted">
     <div class="flex shrink-0 items-stretch">
       <StatusBarSegment>
-        <StatusDot v-if="tone" :tone="tone" :breathing="run.phase === 'running'" />
+        <StatusDot v-if="tone" :tone="tone" :breathing="status === 'active'" />
         <span>{{ agentPhaseWords(run.phase) }}</span>
         <span class="text-fg-faint" aria-hidden="true">·</span>
         <span class="tabular-nums">{{ time }}</span>
@@ -208,7 +209,7 @@ const forkedSentence = computed(() => around('subagents.forkedFrom', 'agent'))
       <template v-if="run.forkedFrom !== null">
         <StatusBarSegment v-if="forked" acting class="hidden @min-[40rem]:flex" @click="openForked">
           <span v-if="forkedSentence[0].trim()">{{ forkedSentence[0].trim() }}</span>
-          <span class="inline-flex shrink-0"><AgentMark :phase="forked.run?.phase ?? null" :size="icons.chip" /></span>
+          <span class="inline-flex shrink-0"><AgentMark :run="forked.run" :size="icons.chip" /></span>
           {{ t('subagents.agentNumber', { number: run.forkedFrom }) }}
           <span v-if="forkedSentence[1].trim()">{{ forkedSentence[1].trim() }}</span>
         </StatusBarSegment>

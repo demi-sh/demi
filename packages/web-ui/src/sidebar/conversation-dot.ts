@@ -1,5 +1,5 @@
 import type { StatusDotTone } from '../ui/StatusDot.vue'
-import { statusTone, type ConversationStatus } from '../agent/conversation-status'
+import { isRunning, statusTone, type ConversationStatus } from '../agent/conversation-status'
 import type { SidebarConversation, UnreadEnd } from './types'
 
 /**
@@ -17,8 +17,8 @@ export function conversationDotTone(
 ): StatusDotTone | null {
   if (conversation.needsYou)
     return 'attention'
-  if (conversation.status === 'active')
-    return statusTone('active')
+  if (isRunning(conversation.status))
+    return statusTone(conversation.status)
   return conversation.unread === null ? null : statusTone(UNREAD_STATUS[conversation.unread])
 }
 

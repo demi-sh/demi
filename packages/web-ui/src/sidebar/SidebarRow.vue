@@ -16,6 +16,7 @@ import DeviceMark from './DeviceMark.vue'
 import { t as scheduleText } from '../schedules/locales/text'
 import { t as deviceText } from '../targets/locales/text'
 import { conversationTitle } from '../agent/conversation-title'
+import { isRunning } from '../agent/conversation-status'
 
 const props = defineProps<{
   conversation: SidebarConversation
@@ -214,7 +215,7 @@ const rowClass = computed(() => [
           :icon-size="ICON_PX.in24"
           variant="ghost"
           :aria-label="t('row.archive')"
-          :disabled="conversation.status === 'active'"
+          :disabled="isRunning(conversation.status)"
           @click.stop="emit('archive', conversation.id)"
         />
       </Tooltip>

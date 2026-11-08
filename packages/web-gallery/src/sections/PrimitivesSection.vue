@@ -928,7 +928,7 @@ const DEVICE_STATES: { variant: string; state: DeviceState | null; mark: DeviceM
 
       <GallerySection
         title="StatusDot"
-        note="The product’s one dot for a status. A running thing breathes the same everywhere (the sidebar row, a tab’s corner, the status bar, the dock’s chips): the opacity runs 0.35 to 1 and the size 0.8 to 1.15 over 2.4 seconds. Under the system’s Reduce Motion setting the dot stays still at full opacity. The ring is the settled mark that holds a dot’s place."
+        note="The product’s one dot for a status. A model at work breathes the same everywhere (the sidebar row, a tab’s corner, the status bar, the dock’s chips): the opacity runs 0.35 to 1 and the size 0.8 to 1.15 over 2.4 seconds, and every breathing dot on the page keeps one beat, whenever it appeared. A thing that runs while no model works, a conversation that waits for its command or the command itself, holds the accent still. Under the system’s Reduce Motion setting the dot stays still at full opacity. The ring is the settled mark that holds a dot’s place."
       >
         <div class="specimen-row">
           <GallerySpecimen v-for="tone in dotTones" :key="tone" :variant="tone">
@@ -951,7 +951,7 @@ const DEVICE_STATES: { variant: string; state: DeviceState | null; mark: DeviceM
 
       <GallerySection
         title="ConversationStatusDot"
-        note="Idle, active, done, error, and aborted."
+        note="Idle, active (a model at work, breathing), awaiting commands (running while no model works, still), done, error, and aborted."
       >
         <div class="specimen-row">
           <GallerySpecimen variant="idle">
@@ -962,6 +962,11 @@ const DEVICE_STATES: { variant: string; state: DeviceState | null; mark: DeviceM
           <GallerySpecimen variant="active">
             <div class="relative size-6 rounded-md bg-surface-raised">
               <ConversationStatusDot status="active" />
+            </div>
+          </GallerySpecimen>
+          <GallerySpecimen variant="awaiting_commands">
+            <div class="relative size-6 rounded-md bg-surface-raised">
+              <ConversationStatusDot status="awaiting_commands" />
             </div>
           </GallerySpecimen>
           <GallerySpecimen variant="done">
