@@ -20,8 +20,6 @@ import type { ReadmeCues } from './readme-page'
 export interface ReadmeScene extends Scene {
   /** The account's workspaces, which the sidebar's switcher shows, and the one shown. */
   workspaces: { list: readonly WorkspaceView[]; current: string }
-  /** The work panel's share of the window, beside the conversation. */
-  asideShare: number
   /** The conversation's messages saved for later, newest first. */
   saved: readonly string[]
   /** What the simulators show, and the 3D body a hinged foldable wears. */
@@ -119,7 +117,6 @@ export const README_SCENES: Record<string, ReadmeScene> = {
       ],
       current: 'work',
     },
-    asideShare: 0.46,
     services: [SIMULATOR_LOG],
     workflow: {
       choice: { type: 'workflow', id: 'review' },
@@ -131,13 +128,13 @@ export const README_SCENES: Record<string, ReadmeScene> = {
       devices.attached = [WINDOWS_PC_DEVICE]
       const desktop = document.documentElement.clientWidth > 600
       const cues: ReadmeCues = (window.demiReadme = { marks: {} })
-      // `demi mobile open` shows the device in the panel, as the product's
-      // does; the panel stands open from the start, so the conversation never
+      // `demi mobile open` shows the device in its window, as the product's
+      // does; the window stands open from the start, so the conversation never
       // narrows on camera.
       if (desktop) {
         await work.mobile.agentOpens('iPhone Duo')
         work.open.value = true
-        press(await shownText(c, '[data-work-panel] [role="tab"]', 'Duo'))
+        press(await shownText(c, '[data-work-window] [role="tab"]', 'Duo'))
       }
       // The recorder starts the scene on every screen at once.
       await new Promise<void>((resolve) => (cues.cue = resolve))

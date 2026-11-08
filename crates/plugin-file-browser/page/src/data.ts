@@ -58,7 +58,7 @@ export function shownPath(root: string, path: string): string {
  */
 export const fileView = ref<'preview' | 'source'>('preview')
 
-/** The view as a conversation's panel first shows it: no file. */
+/** The view as a conversation's work first shows it: no file. */
 export function firstFileData(): FileData {
   return { path: '' }
 }
@@ -124,7 +124,7 @@ export function searchShown(data: FileData): FileData {
 /**
  * The File view's place in the page's address: the file, its directory, its
  * line, the folder its tree went to, and whether it shows the preview or the
- * source, as `?panel=file&path=/work/README.md&view=source`. A file opened
+ * source, as `?tab=file&path=/work/README.md&view=source`. A file opened
  * without a view is written with the one last chosen (`fileView`), in the
  * same move.
  */

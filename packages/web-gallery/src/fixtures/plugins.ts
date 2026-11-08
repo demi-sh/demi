@@ -37,7 +37,7 @@ import { productWould } from '../product-would'
 import { galleryWorkspaces } from './workspaces'
 import { galleryDevices } from './devices'
 import type { GalleryBrowser } from './live-browser'
-import type { GalleryBrowserPlugin } from './panel'
+import type { GalleryBrowserPlugin } from './work-record'
 
 /**
  * The plugins as the gallery's specimens answer them: each over the specimen's own state, so every
@@ -63,13 +63,13 @@ export interface GalleryPlugin {
 }
 
 /**
- * The shell's side of a specimen: its conversation's files, its panel and
- * its intents. A specimen without a panel gives none, and a control that
+ * The shell's side of a specimen: its conversation's files, its work and
+ * its intents. A specimen without windows gives none, and a control that
  * reaches one says what the product would do.
  */
 export interface GalleryShell {
   files?: ConversationFileService
-  panel?: PageHost['panel']
+  work?: PageHost['work']
   intents?: IntentService
   /** Whether the specimen's device is a Cloud that is starting; never, unless the specimen says. */
   deviceStarting?(): boolean
@@ -155,13 +155,13 @@ export function galleryPageHost(plugins: Record<string, GalleryPlugin>, shell: G
       return shell.files
     },
     intents: shell.intents ?? {
-      open: (_conversation, request) => productWould(`Open the ${request.intent} in the Work Panel`),
+      open: (_conversation, request) => productWould(`Open the ${request.intent} in Its Window`),
       canOpen: () => true,
     },
-    panel: shell.panel ?? {
+    work: shell.work ?? {
       tabs: () => [],
-      select: (_conversation, kind) => productWould(`Select the ${kind} Tab in the Work Panel`),
-      // A specimen without a panel has no history of one.
+      select: (_conversation, kind) => productWould(`Show the ${kind} Tab in Its Window`),
+      // A specimen without windows has no history of them.
       canGo: () => false,
       go: () => {},
     },
@@ -206,13 +206,13 @@ function beat(ms: number): Promise<void> {
 
 /**
  * The conversation browser's plugin over the gallery's `browser`: its tab
- * list, its tab methods, and `panel`, its part in the panel's tabs.
+ * list, its tab methods, and `work`, its part in the work's tabs.
  */
-export function browserPlugin(browser: GalleryBrowser, panel: GalleryBrowserPlugin): GalleryPlugin {
+export function browserPlugin(browser: GalleryBrowser, work: GalleryBrowserPlugin): GalleryPlugin {
   async function call(method: string, params: object): Promise<unknown> {
     switch (method) {
       case 'bind':
-        return { tab: await panel.bind(bindTabSchema.parse(params).panelTab) }
+        return { tab: await work.bind(bindTabSchema.parse(params).workTab) }
       case 'navigate': {
         const { tab, url } = navigateTabSchema.parse(params)
         return { list: await browser.navigate(tab, url) }

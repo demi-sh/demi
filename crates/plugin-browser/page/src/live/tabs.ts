@@ -11,12 +11,12 @@
  * - the one view a page keeps, watched while a `browser` tab is shown and the
  *   page is visible, and kept unwatched otherwise.
  *
- * Which browser tab a panel tab shows is the plugin's work on the backend; the
+ * Which browser tab a work tab shows is the plugin's work on the backend; the
  * session never opens, closes or adds a tab.
  *
  * Why it is built so:
  *
- * - The browser has a tab only once its tab list names it, since a panel tab
+ * - The browser has a tab only once its tab list names it, since a work tab
  *   may name one the browser lost.
  * - A request shows its loading before it leaves the page and ends only on a
  *   tab list numbered after it (the device's numbers only grow), whatever order
@@ -26,7 +26,7 @@
  * - A page that cannot decode H.264 opens no view, since it would lower the
  *   picture for every viewer with missing acknowledgements and decide the tab's
  *   size with blind clicks.
- * - A view nobody watches, as when another tab is selected, the panel closes,
+ * - A view nobody watches, as when another tab is selected, its window closes,
  *   the conversation changes or the page hides, stays open watching no tab:
  *   the device stops capturing, the stream says it is unwatched so nothing stays
  *   awake for it, and shown again it watches at once on the same connection,
@@ -36,7 +36,7 @@ import { clientPlatform } from '@demicodes/utils'
 import { useDocumentVisibility, useDebounceFn } from '@vueuse/core'
 import { computed, shallowReactive, shallowRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 import { z } from 'zod'
-import { panelReasonSchema, type BrowserTabs, type LiveDownload, type LiveTab, type PanelReason } from '../generated/plugin'
+import { controlReasonSchema, type BrowserTabs, type LiveDownload, type LiveTab, type ControlReason } from '../generated/plugin'
 import { viewerClipboard } from './clipboard'
 import { picturesSupported } from '@demicodes/plugin-sdk'
 import type { DeviceDownload, OpenUserStream, PageContext, SentenceText } from '@demicodes/plugin-sdk'
@@ -50,10 +50,10 @@ import { t } from '../locales/text'
 export const BLANK_URL = 'about:blank'
 
 /**
- * The id of the panel tab the plugin adds for the browser's tab `tab`, one
+ * The id of the work tab the plugin adds for the browser's tab `tab`, one
  * the agent or a page opened.
  */
-export function addedPanelTab(tab: string): string {
+export function addedWorkTab(tab: string): string {
   return `browser-${tab}`
 }
 
@@ -77,7 +77,7 @@ export const browserTabDataSchema = z.object({
    * device's or the plugin's message, which the page never shows.
    */
   failure: z.union([
-    z.object({ code: panelReasonSchema, message: z.string() }),
+    z.object({ code: controlReasonSchema, message: z.string() }),
     z.object({ status: z.string(), message: z.string() }),
   ]).optional(),
   /** The page's title as the address bar last showed it, so the strip names the tab while no view shows it. */
@@ -85,7 +85,7 @@ export const browserTabDataSchema = z.object({
   /** How many times the agent showed the browser tab; absent while it never did. */
   shows: z.number().int().min(1).optional(),
   /**
-   * The panel tab whose page opened it, by a link or script of the page,
+   * The work tab whose page opened it, by a link or script of the page,
    * which the plugin writes as it adds the tab.
    */
   openedBy: z.string().optional(),
@@ -95,7 +95,7 @@ export type BrowserTabData = z.infer<typeof browserTabDataSchema>
 /** The plugin's conversation state: the conversation browser's tabs. */
 export type BrowserTabList = BrowserTabs
 
-/** Why the plugin could not open a browser tab for a panel tab, as its data keeps it. */
+/** Why the plugin could not open a browser tab for a work tab, as its data keeps it. */
 export type TabFailure = NonNullable<BrowserTabData['failure']>
 
 /**
@@ -105,7 +105,7 @@ export type TabFailure = NonNullable<BrowserTabData['failure']>
  * plugin call route's own. The catalogue's `reasons` hold a sentence for each,
  * so a reason without one does not build.
  */
-export function reasonSentence(reason: PanelReason): SentenceText {
+export function reasonSentence(reason: ControlReason): SentenceText {
   return t(`reasons.${reason}`)
 }
 
@@ -125,7 +125,7 @@ export function serverRefused(status: string): SentenceText {
  * failure, a timeout) or that the answer could not be read.
  */
 export type TabsFailure =
-  | { reason: PanelReason }
+  | { reason: ControlReason }
   | { status: string }
   | { answer: 'none' | 'unreadable' }
 
@@ -145,7 +145,7 @@ function tabsFailureSentence(failure: TabsFailure): SentenceText {
  */
 export class BrowserTabsError extends Error {
   /** The backend's or the browser's reason; null for a failure that carries none. */
-  readonly reason: PanelReason | null
+  readonly reason: ControlReason | null
 
   constructor(readonly failure: TabsFailure) {
     super()
@@ -154,7 +154,7 @@ export class BrowserTabsError extends Error {
     Object.defineProperty(this, 'message', { get: () => tabsFailureSentence(this.failure), configurable: true })
   }
 
-  static of(reason: PanelReason): BrowserTabsError {
+  static of(reason: ControlReason): BrowserTabsError {
     return new BrowserTabsError({ reason })
   }
 }
@@ -174,12 +174,12 @@ export interface BrowserTabsApi {
     error: Readonly<Ref<BrowserTabsError | null>>
   }
   /**
-   * Asks the plugin to open a browser tab for the panel tab, as Retry does;
-   * answers the browser tab the panel tab shows now, or null when none.
+   * Asks the plugin to open a browser tab for the work tab, as Retry does;
+   * answers the browser tab the work tab shows now, or null when none.
    */
-  bind(panelTab: string): Promise<string | null>
-  /** Selects the panel tab `panelTab` and opens the panel, once the panel has it. */
-  select(panelTab: string): void
+  bind(workTab: string): Promise<string | null>
+  /** Brings the window of the work tab `workTab` to the front on it, once the work has it. */
+  select(workTab: string): void
   /** Starts loading `url`; answers the number of the last tab list before the request started. */
   navigate(tab: string, url: string): Promise<number>
   /** Moves or reloads the tab; answers as `navigate` does. */
@@ -194,13 +194,13 @@ export interface BrowserTabsApi {
 }
 
 /** Answers that will not change by asking again. */
-const FINAL_REASONS: ReadonlySet<PanelReason | null> = new Set<PanelReason>(['conversation_not_found', 'conversation_archived'])
+const FINAL_REASONS: ReadonlySet<ControlReason | null> = new Set<ControlReason>(['conversation_not_found', 'conversation_archived'])
 
 /** Whether this web browser can show the view's pictures, once it has answered. */
 export type PictureSupport = 'checking' | 'supported' | 'unsupported'
 
 /**
- * What Demi does for a panel tab before the browser has its tab: reads what the
+ * What Demi does for a work tab before the browser has its tab: reads what the
  * device is doing, starts the Cloud, downloads the browser or its program to the
  * device, starts the browser on the device, or has the browser open the tab.
  */
@@ -228,8 +228,8 @@ type TabRequest =
   | { status: 'answered'; list: number }
 
 /**
- * The plugin opening a browser tab for a panel tab again: asked, or answered
- * with the browser tab it opened, until the panel tab's data names that tab.
+ * The plugin opening a browser tab for a work tab again: asked, or answered
+ * with the browser tab it opened, until the work tab's data names that tab.
  */
 type Binding =
   | { status: 'asked' }
@@ -278,7 +278,7 @@ export class BrowserTabsController {
   private readonly listed = shallowRef<number | null>(null)
   /** The user's latest request on each browser tab. */
   private readonly requests = shallowReactive(new Map<string, TabRequest>())
-  /** The panel tabs the plugin opens a browser tab for again, by id. */
+  /** The work tabs the plugin opens a browser tab for again, by id. */
   private readonly binding = shallowReactive(new Map<string, Binding>())
   /** The browser tabs the page showed a picture of, while the browser has them. */
   private readonly pictured = shallowReactive(new Set<string>())
@@ -291,12 +291,12 @@ export class BrowserTabsController {
   /** The panel the shown tab's content measured, which a view sizes the tab by. */
   private panel: PanelReport | null = null
   /**
-   * The panel tab whose content is shown, with its browser tab, which the
+   * The work tab whose content is shown, with its browser tab, which the
    * view watches while the page is visible; a content shown before the
    * browser has its tab keeps the view open watching nothing, so the device
    * knows the panel's size for the tab it opens.
    */
-  private readonly shownContent = shallowRef<{ panelTab: string; tab: string | null } | null>(null)
+  private readonly shownContent = shallowRef<{ workTab: string; tab: string | null } | null>(null)
   /** The browser tab whose content is shown. */
   private readonly shownTab = computed(() => this.shownContent.value?.tab ?? null)
   private closing: ReturnType<typeof setTimeout> | null = null
@@ -361,7 +361,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * Whether the panel tab bound to `tab`, asking for `url`, shows its page
+   * Whether the work tab bound to `tab`, asking for `url`, shows its page
    * loading.
    *
    * - A request of the user's loads from the moment it is made until a tab list
@@ -409,7 +409,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * What the browser reports of the page the panel tab with `data` shows: as a
+   * What the browser reports of the page the work tab with `data` shows: as a
    * view last reported it, else as the plugin last listed it. The tab's
    * address and its title both come from this one record, so they never
    * describe two pages. None when:
@@ -421,7 +421,7 @@ export class BrowserTabsController {
    *   commits, and while it reports the blank page of a browser tab that has
    *   not started on the address yet.
    *
-   * The address and the title then come from the panel tab's own data.
+   * The address and the title then come from the work tab's own data.
    */
   private reportedPage(data: BrowserTabData): Pick<LiveTab, 'url' | 'title' | 'loading'> | null {
     if (data.tab === undefined || data.closed || data.failure || this.requested(data.tab)) {
@@ -435,7 +435,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * The title of the page the panel tab with `data` shows, as the browser
+   * The title of the page the work tab with `data` shows, as the browser
    * reports it, the moment it names it, as a web browser's tab takes its
    * page's title in the background too; none when the page has no title or
    * the browser reports no page of the tab (`reportedPage`).
@@ -444,13 +444,13 @@ export class BrowserTabsController {
     return this.reportedPage(data)?.title || null
   }
 
-  /** The address of the page the panel tab with `data` shows: the page's own, else the one the tab asks for (`reportedPage`). */
+  /** The address of the page the work tab with `data` shows: the page's own, else the one the tab asks for (`reportedPage`). */
   address(data: BrowserTabData): string {
     return this.reportedPage(data)?.url ?? data.url
   }
 
   /**
-   * The icon of the page the panel tab with `data` shows, as a web
+   * The icon of the page the work tab with `data` shows, as a web
    * browser's tab shows it: as a view last reported it, else as the plugin
    * last listed it; null without a browser tab, or for a page without one.
    */
@@ -466,7 +466,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * Whether the panel tab `panelTab`, with `data`, shows its page loading: the
+   * Whether the work tab `workTab`, with `data`, shows its page loading: the
    * one state its strip's spinner, its Stop and its progress line show.
    *
    * - It loads while its browser tab opens, the first time or again, and
@@ -477,9 +477,9 @@ export class BrowserTabsController {
    *   one opened again yet, does not load, nor does a blank one, which loads
    *   nothing.
    */
-  busy(panelTab: string, data: BrowserTabData): boolean {
+  busy(workTab: string, data: BrowserTabData): boolean {
     const blank = this.blank(data)
-    if (this.opening(panelTab, data)) {
+    if (this.opening(workTab, data)) {
       return !blank
     }
     if (data.failure || data.closed) {
@@ -492,7 +492,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * Whether the panel tab with `data` is blank: its address is the blank
+   * Whether the work tab with `data` is blank: its address is the blank
    * page's, as after its user stopped it before the browser had it, and no
    * request of the user's is under way on its browser tab. It loads nothing, so
    * it shows a blank page, not what Demi waits for; only the browser's own word
@@ -515,7 +515,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * What Demi does for the panel tab `panelTab`, with `data`, before the
+   * What Demi does for the work tab `workTab`, with `data`, before the
    * browser has its tab: while it opens, the first time or again, while it
    * waits to, and while the browser's tab list does not name the browser tab
    * its data names, which the browser may have lost, as after a restart.
@@ -531,11 +531,11 @@ export class BrowserTabsController {
    * Null once the list names the tab, for a tab that could not open and was not
    * retried, and for a blank tab, which waits for nothing the user asked for.
    */
-  startingPhase(panelTab: string, data: BrowserTabData): StartingPhase | null {
+  startingPhase(workTab: string, data: BrowserTabData): StartingPhase | null {
     if (this.blank(data)) {
       return null
     }
-    const opening = this.opening(panelTab, data)
+    const opening = this.opening(workTab, data)
     if (!opening && data.failure) {
       return null
     }
@@ -570,12 +570,12 @@ export class BrowserTabsController {
   }
 
   /**
-   * Whether the plugin opens a browser tab for the panel tab `panelTab`, with
+   * Whether the plugin opens a browser tab for the work tab `workTab`, with
    * `data`, again: from the ask until its data names the tab the plugin
    * answered, in whatever order the answer and the data reach the page.
    */
-  opening(panelTab: string, data: BrowserTabData): boolean {
-    const binding = this.binding.get(panelTab)
+  opening(workTab: string, data: BrowserTabData): boolean {
+    const binding = this.binding.get(workTab)
     if (!binding) {
       return false
     }
@@ -583,30 +583,30 @@ export class BrowserTabsController {
   }
 
   /**
-   * Asks the plugin to open a browser tab for the panel tab `panelTab` again:
+   * Asks the plugin to open a browser tab for the work tab `workTab` again:
    * Retry of a tab that could not open, and a tab shown after the browser
    * lost its browser tab. The tab loads from now on; a second ask while one
    * is on its way joins it. Rejects with what refused it.
    */
-  async bind(panelTab: string): Promise<void> {
-    if (this.binding.get(panelTab)?.status === 'asked') {
+  async bind(workTab: string): Promise<void> {
+    if (this.binding.get(workTab)?.status === 'asked') {
       return
     }
     const asked: Binding = { status: 'asked' }
-    this.binding.set(panelTab, asked)
+    this.binding.set(workTab, asked)
     let tab: string | null
     try {
-      tab = await this.api.bind(panelTab)
+      tab = await this.api.bind(workTab)
     } catch (error) {
-      this.binding.delete(panelTab)
+      this.binding.delete(workTab)
       throw error
     }
-    // None opened: the panel tab's data says why.
+    // None opened: the work tab's data says why.
     if (tab === null) {
-      this.binding.delete(panelTab)
+      this.binding.delete(workTab)
       return
     }
-    this.binding.set(panelTab, { status: 'opened', tab })
+    this.binding.set(workTab, { status: 'opened', tab })
   }
 
   /** The user's address, loaded in `tab`; rejects with what refused it. */
@@ -620,7 +620,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * The tab menu's Reload of the panel tab with `data`, as the address bar's
+   * The tab menu's Reload of the work tab with `data`, as the address bar's
    * Reload does it; a refusal is a toast. A tab without its browser tab has
    * nothing to reload.
    */
@@ -645,7 +645,7 @@ export class BrowserTabsController {
    * its loading follows; a refusal ends it at once, and the caller reports it.
    * A tab the browser no longer has was lost with the browser, as when Demi
    * restarted: nothing says so, and the plugin is asked to read the list, which
-   * marks the panel tab lost, so it opens again on its address, at once while
+   * marks the work tab lost, so it opens again on its address, at once while
    * it is shown, as a browser reloads a discarded tab.
    */
   private async request(tab: string, run: () => Promise<number>): Promise<void> {
@@ -659,7 +659,7 @@ export class BrowserTabsController {
         this.requests.delete(tab)
       }
       // The browser's own message tells the plugin the tab is gone, and
-      // the panel follows.
+      // the work follows.
       if (error instanceof BrowserTabsError && error.reason === 'tab_not_found') {
         return
       }
@@ -698,9 +698,9 @@ export class BrowserTabsController {
    * - A hidden page opens no view until it is shown, and a web browser that
    *   cannot show the pictures opens none at all.
    */
-  show(panelTab: string, tab: string | null): void {
+  show(workTab: string, tab: string | null): void {
     const another = this.shownTab.value !== tab
-    this.shownContent.value = { panelTab, tab }
+    this.shownContent.value = { workTab, tab }
     if (this.closing !== null) {
       clearTimeout(this.closing)
       this.closing = null
@@ -712,12 +712,12 @@ export class BrowserTabsController {
   }
 
   /**
-   * The content of `panelTab` stops showing. Selecting another `browser` tab
+   * The content of `workTab` stops showing. Selecting another `browser` tab
    * shows it in the same flush, before or after this, so the view is
    * unwatched only when none followed.
    */
-  hide(panelTab: string): void {
-    if (this.shownContent.value?.panelTab !== panelTab) {
+  hide(workTab: string): void {
+    if (this.shownContent.value?.workTab !== workTab) {
       return
     }
     this.shownContent.value = null
@@ -771,7 +771,7 @@ export class BrowserTabsController {
 
   /**
    * The view's tab list. Each tab is kept as reported, and one the browser no
-   * longer has leaves. The panel's tabs follow the plugin, which the browser
+   * longer has leaves. The work's tabs follow the plugin, which the browser
    * tells of every change.
    */
   private viewTabs(tabs: readonly LiveTab[], list: number): void {
@@ -820,7 +820,7 @@ export class BrowserTabsController {
     for (const tab of opened) {
       const opener = tab.createdBy.kind === 'page' ? tab.createdBy.opener : null
       if (opener !== null && opener === shown && view?.pressedLately(opener, OPENED_BY_USER_MS)) {
-        this.api.select(addedPanelTab(tab.id))
+        this.api.select(addedWorkTab(tab.id))
       }
     }
   }
@@ -848,7 +848,7 @@ export class BrowserTabsController {
   }
 
   /** A notice the picture still shows through is a failed request: a toast in the Writing page's words for its reason. */
-  private notice(reason: PanelReason): void {
+  private notice(reason: ControlReason): void {
     this.errors.report(t('failures.operate'), BrowserTabsError.of(reason))
   }
 

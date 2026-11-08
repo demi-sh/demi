@@ -1,5 +1,5 @@
 //! The `mobile.*` operations: each the one
-//! operation behind both a command and the panel's control. Inputs act and
+//! operation behind both a command and the window's controls. Inputs act and
 //! return once the device took them; `screenshot` and `inspect` first wait
 //! for a settled picture.
 
@@ -64,7 +64,7 @@ pub struct Call<'a> {
     /// on standard error starts with.
     pub command: &'a str,
     pub cwd: &'a str,
-    /// Where the user's panel puts a screenshot or a recording it saves on
+    /// Where the user's window puts a screenshot or a recording it saves on
     /// the user's computer: the conversation's scratch directory, for a call
     /// the user started; none for the agent's (`crates/plugin-mobile/command/src/live.rs`).
     pub scratch: Option<std::path::PathBuf>,
@@ -74,7 +74,7 @@ pub struct Call<'a> {
     /// The caller's own scratch directory, where an export of images goes
     /// unless told otherwise.
     pub caller_scratch: std::path::PathBuf,
-    /// Whether the agent runs it, which the view shows; the user's panel
+    /// Whether the agent runs it, which the view shows; the user's window
     /// controls are the user's, and show nothing (`crates/plugin-mobile/command/src/live.rs`).
     pub agent: bool,
     pub cancel: &'a CancellationToken,
@@ -198,7 +198,7 @@ pub async fn run(
                 }
                 let output = match input.output {
                     Some(output) => Some((output, input.overwrite == Some(true))),
-                    None => panel_file(call, &open, "png")?.map(|path| (path, false)),
+                    None => control_file(call, &open, "png")?.map(|path| (path, false)),
                 };
                 let produced = match output {
                     Some((output, overwrite)) => {
@@ -1065,9 +1065,9 @@ async fn wait(
 }
 
 /// A new file of the conversation's scratch directory for the user's
-/// panel, `mobile/m1-<time>.<extension>`, which closing the device removes;
+/// window, `mobile/m1-<time>.<extension>`, which closing the device removes;
 /// none for the agent's call, whose bytes go to standard output.
-fn panel_file(call: &Call<'_>, open: &OpenDevice, extension: &str) -> Result<Option<String>, MobileError> {
+fn control_file(call: &Call<'_>, open: &OpenDevice, extension: &str) -> Result<Option<String>, MobileError> {
     let Some(scratch) = &call.scratch else {
         return Ok(None);
     };
@@ -1145,10 +1145,10 @@ async fn record(call: &Call<'_>, open: Option<Arc<OpenDevice>>, input: RecordInp
             let live = call.library.begin(&open.handle.to_string(), input.duration.map(|duration| duration.get())).await?;
             match open.device.record(live.sink()).await {
                 Ok(capture) => {
-                    // Only the panel's calls have a scratch directory, and its
+                    // Only the window's calls have a scratch directory, and its
                     // Stop takes the video of what it started.
                     if call.scratch.is_some() {
-                        open.panel_started(live.id().clone());
+                        open.control_started(live.id().clone());
                     }
                     open.record(live.clone(), capture);
                 }
@@ -1166,11 +1166,11 @@ async fn record(call: &Call<'_>, open: Option<Arc<OpenDevice>>, input: RecordInp
         }
         (RecordAction::Stop, RecordTarget::Device(_)) => {
             let open = open.expect("an operation on a device found it open");
-            let started = if call.scratch.is_some() { open.panel_takes() } else { None };
+            let started = if call.scratch.is_some() { open.control_takes() } else { None };
             let (id, stopped) = match open.recording() {
                 Some(live) => (live.id().clone(), call.library.stop(live.id()).await?),
-                // The recording the panel started ended by itself, at its
-                // limit, or by the agent's stop: its video is the panel's all
+                // The recording the window's controls started ended by itself, at its
+                // limit, or by the agent's stop: its video is the window's all
                 // the same.
                 None => match started {
                     Some(id) => {
@@ -1180,8 +1180,8 @@ async fn record(call: &Call<'_>, open: Option<Arc<OpenDevice>>, input: RecordInp
                     _ => return Err(MobileError::NoRecording(format!("{} is not recording", open.handle))),
                 },
             };
-            // The panel's Stop saves the video, where the panel downloads it.
-            match panel_file(call, &open, "mp4")? {
+            // The window's Stop saves the video, where the window downloads it.
+            match control_file(call, &open, "mp4")? {
                 Some(path) => {
                     let saved = std::path::PathBuf::from(&path);
                     let mut reading = reading();

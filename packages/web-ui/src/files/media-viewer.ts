@@ -207,10 +207,10 @@ export interface MediaViewerState {
   step(direction: -1 | 1): void
   close(): void
   /**
-   * Whether the medium shown is in the work panel's Media tab, which the
+   * Whether the medium shown is in the Attachments window, which the
    * page's `reveal` opened, rather than in the viewer's window.
    */
-  inPanel: Readonly<ShallowRef<boolean>>
+  inWindow: Readonly<ShallowRef<boolean>>
   /**
    * Offers `series`, the media of a conversation's own transcript, in which
    * a restored Media tab finds the medium it showed (`restore`); the newest
@@ -230,7 +230,7 @@ export interface MediaViewerState {
 
 /**
  * Where a viewer shows its media: in a window it draws over the page, or,
- * with `reveal`, in the work panel's Media tab, which `reveal` opens and
+ * with `reveal`, in the Attachments window, which `reveal` opens and
  * selects each time a medium is shown.
  */
 export interface MediaViewerOptions {
@@ -248,7 +248,7 @@ export function createMediaViewer(where: () => ViewerPlace, { reveal }: MediaVie
   const sequence = shallowRef<MediaSequence | null>(null)
   /** Where the medium shown stood last, which tells the same medium apart where the transcript shows it twice. */
   const index = shallowRef(-1)
-  const inPanel = shallowRef(false)
+  const inWindow = shallowRef(false)
   /** The series the conversations' own transcripts offer, the newest last. */
   const offered = shallowRef<readonly MediaSequence[]>([])
 
@@ -316,10 +316,10 @@ export function createMediaViewer(where: () => ViewerPlace, { reveal }: MediaVie
     geometry,
     position,
     mediumPlace,
-    inPanel,
+    inWindow,
     show(medium, among) {
       open(medium, among ?? null, among ? locate(among(), medium, -1) : -1)
-      inPanel.value = reveal?.() ?? false
+      inWindow.value = reveal?.() ?? false
     },
     offer(series) {
       offered.value = [...offered.value, series]
@@ -334,7 +334,7 @@ export function createMediaViewer(where: () => ViewerPlace, { reveal }: MediaVie
         const medium = media[at]
         if (medium) {
           open(medium, series, at)
-          inPanel.value = true
+          inWindow.value = true
           return true
         }
       }
@@ -377,10 +377,10 @@ const mediaViewerKey: InjectionKey<MediaViewerState> = Symbol('media-viewer')
 
 /**
  * Gives the components below the page's one viewer, which `MediaViewer`
- * draws, or the work panel's Media tab (`MediaView`) when `options` reveal
+ * draws, or the Attachments window (`MediaView`) when `options` reveal
  * it. A page provides it at its root, or a conversation's page where it has
- * a work panel, so the viewer stays open while the transcript beneath it
- * changes, even when the row that opened it goes.
+ * the conversation's windows, so the viewer stays open while the transcript
+ * beneath it changes, even when the row that opened it goes.
  */
 export function provideMediaViewer(options: MediaViewerOptions = {}): MediaViewerState {
   const viewer = createMediaViewer(pagePlace, options)

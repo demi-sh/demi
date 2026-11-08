@@ -21,7 +21,7 @@ import type { OpenUserStream, UserStreamHandlers } from '@demicodes/web-ui/plugi
 import { CONTROL, META } from '@demicodes/web-ui/live/input'
 import { BrowserTabsError, type BrowserTabList, type StartingPhase } from '@demicodes/plugin-browser/live/tabs'
 import type { DeviceDownload } from '@demicodes/web-ui/devices/installed'
-import type { PanelReason } from '@demicodes/plugin-browser/generated/plugin'
+import type { ControlReason } from '@demicodes/plugin-browser/generated/plugin'
 import { PROJECT_ROOT } from './project'
 
 /** How often the drawn page is painted and sent: a still page needs few frames. */
@@ -620,7 +620,7 @@ class GalleryBrowserView {
  * - Operations take a moment, as a device does, and a page it loads takes a while
  *   longer, so the page's loading shows.
  * - It starts with the agent's and the user's tab unless a specimen supplies
- *   its own list, such as an empty one for a panel whose strip starts empty.
+ *   its own list, such as an empty one for a window whose strip starts empty.
  * - Without `capture`, the device cannot capture its tabs, so a view shows no
  *   picture and says why.
  * - With `page`, its tabs show that page in place of the gallery's own.
@@ -628,7 +628,7 @@ class GalleryBrowserView {
 export interface GalleryBrowser {
   /** The tab list, as the plugin's conversation state last brought it. */
   listed: ShallowRef<BrowserTabList>
-  /** Makes an empty tab, as the user's `tab.new` does; the panel opens its page in it next. */
+  /** Makes an empty tab, as the user's `tab.new` does; the window opens its page in it next. */
   newTab(): Promise<BrowserTab>
   /** Closes the tab; a tab the browser does not have is closed already. */
   close(tab: string): Promise<void>
@@ -637,7 +637,7 @@ export interface GalleryBrowser {
   history(tab: string, action: 'back' | 'forward' | 'reload'): Promise<number>
   /** Stops loading the tab's page; answers as `navigate` does. */
   stop(tab: string): Promise<number>
-  /** The tabs closed on purpose, which the panel removes rather than open again. */
+  /** The tabs closed on purpose, which the work removes rather than open again. */
   closedOnPurpose: ReadonlySet<string>
   /** The tab closes on the device on purpose, as the agent's `demi browser tab close` closes it. */
   closeOnDevice(tab: string): void
@@ -650,7 +650,7 @@ export interface GalleryBrowser {
   /** The agent makes a tab and opens `url` in it, as `demi browser tab new` and `open` do, and shows it with `show`, as `--show` does. */
   agentOpens(url: string, options: { show: boolean }): void
   /** The device fails what a viewer asked, such as its input, and tells every view, as the module's notice does. */
-  fail(reason: PanelReason, message: string): void
+  fail(reason: ControlReason, message: string): void
   /** Even recreating the capture extension fails on the device: every view loses its pictures and says so, until Retry. */
   stopCapture(): void
   stream: OpenUserStream

@@ -70,7 +70,7 @@ impl Plugin for Instance {
                     let code = audio::run(*invocation, &port).await?;
                     Ok(Reply::Exit { code })
                 }
-                Request::PageState { .. } | Request::PageCall { .. } | Request::PanelTab { .. } => {
+                Request::PageState { .. } | Request::PageCall { .. } | Request::TabClosed { .. } => {
                     Err(PluginError::undeclared("page"))
                 }
                 Request::Context { .. } => Err(PluginError::undeclared("context source")),

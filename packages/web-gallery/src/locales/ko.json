@@ -56,8 +56,9 @@
       "turns": "턴",
       "states": "상태",
       "session": "세션",
-      "panel": "패널",
+      "frame": "프레임",
       "windows": "창",
+      "taskbar": "작업 표시줄",
       "shared": "공유 페이지"
     },
     "dialogs": {

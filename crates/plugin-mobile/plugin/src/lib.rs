@@ -5,17 +5,17 @@
 //! - the `demi mobile` group, every leaf bound to an operation of the
 //!   `demi.mobile` command package, which runs it on the device;
 //! - the `mobile` user stream of the live view, one per device a page shows;
-//! - the methods behind the panel's controls, each the operation of the command
+//! - the methods behind the window's controls, each the operation of the command
 //!   that does the same;
 //! - the `mobile` kind's tabs on the backend.
 //!
-//! It is a plugin as the browser is: the commands, the panel and the device-side
+//! It is a plugin as the browser is: the commands, the window and the device-side
 //! drivers are its own, and nothing in the agent, the backend or the runner
 //! knows a simulator.
 
 mod commands;
 pub mod page;
-mod panel;
+mod tabs;
 pub mod reason;
 
 use std::rc::Rc;
@@ -44,7 +44,7 @@ impl Mobile {
         let mut manifest = Manifest::new(
             PluginId::try_from("mobile").expect("a valid plugin id"),
             "Simulators",
-            "Gives the agent the iOS simulators of the conversation's device, which it drives with demi mobile and you watch and use in the work panel.",
+            "Gives the agent the iOS simulators of the conversation's device, which it drives with demi mobile and you watch and use in its window.",
         );
         manifest.commands = commands().manifest_commands();
         manifest.streams = vec![live_stream()];
@@ -67,7 +67,7 @@ impl PluginFactory for Mobile {
     fn instance(&self) -> Rc<dyn Plugin> {
         Rc::new(Instance {
             commands: commands(),
-            work: panel::Work::default(),
+            work: tabs::Work::default(),
         })
     }
 }
@@ -112,7 +112,7 @@ fn commands() -> CommandPlugin {
 /// calls, its kind's tabs and the package's messages reach it.
 struct Instance {
     commands: CommandPlugin,
-    work: panel::Work,
+    work: tabs::Work,
 }
 
 impl Plugin for Instance {
@@ -138,10 +138,10 @@ impl Plugin for Instance {
                 Request::PageCall {
                     conversation: None, ..
                 } => Err(PluginError::undeclared("user method")),
-                // The user closed a device's tab. The panel opens no
-                // device of its own: the plugin adds the kind's tabs, for
-                // the devices the agent opens.
-                Request::PanelTab {
+                // The user closed a device's tab. The plugin adds the
+                // kind's tabs itself, for each device the conversation
+                // opens, by the agent's command or the user's Open.
+                Request::TabClosed {
                     conversation, tab, ..
                 } => {
                     self.work.removed(&conversation, &port, &tab).await?;

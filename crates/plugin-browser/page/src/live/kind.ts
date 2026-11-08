@@ -1,6 +1,6 @@
 import { defineComponent, h, onBeforeUnmount, type PropType } from 'vue'
 import { Globe, RotateCw } from '@lucide/vue'
-import { ICON_PX, usePage, type KindTab, type PanelKind } from '@demicodes/plugin-sdk'
+import { ICON_PX, usePage, type KindTab, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
 import BrowserTabContent from './BrowserTabContent.vue'
 import { t } from '../locales/text'
 import { BROWSER_TAB_KIND, type BrowserStore } from './store'
@@ -32,13 +32,16 @@ export function browserTabTitle(data: BrowserTabData, session: BrowserTabsContro
   return url ? url.host || url.href : data.url
 }
 
+/** The browser's window, a tab per page. */
+const browserWindow: WindowKind = { id: 'browser', name: () => t('window.name'), icon: Globe }
+
 /**
  * The `browser` tab kind over `store`. Its content watches the conversation's
  * browser while it is mounted and reaches the device through it; its title, icon
  * and commands read it without watching; the panel sees only this
  * declaration.
  */
-export function browserTabKind(store: BrowserStore): PanelKind<BrowserTabData> {
+export function browserTabKind(store: BrowserStore): TabKind<BrowserTabData> {
   const browser = (tab: KindTab) => tab.page.store(store).of(tab.conversation).tabs
   const content = defineComponent({
     props: {
@@ -65,6 +68,9 @@ export function browserTabKind(store: BrowserStore): PanelKind<BrowserTabData> {
   return {
     kind: BROWSER_TAB_KIND,
     schema: browserTabDataSchema,
+    window: browserWindow,
+    // A new tab shows a blank page, as a web browser's new tab does before an address is typed.
+    start: () => ({ url: 'about:blank' }),
     title: (data, tab) => browserTabTitle(data, browser(tab)),
     // The agent's showings, which the plugin carries from the tab list.
     shows: (data) => data.shows ?? 0,
@@ -74,7 +80,7 @@ export function browserTabKind(store: BrowserStore): PanelKind<BrowserTabData> {
     // The page loads: the strip shows it as a web browser's tab does.
     busy: (data, tab, id) => browser(tab).busy(id, data),
     content,
-    // A link's Open in Work Panel: a new tab on its page, which the shown content asks the plugin to open (`bind`).
+    // A link's Open in Browser Window: a new tab on its page, which the shown content asks the plugin to open (`bind`).
     intents: {
       web: (payload) => ({ url: payload.url }),
     },

@@ -1,6 +1,6 @@
 {
   "name": "@demicodes/plugin-changes",
-  "description": "The changes plugin's page: the Change view, a pinned work panel kind.",
+  "description": "The changes plugin's page: the Change view, a pinned tab kind.",
   "version": "0.0.0",
   "private": true,
   "type": "module",

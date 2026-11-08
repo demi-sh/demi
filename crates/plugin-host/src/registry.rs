@@ -26,8 +26,8 @@ pub enum RegistryError {
     Stream { plugin: PluginId, name: String },
     #[error("plugin \"{plugin}\"'s page package \"{package}\" is another plugin's")]
     PagePackage { plugin: PluginId, package: String },
-    #[error("plugin \"{plugin}\" declares the panel kind \"{kind}\", which is taken")]
-    PanelKind { plugin: PluginId, kind: String },
+    #[error("plugin \"{plugin}\" declares the tab kind \"{kind}\", which is taken")]
+    TabKind { plugin: PluginId, kind: String },
     #[error("plugin \"{plugin}\"'s commands are refused: {error}")]
     Commands {
         plugin: PluginId,
@@ -62,11 +62,11 @@ impl Registered {
         self.page.as_ref().and_then(|page| page.state(scope))
     }
 
-    /// Whether it declares the panel kind `kind`.
+    /// Whether it declares the tab kind `kind`.
     pub(crate) fn owns_kind(&self, kind: &str) -> bool {
         self.page
             .as_ref()
-            .is_some_and(|page| page.panel_kinds.iter().any(|owned| owned == kind))
+            .is_some_and(|page| page.tab_kinds.iter().any(|owned| owned == kind))
     }
 }
 
@@ -96,7 +96,7 @@ impl Registry {
         let mut ids = BTreeSet::new();
         let mut stream_names = BTreeSet::new();
         let mut page_packages = BTreeSet::new();
-        let mut panel_kinds = BTreeSet::new();
+        let mut tab_kinds = BTreeSet::new();
         let mut plugins = Vec::new();
         for factory in factories {
             let manifest = factory.manifest();
@@ -139,9 +139,9 @@ impl Registry {
                         package: page.package.clone(),
                     });
                 }
-                for kind in &page.panel_kinds {
-                    if !panel_kinds.insert(kind.clone()) {
-                        return Err(RegistryError::PanelKind {
+                for kind in &page.tab_kinds {
+                    if !tab_kinds.insert(kind.clone()) {
+                        return Err(RegistryError::TabKind {
                             plugin: manifest.id.clone(),
                             kind: kind.clone(),
                         });
@@ -196,7 +196,7 @@ impl Registry {
             .flat_map(|registered| &registered.streams)
     }
 
-    /// The plugin that declares the panel kind `kind`, by its index.
+    /// The plugin that declares the tab kind `kind`, by its index.
     pub(crate) fn kind_owner(&self, kind: &str) -> Option<usize> {
         self.plugins
             .iter()

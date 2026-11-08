@@ -3,8 +3,9 @@
 // it through the `attachment` intent.
 import { defineComponent, h, type PropType } from 'vue'
 import { z } from 'zod'
-import { FileIcon, ICON_PX, type IntentPayloads, type PanelKind } from '@demicodes/plugin-sdk'
+import { FileIcon, ICON_PX, type IntentPayloads, type TabKind } from '@demicodes/plugin-sdk'
 import AttachmentTab from './AttachmentTab.vue'
+import { attachmentsWindow } from './media'
 
 /** The attachment a tab shows: its number, its file's name and size, and where its copy loads from. */
 export const attachmentDataSchema = z.object({
@@ -29,11 +30,12 @@ const AttachmentMark = defineComponent({
 /**
  * The `attachment` kind: each attachment opened gets a tab of its own named
  * by its file, as a browser opens a document in a tab; a second click on its
- * card selects its tab again, whatever the panel shows.
+ * card selects its tab again, whatever the windows show.
  */
-export const attachmentKind: PanelKind<AttachmentData> = {
+export const attachmentKind: TabKind<AttachmentData> = {
   kind: 'attachment',
   schema: attachmentDataSchema,
+  window: attachmentsWindow,
   title: (data) => data.name,
   key: (data) => data.id,
   mark: AttachmentMark,

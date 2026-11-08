@@ -56,8 +56,9 @@
       "turns": "轮次",
       "states": "状态",
       "session": "会话",
-      "panel": "面板",
+      "frame": "框架",
       "windows": "窗口",
+      "taskbar": "任务栏",
       "shared": "分享页面"
     },
     "dialogs": {

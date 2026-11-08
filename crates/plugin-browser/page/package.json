@@ -1,6 +1,6 @@
 {
   "name": "@demicodes/plugin-browser",
-  "description": "The conversation browser plugin's page: its work panel kind.",
+  "description": "The conversation browser plugin's page: its tab kind.",
   "version": "0.0.0",
   "private": true,
   "type": "module",

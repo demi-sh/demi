@@ -25,7 +25,7 @@ import { useChangeSources } from './sources'
  * files service, which reads the request from the transcript as it is now, so
  * the view follows calls that end later. Each move of the view is a step of
  * the web browser's history, which its Back and Forward take while they stay
- * in the conversation's panel.
+ * in the conversation's work.
  */
 const props = defineProps<{
   conversation: string
@@ -132,8 +132,8 @@ function open(path: string): void {
     :root="root"
     :root-name="viewRoot === undefined ? files.tree?.name : undefined"
     :contents="files.tree?.source.contents"
-    :can-back="page.panel.canGo(conversation, 'back')"
-    :can-forward="page.panel.canGo(conversation, 'forward')"
+    :can-back="page.work.canGo(conversation, 'back')"
+    :can-forward="page.work.canGo(conversation, 'forward')"
     :opens="opens"
     @update:mode="emit('update', showChange(data, $event, changePath(data, $event)))"
     @update:edit="emit('update', showEdit(data, $event))"
@@ -142,8 +142,8 @@ function open(path: string): void {
     @update:presentation="choose"
     @update:branch="emit('update', showBranch(keepRepository(data, shownRepository), $event), { replace: true })"
     @placed="emit('update', placeBranch(data, $event), { replace: true })"
-    @back="page.panel.go('back')"
-    @forward="page.panel.go('forward')"
+    @back="page.work.go('back')"
+    @forward="page.work.go('forward')"
     @open="open"
   />
 </template>

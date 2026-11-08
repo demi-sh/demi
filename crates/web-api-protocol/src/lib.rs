@@ -33,7 +33,7 @@ pub mod files;
 pub mod attached_devices;
 pub mod ids;
 pub mod instructions;
-pub mod panel;
+pub mod work;
 pub mod passkeys;
 pub mod permissions;
 pub mod plugins;

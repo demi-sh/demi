@@ -9,7 +9,7 @@ import { fileView, locateFolder, searchShown, shownPath, showDirectory, showFile
  * link in a Markdown preview replaces the file, and a folder the crumb row
  * goes to is found in the tree, each a step of the web browser's history,
  * which the view's Back and Forward take while they stay in the
- * conversation's panel. Until the conversation's working directory is known,
+ * conversation's work. Until the conversation's working directory is known,
  * which its opening brings, the pane says it reads.
  */
 const props = defineProps<{
@@ -84,14 +84,14 @@ watch([() => props.data.search, view], ([search, shown]) => {
     :directories="files.directories"
     :path="data.path ? shownPath(root, data.path) : null"
     :line="data.line ?? null"
-    :can-back="page.panel.canGo(conversation, 'back')"
-    :can-forward="page.panel.canGo(conversation, 'forward')"
+    :can-back="page.work.canGo(conversation, 'back')"
+    :can-forward="page.work.canGo(conversation, 'forward')"
     @update:mode="choose"
     @update:folder="locate"
     @open="open"
     @switch-directory="switchDirectory"
-    @back="page.panel.go('back')"
-    @forward="page.panel.go('forward')"
+    @back="page.work.go('back')"
+    @forward="page.work.go('forward')"
   />
   <div v-else class="relative flex-1">
     <PaneReading />

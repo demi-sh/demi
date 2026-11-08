@@ -5,7 +5,7 @@ use demi_device_interface::{PortError, RpcError, RpcInvocation};
 use demi_device_paths::DevicePaths;
 use demi_shared_types::{NodeId, TurnId};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
-use demi_web_api_protocol::panel::PanelTab;
+use demi_web_api_protocol::work::WorkTab;
 use demi_web_api_protocol::workflows::WatchSubject;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -67,7 +67,7 @@ pub enum Request {
     /// conversation's.
     ///
     /// With `held`, the state as it goes along with the conversation's work
-    /// panel ([`crate::State::held`]): what its package last reported, which
+    /// ([`crate::State::held`]): what its package last reported, which
     /// the backend keeps; `Reply::Done` when it never did. No page state asks
     /// a device.
     PageState {
@@ -87,13 +87,13 @@ pub enum Request {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         conversation: Option<ConversationId>,
     },
-    /// The user removed a tab of one of the plugin's panel kinds; the backend applied the change
-    /// and answered the page (`crates/backend-http/src/panel.rs`). `tab` is the tab as it was when
+    /// The user removed a tab of one of the plugin's tab kinds; the backend applied the change
+    /// and answered the page (`crates/backend-http/src/work.rs`). `tab` is the tab as it was when
     /// it was removed. The user creates no tab of a plugin's kind: the plugin does.
-    PanelTab {
+    TabClosed {
         user: UserId,
         conversation: ConversationId,
-        tab: PanelTab,
+        tab: WorkTab,
     },
     /// The command package the plugin's commands bind said `message` about
     /// `conversation`, from a resident on one of the conversation's devices.
@@ -173,7 +173,7 @@ pub enum Reply {
     State { state: Value },
     /// A page call's result, valid against the method's result schema.
     Result { result: Value },
-    /// A request that answers nothing, such as a `panel_tab` or a `topic`.
+    /// A request that answers nothing, such as a `tab_closed` or a `topic`.
     Done,
     /// A project search's result, and the files and folders whose change
     /// changes it.

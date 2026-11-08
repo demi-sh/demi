@@ -50,7 +50,7 @@ const emit = defineEmits<{
 provideMessageFiles(() => ({ cwd: '', attachment: props.attachment, replyBlock: props.replyBlock }))
 
 const shownTitle = computed(() => props.title?.trim() || t('share.untitled'))
-// A share is read from its latest page back, as a subagent's panel reads it.
+// A share is read from its latest page back, as the Agents window reads a subagent's.
 const shown = computed(() => shownWindow(props.history, null))
 const edges = computed(() => windowEdges(props.history, shown.value))
 const rows = computed(() => sharedRows(shown.value.blocks))

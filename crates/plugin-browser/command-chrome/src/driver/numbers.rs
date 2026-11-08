@@ -26,8 +26,8 @@ const DRAW: u32 = 8;
 /// How long the backend has to answer a draw; past it, the step that needed
 /// a number fails.
 const DRAW_TIMEOUT: Duration = Duration::from_secs(15);
-/// How many tabs closed on purpose the conversation remembers. The work
-/// panel reads the tab list after each job, so it learns of a close long
+/// How many tabs closed on purpose the conversation remembers. The browser
+/// window reads the tab list after each job, so it learns of a close long
 /// before this many follow it; an older one reads as lost with the browser.
 const CLOSED: usize = 256;
 

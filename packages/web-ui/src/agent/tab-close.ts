@@ -32,7 +32,7 @@ export function tabsToClose(
 }
 
 /**
- * The most selections a tab history keeps: more than a work panel holds tabs
+ * The most selections a tab history keeps: more than a work holds tabs
  * (64) and pinned tabs, so every tab still there is in it.
  */
 export const TAB_HISTORY = 100

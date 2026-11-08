@@ -131,7 +131,7 @@ pub(super) async fn create(
 }
 
 /// `GET /conversations/:id/attachments/:attachment/file`: whether the file the
-/// attachment was uploaded from is there to open in the Files panel in its
+/// attachment was uploaded from is there to open in the Files window in its
 /// copy's place, asked once each time the page opens a card of the attachment.
 ///
 /// It answers 204 while the file is a regular file on the conversation's

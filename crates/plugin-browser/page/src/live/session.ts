@@ -11,7 +11,7 @@
  * A view whose stream goes silent for as long as the page connection may is broken,
  * and a view that ends opens again after the page's reconnect waits.
  */
-import { liveViewerMessageSchema, panelReasonSchema, type BrowserViewport, type CursorRegion, type LiveControl, type LiveDialog, type LiveDownload, type LiveMenu, type LiveTab, type LiveViewerMessage, type PanelReason } from '../generated/plugin'
+import { liveViewerMessageSchema, controlReasonSchema, type BrowserViewport, type CursorRegion, type LiveControl, type LiveDialog, type LiveDownload, type LiveMenu, type LiveTab, type LiveViewerMessage, type ControlReason } from '../generated/plugin'
 import { LIVE_CAPTURE_FAILED, LIVE_CAPTURE_STOPPED, LIVE_CAPTURE_UNAVAILABLE, LIVE_FILE_CHUNK_BYTES } from '../generated/plugin'
 import { reactive } from 'vue'
 import { LiveLink, type LiveConnection, type LiveVideoFrame, type PictureSink as LivePictureSink } from '@demicodes/plugin-sdk'
@@ -47,7 +47,7 @@ export type PicturelessReason = typeof LIVE_CAPTURE_UNAVAILABLE | typeof LIVE_CA
 
 const PICTURELESS: readonly PicturelessReason[] = [LIVE_CAPTURE_UNAVAILABLE, LIVE_CAPTURE_FAILED, LIVE_CAPTURE_STOPPED]
 
-function isPictureless(reason: PanelReason): reason is PicturelessReason {
+function isPictureless(reason: ControlReason): reason is PicturelessReason {
   return PICTURELESS.some((pictureless) => pictureless === reason)
 }
 
@@ -93,7 +93,7 @@ export interface LiveSessionOptions {
    * something the module could not do for the viewer. Its message is the
    * device's, which the device's log keeps.
    */
-  onNotice?: (reason: PanelReason) => void
+  onNotice?: (reason: ControlReason) => void
   /** The conversation browser's tabs, each time the view reports them, with the list's number in the device's sequence. */
   onTabs?: (tabs: LiveTab[], list: number) => void
   /**
@@ -295,7 +295,7 @@ export class LiveSession {
       case 'choice':
         break
       case 'notice': {
-        const reason = panelReasonSchema.safeParse(message.code)
+        const reason = controlReasonSchema.safeParse(message.code)
         if (!reason.success) {
           // The module ships with this page, so a notice of a reason the page has no words for is its defect.
           this.options.defect('The live view sent a notice of a reason the page does not know', reason.error)

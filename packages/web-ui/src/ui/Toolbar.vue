@@ -27,13 +27,12 @@ export interface ToolbarAction {
 }
 
 /**
- * A panel's toolbar: what leads it, such as a name, in the `leading` slot, then its
- * actions.
+ * A panel's toolbar: its actions from the start, then what ends it, such as a
+ * device's model, in the `trailing` slot, against the bar's end.
  *
- * The actions that do not fit the bar's width go, from its end, into a More menu (»)
- * at the end, as a macOS window's toolbar puts them. The leading content takes what
- * room the actions leave. What the `end` slot holds, such as a Close button, ends
- * the bar after More and never gives up its room: the actions fit in what it leaves.
+ * The actions that do not fit the bar's width go, from their end, into a More
+ * menu (») after the last one shown, as a macOS window's toolbar puts them. The
+ * trailing content takes what room the actions leave.
  */
 const props = defineProps<{
   actions: readonly ToolbarAction[]
@@ -43,8 +42,6 @@ const props = defineProps<{
 }>()
 
 const bar = ref<HTMLElement | null>(null)
-/** The `end` slot's box, empty and hidden while it holds nothing. */
-const end = ref<HTMLElement | null>(null)
 /** Each action, with the divider before it, laid out or measured off the bar. */
 const items = ref<HTMLElement[]>([])
 const more = ref<HTMLElement | null>(null)
@@ -59,8 +56,7 @@ function fit(): void {
   }
   const style = getComputedStyle(element)
   const gap = parseFloat(style.columnGap) || 0
-  const held = end.value?.offsetWidth ? end.value.offsetWidth + gap : 0
-  const room = element.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0) - held
+  const room = element.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0)
   const widths = props.actions.map((_, index) => items.value[index]?.offsetWidth ?? 0)
   shown.value = fittingActions(widths, gap, room, more.value.offsetWidth)
 }
@@ -72,10 +68,6 @@ onMounted(() => {
   }
   observer = new ResizeObserver(() => fit())
   observer.observe(bar.value)
-  // What the end holds can come and go while the bar keeps its width.
-  if (end.value) {
-    observer.observe(end.value)
-  }
   fit()
 })
 onBeforeUnmount(() => observer?.disconnect())
@@ -85,9 +77,6 @@ watch(() => props.actions.map((action) => `${action.label}:${action.group ?? fal
 
 <template>
   <div ref="bar" class="relative flex h-10 flex-none items-center gap-0.5 border-b border-line px-2">
-    <div class="flex min-w-0 flex-1 items-center">
-      <slot name="leading" />
-    </div>
     <div
       v-for="(action, index) in actions"
       :key="index"
@@ -147,8 +136,8 @@ watch(() => props.actions.map((action) => `${action.label}:${action.group ?? fal
         </template>
       </Dropdown>
     </div>
-    <div v-if="$slots.end" ref="end" class="flex flex-none items-center empty:hidden">
-      <slot name="end" />
+    <div class="flex min-w-0 flex-1 items-center justify-end">
+      <slot name="trailing" />
     </div>
   </div>
 </template>

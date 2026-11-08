@@ -1,16 +1,19 @@
-//! The panel's controls (`crates/plugin-mobile/plugin/src/lib.rs`): each control runs
+//! The work's controls (`crates/plugin-mobile/plugin/src/lib.rs`): each control runs
 //! the operation the agent's command of the same meaning runs, as a package
 //! call for the conversation's user, and holds no simulator logic.
 //!
-//! The panel opens no device of its own; the agent does. Every control operates
-//! what runs without waking it.
+//! The user opens a device from the taskbar's Open, which lists the device's
+//! simulators with `list` and opens one with `open`; opening wakes a stopped
+//! Cloud, as opening a browser tab does. Every other control operates what
+//! runs without waking it.
 
 use demi_command_declarations::NativeOperation;
 use demi_command_package_mobile_protocol::PACKAGE;
 use demi_command_package_mobile_protocol::mobile::{
     AppearanceChoice, AppearanceInput, AppearanceResult, CloseInput, CloseResult, DeviceId,
     FailureDocument, FoldInput, FoldResult, Key, KeyInput, KeyResult, ListInput, ListResult, MobileErrorCode,
-    MobileOperation, PREFIX, RecordAction, RecordInput, RecordResult, RecordTarget, RotateInput, RotateResult,
+    MobileOperation, OpenInput, OpenResult, PREFIX, RecordAction, RecordInput, RecordResult, RecordTarget,
+    RotateInput, RotateResult,
     Rotation, ScreenshotInput, ScreenshotResult,
 };
 use demi_plugin_interface::{CallKind, Method, Page, PluginError, PluginPort, PortFailure, PortRefusal, Scope};
@@ -20,8 +23,8 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::panel::KIND;
-use crate::reason::PanelReason;
+use crate::tabs::{KIND, added_id};
+use crate::reason::ControlReason;
 
 /// The operation `name` names, in the mobile package.
 pub(crate) fn operation(name: &str) -> NativeOperation {
@@ -62,10 +65,10 @@ pub struct FoldDevice {
     pub to: String,
 }
 
-/// A button the panel presses.
+/// A button the controls press.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
-pub enum PanelButton {
+pub enum ControlButton {
     Home,
     Back,
     Lock,
@@ -73,14 +76,14 @@ pub enum PanelButton {
     VolumeDown,
 }
 
-impl From<PanelButton> for Key {
-    fn from(button: PanelButton) -> Self {
+impl From<ControlButton> for Key {
+    fn from(button: ControlButton) -> Self {
         match button {
-            PanelButton::Home => Key::Home,
-            PanelButton::Back => Key::Back,
-            PanelButton::Lock => Key::Lock,
-            PanelButton::VolumeUp => Key::VolumeUp,
-            PanelButton::VolumeDown => Key::VolumeDown,
+            ControlButton::Home => Key::Home,
+            ControlButton::Back => Key::Back,
+            ControlButton::Lock => Key::Lock,
+            ControlButton::VolumeUp => Key::VolumeUp,
+            ControlButton::VolumeDown => Key::VolumeDown,
         }
     }
 }
@@ -90,13 +93,13 @@ impl From<PanelButton> for Key {
 #[serde(deny_unknown_fields)]
 pub struct PressButton {
     pub device: String,
-    pub button: PanelButton,
+    pub button: ControlButton,
 }
 
-/// What the panel's Record button does.
+/// What the window's Record button does.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum PanelRecord {
+pub enum ControlRecord {
     Start,
     Stop,
 }
@@ -106,7 +109,16 @@ pub enum PanelRecord {
 #[serde(deny_unknown_fields)]
 pub struct RecordDevice {
     pub device: String,
-    pub action: PanelRecord,
+    pub action: ControlRecord,
+}
+
+/// What `open` answers: the device and its tab, which the page selects once
+/// it arrives.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Opened {
+    pub device: DeviceId,
+    pub tab: String,
 }
 
 /// What Screenshot and a stopped Record answer: the file on the device the
@@ -118,10 +130,12 @@ pub struct Saved {
 }
 
 /// The page: its controls, each declared with the operations it calls,
-/// and its panel kind.
+/// and its tab kind.
 pub(crate) fn page() -> Page {
     Page::new("@demicodes/plugin-mobile")
-        .panel_kind(KIND)
+        .tab_kind(KIND)
+        .method(Method::new::<ListInput, ListResult>("list", Scope::Conversation).calls(operation("list")))
+        .method(Method::new::<OpenInput, Opened>("open", Scope::Conversation).calls(operation("open")))
         .method(Method::new::<OnDevice, CloseResult>("close", Scope::Conversation).calls(operation("close")))
         .method(Method::new::<RotateDevice, RotateResult>("rotate", Scope::Conversation).calls(operation("rotate")))
         .method(Method::new::<FoldDevice, FoldResult>("fold", Scope::Conversation).calls(operation("fold")))
@@ -132,7 +146,7 @@ pub(crate) fn page() -> Page {
         .method(Method::new::<PressButton, KeyResult>("press", Scope::Conversation).calls(operation("key")))
         .method(Method::new::<OnDevice, Saved>("screenshot", Scope::Conversation).calls(operation("screenshot")))
         .method(Method::new::<RecordDevice, RecordResult>("record", Scope::Conversation).calls(operation("record")))
-        .reasons::<PanelReason>()
+        .reasons::<ControlReason>()
 }
 
 /// The device's simulators, as a look that wakes nothing; none while the
@@ -166,6 +180,20 @@ pub(crate) async fn call(
     port: &PluginPort,
 ) -> Result<Value, PluginError> {
     match method {
+        "list" => {
+            let input: ListInput = decode(params)?;
+            to_value(run::<ListResult, _>(port, MobileOperation::List, input, CallKind::Looks).await.map_err(refused)?)
+        }
+        // The plugin's sync adds the device's tab, on the package's word that
+        // the conversation's devices changed, as it does for the agent's open.
+        "open" => {
+            let input: OpenInput = decode(params)?;
+            let opened = run::<OpenResult, _>(port, MobileOperation::Open, input, CallKind::Starts)
+                .await
+                .map_err(refused)?;
+            let tab = added_id(opened.device.as_str());
+            to_value(Opened { device: opened.device, tab })
+        }
         "close" => {
             let OnDevice { device } = decode(params)?;
             let input = CloseInput { device: device_id(device)? };
@@ -222,8 +250,8 @@ pub(crate) async fn call(
             let input = RecordInput {
                 target: RecordTarget::Device(device_id(device)?),
                 action: match action {
-                    PanelRecord::Start => RecordAction::Start,
-                    PanelRecord::Stop => RecordAction::Stop,
+                    ControlRecord::Start => RecordAction::Start,
+                    ControlRecord::Stop => RecordAction::Stop,
                 },
                 duration: None,
                 frames: None,
@@ -245,7 +273,7 @@ pub(crate) async fn call(
     }
 }
 
-/// Runs an operation the panel's control asks of an open device.
+/// Runs an operation the window's controls ask of an open device.
 async fn operate<T: DeserializeOwned, I: Serialize>(
     port: &PluginPort,
     variant: fn(I) -> MobileOperation,
@@ -277,10 +305,10 @@ async fn run<T: DeserializeOwned, I: Serialize>(
 /// does not have.
 fn device_id(device: String) -> Result<DeviceId, PluginError> {
     DeviceId::try_from(device)
-        .map_err(|_| refusal(PanelReason::DeviceNotFound, "No such device".to_owned()))
+        .map_err(|_| refusal(ControlReason::DeviceNotFound, "No such device".to_owned()))
 }
 
-fn refusal(reason: PanelReason, message: String) -> PluginError {
+fn refusal(reason: ControlReason, message: String) -> PluginError {
     PluginError::refused(reason.to_string(), message)
 }
 
@@ -315,7 +343,7 @@ pub(crate) fn refused(failure: PortFailure) -> PluginError {
     }
     match failure {
         PortFailure::Refused(PortRefusal::Resident { message }) => {
-            refusal(PanelReason::MobileUnavailable, message)
+            refusal(ControlReason::MobileUnavailable, message)
         }
         failure => failure.into(),
     }

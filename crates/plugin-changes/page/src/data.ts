@@ -64,7 +64,7 @@ type ChangeStep = Pick<ChangeData, 'mode' | 'commit' | 'file' | 'root' | 'reques
  */
 export const changeView = ref<'diff' | 'preview'>('diff')
 
-/** The view as a conversation's panel first shows it: Commits, on Uncommitted Changes. */
+/** The view as a conversation's work first shows it: Commits, on Uncommitted Changes. */
 export function firstChangeData(): ChangeData {
   return { mode: 'commits', commit: null, file: null, request: null, branch: null, place: false }
 }
@@ -228,7 +228,7 @@ export function followsPreferred(data: ChangeData): boolean {
 
 /**
  * The Change view's place in the page's address, as
- * `?panel=change&mode=conversation&request=u1&path=src/app.ts&call=c2&segment=0`:
+ * `?tab=change&mode=conversation&request=u1&path=src/app.ts&call=c2&segment=0`:
  *
  * - `mode`, `commit`, `file`, `root` and `branch`: what Commits shows, a
  *   commit link's directory or the repository picked, `root`, empty for the

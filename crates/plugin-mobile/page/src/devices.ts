@@ -1,11 +1,12 @@
 /**
- * The panel's controls and the `mobile` user stream over the plugin
+ * The work's controls and the `mobile` user stream over the plugin
  * (`crates/plugin-mobile/page/src/index.ts`): each control is a page method that
  * runs the operation the agent's command of the same meaning runs.
  *
- * A call still waiting when the panel session ends is dropped and never sent
- * (`packages/web-ui/src/plugins/page.ts`). The panel opens no device: the agent
- * does, and the plugin gives each device its tab.
+ * A call still waiting when the page's session for the window ends is dropped and never sent
+ * (`packages/web-ui/src/plugins/page.ts`). The user opens a device from the
+ * taskbar's Open as the agent does from its command, and the plugin gives
+ * each device its tab.
  */
 import { onScopeDispose } from 'vue'
 import type { z } from 'zod'
@@ -15,17 +16,23 @@ import {
   closeResultSchema,
   foldResultSchema,
   keyResultSchema,
-  panelReasonSchema,
+  listResultSchema,
+  openedSchema,
+  controlReasonSchema,
   recordResultSchema,
   rotateResultSchema,
   savedSchema,
   type FoldDevice,
   type FoldResult,
+  type ListInput,
+  type ListResult,
   type OnDevice,
-  type PanelButton,
-  type PanelReason,
+  type OpenInput,
+  type Opened,
+  type ControlButton,
+  type ControlReason,
   type PressButton,
-  type PanelRecord,
+  type ControlRecord,
   type RecordDevice,
   type RotateResult,
   type RecordResult,
@@ -37,7 +44,7 @@ import { t } from './locales/text'
 
 /** A refused call, in the words the page shows for it, never the runner's own error text. */
 export class MobileError extends Error {
-  constructor(readonly reason: PanelReason | null, readonly status: string | null, message: string) {
+  constructor(readonly reason: ControlReason | null, readonly status: string | null, message: string) {
     super(message)
   }
 
@@ -46,7 +53,7 @@ export class MobileError extends Error {
       return error
     }
     if (error instanceof PluginCallError) {
-      const reason = panelReasonSchema.safeParse(error.reason)
+      const reason = controlReasonSchema.safeParse(error.reason)
       if (reason.success) {
         return new MobileError(reason.data, null, t(`reasons.${reason.data}`))
       }
@@ -58,13 +65,17 @@ export class MobileError extends Error {
 }
 
 export interface MobileApi {
+  /** The device's simulators, as `demi mobile list` lists them. */
+  list(): Promise<ListResult>
+  /** Opens the simulator of `nativeId`, booting it first when it is shut down, as `demi mobile open` does. */
+  open(nativeId: string): Promise<Opened>
   close(device: string): Promise<void>
   rotate(device: string, turn: Turn): Promise<RotateResult>
   fold(device: string, to: string): Promise<FoldResult>
   toggleAppearance(device: string): Promise<void>
-  press(device: string, button: PanelButton): Promise<void>
+  press(device: string, button: ControlButton): Promise<void>
   screenshot(device: string): Promise<Saved>
-  record(device: string, action: PanelRecord): Promise<RecordResult>
+  record(device: string, action: ControlRecord): Promise<RecordResult>
   stream: OpenUserStream
   /** What the runner downloads of the plugin's packages now, such as its program, read reactively. */
   downloading(): readonly DeviceDownload[]
@@ -84,6 +95,8 @@ export function mobileApi(plugin: ConversationPlugin): MobileApi {
     }
   }
   return {
+    list: () => call('list', {} satisfies ListInput, listResultSchema),
+    open: (nativeId) => call('open', { device: nativeId } satisfies OpenInput, openedSchema),
     close: async (device) => {
       await call('close', { device } satisfies OnDevice, closeResultSchema)
     },

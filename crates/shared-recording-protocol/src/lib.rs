@@ -55,7 +55,7 @@ closed_set! {
 closed_set! {
     /// Why a recording stopped.
     pub enum EndReason {
-        /// Someone ran `stop`, or pressed Stop in the work panel.
+        /// Someone ran `stop`, or pressed Stop in its window.
         Stopped = "stopped",
         /// It ran as long as `--duration` asked.
         Duration = "duration",
@@ -383,7 +383,7 @@ pub struct FrameRow {
 
 closed_set! {
     /// Who gave an input: the agent's command, or the user's hand in the
-    /// work panel's live view.
+    /// window's live view.
     pub enum InputBy {
         Agent = "agent",
         User = "user",

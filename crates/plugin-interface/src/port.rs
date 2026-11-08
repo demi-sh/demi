@@ -11,7 +11,7 @@ use demi_device_interface::{DeviceFile, DeviceRead, PortError, PortRequest, Port
 use demi_shared_types::{B64Bytes, BlobRef, MediaKind};
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::ids::{DeviceId, WorkspaceId};
-use demi_web_api_protocol::panel::{CreatePanelTab, WorkPanel};
+use demi_web_api_protocol::work::{CreateWorkTab, Work};
 
 use crate::{
     AskedVideo, AudioAsk, AudioVoices, ImageAsk, MadeAudio, MadeImage, MediaListing, MediaRefusal, PluginId, Scope, SecretName, StoredSecret,
@@ -101,9 +101,9 @@ pub enum PortMessage {
         revision: u64,
         value: Value,
     },
-    /// The request's conversation's work panel, with only the tabs of the
-    /// plugin's own panel kinds.
-    PanelTabs,
+    /// The request's conversation's work, with only the tabs of the
+    /// plugin's own tab kinds.
+    WorkTabs,
     /// The user's workspaces, and the one the request's conversation is in.
     Workspaces,
     /// The user's paired devices, each with whether its runner is connected.
@@ -127,16 +127,16 @@ pub enum PortMessage {
         repository_max: u64,
         files_max: u64,
     },
-    /// Creates a tab of one of the plugin's panel kinds.
-    CreatePanelTab {
-        tab: CreatePanelTab,
+    /// Creates a tab of one of the plugin's tab kinds.
+    CreateWorkTab {
+        tab: CreateWorkTab,
     },
     /// Sets the fields of `data` in the tab's data, removing the null ones.
-    UpdatePanelTab {
+    UpdateWorkTab {
         id: String,
         data: Map<String, Value>,
     },
-    RemovePanelTab {
+    RemoveWorkTab {
         id: String,
     },
     /// The plugin's secret `name` for the user.
@@ -257,7 +257,7 @@ pub enum PortAnswer {
         result: Value,
     },
     /// The report is kept; `primary` says whether the device it came from is
-    /// the conversation's primary device, the one its panel shows.
+    /// the conversation's primary device, the one its work shows.
     Kept {
         primary: bool,
     },
@@ -266,8 +266,8 @@ pub enum PortAnswer {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         report: Option<StoredReport>,
     },
-    Panel {
-        panel: WorkPanel,
+    Work {
+        work: Work,
     },
     Workspaces {
         workspaces: Workspaces,
@@ -281,8 +281,8 @@ pub enum PortAnswer {
     GitTree {
         tree: GitTree,
     },
-    /// The panel's revision once a change is in it.
-    PanelRevision {
+    /// The work's revision once a change is in it.
+    WorkRevision {
         revision: u64,
     },
     /// A secret; none for one the plugin does not have.
@@ -338,12 +338,12 @@ impl PortAnswer {
             Self::Called { .. } => "called",
             Self::Kept { .. } => "kept",
             Self::Report { .. } => "report",
-            Self::Panel { .. } => "panel",
+            Self::Work { .. } => "work",
             Self::Workspaces { .. } => "workspaces",
             Self::Devices { .. } => "devices",
             Self::GitHead { .. } => "git_head",
             Self::GitTree { .. } => "git_tree",
-            Self::PanelRevision { .. } => "panel_revision",
+            Self::WorkRevision { .. } => "work_revision",
             Self::Secret { .. } => "secret",
             Self::Response { .. } => "response",
             Self::AuthorizationUrl { .. } => "authorization_url",
@@ -606,10 +606,10 @@ pub enum PortRefusal {
     /// device whose runner is not connected. A read never wakes it.
     #[error("the conversation's device is not running")]
     NotRunning,
-    /// A change of the work panel was refused, as its routes would refuse
-    /// it, such as `panel_full`.
+    /// A change of the work was refused, as its routes would refuse
+    /// it, such as `work_full`.
     #[error("{message}")]
-    Panel { code: ErrorCode, message: String },
+    Work { code: ErrorCode, message: String },
     /// An outbound request, or a step of an OAuth sign-in that reaches the
     /// vendor, did not answer.
     #[error("{failure}")]
@@ -829,7 +829,7 @@ impl PluginPort {
     /// Keeps what the plugin's package on the device `device` reported of the
     /// request's conversation, whole, at its `revision`; answers whether the
     /// device is the conversation's primary one. A report of another device is kept
-    /// for when the conversation moves there, and changes nothing the panel
+    /// for when the conversation moves there, and changes nothing the work
     /// shows.
     pub async fn keep_report(
         &self,
@@ -885,40 +885,40 @@ impl PluginPort {
         }
     }
 
-    /// The request's conversation's work panel, with the tabs of the
-    /// plugin's own panel kinds.
-    pub async fn panel_tabs(&self) -> Result<WorkPanel, PortFailure> {
-        match self.ask(PortMessage::PanelTabs).await? {
-            PortAnswer::Panel { panel } => Ok(panel),
-            answer => Err(unexpected("panel_tabs", &answer)),
+    /// The request's conversation's work, with the tabs of the
+    /// plugin's own tab kinds.
+    pub async fn work_tabs(&self) -> Result<Work, PortFailure> {
+        match self.ask(PortMessage::WorkTabs).await? {
+            PortAnswer::Work { work } => Ok(work),
+            answer => Err(unexpected("work_tabs", &answer)),
         }
     }
 
-    /// Creates a tab of one of the plugin's panel kinds, and answers the
-    /// panel's revision; nothing changes for an id the panel has or had.
-    pub async fn create_panel_tab(&self, tab: CreatePanelTab) -> Result<u64, PortFailure> {
-        self.panel_change("create_panel_tab", PortMessage::CreatePanelTab { tab })
+    /// Creates a tab of one of the plugin's tab kinds, and answers the
+    /// work's revision; nothing changes for an id the work has or had.
+    pub async fn create_tab(&self, tab: CreateWorkTab) -> Result<u64, PortFailure> {
+        self.work_change("create_tab", PortMessage::CreateWorkTab { tab })
             .await
     }
 
     /// Sets the fields of `data` in the tab's data, removing the null ones,
-    /// and answers the panel's revision; nothing changes for a tab the panel
+    /// and answers the work's revision; nothing changes for a tab the work
     /// no longer has.
-    pub async fn update_panel_tab(
+    pub async fn update_tab(
         &self,
         id: impl Into<String>,
         data: Map<String, Value>,
     ) -> Result<u64, PortFailure> {
-        let message = PortMessage::UpdatePanelTab {
+        let message = PortMessage::UpdateWorkTab {
             id: id.into(),
             data,
         };
-        self.panel_change("update_panel_tab", message).await
+        self.work_change("update_tab", message).await
     }
 
-    pub async fn remove_panel_tab(&self, id: impl Into<String>) -> Result<u64, PortFailure> {
-        let message = PortMessage::RemovePanelTab { id: id.into() };
-        self.panel_change("remove_panel_tab", message).await
+    pub async fn remove_tab(&self, id: impl Into<String>) -> Result<u64, PortFailure> {
+        let message = PortMessage::RemoveWorkTab { id: id.into() };
+        self.work_change("remove_tab", message).await
     }
 
     /// The plugin's secret `name` for the user, if it has one.
@@ -1055,13 +1055,13 @@ impl PluginPort {
         }
     }
 
-    async fn panel_change(
+    async fn work_change(
         &self,
         asked: &'static str,
         message: PortMessage,
     ) -> Result<u64, PortFailure> {
         match self.ask(message).await? {
-            PortAnswer::PanelRevision { revision } => Ok(revision),
+            PortAnswer::WorkRevision { revision } => Ok(revision),
             answer => Err(unexpected(asked, &answer)),
         }
     }

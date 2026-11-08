@@ -6,7 +6,7 @@ import type { CodeFile, ReplyPicture } from '@demicodes/protocol'
 
 /**
  * A reply that names files: the attachments the agent uploaded, or the
- * project's files, which open in the frame's panel.
+ * project's files, which open in the frame's windows.
  */
 const props = defineProps<{
   /** The gallery project, with its attachments. */

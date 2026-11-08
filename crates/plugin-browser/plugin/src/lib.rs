@@ -5,11 +5,11 @@
 //! - the `demi browser` group, every leaf bound to an operation of the
 //!   `demi.browser` command package, which runs it on the device;
 //! - the `browser` user stream of the live view;
-//! - the tab list and tab methods of the work panel's `browser` kind;
+//! - the tab list and tab methods of the work's `browser` kind;
 //! - the kind's tabs on the backend.
 //!
 //! It holds no browser logic. Commands are declared from the operation types of
-//! `command-package-browser-protocol`, the tab methods and the panel's tabs
+//! `command-package-browser-protocol`, the tab methods and the work's tabs
 //! call the browser's own operations as package calls, and the user stream only
 //! names `browser.live`.
 //!
@@ -18,7 +18,7 @@
 
 mod browser;
 pub mod page;
-mod panel;
+mod tabs;
 pub mod reason;
 
 use std::rc::Rc;
@@ -45,7 +45,7 @@ impl Browser {
         let mut manifest = Manifest::new(
             PluginId::try_from("browser").expect("a valid plugin id"),
             "Browser",
-            "Gives the agent a browser on the conversation's device, which it drives with demi browser and you watch and use in the work panel.",
+            "Gives the agent a browser on the conversation's device, which it drives with demi browser and you watch and use in its window.",
         );
         manifest.commands = commands().manifest_commands();
         manifest.streams = vec![live_stream()];
@@ -68,7 +68,7 @@ impl PluginFactory for Browser {
     fn instance(&self) -> Rc<dyn Plugin> {
         Rc::new(Instance {
             commands: commands(),
-            work: panel::Work::default(),
+            work: tabs::Work::default(),
         })
     }
 }
@@ -125,7 +125,7 @@ fn commands() -> CommandPlugin {
 /// the browser package's messages reach it.
 struct Instance {
     commands: CommandPlugin,
-    work: panel::Work,
+    work: tabs::Work,
 }
 
 impl Plugin for Instance {
@@ -152,7 +152,7 @@ impl Plugin for Instance {
                 Request::PageCall {
                     conversation: None, ..
                 } => Err(PluginError::undeclared("user method")),
-                Request::PanelTab {
+                Request::TabClosed {
                     conversation, tab, ..
                 } => {
                     self.work.removed(&conversation, &port, &tab).await?;

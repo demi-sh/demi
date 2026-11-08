@@ -102,8 +102,8 @@ export interface ConversationFiles {
   /**
    * Shows the file at a device path, at its line when it names one, through
    * the `file` intent; absent while no plugin the user has on opens it, so a
-   * link to a file shows as text and a device image only shows. What the panel
-   * already shows stays as it is (`openIntent`).
+   * link to a file shows as text and a device image only shows. What the windows
+   * already show stays as it is (`openIntent`).
    */
   open?(target: MessageFileTarget): void
   /**
@@ -132,7 +132,7 @@ export interface ConversationFiles {
   shareReplyBlock?(tag: string, id: string, title: string): void
   /**
    * Opens attachment `id`, a file that is no image, video or audio, in the
-   * work panel through the `attachment` intent, previewed from its copy; absent
+   * conversation's windows through the `attachment` intent, previewed from its copy; absent
    * while no plugin the user has on opens it, as on a share, and its card then
    * only offers Download.
    */
@@ -146,7 +146,7 @@ export interface ConversationFiles {
   /**
    * The full path on the conversation's device of the file `attachment` was
    * uploaded from, which a card of a file that is no image or video opens in
-   * the Files panel, as a link to it does: its device is the conversation's and
+   * the Files window, as a link to it does: its device is the conversation's and
    * online, and the file is there, which the page asks the device once for each
    * opening. Null otherwise, and at once, with no request and no wake, while
    * the device is offline or its Cloud stopped; the card then opens the copy.

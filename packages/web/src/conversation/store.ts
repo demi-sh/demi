@@ -510,7 +510,7 @@ export const useConversations = defineStore('conversations', () => {
    * workflow and directory.
    */
   function newConversation(
-    record: Omit<ConversationSummary, 'panel'>,
+    record: Omit<ConversationSummary, 'work'>,
     local: { model?: ModelSettings, workflow?: WorkflowChoice, cwd?: string } = {},
   ): Conversation {
     return {

@@ -395,7 +395,7 @@ export async function readConversationCopy(userId: string, id: string): Promise<
       return null
     }
     const { format: _format, userId: _user, statesBuild, ...copy } = record
-    return statesBuild === pageBuild() ? copy : { ...copy, metadata: { ...copy.metadata, panelStates: [] } }
+    return statesBuild === pageBuild() ? copy : { ...copy, metadata: { ...copy.metadata, tabStates: [] } }
   } catch (error) {
     reportError(t('failures.readOffline'), error, { site: 'failures.readOffline' })
     return null

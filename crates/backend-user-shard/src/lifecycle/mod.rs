@@ -41,7 +41,7 @@
 //! and after each tool call. So is a stream the page keeps open while nobody
 //! watches it, to show its last picture at once on return
 //! (`crates/runner-protocol/src/direct.rs`, `StreamWatched`): a view whose tab is
-//! hidden, whose panel is closed or whose page is hidden is unwatched, so a page
+//! hidden, whose windows are all minimized or closed or whose page is hidden is unwatched, so a page
 //! left open keeps its conversation, and its Cloud, active only while someone
 //! looks at the view.
 //!

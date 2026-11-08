@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// route's own.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum PanelReason {
+pub enum ControlReason {
     // The browser's own codes.
     InvalidInput,
     TabNotFound,
@@ -69,10 +69,10 @@ pub enum PanelReason {
     PluginDisabled,
 }
 
-serde_plain::derive_display_from_serialize!(PanelReason);
-serde_plain::derive_fromstr_from_deserialize!(PanelReason);
+serde_plain::derive_display_from_serialize!(ControlReason);
+serde_plain::derive_fromstr_from_deserialize!(ControlReason);
 
-impl From<BrowserErrorCode> for PanelReason {
+impl From<BrowserErrorCode> for ControlReason {
     fn from(code: BrowserErrorCode) -> Self {
         match code {
             BrowserErrorCode::InvalidInput => Self::InvalidInput,
@@ -112,7 +112,7 @@ impl From<BrowserErrorCode> for PanelReason {
     }
 }
 
-impl PanelReason {
+impl ControlReason {
     /// The device access's refusal `code` as a reason; none for one the page
     /// has no words of its own for, such as an internal error, which it
     /// says by its HTTP status.

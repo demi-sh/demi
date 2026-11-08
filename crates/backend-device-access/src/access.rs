@@ -731,7 +731,7 @@ impl dyn DeviceShard + '_ {
     }
 
     /// Runs `operation` once on the conversation's device as a request the user
-    /// makes of it, such as a read of its files in the work panel: the
+    /// makes of it, such as a read of its files in the Files window: the
     /// conversation's file gate resolves the device and its directory and is let
     /// go before `operation` calls the device, so what the device is slow to answer
     /// holds nothing a transition, a message or a deletion waits behind. A

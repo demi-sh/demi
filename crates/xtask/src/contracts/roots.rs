@@ -118,7 +118,7 @@ pub fn protocol() -> Vec<Root> {
 pub fn web() -> Vec<Root> {
     use api::{
         attachments, auth, cloud, conversations, credentials, devices, diagnostics, drafts, error, files, instructions, port_forwards,
-        panel,
+        work,
         passkeys,
         permissions,
         plugins, providers, push, saved, schedules, search, server_upgrade, sessions, settings, shares, side_questions, sidebar, state, subagents, usage, users, workflows, projects, workspaces,
@@ -290,8 +290,8 @@ pub fn web() -> Vec<Root> {
         sends::<workspaces::WorkspaceMove>(),
         receives::<workspaces::WorkspaceAnswer>(),
         sends::<sidebar::SidebarReorder>(),
-        sends::<panel::PanelChanges>(),
-        receives::<panel::PanelAnswer>(),
+        sends::<work::WorkChanges>(),
+        receives::<work::WorkAnswer>(),
         receives::<workflows::KeptWorkflowList>(),
         sends::<conversations::SuggestedReplyUsed>(),
         sends::<drafts::DraftSave>(),

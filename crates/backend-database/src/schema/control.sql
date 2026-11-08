@@ -581,9 +581,9 @@ CREATE TABLE conversation_devices (
 ) STRICT;
 CREATE INDEX conversation_devices_device ON conversation_devices (device_id);
 
--- A conversation's work panel: its tabs and the ids it ever had, one JSON
+-- A conversation's work: its tabs, the ids it ever had and its windows' layout, one JSON
 -- document, with the revision that counts its changes.
-CREATE TABLE conversation_panels (
+CREATE TABLE conversation_work (
   conversation_id TEXT PRIMARY KEY COLLATE NOCASE REFERENCES conversations (id) ON DELETE CASCADE,
   revision        INTEGER NOT NULL CHECK (revision >= 1),
   document        TEXT NOT NULL,

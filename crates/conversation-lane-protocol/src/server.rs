@@ -55,7 +55,7 @@ pub struct ConversationAttachment {
     /// The hash its bytes are served under, at `GET /blobs/:sha256`.
     pub blob: BlobRef,
     /// The file the agent uploaded it from, which a card of a file that is no
-    /// image or video opens in the Files panel in the copy's place while the
+    /// image or video opens in the Files window in the copy's place while the
     /// conversation's device is that device, online, and has the file;
     /// absent for a file the user sent, for an upload stored before uploads
     /// kept it, and on a share.

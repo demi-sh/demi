@@ -56,8 +56,9 @@
       "turns": "Runden",
       "states": "Zustände",
       "session": "Sitzung",
-      "panel": "Panel",
+      "frame": "Rahmen",
       "windows": "Fenster",
+      "taskbar": "Taskleiste",
       "shared": "Geteilte Seite"
     },
     "dialogs": {

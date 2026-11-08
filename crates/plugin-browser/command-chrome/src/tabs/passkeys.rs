@@ -19,7 +19,7 @@
 //!   add its own keeps that until any of the tab's debugging connections
 //!   closes.
 //! - Nothing observes a request, since the protocol reports none, so the
-//!   panel cannot say that a page asked.
+//!   window cannot say that a page asked.
 
 use chromiumoxide::{
     Page,

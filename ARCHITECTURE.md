@@ -109,8 +109,8 @@ A shared mechanism goes where its use decides:
     fact depends on and reports a change, the backend reads the fact again,
     stores it with when it was read and announces a new value, and a request
     takes what is held, without waiting on or waking a device
-    (`crates/backend-device-access/src/kept.rs`). The work panel, which shows a
-    device's own files and changes, reads the device when shown.
+    (`crates/backend-device-access/src/kept.rs`). Files and Changes, which show
+    a device's own files and changes, read the device when shown.
 -   The Cloud and a paired device are the same thing: a device behind a runner.
     Code never distinguishes them except where the design says they differ
     (pairing, revocation, lifecycle). Anything that reaches a conversation's
@@ -118,8 +118,8 @@ A shared mechanism goes where its use decides:
     `backend-device-access`, see `crates/backend-device-access/src/lib.rs`), which
     resolves the target and takes the file gate. What the agent and the user
     start there (a turn's tool, an upload, a download) wakes a stopped Cloud
-    and holds the gate for the operation; what the user only reads (the work
-    panel's files) lets the gate go before it calls the device, so a slow device
+    and holds the gate for the operation; what the user only reads (the Files
+    window's files) lets the gate go before it calls the device, so a slow device
     holds no transition, message or deletion; and restoring a conversation
     admits no device and wakes no Cloud. Nothing a page asks for and no step of a
     conversation waits for a device. There is no other way to a conversation's

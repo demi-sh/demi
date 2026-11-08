@@ -4,7 +4,7 @@
 //!
 //! The agent runs the user's iOS or Android app in a simulator on a paired
 //! device and operates it as a person would, while the user watches and
-//! operates the same simulator live in the work panel:
+//! operates the same simulator live in the work:
 //!
 //! ```text
 //! web page                    backend             device (paired or Cloud)
@@ -19,7 +19,7 @@
 //! # What Demi does
 //!
 //! Demi does what touches the screen, the input and who controls them, each the
-//! one operation behind both the panel's control and its command, so the agent
+//! one operation behind both the window's controls and its command, so the agent
 //! can do what the user can and the other way round.
 //!
 //! Demi also runs the app under test, as a person does with Xcode or Android
@@ -261,7 +261,7 @@ impl Handler for DemiMobile {
                 conversation: &context.request.context.conversation,
                 command: &context.request.command,
                 cwd: &context.request.cwd,
-                // The panel saves what the user asks for where the page
+                // The window saves what the user asks for where the page
                 // downloads it from; the agent's files go where it says.
                 scratch: (installed && context.request.context.caller.agent_number().is_none())
                     .then(|| scratch.clone()),

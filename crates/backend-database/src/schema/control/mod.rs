@@ -90,6 +90,7 @@ mod from_0_1_5979_network_policy;
 mod from_0_1_5979_port_forward_routes;
 mod from_0_1_5979_suggested_reply_history;
 mod from_0_1_5979_suggested_reply_words;
+mod from_0_1_5979_conversation_work;
 
 pub(super) const HISTORY: &[Shipped] = &[
     Shipped {
@@ -414,5 +415,9 @@ pub(super) const HISTORY: &[Shipped] = &[
     Shipped {
         sql: include_str!("from_0_1_5979_asked_ends.sql"),
         migration: from_0_1_5979_asked_ends::MIGRATION,
+    },
+    Shipped {
+        sql: include_str!("from_0_1_5979_conversation_work.sql"),
+        migration: from_0_1_5979_conversation_work::MIGRATION,
     },
 ];

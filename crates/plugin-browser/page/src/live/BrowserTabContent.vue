@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Component } from 'vue'
 import { ArrowDownToLine, Download, File, FolderSearch, Monitor, Ruler, Smartphone } from '@lucide/vue'
-import { AddressBar, SheetCloseButton } from '@demicodes/plugin-sdk'
+import { AddressBar } from '@demicodes/plugin-sdk'
 import { IconButton } from '@demicodes/plugin-sdk'
 import { Menu } from '@demicodes/plugin-sdk'
 import { MenuItem } from '@demicodes/plugin-sdk'
@@ -56,10 +56,10 @@ const addressBar = ref<InstanceType<typeof AddressBar> | null>(null)
 
 const { overlays, errors, files, intents } = usePage()
 const platform = clientPlatform(navigator)
-/** The plugin opens a browser tab for this panel tab again. */
+/** The plugin opens a browser tab for this work tab again. */
 const opening = computed(() => props.session.opening(props.tabId, props.data))
 const view = computed(() => props.session.session.value)
-/** The browser tab the panel tab's data names, unless the browser lost it; the browser may not list it yet. */
+/** The browser tab the work tab's data names, unless the browser lost it; the browser may not list it yet. */
 const bound = computed(() => (props.data.closed ? undefined : props.data.tab))
 /** The bound tab as a view last reported it, kept while no view is open or the view reconnects. */
 const live = computed(() => props.session.tab(bound.value))
@@ -301,7 +301,7 @@ function stop(): void {
 }
 
 /**
- * Retry, and a lost tab shown: the plugin opens a browser tab for this panel
+ * Retry, and a lost tab shown: the plugin opens a browser tab for this work
  * tab again, and the tab loads meanwhile. A failure to open it is the tab's
  * own state; a refused request is a toast.
  */
@@ -311,7 +311,7 @@ function reopen(): Promise<void> {
 
 // A tab whose browser tab the browser lost opens again once shown, as a web
 // browser reloads a tab it discarded, and one the page made, as a link's Open
-// in Work Panel does, opens its browser tab (`bind` answers for a panel tab
+// in Browser Window does, opens its browser tab (`bind` answers for a work tab
 // that has none); one whose opening failed waits for its Retry.
 watch(
   () => props.shown && (props.data.closed === true || props.data.tab === undefined) && !props.data.failure,
@@ -339,7 +339,6 @@ watch(
       @reload="history('reload')"
       @stop="stop"
     >
-      <template #end><SheetCloseButton /></template>
       <template v-if="viewport || downloads.length > 0" #trailing>
         <!-- The downloads, once the user started one here, as a browser's toolbar shows them. -->
         <Dropdown v-if="downloads.length > 0" v-model:open="bubble" :overlay-store="overlays" class="shrink-0">
