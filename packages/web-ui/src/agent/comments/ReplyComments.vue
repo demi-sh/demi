@@ -48,6 +48,12 @@ const props = defineProps<{
   sent: readonly ShownComment[]
   /** The transcript's side questions; absent where it takes none. */
   asking?: ReplyAsking
+  /**
+   * Tells the list that the reader changes the row holding an element, so the
+   * row stays put while a comment's box or a side question's card opens in it
+   * and what follows moves (`useBlockVirtualizer`).
+   */
+  holdForReader?: (element: Element, lineBottom: number) => void
 }>()
 
 const phone = usePhone()
@@ -199,12 +205,30 @@ function fieldActions(blockId: string, anchor: TextAnchor & { at: number }, quot
   }
   const comment = (content: DraftMessage, kept: { picture?: MediaSource }): WaitingComment =>
     ({ id: crypto.randomUUID(), ...placed, at: anchor.at, ...kept, content })
+  // The field floats outside the list, which sees none of its acts: a box or a
+  // card it opens is the reader's change of the reply, which keeps the line it
+  // stands under where it was, even at the list's end (`holdForReader`).
+  const holdLine = (): void => {
+    const range = liveRange({ ...placed, picture: picture || undefined })
+    const end = range?.endContainer
+    const element = end instanceof Element ? end : end?.parentElement
+    if (range && element)
+      props.holdForReader?.(element, range.getBoundingClientRect().bottom)
+  }
   const { sendNow } = props.commenting
   return {
     files: props.commenting.files,
-    comment: (written) => withPicture('comment', (kept) => props.commenting.add(comment(written, kept))),
+    comment: (written) => withPicture('comment', (kept) => {
+      holdLine()
+      props.commenting.add(comment(written, kept))
+    }),
     commented: () => composer.focus(),
-    ask: props.asking ? (written) => withPicture('ask', (kept) => props.asking?.ask({ id: crypto.randomUUID(), ...placed, ...kept, question: written })) : undefined,
+    ask: props.asking
+      ? (written) => withPicture('ask', (kept) => {
+        holdLine()
+        props.asking?.ask({ id: crypto.randomUUID(), ...placed, ...kept, question: written })
+      })
+      : undefined,
     send: sendNow ? (written) => withPicture('comment', (kept) => sendNow(comment(written, kept))) : undefined,
     get unavailable() {
       return streaming() ? t('comments.waitReply') : null
