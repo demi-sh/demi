@@ -587,14 +587,16 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
   // it held then opened or folded (`aria-expanded`, `open`), or the control
   // they clicked gave way to what it opened, as Edit gives way to its editor;
   // never by the row's height alone, nor by controls that came since, as the
-  // steps that join a run.
+  // steps that join a run. An act the list does not see, as a comment or a
+  // side question sent from the field that floats over a reply, says itself
+  // that it changes its row (`holdForReader`).
   let readerLayoutUntil = 0
   let readerLayoutTimer: ReturnType<typeof setTimeout> | undefined
   /**
    * The rows the reader acted on while the view holds, each with its height
    * and what it held open (`disclosures`) when first acted on.
    */
-  const readerRows = new Map<HTMLElement, { height: number, disclosures: Map<Element, string | null>, controls: Set<Element> }>()
+  const readerRows = new Map<HTMLElement, { height: number, disclosures: Map<Element, string | null>, controls: Set<Element>, changes: boolean }>()
   /**
    * The control the reader last acted on while the view holds, and how far
    * below the view's top it stood then.
@@ -604,10 +606,15 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
     return performance.now() < readerLayoutUntil
   }
   function readerChangesLayout(event: Event): void {
-    const target = event.target instanceof Element ? event.target : null
+    readerActsOn(event.target instanceof Element ? event.target : null, false)
+  }
+  /** The reader acted on `target`, an act that `changes` its row when it says so. */
+  function readerActsOn(target: Element | null, changes: boolean): void {
     const row = target?.closest<HTMLElement>('[data-index]') ?? null
     if (row && !readerRows.has(row))
-      readerRows.set(row, { height: row.getBoundingClientRect().height, disclosures: disclosures(row), controls: new Set() })
+      readerRows.set(row, { height: row.getBoundingClientRect().height, disclosures: disclosures(row), controls: new Set(), changes })
+    else if (row && changes)
+      readerRows.get(row)!.changes = true
     const clicked = target?.closest('button, summary, [role="button"]')
     if (row && clicked)
       readerRows.get(row)!.controls.add(clicked)
@@ -620,7 +627,8 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
       const el = scrollContainer.value
       const resized = [...readerRows].some(([row, was]) =>
         Math.abs(row.getBoundingClientRect().height - was.height) > RESIZED_PX
-        && ([...was.disclosures].some(([element, state]) => element.isConnected && openState(element) !== state)
+        && (was.changes
+          || [...was.disclosures].some(([element, state]) => element.isConnected && openState(element) !== state)
           || [...was.controls].some((control) => !control.isConnected)))
       readerRows.clear()
       readerControl = null
@@ -1691,6 +1699,19 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
     isAtBottom,
     scrollToBottom: scrollToBottomExplicit,
     keepEnd,
+    /**
+     * The reader changes the row that holds `element` from outside the list,
+     * as the comment field over a reply does, under the line whose bottom is
+     * at `lineBottom` in the viewport: the row stays put and what follows it
+     * moves, as for a row they opened. A line the reader scrolled above the
+     * view grows there, which the list makes up for as for any row above it,
+     * so what they read stays put.
+     */
+    holdForReader: (element: Element, lineBottom: number): void => {
+      const el = scrollContainer.value
+      if (el && lineBottom > el.getBoundingClientRect().top)
+        readerActsOn(element, true)
+    },
     reveal,
     rowsNear,
     onScroll,

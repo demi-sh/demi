@@ -466,6 +466,7 @@ const {
   isAtBottom,
   scrollToBottom,
   keepEnd,
+  holdForReader,
   reveal,
   rowsNear,
   onScroll,
@@ -824,7 +825,7 @@ defineExpose({
       >
         <div ref="rowsRoot" class="relative w-full" :style="{ height: `${totalSize - rowsShift}px` }">
           <DrawnSelection :root="rowsRoot" />
-          <ReplyComments v-if="commenting" ref="comments" :root="rowsRoot" :commenting="commenting" :sent="sent" :asking="asking" />
+          <ReplyComments v-if="commenting" ref="comments" :root="rowsRoot" :commenting="commenting" :sent="sent" :asking="asking" :hold-for-reader="holdForReader" />
           <!--
             The rows slide to their places (`moveRows`): the clip keeps a sliding
             row from enlarging the scrollable height, which would scroll the list.
