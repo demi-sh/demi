@@ -94,6 +94,8 @@ const props = withDefaults(defineProps<{
   phase: SessionPhase
   bottomOffset: number
   persistedScrollState: PersistedScrollState | undefined
+  /** Where the transcript ends (`transcriptEnd`), while the list shows its latest window: a list left while it ended elsewhere reopens at its end. */
+  transcriptEnd?: string
   /** Hide editing actions on user bubbles. */
   readOnly?: boolean
   fork?: MessageForkHandler
@@ -479,6 +481,7 @@ const {
     keyOf,
     log: { conversation: () => logConversation.value, node: () => props.node ?? null },
     behind: () => behindSession(props.load ?? 'ready', props.catchingUp ?? false),
+    end: () => props.transcriptEnd,
   })
 
 onBeforeUnmount(() => {

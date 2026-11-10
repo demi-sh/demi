@@ -129,6 +129,8 @@ export const draftSchema = z.object({
           scrollTop: z.number(),
         })
         .nullable(),
+      /** Where the transcript ended when the reader left; absent in a draft a page kept before it recorded it. */
+      end: z.string().optional(),
       heightCache: z.map(z.string(), z.number()),
     })
     .nullable(),
