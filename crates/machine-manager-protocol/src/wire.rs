@@ -38,6 +38,7 @@ pub struct MachineRequest {
 pub enum MachineCall {
     Reconcile(#[garde(skip)] ReconcileParams),
     CurrentBaseVersion(#[garde(skip)] CurrentBaseVersionParams),
+    DiskUsage(#[garde(skip)] DiskUsageParams),
     ImageState(#[garde(dive)] ImageStateParams),
     RuntimeState(#[garde(dive)] RuntimeStateParams),
     Wake(#[garde(dive)] WakeParams),
@@ -54,6 +55,7 @@ impl MachineCall {
         match self {
             Self::Reconcile(_) => "reconcile",
             Self::CurrentBaseVersion(_) => "current_base_version",
+            Self::DiskUsage(_) => "disk_usage",
             Self::ImageState(_) => "image_state",
             Self::RuntimeState(_) => "runtime_state",
             Self::Wake(_) => "wake",
@@ -102,6 +104,12 @@ pub struct Reconciled {
 /// Read the configured base.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CurrentBaseVersionParams {}
+
+/// Read the bytes the Clouds' store takes on the disk: its bases, every
+/// device's generations and working pairs, counted once where they share
+/// blocks.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DiskUsageParams {}
 
 /// Read a device's committed generation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
@@ -311,6 +319,7 @@ macro_rules! operations {
 operations! {
     ReconcileParams => Reconcile: Reconciled,
     CurrentBaseVersionParams => CurrentBaseVersion: BaseVersion,
+    DiskUsageParams => DiskUsage: u64,
     ImageStateParams => ImageState: Option<MachineImageState>,
     RuntimeStateParams => RuntimeState: RuntimeState,
     WakeParams => Wake: (),

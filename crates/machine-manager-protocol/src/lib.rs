@@ -125,7 +125,7 @@ pub use state::{
 pub use isolation::{Download, Enforces, Isolation, MoveStatus, Offer, RuntimeOffer, Unavailable};
 pub use network::{Allowed, Destination, Domain, DomainName, NetworkRules};
 pub use wire::{
-    Capacity, CheckpointParams, CurrentBaseVersionParams, DecodeError, HibernateParams,
+    Capacity, CheckpointParams, CurrentBaseVersionParams, DiskUsageParams, DecodeError, HibernateParams,
     ImageStateParams, MAX_LINE_BYTES, MachineCall, MachineRequest, MachineResponse, ManagerEvent, Message,
     Operation, ReconcileParams, Reconciled, ResetParams, RuntimeStateParams, VERSION as WIRE_VERSION,
     SandboxMachine, SetIsolationParams, SetNetworkRulesParams, WakeParams, decode_request, decode_response,

@@ -2,8 +2,10 @@
 //! the types that `demi browser record` and `demi mobile record` share, so a
 //! recording reads the same wherever it was made.
 //!
-//! The crate holds types and their checks only. The recording itself, its
-//! files and its encoding are `shared-recording`'s.
+//! The crate holds types and their checks, and the lock that says a
+//! recording is being written, which every program that removes recordings
+//! honors. The recording itself, its files and its encoding are
+//! `shared-recording`'s.
 //!
 //! - A recording's identity is `r` and a number, given once across a
 //!   conversation's recordings on a device, whichever program made them.
@@ -12,7 +14,7 @@
 //!   before is kept.
 //! - Every area is in the pixels of the frames the recording kept.
 
-use std::{fmt, time::Duration};
+use std::{fmt, fs, path::Path, time::Duration};
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -29,6 +31,24 @@ pub const MAX_DURATION: Duration = Duration::from_secs(120);
 /// The most bytes a recording's files take before it stops itself: they are
 /// written to the device's disk.
 pub const MAX_BYTES: u64 = 200 * 1024 * 1024;
+/// The file a program holds an exclusive lock on while it writes a
+/// recording, which the system releases when the program ends, however it
+/// does: whether a program still writes a recording is whether the lock is
+/// held, never whether the file exists, since it stays after the recording
+/// ends.
+pub const WRITING: &str = "writing";
+
+/// Whether a program, this one or another, writes the recording in
+/// `directory` now.
+pub fn written(directory: &Path) -> bool {
+    let Ok(file) = fs::File::open(directory.join(WRITING)) else {
+        return false;
+    };
+    // A lock taken is let go at once: nothing writes here, and nothing starts
+    // writing in a recording that began.
+    matches!(file.try_lock(), Err(fs::TryLockError::WouldBlock))
+}
+
 /// How many recordings a conversation keeps on a device; one more removes the
 /// oldest, so that the device's disk does not fill with recordings nobody reads.
 pub const KEPT: usize = 5;

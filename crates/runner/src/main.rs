@@ -115,6 +115,7 @@ mod registration;
 mod removal;
 mod start;
 mod state;
+mod storage;
 mod update;
 
 use demi_command_protocol::{LocalInvocation, host_target};

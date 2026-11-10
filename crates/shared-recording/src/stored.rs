@@ -32,22 +32,7 @@ pub(crate) const META: &str = "recording.json";
 pub(crate) const INDEX: &str = "frames.jsonl";
 pub(crate) const VIDEO: &str = "video.h264";
 pub(crate) const INPUTS: &str = "inputs.jsonl";
-/// The file a program holds an exclusive lock on while it writes a
-/// recording, which the system releases when the program ends, however it
-/// does: whether another program still writes a recording is whether the lock
-/// is held.
-pub(crate) const WRITING: &str = "writing";
-
-/// Whether a program, this one or another, writes the recording in
-/// `directory` now.
-pub(crate) fn written(directory: &Path) -> bool {
-    let Ok(file) = fs::File::open(directory.join(WRITING)) else {
-        return false;
-    };
-    // A lock taken is let go at once: nothing writes here, and nothing starts
-    // writing in a recording that began.
-    matches!(file.try_lock(), Err(fs::TryLockError::WouldBlock))
-}
+pub(crate) use demi_shared_recording_protocol::{WRITING, written};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

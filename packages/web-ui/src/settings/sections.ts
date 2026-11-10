@@ -9,6 +9,7 @@ import {
   CloudCog,
   Code,
   Database,
+  HardDrive,
   Info,
   KeyRound,
   Keyboard,
@@ -175,6 +176,12 @@ export function settingsSections(): SettingsNavGroup[] {
             { label: cloudText('environment.title'), keywords: words(t('sections.devices.cloudKeywords')) },
             { label: cloudText('storage.title'), keywords: words(t('sections.devices.storageKeywords')) },
           ],
+        },
+        {
+          id: 'storage',
+          label: t('storage.title'),
+          icon: HardDrive,
+          keywords: words(t('sections.storage.keywords')),
         },
         {
           id: 'portForwards',

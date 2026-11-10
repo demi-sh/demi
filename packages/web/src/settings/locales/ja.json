@@ -9,6 +9,10 @@
     "routeFailed": "経路を変更できませんでした",
     "resetNotStarted": "リセットを開始できませんでした。接続を確認して、もう一度お試しください。"
   },
+  "storage": {
+    "saveFailed": "設定を変更できませんでした",
+    "cleanUpFailed": "整理できませんでした"
+  },
   "portForwards": {
     "addFailed": "転送を追加できませんでした",
     "saveFailed": "転送を変更できませんでした",

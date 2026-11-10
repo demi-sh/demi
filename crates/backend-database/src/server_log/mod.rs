@@ -29,7 +29,7 @@ mod store;
 
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc;
 use std::time::Duration;
@@ -62,11 +62,11 @@ pub struct Limits {
     pub max_bytes: u64,
 }
 
-impl Default for Limits {
-    fn default() -> Self {
+impl From<demi_web_api_protocol::storage::LogRetention> for Limits {
+    fn from(retention: demi_web_api_protocol::storage::LogRetention) -> Self {
         Self {
-            keep: Duration::from_secs(14 * 24 * 60 * 60),
-            max_bytes: 2 * 1024 * 1024 * 1024,
+            keep: Duration::from_secs(u64::from(retention.keep_days) * 24 * 60 * 60),
+            max_bytes: retention.max_bytes,
         }
     }
 }
@@ -90,15 +90,16 @@ enum Message {
 ///
 /// `filter` is `DEMI_LOG`: a page's lines are stored at the levels it selects
 /// for the target [`PAGE_TARGET`], as the backend's own are for theirs.
-pub fn open(
-    data_dir: &Path,
-    limits: Limits,
-    filter: Targets,
-) -> io::Result<(ServerLogWriter, ServerLogLayer)> {
+///
+/// The log opens before the database that holds its limits, so it trims
+/// nothing until [`ServerLog::set_limits`] names them: a default in their
+/// place would remove what the administrator chose to keep.
+pub fn open(data_dir: &Path, filter: Targets) -> io::Result<(ServerLogWriter, ServerLogLayer)> {
     std::fs::create_dir_all(data_dir)?;
     let path = data_dir.join(DATABASE);
     let dropped = Arc::new(AtomicU64::new(0));
     let waiting = Arc::new(AtomicU64::new(0));
+    let limits = Arc::new(Mutex::new(None));
     let (queue, queued) = mpsc::sync_channel(QUEUE);
     let thread = std::thread::Builder::new()
         .name("server-log".into())
@@ -106,9 +107,10 @@ pub fn open(
             let dropped = dropped.clone();
             let waiting = waiting.clone();
             let path = path.clone();
-            move || store::serve(&path, limits, &queued, &dropped, &waiting)
+            let limits = limits.clone();
+            move || store::serve(&path, &limits, &queued, &dropped, &waiting)
         })?;
-    let sink = Sink { queue, dropped, waiting };
+    let sink = Sink { queue, dropped, waiting, limits };
     Ok((
         ServerLogWriter {
             log: ServerLog {
@@ -130,6 +132,9 @@ struct Sink {
     /// The rows in the queue now: counted in before they are sent and out
     /// as the writer takes them.
     waiting: Arc<AtomicU64>,
+    /// What the writer's next trim keeps, which an administrator changes;
+    /// none, and no trim, before they are read.
+    limits: Arc<Mutex<Option<Limits>>>,
 }
 
 impl Sink {
@@ -190,6 +195,24 @@ impl ServerLog {
     /// faster than its disk keeps shows as a number that grows.
     pub fn queued(&self) -> u64 {
         self.sink.as_ref().map_or(0, |sink| sink.waiting.load(Ordering::Relaxed))
+    }
+
+    /// What the log keeps from its next trim on.
+    pub fn set_limits(&self, limits: Limits) {
+        if let Some(sink) = &self.sink {
+            *sink.limits.lock().expect("the log's limits are intact") = Some(limits);
+        }
+    }
+
+    /// The bytes the log's database takes on the disk, its journal included.
+    pub fn bytes(&self) -> u64 {
+        let mut bytes = 0;
+        for suffix in ["", "-wal", "-shm"] {
+            let mut path = self.path.clone().into_os_string();
+            path.push(suffix);
+            bytes += std::fs::metadata(&path).map_or(0, |metadata| metadata.len());
+        }
+        bytes
     }
 
     /// A log with no writer, which stores nothing, as a backend started

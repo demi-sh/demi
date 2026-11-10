@@ -50,6 +50,7 @@ pub mod shares;
 pub mod side_questions;
 pub mod sidebar;
 pub mod state;
+pub mod storage;
 pub mod subagents;
 pub mod text;
 pub mod usage;

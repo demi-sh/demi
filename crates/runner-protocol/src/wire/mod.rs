@@ -124,7 +124,8 @@ pub use messages::{
     HelloErrorCode, DeviceArtifact, DeviceDownload, DeviceIdentity, Inbound, JobArtifactOwner, ProgramsArtifactOwner, JobFileChange, JobPathChange, KeptEnd, KeptJob, Kernel, LinkTarget, LinkedWorktree,
     LookPath, Looked, SymbolicLink, OperatingSystem, Outbound, Hardware, Gpu, Usage, OutputLengths, OutputStream, PipeRef, FileOffer,
     Resume, RunnerInfo, RunnerPlatform, ResidentErrorCode, Signal, SpawnError, SpawnErrorKind,
-    StreamArtifactOwner, WriteExists,
+    StreamArtifactOwner, WriteExists, StorageRules, StorageRule, StorageAction, StorageReport,
+    ConversationStorage, StorageCleanup, CleanupCause,
 };
 pub use demi_shared_types::{DeviceLogLine, LogLevel, LogLine, LogOrigin, ReadAt, is_event_name};
 pub use pipe_connection::{PIPE_CONNECTION_ROUTE, PIPE_LANE_CREDIT, PipeLaneRefusal, PipeLaneTarget};

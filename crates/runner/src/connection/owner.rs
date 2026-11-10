@@ -90,6 +90,8 @@ pub struct Registered {
     /// How busy the machine is, as its last reading says
     /// (`crates/runner/src/machine.rs`); none before the first.
     pub usage: watch::Receiver<Option<wire::Usage>>,
+    /// What Demi keeps on the device (`crates/runner/src/storage.rs`).
+    pub storage: crate::storage::Storage,
     pub dispatcher: Arc<Dispatcher>,
     /// Where the current connection publishes its live contexts.
     pub index: watch::Sender<Arc<ContextIndex>>,
@@ -182,6 +184,8 @@ struct Owner<'r> {
     /// What the artifact cache is downloading.
     downloading: watch::Receiver<Vec<demi_runner_command_packages::cache::Downloading>>,
     usage: watch::Receiver<Option<wire::Usage>>,
+    /// The storage keeper's latest report.
+    storage: watch::Receiver<Option<wire::StorageReport>>,
     /// Whether this connection asked the backend to revoke the device.
     revoke_asked: bool,
     /// The pages' peers the backend introduced on this connection
@@ -280,6 +284,7 @@ pub async fn serve(
         cached: registered.cached.clone(),
         downloading: registered.downloading.clone(),
         usage: registered.usage.clone(),
+        storage: registered.storage.reports(),
         revoke_asked: false,
         direct,
         own,
@@ -347,6 +352,9 @@ impl Owner<'_> {
                 Ok(()) = self.usage.changed(), if management.phase() == Phase::Online => {
                     self.report_usage()?;
                 }
+                Ok(()) = self.storage.changed(), if management.phase() == Phase::Online => {
+                    self.report_storage()?;
+                }
                 arrival = transport.input.recv() => match arrival {
                     Some(arrival) => {
                         let end = match arrival.message {
@@ -396,6 +404,33 @@ impl Owner<'_> {
         };
         let frame = wire::encode(&wire::Outbound::Usage { usage }).map_err(io::Error::other)?;
         self.send(frame)
+    }
+
+    /// Reports what Demi keeps on the device, when it has been measured.
+    fn report_storage(&mut self) -> io::Result<()> {
+        let Some(report) = self.storage.borrow_and_update().clone() else {
+            return Ok(());
+        };
+        let frame = wire::encode(&wire::Outbound::StorageMeasured { report }).map_err(io::Error::other)?;
+        self.send(frame)
+    }
+
+    /// Runs a storage request, which takes minutes, and answers it on this
+    /// connection when it ends; one that outlives the connection is answered
+    /// nowhere, as the backend failed its call as offline.
+    fn storage(&self, id: String, action: wire::StorageAction) {
+        let answer = self.registered.storage.request(action);
+        let control = self.live.control.clone();
+        tokio::spawn(async move {
+            let message = match answer.await {
+                Ok(Ok(report)) => wire::Outbound::StorageDone { id, report },
+                Ok(Err(reason)) => wire::Outbound::StorageFailed { id, reason },
+                Err(_) => wire::Outbound::StorageFailed { id, reason: "the storage keeper stopped".into() },
+            };
+            if let Ok(frame) = wire::encode(&message) {
+                let _sent = control.send(frame);
+            }
+        });
     }
 
     /// Queues a frame for the backend.
@@ -456,8 +491,10 @@ impl Owner<'_> {
                 archived,
                 held,
                 stopped,
+                storage,
                 ..
             } => {
+                registered.storage.set_rules(storage);
                 // The transport read the answer's session already; the calls
                 // a session that ended carried end with its reason.
                 if let Some(reason) = self.kept.link.take_ended() {
@@ -490,6 +527,7 @@ impl Owner<'_> {
                 self.report_installed().await?;
                 self.report_downloading()?;
                 self.report_usage()?;
+                self.report_storage()?;
             }
             Inbound::ClaimPending { claim_token } if management.phase() != Phase::Online => {
                 management.set_phase(Phase::ClaimPending);
@@ -773,6 +811,8 @@ impl Owner<'_> {
                 packages,
             } => self.prefetch(release, demi_shared_artifacts::Digest { size, sha256 }, packages),
             Inbound::Programs { packages } => self.keep_programs(packages),
+            Inbound::StorageRules { rules } => self.registered.storage.set_rules(rules),
+            Inbound::Storage { id, action } => self.storage(id, action),
             Inbound::Manifest { manifest } => {
                 let installing = self.manifests.install(
                     manifest,

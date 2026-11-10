@@ -25,7 +25,7 @@ mod linux {
     };
 
     use demi_machine_manager_protocol::{
-        BaseVersion, Capacity, CheckpointParams, CurrentBaseVersionParams, DRAIN_RECORD, DeviceId, Download, DrainRecord, HibernateParams, ImageStateParams, Isolation, LeftRecord, MachineCall, ManagerEvent, NetworkRules, Offer, Operation,
+        BaseVersion, Capacity, CheckpointParams, CurrentBaseVersionParams, DiskUsageParams, DRAIN_RECORD, DeviceId, Download, DrainRecord, HibernateParams, ImageStateParams, Isolation, LeftRecord, MachineCall, ManagerEvent, NetworkRules, Offer, Operation,
         ReconcileParams, Reconciled, ResetParams, RuntimeOffer, RuntimeState, RuntimeStateParams, SandboxMachine, SetIsolationParams, SetNetworkRulesParams, Unavailable, WakeParams,
     };
     use tokio::{
@@ -654,6 +654,11 @@ mod linux {
                 }
                 MachineCall::CurrentBaseVersion(_) => {
                     Ok(reply::<CurrentBaseVersionParams>(self.base.clone()))
+                }
+                MachineCall::DiskUsage(_) => {
+                    let data = self.core.config.data.clone();
+                    let bytes = blocking::run(move |_| crate::storage::disk_usage(&data)).await?;
+                    Ok(reply::<DiskUsageParams>(bytes))
                 }
                 MachineCall::ImageState(params) => {
                     let device = DeviceId::parse(params.device_id)?;

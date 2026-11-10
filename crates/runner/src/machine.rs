@@ -153,6 +153,13 @@ fn read_usage(home: &Path, sender: &watch::Sender<Option<wire::Usage>>) {
     }
 }
 
+/// The size and the free bytes of the volume `home` is on, read now; none
+/// when no volume is found for it.
+pub fn volume(home: &Path) -> Option<(u64, u64)> {
+    let disks = Disks::new_with_refreshed_list();
+    home_volume(&disks, home).map(|disk| (disk.total_space(), disk.available_space()))
+}
+
 /// The volume `home` is on: the one mounted at the longest path that holds
 /// it.
 fn home_volume<'a>(disks: &'a Disks, home: &Path) -> Option<&'a sysinfo::Disk> {

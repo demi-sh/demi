@@ -43,7 +43,7 @@ pub enum Inbound {
     ///
     /// `over` says the conversation is archived or deleted, which also ends
     /// what the runner itself keeps for it besides its residents' state: its
-    /// recordings.
+    /// scratch directory.
     ConversationRelease {
         id: String,
         #[garde(custom(conversation_name))]
@@ -61,7 +61,7 @@ pub enum Inbound {
     /// The device the hello's token names, by its id and the name the
     /// user sees, and the user's conversations that still exist, archived
     /// ones included, whose scratch directories the runner keeps, and which of
-    /// them are archived, whose recordings it removes
+    /// them are archived, whose scratch directories it removes
     /// (`crates/runner-jobs/src/scratch.rs`), which of them it is to hold
     /// residents for, and the packages whose residents it is to hold none of
     /// (`crates/runner/src/connection/owner.rs`).
@@ -90,6 +90,10 @@ pub enum Inbound {
         /// in the session this connection carries on; none when the session
         /// is a new one.
         received: u64,
+        /// The rules the device's user set for what Demi keeps on their
+        /// devices (`crates/runner/src/storage.rs`).
+        #[garde(dive)]
+        storage: StorageRules,
     },
     ClaimPending {
         claim_token: String,
@@ -141,6 +145,19 @@ pub enum Inbound {
     Programs {
         #[garde(dive)]
         packages: Vec<PackageDescriptor>,
+    },
+    /// The user changed the rules of what Demi keeps on their devices; the
+    /// runner applies them from its next measurement.
+    StorageRules {
+        #[garde(dive)]
+        rules: StorageRules,
+    },
+    /// Measures what Demi keeps on the device, after removing what `action`
+    /// names; `storage_done` or `storage_failed` answers.
+    Storage {
+        id: String,
+        #[garde(dive)]
+        action: StorageAction,
     },
     /// Flush writable filesystems before the guest is stopped; `sync_done`
     /// answers.
@@ -1032,6 +1049,8 @@ impl Inbound {
             | Self::PackageRelease { .. }
             | Self::Prefetch { .. }
             | Self::Programs { .. }
+            | Self::StorageRules { .. }
+            | Self::Storage { .. }
             | Self::Sync { .. }
             | Self::Spawn { .. }
             | Self::SpawnStdin { .. }
@@ -1672,6 +1691,22 @@ pub enum Outbound {
         #[garde(dive)]
         downloads: Vec<DeviceDownload>,
     },
+    /// What Demi keeps on the device, after each measurement the runner makes
+    /// on its own.
+    StorageMeasured {
+        #[garde(dive)]
+        report: StorageReport,
+    },
+    /// What Demi keeps on the device after a `storage` request.
+    StorageDone {
+        id: String,
+        #[garde(dive)]
+        report: StorageReport,
+    },
+    StorageFailed {
+        id: String,
+        reason: String,
+    },
 }
 
 /// One artifact a device holds: its package, its line's name and its
@@ -2094,6 +2129,108 @@ pub struct Gpu {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[garde(skip)]
     pub memory: Option<u64>,
+}
+
+/// The rules for what Demi keeps on a user's devices, one set for all of them,
+/// each applied on each device on its own.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct StorageRules {
+    /// What agents put in their scratch directories.
+    #[garde(dive)]
+    pub temporary: StorageRule,
+    /// The conversations' browser profiles and recordings.
+    #[garde(dive)]
+    pub cache: StorageRule,
+}
+
+/// When one kind's entries are removed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct StorageRule {
+    /// An entry unused for this many days goes; none keeps it however old.
+    #[garde(inner(range(min = 1)))]
+    pub unused_days: Option<u16>,
+    /// The kind's entries go from the one used longest ago while the kind
+    /// takes more than this on the device; none sets no limit.
+    #[garde(inner(range(min = 1)))]
+    pub max_bytes: Option<u64>,
+}
+
+/// What a `storage` request removes before it measures.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
+#[serde(tag = "type", rename_all = "snake_case", rename_all_fields = "camelCase", deny_unknown_fields)]
+#[garde(allow_unvalidated)]
+pub enum StorageAction {
+    /// Nothing: it measures only.
+    Measure {},
+    /// Every conversation's temporary files not used in the last day.
+    CleanUpTemporary {},
+    /// Every browser profile no browser runs on, and every recording that is
+    /// not being written.
+    ClearCache {},
+    /// Every downloaded component no running program holds.
+    DeleteComponents {},
+    /// One conversation's files: all of them when `empty`, else those it did
+    /// not use in the last day. A profile a browser runs on stays.
+    Conversation {
+        #[garde(custom(conversation_name))]
+        conversation: String,
+        empty: bool,
+    },
+}
+
+/// What Demi keeps on a device, as its runner last measured it. Sizes are the
+/// bytes the files take on the disk, as `du` counts them.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, garde::Validate)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[garde(allow_unvalidated)]
+pub struct StorageReport {
+    pub measured_at: Timestamp,
+    /// The size and the free bytes of the volume that holds the device's
+    /// home; none when no volume is found for it.
+    pub disk: Option<u64>,
+    pub disk_available: Option<u64>,
+    /// What Demi downloaded to run, its logs and its other state: its
+    /// directory less the conversations' scratch directories.
+    pub components: u64,
+    /// Each conversation's scratch directory, largest first.
+    pub conversations: Vec<ConversationStorage>,
+    /// The last cleanup that removed anything, since the runner started.
+    pub last_cleanup: Option<StorageCleanup>,
+}
+
+/// What one conversation keeps on a device.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ConversationStorage {
+    /// Its scratch directory's name (`demi_command_protocol::scratch_name`).
+    pub name: String,
+    pub temporary: u64,
+    pub cache: u64,
+    /// When anything in it last changed; none for an empty directory.
+    pub last_used: Option<Timestamp>,
+}
+
+/// A cleanup that removed something from a device.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct StorageCleanup {
+    pub at: Timestamp,
+    pub cause: CleanupCause,
+    pub removed_bytes: u64,
+}
+
+/// What started a cleanup.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum CleanupCause {
+    /// The rules, after a measurement.
+    Rules,
+    /// The rules, at once, as the disk's free space fell under a tenth.
+    LowDisk,
+    /// The user, by hand.
+    User,
 }
 
 /// How busy a device's machine is, which its runner reports every 10
@@ -2719,6 +2856,7 @@ impl Outbound {
             Self::Revoke { .. }
             | Self::Installed { .. }
             | Self::Downloading { .. }
+            | Self::StorageMeasured { .. }
             | Self::PackageMessage { .. }
             | Self::PackageLost { .. }
             | Self::JobOutput { .. }
@@ -2739,6 +2877,8 @@ impl Outbound {
             | Self::Prefetched { .. }
             | Self::PrefetchFailed { .. }
             | Self::SyncDone { .. }
+            | Self::StorageDone { .. }
+            | Self::StorageFailed { .. }
             | Self::FsOk { .. }
             | Self::FsError { .. }
             | Self::GitOk { .. }

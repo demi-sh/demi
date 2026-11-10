@@ -243,6 +243,12 @@ pub struct ProgramsKept {
 }
 
 impl ResidentHandle {
+    /// Removes every artifact of the cache no running resident holds
+    /// (`crates/runner-command-packages/src/cache.rs`).
+    pub async fn remove_unheld_artifacts(&self) {
+        self.cache.remove_unheld().await;
+    }
+
     /// Puts the program of each of `packages` for this device's target in the
     /// artifact cache, located by `resolver`, one at a time, so a resident's
     /// start finds it there. Ahead of an update (`ahead`) the programs the

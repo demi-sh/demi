@@ -9,6 +9,10 @@
     "routeFailed": "Não foi possível alterar a rota",
     "resetNotStarted": "A redefinição não começou. Verifique sua conexão e tente novamente."
   },
+  "storage": {
+    "saveFailed": "Não foi possível alterar o ajuste",
+    "cleanUpFailed": "Não foi possível limpar"
+  },
   "portForwards": {
     "addFailed": "Não foi possível adicionar o encaminhamento",
     "saveFailed": "Não foi possível alterar o encaminhamento",

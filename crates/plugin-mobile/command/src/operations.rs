@@ -71,9 +71,6 @@ pub struct Call<'a> {
     /// The conversation's recordings on this device, which go with the
     /// conversation whatever becomes of the program.
     pub library: Arc<Library>,
-    /// The caller's own scratch directory, where an export of images goes
-    /// unless told otherwise.
-    pub caller_scratch: std::path::PathBuf,
     /// Whether the agent runs it, which the view shows; the user's window
     /// controls are the user's, and show nothing (`crates/plugin-mobile/command/src/live.rs`).
     pub agent: bool,
@@ -1244,7 +1241,6 @@ fn reading_of<'a>(call: &'a Call<'_>, input: &'a RecordInput, output: Option<&'a
         fast_waits: input.fast_waits == Some(true),
         sheet: input.sheet == Some(true),
         every: input.every.map(|every| every.get()),
-        scratch: &call.caller_scratch,
     }
 }
 

@@ -1905,12 +1905,6 @@ async fn record(
         ));
     }
     let library = &browser.recordings.library;
-    // Where the images go unless told: the caller's scratch directory, which
-    // the job's environment names.
-    let scratch = match context.request.env.get("DEMI_SCRATCH") {
-        Some(scratch) => std::path::PathBuf::from(scratch),
-        None => library.directory().parent().map_or_else(std::env::temp_dir, std::path::Path::to_path_buf),
-    };
     let reading = Reading {
         command: "demi browser record",
         frames: input.frames.as_ref(),
@@ -1923,7 +1917,6 @@ async fn record(
         fast_waits: input.fast_waits == Some(true),
         sheet: input.sheet == Some(true),
         every: input.every.map(|every| every.get()),
-        scratch: &scratch,
     };
     let answer = match input.action {
         RecordAction::Start | RecordAction::List => unreachable!("start and list were answered above"),

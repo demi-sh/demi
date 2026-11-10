@@ -13,6 +13,7 @@ use demi_web_api_protocol::auth::{Role, UserDto};
 use demi_web_api_protocol::ids::UserId;
 use demi_web_api_protocol::server_upgrade::UpgradeChannel;
 use demi_web_api_protocol::settings::{CustomNetworkPolicy, InstanceMode, Isolation, NetworkPolicy, Preferences};
+use demi_web_api_protocol::storage::LogRetention;
 use demi_web_api_protocol::text::EmailAddress;
 use demi_web_api_protocol::users::{CloudStorage, ListedUser};
 use jiff::SignedDuration;
@@ -542,6 +543,34 @@ impl ControlService {
                 .query_row("SELECT prepare_ahead FROM server_settings WHERE id = 1", [], |row| row.get(0))
                 .optional()?;
             Ok(on.unwrap_or(false))
+        })
+        .await
+    }
+
+    /// How long the server keeps its log and how much of it at most.
+    pub async fn log_retention(&self) -> Result<LogRetention, StorageError> {
+        self.call(|connection, _| {
+            let saved: Option<(u16, i64)> = connection
+                .query_row("SELECT log_keep_days, log_max_bytes FROM server_settings WHERE id = 1", [], |row| {
+                    Ok((row.get(0)?, row.get(1)?))
+                })
+                .optional()?;
+            Ok(saved.map_or_else(LogRetention::default, |(keep_days, max_bytes)| LogRetention {
+                keep_days,
+                max_bytes: max_bytes.cast_unsigned(),
+            }))
+        })
+        .await
+    }
+
+    pub async fn set_log_retention(&self, retention: LogRetention) -> Result<(), StorageError> {
+        self.call(move |connection, _| {
+            connection.execute(
+                "INSERT INTO server_settings (id, log_keep_days, log_max_bytes) VALUES (1, ?1, ?2)
+                 ON CONFLICT (id) DO UPDATE SET log_keep_days = excluded.log_keep_days, log_max_bytes = excluded.log_max_bytes",
+                params![retention.keep_days, retention.max_bytes.cast_signed()],
+            )?;
+            Ok(())
         })
         .await
     }

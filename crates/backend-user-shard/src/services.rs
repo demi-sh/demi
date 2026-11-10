@@ -52,8 +52,8 @@ use crate::conversation::claude_cli::{CliInstalls, MachineSlot};
 use crate::tuning::{ConversationTuning, LifecycleTuning, MediaTuning, PageTuning, RunnerTuning};
 
 const CONTROL_DATABASE: &str = "control.sqlite";
-const CONVERSATION_DATABASES: &str = "conversations";
-const SEARCH_INDEXES: &str = "search";
+pub(crate) const CONVERSATION_DATABASES: &str = "conversations";
+pub(crate) const SEARCH_INDEXES: &str = "search";
 
 /// The services that span users, or that are needed before the user is
 /// known. The edge and every shard share them.
@@ -91,6 +91,11 @@ pub struct Services {
     /// The log, which the runners' and the pages' lines are stored in
     /// (`crates/backend-database/src/server_log/mod.rs`).
     pub log: ServerLog,
+    /// The directory that holds the databases, whose files Settings ›
+    /// Storage measures.
+    pub data_dir: std::path::PathBuf,
+    /// What the server keeps, as last measured (`crates/backend-user-shard/src/server_storage.rs`).
+    pub server_storage: crate::server_storage::ServerStorage,
     /// The calls the schedules' URLs took this minute.
     pub hook_limits: crate::schedules::HookLimits,
     pub runners: RunnerTuning,
@@ -180,6 +185,8 @@ pub struct ServiceSettings {
     pub public_url: PublicUrl,
     pub shared_subscriptions: bool,
     pub log: ServerLog,
+    /// The directory that holds the databases.
+    pub data_dir: std::path::PathBuf,
     /// The build of the web app the backend serves, if it serves one.
     pub web_build: Option<String>,
     pub runner_releases: RunnerReleases,
@@ -385,6 +392,8 @@ impl Services {
         };
         let push_transport = public_push()?;
         let push = Pusher::new(control.clone(), keys.push, push_transport);
+        // The log opened before the database, and trims from now on.
+        settings.log.set_limits(control.log_retention().await?.into());
         let mode = control.instance_mode().await?;
         let vault = Vault::new(control.clone(), keys.vault, mode, settings.shared_subscriptions, sync.clone());
         // A data directory that predates the development sign-in, or holds
@@ -479,6 +488,8 @@ impl Services {
             logins,
             claims: PendingClaims::new(settings.runners.claims_per_minute),
             log: settings.log,
+            data_dir: settings.data_dir,
+            server_storage: crate::server_storage::ServerStorage::default(),
             hook_limits: crate::schedules::HookLimits::default(),
             runners: settings.runners,
             conversation_tuning: settings.conversations,

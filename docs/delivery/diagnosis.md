@@ -90,10 +90,9 @@ on a million lines.
   the target `page`, so `info,page=debug` keeps the page's `debug` lines only.
   An event that happens many times a second, such as a transcript patch, is `debug`, and its unit's end
   line at `info` carries its count.
-- **Time and size.** 14 days and 2 GiB, the newer kept. `DEMI_LOG_KEEP_DAYS`
-  and `DEMI_LOG_MAX_SIZE` (bytes, or a number with `MiB` or `GiB`) set other
-  limits. The hourly trim deletes in batches of 10,000 lines, so the writer is
-  never held for long.
+- **Time and size.** 14 days and 2 GiB by default, the newer kept. An
+  administrator sets other limits in Settings › Storage. The hourly trim
+  deletes in batches of 10,000 lines, so the writer is never held for long.
 - **A limit that was hit.** The log says so itself:
   - `log.dropped`: lines the writer's queue had no room for, or that a page
     could not send, with their count.

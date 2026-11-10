@@ -9,6 +9,10 @@
     "routeFailed": "Impossible de modifier l’itinéraire",
     "resetNotStarted": "La réinitialisation n’a pas démarré. Vérifiez votre connexion et réessayez."
   },
+  "storage": {
+    "saveFailed": "Impossible de modifier le réglage",
+    "cleanUpFailed": "Impossible de nettoyer"
+  },
   "portForwards": {
     "addFailed": "Impossible d’ajouter la redirection",
     "saveFailed": "Impossible de modifier la redirection",
