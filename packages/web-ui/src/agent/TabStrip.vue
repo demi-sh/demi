@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type ComponentPublicInstance } from 'vue'
 import {
+  TAB_EASING,
   TAB_MIN_PX,
+  TAB_MOTION_MS,
   TAB_TRANSITION,
-  TAB_WIDTH_MS,
   afterEnterTab,
   afterLeaveTab,
   beforeEnterTab,
   beforeLeaveTab,
+  closeWouldWiden,
   closingProgress,
   cutMarkCover,
+  dropSlot,
   enterTab,
+  freezeWidths,
   isLeavingTab,
   fadeRoom,
+  reorderHysteresis,
   sidewaysWheel,
   keepingCloseMotion,
   leaveTab,
@@ -21,10 +26,15 @@ import {
   settledScrollWidth,
   settledTabBounds,
   stripGap,
+  tabEased,
+  tabMotion,
   tabsChanged,
+  thawWidths,
+  widthsFrozen,
 } from './tab-strip'
-import { DRAG_START_PX, dragShift, dragTarget } from '../ui/drag-order'
+import { DRAG_START_PX, dragShift } from '../ui/drag-order'
 import { usePhone } from '../ui/phone'
+import { prefersReducedMotion } from '../ui/stream-reveal'
 
 /** The edge fades' width; a revealed tab is scrolled clear of them. */
 const FADE_PX = 24
@@ -93,10 +103,25 @@ const FADE_PX = 24
  * - The selected tab is revealed as above, a leading one included.
  * - A touch there scrolls the row and drags no tab.
  *
- * A host that listens to `reorder` lets the user drag a tab along the strip, as
- * in a web browser. The others step aside as it passes their middle. On
- * release, `reorder` names where the tab was and its index among the others,
- * which the host applies. Escape puts it back.
+ * Motion. Every motion of the tabs is Chrome's: 200 ms, easing out
+ * (`TAB_MOTION_MS`). Closing a tab with the pointer, by its close control or a
+ * middle click, starts Chrome's tab closing mode while the strip has narrowed
+ * its tabs: the others keep their widths, so the next tab's close control
+ * slides under the pointer, until the pointer leaves the strip, the strip
+ * resizes or a tab opens, when they move to their shares.
+ *
+ * Dragging. A host that listens to `reorder` lets the user drag a tab along
+ * the strip, as in Chrome:
+ *
+ * - The tab follows the pointer anywhere along the strip, up to its end
+ *   control, not only as far as the last tab.
+ * - It takes a slot once it covers half of it (`dropSlot`), the others
+ *   stepping aside, and a pointer at rest on the line between two slots does
+ *   not swap them back and forth (`reorderHysteresis`).
+ * - Held at the view's edge of a strip that overflows, it scrolls the strip.
+ * - On release, `reorder` names where the tab was and its index among the
+ *   others, which the host applies, and the tab glides from where it was let
+ *   go to its place. Escape glides it back.
  */
 const props = withDefaults(defineProps<{
   surface?: 'base' | 'raised'
@@ -119,6 +144,8 @@ const props = withDefaults(defineProps<{
 // The tabs' colors, and the least width a tab keeps (`TabItem`).
 const vars = computed(() => ({
   '--tab-min': `${TAB_MIN_PX}px`,
+  '--tab-motion-ms': `${TAB_MOTION_MS}ms`,
+  '--tab-easing': TAB_EASING,
   ...(props.surface === 'base'
     ? {
         '--tab-row': 'var(--surface-base)',
@@ -176,7 +203,7 @@ function finishFollow(strip: HTMLElement): void {
   }
 }
 
-// The same length and ease-out as the tab width motion, so the two read as one.
+// The same length and curve as the tabs' motion, so the two read as one.
 // While tabs close, the scroll follows their collapse itself: a timed scroll
 // would run ahead of it or behind, and the tabs on one side would move first.
 function scrollStripTo(strip: HTMLElement, target: number): void {
@@ -196,8 +223,7 @@ function scrollStripTo(strip: HTMLElement, target: number): void {
       const closed = closingProgress(tabs)
       eased = closed === null || closedAt >= 1 ? 1 : Math.min(1, Math.max(0, (closed - closedAt) / (1 - closedAt)))
     } else {
-      const progress = Math.min(1, (now - startedAt) / TAB_WIDTH_MS)
-      eased = 1 - (1 - progress) ** 3
+      eased = tabEased(Math.min(1, (now - startedAt) / TAB_MOTION_MS))
     }
     strip.scrollLeft = start + (target - start) * eased
     if (eased < 1) {
@@ -317,9 +343,20 @@ function measureRoom(): void {
  * again.
  */
 function resized(): void {
+  // The strip's own width changing ends tab closing mode: the widths it froze
+  // were the old room's. The overflow button coming or going is no change of
+  // the strip's.
+  const width = root.value?.clientWidth ?? 0
+  if (width !== viewWidth) {
+    viewWidth = width
+    endClosingMode()
+  }
   measureRoom()
   revealActive()
 }
+
+/** The strip's width, as `resized` last saw it. */
+let viewWidth = 0
 
 // Only the strip scrolls, never the page: scrollIntoView would move both.
 function revealActive(): void {
@@ -388,6 +425,7 @@ const moving = new WeakSet<Element>()
 // once.
 function onBeforeEnter(el: Element): void {
   if (props.still) {
+    endClosingMode()
     return
   }
   moving.add(el)
@@ -402,6 +440,9 @@ function onEnter(el: Element): void {
       resettleClosing(el.parentElement)
     }
   }
+  // A tab coming ends tab closing mode, as in Chrome: the others move to their
+  // shares beside it as it grows.
+  endClosingMode()
 }
 
 // The strip's extent settles only after the motion; reveal again then.
@@ -413,12 +454,26 @@ function onAfterEnter(el: Element): void {
   revealActive()
 }
 
-function onBeforeLeave(el: Element): void {
+function onBeforeLeave(node: Element): void {
   if (props.still) {
     return
   }
-  moving.add(el)
-  beforeLeaveTab(el)
+  const strip = el.value
+  const byPointer = performance.now() - pointerClose.at < POINTER_CLOSE_MS
+  pointerClose.at = Number.NEGATIVE_INFINITY
+  // Tabs at their least width, the strip overflowing, may also widen: the
+  // close may end the overflow, and the overflow button goes.
+  if (byPointer && strip && !phone.value && node instanceof HTMLElement
+    && (widthsFrozen(strip) || closeWouldWiden(strip, node, overflowing.value))) {
+    freezeWidths(strip)
+    if (pointerClose.touch) {
+      endClosingModeLater()
+    } else {
+      watchClosingZone()
+    }
+  }
+  moving.add(node)
+  beforeLeaveTab(node)
 }
 
 function onLeave(el: Element): void {
@@ -433,6 +488,119 @@ function onAfterLeave(el: Element): void {
   }
   afterLeaveTab(el)
   revealActive()
+}
+
+/**
+ * When the pointer last closed a tab, by its close control or a middle click,
+ * and whether by touch: the close the host then applies starts tab closing
+ * mode (`freezeWidths`).
+ */
+const pointerClose = { at: Number.NEGATIVE_INFINITY, touch: false }
+
+/**
+ * How long a host may take to apply a close and still have it count as the
+ * pointer's: one that asks a device first applies it a moment later.
+ */
+const POINTER_CLOSE_MS = 1000
+
+function notePointerClose(event: MouseEvent): void {
+  // A click the keyboard made, on a control that has the focus, counts zero
+  // clicks, and keeps nothing under the pointer.
+  if (event.detail === 0) {
+    return
+  }
+  const target = event.target instanceof Element ? event.target : null
+  const control = event.type === 'click' && target?.closest('[role="tab"] [role="button"], [role="tab"] button')
+  // A middle click closes only a tab that has a close control.
+  const middle = event.type === 'auxclick' && event.button === 1
+    && target?.closest('[role="tab"]')?.querySelector('[role="button"], button')
+  if (control || middle) {
+    pointerClose.at = performance.now()
+    pointerClose.touch = event instanceof PointerEvent && event.pointerType === 'touch'
+  }
+}
+
+/**
+ * How long tab closing mode lasts after a close by touch, which leaves no
+ * pointer to leave the strip: Chrome's 2 s, started again by each close.
+ */
+const TOUCH_CLOSING_MS = 2000
+let touchClosing: number | null = null
+
+function endClosingModeLater(): void {
+  if (touchClosing !== null) {
+    window.clearTimeout(touchClosing)
+  }
+  touchClosing = window.setTimeout(() => {
+    touchClosing = null
+    endClosingMode()
+  }, TOUCH_CLOSING_MS)
+}
+
+/** A thaw that waits for a drag and the tabs landing from it, which it would cut. */
+let thawPending = false
+
+/** Whether the closing zone is watched (`watchClosingZone`). */
+let zoneWatched = false
+
+/**
+ * Chrome's closing zone, past which the pointer ends tab closing mode: the
+ * strip, 40 px below it, so a pointer that drifts down on its way along the
+ * tabs keeps the mode, and 60 px past its end, so one going for New Tab does.
+ */
+const CLOSING_ZONE_BELOW_PX = 40
+const CLOSING_ZONE_AFTER_PX = 60
+
+function watchClosingZone(): void {
+  if (zoneWatched) {
+    return
+  }
+  zoneWatched = true
+  document.addEventListener('pointermove', onZonePointer, true)
+  document.documentElement.addEventListener('pointerleave', endClosingMode)
+}
+
+function onZonePointer(event: PointerEvent): void {
+  const zone = root.value?.getBoundingClientRect()
+  // A drag ends the mode only once it is let go away from the strip.
+  if (!zone || drag?.moving) {
+    return
+  }
+  if (event.clientX < zone.left || event.clientX > zone.right + CLOSING_ZONE_AFTER_PX
+    || event.clientY < zone.top || event.clientY > zone.bottom + CLOSING_ZONE_BELOW_PX) {
+    endClosingMode()
+  }
+}
+
+/**
+ * Ends tab closing mode: the tabs move to their shares of the strip, once a
+ * drag and its tabs' landing are over.
+ */
+function endClosingMode(): void {
+  if (zoneWatched) {
+    zoneWatched = false
+    document.removeEventListener('pointermove', onZonePointer, true)
+    document.documentElement.removeEventListener('pointerleave', endClosingMode)
+  }
+  if (touchClosing !== null) {
+    window.clearTimeout(touchClosing)
+    touchClosing = null
+  }
+  if (drag?.moving || landing.size > 0) {
+    thawPending = true
+    return
+  }
+  thawPending = false
+  if (el.value) {
+    thawWidths(el.value)
+  }
+}
+
+/** Ends tab closing mode where it waited for a drag and its landing. */
+function thawIfPending(): void {
+  if (thawPending && !drag?.moving && landing.size === 0) {
+    endClosingMode()
+  }
 }
 
 /**
@@ -468,26 +636,57 @@ function onKeydown(event: KeyboardEvent): void {
   tabs[next]?.focus()
 }
 
+/** A full tab's width, `TabItem`'s cap, by which Chrome scales a drag's hysteresis. */
+const FULL_TAB_PX = 160
+
+/**
+ * How far a drag scrolls an overflowing strip on each step while it holds the
+ * tab at the view's edge, and how often: Chrome's 5 px every 20 ms.
+ */
+const DRAG_SCROLL_PX = 5
+const DRAG_SCROLL_MS = 20
+
 /**
  * A tab pressed with the primary button, which drags once the pointer moves far
- * enough.
+ * enough. Places are in the strip's content, which scrolls under the view.
  */
 interface Drag {
   pointerId: number
+  /** Where the press was on screen, and where the pointer is now. */
   startX: number
+  clientX: number
+  /** Where the press was in the strip's content. */
+  pressX: number
   from: number
   tabs: HTMLElement[]
-  /** Each tab's center when the press began, in strip order. */
-  centers: number[]
-  /** How far the dragged tab may move each way, so it stays within the tabs. */
-  min: number
-  max: number
-  /** The width the others step aside by: the dragged tab's and a gap. */
-  step: number
+  /** Each tab's left edge and width when the press began, in strip order. */
+  lefts: number[]
+  widths: number[]
+  gap: number
+  /**
+   * How far the dragged tab's right edge may go: Chrome's tab drag area, the
+   * whole strip but its end control, not only as far as the last tab.
+   */
+  end: number
   to: number
+  /** Where the pointer was when the tab last changed slots (`reorderHysteresis`). */
+  movedAt: number
   moving: boolean
+  /** The scroll that runs while the tab is held at the view's edge, and its way. */
+  scroll: number | null
+  scrollWay: -1 | 0 | 1
 }
 let drag: Drag | null = null
+
+/** The width the strip's end control takes, such as New Tab. */
+function endControlWidth(strip: HTMLElement): number {
+  return strip.querySelector<HTMLElement>(':scope > [data-strip-end]')?.offsetWidth ?? 0
+}
+
+/** Where the screen's `x` falls in `strip`'s content. */
+function contentX(strip: HTMLElement, x: number): number {
+  return x - strip.getBoundingClientRect().left + strip.scrollLeft
+}
 
 function onPointerdown(event: PointerEvent): void {
   const strip = el.value
@@ -500,25 +699,110 @@ function onPointerdown(event: PointerEvent): void {
   if (phone.value && event.pointerType === 'touch') {
     return
   }
+  // A tab still landing from the last drag is put in its place, which this
+  // drag starts from, as Chrome stops the strip's motion when a drag begins.
+  settleLanding()
   const tabs = tabElements()
   const from = tabs.indexOf(tab)
   if (from < 0) {
     return
   }
+  const view = strip.getBoundingClientRect()
   const rects = tabs.map((each) => each.getBoundingClientRect())
-  const own = rects[from]!
+  const pressX = contentX(strip, event.clientX)
   drag = {
     pointerId: event.pointerId,
     startX: event.clientX,
+    clientX: event.clientX,
+    pressX,
     from,
     tabs,
-    centers: rects.map((rect) => rect.left + rect.width / 2),
-    min: rects[0]!.left - own.left,
-    max: rects.at(-1)!.right - own.right,
-    step: own.width + stripGap(strip),
+    lefts: rects.map((rect) => rect.left - view.left + strip.scrollLeft),
+    widths: rects.map((rect) => rect.width),
+    gap: stripGap(strip),
+    end: Math.max(strip.clientWidth, strip.scrollWidth) - endControlWidth(strip),
     to: from,
+    movedAt: pressX,
     moving: false,
+    scroll: null,
+    scrollWay: 0,
   }
+}
+
+/**
+ * Puts the dragged tab under the pointer, within the drag area and the view,
+ * the others aside where it would land, and scrolls an overflowing strip
+ * while the tab is held at the view's edge.
+ */
+function placeDragged(held: Drag): void {
+  const strip = el.value
+  const view = scroller()
+  if (!strip || !view) {
+    return
+  }
+  // What shows of the strip, in its content: on a phone the whole tab list
+  // scrolls, the strip within it.
+  const shown = view.getBoundingClientRect()
+  const pointer = contentX(strip, held.clientX)
+  const width = held.widths[held.from]!
+  const least = Math.max(0, contentX(strip, shown.left))
+  const most = Math.max(least, Math.min(held.end, contentX(strip, shown.right - endControlWidth(strip))) - width)
+  const left = Math.min(most, Math.max(least, held.lefts[held.from]! + pointer - held.pressX))
+  const slot = dropSlot(held.widths, held.gap, held.lefts[0]!, held.from, left)
+  if (slot !== held.to) {
+    const others = held.widths.filter((_, index) => index !== held.from)
+    const passed = others[Math.min(slot, others.length - 1)] ?? width
+    if (Math.abs(pointer - held.movedAt) > reorderHysteresis(passed, FULL_TAB_PX)) {
+      held.to = slot
+      held.movedAt = pointer
+    }
+  }
+  const offset = left - held.lefts[held.from]!
+  const step = width + held.gap
+  held.tabs.forEach((tab, index) => {
+    if (index === held.from) {
+      tab.style.transition = keepingCloseMotion(tab, 'none')
+      // Over the others and the end control it passes.
+      tab.style.zIndex = '3'
+      tab.style.transform = `translateX(${offset}px)`
+      return
+    }
+    tab.style.transition = keepingCloseMotion(tab, tabMotion('transform'))
+    tab.style.transform = `translateX(${dragShift(index, held.from, held.to) * step}px)`
+  })
+  const scrollable = view.scrollWidth - view.clientWidth
+  const way = left <= least && view.scrollLeft > 0
+    ? -1
+    : left >= most && view.scrollLeft < scrollable - 0.5 ? 1 : 0
+  scrollWhileHeld(held, way)
+}
+
+function scrollWhileHeld(held: Drag, way: -1 | 0 | 1): void {
+  if (way === held.scrollWay) {
+    return
+  }
+  stopDragScroll(held)
+  if (way === 0) {
+    return
+  }
+  held.scrollWay = way
+  held.scroll = window.setInterval(() => {
+    const view = scroller()
+    if (!view || drag !== held) {
+      stopDragScroll(held)
+      return
+    }
+    view.scrollLeft += way * DRAG_SCROLL_PX
+    placeDragged(held)
+  }, DRAG_SCROLL_MS)
+}
+
+function stopDragScroll(held: Drag): void {
+  if (held.scroll !== null) {
+    window.clearInterval(held.scroll)
+  }
+  held.scroll = null
+  held.scrollWay = 0
 }
 
 function onPointermove(event: PointerEvent): void {
@@ -526,35 +810,89 @@ function onPointermove(event: PointerEvent): void {
   if (!held || event.pointerId !== held.pointerId) {
     return
   }
-  const dx = event.clientX - held.startX
+  // Let go where the strip did not hear it, as below the strip before the
+  // drag began: the press is over.
+  if ((event.buttons & 1) === 0) {
+    cancelDrag()
+    return
+  }
   if (!held.moving) {
-    if (Math.abs(dx) < DRAG_START_PX) {
+    if (Math.abs(event.clientX - held.startX) < DRAG_START_PX) {
       return
     }
     held.moving = true
     el.value?.setPointerCapture(event.pointerId)
     cancelScroll()
   }
-  const offset = Math.min(held.max, Math.max(held.min, dx))
-  held.to = dragTarget(held.centers, held.from, held.centers[held.from]! + offset)
-  held.tabs.forEach((tab, index) => {
-    if (index === held.from) {
-      tab.style.transition = keepingCloseMotion(tab, 'none')
-      tab.style.zIndex = '2'
-      tab.style.transform = `translateX(${offset}px)`
-      return
-    }
-    tab.style.transition = keepingCloseMotion(tab, 'transform 150ms ease-out')
-    tab.style.transform = `translateX(${dragShift(index, held.from, held.to) * held.step}px)`
-  })
+  held.clientX = event.clientX
+  placeDragged(held)
 }
 
-/** Puts every tab of `ended` back in its own place, without motion. */
-function release(ended: Drag): void {
-  for (const tab of ended.tabs) {
-    tab.style.transition = keepingCloseMotion(tab, '')
-    tab.style.zIndex = ''
+/**
+ * The tabs gliding to their places after a drag ends, each with what ends
+ * its glide.
+ */
+const landing = new Map<HTMLElement, () => void>()
+
+/** Where each of `tabs` shows now, its motion included. */
+function shownLefts(tabs: HTMLElement[]): Map<HTMLElement, number> {
+  return new Map(tabs.map((tab) => [tab, tab.getBoundingClientRect().left]))
+}
+
+/**
+ * Takes the drag's offsets off `tabs`, now in the order they land in, and
+ * glides each from where it showed (`shown`) to its place, as Chrome's tabs
+ * animate to their places when a drag ends or is put back.
+ */
+function land(tabs: HTMLElement[], shown: Map<HTMLElement, number>): void {
+  for (const tab of tabs) {
+    tab.style.transition = keepingCloseMotion(tab, 'none')
     tab.style.transform = ''
+  }
+  const gliding = tabs.filter((tab) => {
+    const was = shown.get(tab)
+    const from = was === undefined ? 0 : was - tab.getBoundingClientRect().left
+    if (!tab.isConnected || Math.abs(from) < 0.5 || prefersReducedMotion()) {
+      tab.style.transition = keepingCloseMotion(tab, '')
+      tab.style.zIndex = ''
+      return false
+    }
+    tab.style.transform = `translateX(${from}px)`
+    return true
+  })
+  void el.value?.offsetWidth
+  for (const tab of gliding) {
+    tab.style.transition = keepingCloseMotion(tab, tabMotion('transform'))
+    tab.style.transform = ''
+    const ended = (event: TransitionEvent): void => {
+      if (event.target === tab && event.propertyName === 'transform') {
+        landed()
+      }
+    }
+    const landed = (): void => {
+      tab.removeEventListener('transitionend', ended)
+      tab.removeEventListener('transitioncancel', ended)
+      landing.delete(tab)
+      tab.style.transition = keepingCloseMotion(tab, '')
+      tab.style.zIndex = ''
+      thawIfPending()
+    }
+    tab.addEventListener('transitionend', ended)
+    tab.addEventListener('transitioncancel', ended)
+    landing.set(tab, landed)
+  }
+  // The selected tab, which the drag may have scrolled away from, shows whole
+  // again where it lands.
+  revealActive()
+  thawIfPending()
+}
+
+/** Ends every glide at once, each tab in its place. */
+function settleLanding(): void {
+  for (const [tab, landed] of [...landing]) {
+    tab.style.transition = keepingCloseMotion(tab, 'none')
+    tab.style.transform = ''
+    landed()
   }
 }
 
@@ -564,36 +902,44 @@ function onPointerup(event: PointerEvent): void {
     return
   }
   drag = null
+  stopDragScroll(ended)
   if (!ended.moving) {
     return
   }
-  if (ended.to === ended.from) {
-    release(ended)
-    return
+  const shown = shownLefts(ended.tabs)
+  if (ended.to !== ended.from) {
+    props.onReorder?.(ended.from, ended.to)
   }
-  props.onReorder?.(ended.from, ended.to)
   // The host's order lands with the next render; until then the tabs hold where
-  // the drag left them.
-  void nextTick(() => release(ended))
+  // the drag left them, and then glide from there.
+  void nextTick(() => land(tabElements(), shown))
 }
 
+/** Puts a dragged tab back where it was, gliding, as Escape does. */
 function cancelDrag(): void {
   const ended = drag
   drag = null
-  if (ended?.moving) {
-    release(ended)
+  if (!ended) {
+    return
+  }
+  stopDragScroll(ended)
+  if (ended.moving) {
+    land(ended.tabs, shownLefts(ended.tabs))
   }
 }
 
 function onDragKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape' && drag?.moving) {
     event.preventDefault()
+    event.stopPropagation()
     cancelDrag()
   }
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', onDragKeydown)
+  // Before any other key handler, so Escape during a drag puts the tab back
+  // and nothing else: the window it is in stays.
+  window.addEventListener('keydown', onDragKeydown, true)
   const strip = el.value
   if (!strip) {
     return
@@ -656,8 +1002,10 @@ watch(phone, () => {
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onDragKeydown)
+  window.removeEventListener('keydown', onDragKeydown, true)
   cancelDrag()
+  settleLanding()
+  endClosingMode()
   resizeObserver?.disconnect()
   watchedTab = null
   mutationObserver?.disconnect()
@@ -702,7 +1050,7 @@ defineExpose({ el })
       v-if="$slots.leading"
       aria-hidden="true"
       data-leading-divider
-      class="mx-0.5 hidden h-3.5 w-px shrink-0 bg-line transition-opacity duration-150 [&:has(+*_[role=tab])]:block [:has(>[role=tab]:last-child[aria-selected=true])+&]:opacity-0 [:has(>[role=tab]:last-child:hover)+&]:opacity-0 [&:has(+*>*>[role=tab]:first-child[aria-selected=true])]:opacity-0 [&:has(+*>*>[role=tab]:first-child:hover)]:opacity-0"
+      class="mx-0.5 hidden h-3.5 w-px shrink-0 bg-line transition-opacity duration-50 [&:has(+*_[role=tab])]:block [:has(>[role=tab]:last-child[aria-selected=true])+&]:opacity-0 [:has(>[role=tab]:last-child:hover)+&]:opacity-0 [&:has(+*>*>[role=tab]:first-child[aria-selected=true])]:opacity-0 [&:has(+*>*>[role=tab]:first-child:hover)]:opacity-0"
     />
     <!--
       Its own stacking context, so the fades lie over the scrolled tabs and
@@ -726,6 +1074,8 @@ defineExpose({ el })
       @pointermove="onPointermove"
       @pointerup="onPointerup"
       @pointercancel="cancelDrag"
+      @click.capture="notePointerClose"
+      @auxclick.capture="notePointerClose"
       @before-enter="onBeforeEnter"
       @enter="onEnter"
       @after-enter="onAfterEnter"
@@ -769,8 +1119,8 @@ defineExpose({ el })
 .tabs-enter-active,
 .tabs-leave-active {
   transition:
-    width 200ms ease-out,
-    margin 200ms ease-out;
+    width var(--tab-motion-ms) var(--tab-easing),
+    margin var(--tab-motion-ms) var(--tab-easing);
 }
 .tabs-leave-active {
   pointer-events: none;

@@ -27,7 +27,8 @@ import { iconTabsKey } from './tab-strip'
  * - A tab's width is the same selected or not.
  *
  * A faint line sits in the gap after the tab and fades out while the tab or its
- * neighbour is active or hovered.
+ * neighbour is active or hovered. The hover's color and the line fade in 50 ms,
+ * as Chrome's tab hover does.
  *
  * The close control:
  *
@@ -112,7 +113,7 @@ function onAuxclick(event: MouseEvent): void {
     role="tab"
     :aria-selected="isActive"
     tabindex="0"
-    class="group relative flex h-(--tab-h) [--surface-current:var(--fill-color)] [--tab-h:var(--spacing-tab)] min-w-[min(var(--tab-min),var(--tab-room))] max-w-max shrink grow basis-0 phone:shrink-0 phone:grow-0 phone:basis-auto cursor-default items-center rounded-md text-chrome select-none after:absolute after:-right-[1.5px] after:top-1/2 after:h-3.5 after:w-px after:-translate-y-1/2 after:bg-line after:transition-opacity after:duration-150 last:after:hidden has-[+[data-strip-end]]:after:hidden hover:after:opacity-0 has-[+:hover]:after:opacity-0 has-[+[aria-selected=true]]:after:opacity-0"
+    class="group relative flex h-(--tab-h) [--surface-current:var(--fill-color)] [--tab-h:var(--spacing-tab)] min-w-[min(var(--tab-min),var(--tab-room))] max-w-max shrink grow basis-0 phone:shrink-0 phone:grow-0 phone:basis-auto cursor-default items-center rounded-md text-chrome select-none transition-[background-color,color] duration-50 ease-out after:absolute after:-right-[1.5px] after:top-1/2 after:h-3.5 after:w-px after:-translate-y-1/2 after:bg-line after:transition-opacity after:duration-50 last:after:hidden has-[+[data-strip-end]]:after:hidden hover:after:opacity-0 has-[+:hover]:after:opacity-0 has-[+[aria-selected=true]]:after:opacity-0"
     :class="[iconOnly ? 'phone:w-11 phone:min-w-11' : '', isActive
       ? 'bg-(--tab-active) text-fg-emphasis after:opacity-0 [--fill-color:var(--tab-active)]'
       : 'text-fg-subtle hover:bg-(--tab-hover) hover:text-fg-body hover:[--fill-color:var(--tab-hover)]']"
@@ -163,6 +164,7 @@ function onAuxclick(event: MouseEvent): void {
       :class="[closable ? 'pr-1' : 'pr-2', iconOnly ? 'phone:sr-only' : '']"
     >
       <span
+        data-tab-title
         class="block w-max truncate whitespace-nowrap"
         :class="isActive || !closable ? 'max-w-full' : 'max-w-[calc(100%_+_var(--spacing-hit-xs))] group-hover:max-w-full phone:max-w-full'"
       >{{ title }}</span>
