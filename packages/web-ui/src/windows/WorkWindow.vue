@@ -120,6 +120,12 @@ const listedTabs = computed<MenuListItem[]>(() => props.tabs.map((tab) => {
   return { id: tab.id, label: tab.title, icon }
 }))
 
+/**
+ * Keep Open's pin while the window is kept open: filled, so the pin itself
+ * says so, as a system's symbol for a state that is on fills (`pin.fill`).
+ */
+const KeptPin: FunctionalComponent = (attrs) => h(Pin, { ...attrs, fill: 'currentColor' })
+
 /** Whether a press at `target` is the window's, not a tab's or a control's. */
 function onRoom(target: EventTarget | null): boolean {
   // A control drawn as a span with the button role, as IconButton is, takes its own press.
@@ -205,10 +211,10 @@ function doubleClick(event: MouseEvent): void {
       </div>
       <!-- The tabs and the window's own actions stand a divider apart from the controls every window has. -->
       <span v-if="!phone" class="mx-1 h-5 w-px shrink-0 bg-line" aria-hidden="true" />
-      <div v-if="!phone" class="flex shrink-0 items-center" data-window-control>
+      <div v-if="!phone" class="flex shrink-0 items-center gap-0.5" data-window-control>
         <Tooltip v-if="placement !== 'docked'" :content="t('keepOpen')">
           <IconButton
-            :icon="Pin"
+            :icon="keptOpen ? KeptPin : Pin"
             variant="ghost"
             :aria-label="t('keepOpen')"
             :pressed="keptOpen === true"
