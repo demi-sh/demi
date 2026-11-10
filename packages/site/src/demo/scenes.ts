@@ -573,9 +573,9 @@ export const SCENES: Record<DemoId, Scene> = {
       c.ran({ description: 'Install Harbor', script: 'demi mobile install m1 build/Harbor.app', output: 'app.harbor.ios\n', ms: 1800 })
       // The phone keeps to the conversation; the desktop shows the device beside it, in 3D.
       if (form === 'desktop') {
-        await work.mobile.agentOpens('iPhone Duo')
         // `demi mobile open` shows the device in its window, as the product's does.
-        work.open.value = true
+        await work.mobile.agentOpens('iPhone Duo')
+        work.select(work.tabsState.value.tabs.find((tab) => tab.kind === 'mobile')?.id ?? 'mobile')
         press(await shownText(c, '[data-work-window] [role="tab"]', 'Duo'))
         // The film covers the device's whole view, its hinge's slider included, which it has no part in.
         const view = (await shown<HTMLCanvasElement>(c, '[data-work-window] canvas.touch-none')).parentElement!.parentElement!

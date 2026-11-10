@@ -1,5 +1,5 @@
 import { dataChanges } from './work-changes'
-import { pinnedData, shownSelection, type ShownWork } from './work-tabs'
+import { pinnedData, type PinnedTabs } from './work-tabs'
 import type { TabKind } from '../plugins/page'
 import type { PlaceFields } from '../plugins/place'
 
@@ -18,10 +18,12 @@ import type { PlaceFields } from '../plugins/place'
  * says `panel` for `tab`: it is read as `tab`, and the store writes it anew
  * without it.
  *
- * While a conversation is shown, its address names the tab in front, and a
- * move to another tab in front is a move of the address, a step of the web
- * browser's history unless it only changes how the same place is seen. This
- * module says what an address holds; the page's store moves it.
+ * While a conversation is shown, its address names the tab the windows say is
+ * in front, and a move to another tab in front is a move of the address, a
+ * step of the web browser's history unless it only changes how the same place
+ * is seen. The address follows the windows and never moves them: a
+ * navigation the store did not write is a request to them. This module says
+ * what an address holds; the page's store moves it.
  */
 
 /** The query field that names the tab in front. */
@@ -34,17 +36,16 @@ const TAB_FIELD_BEFORE = 'panel'
 export type WorkAddress = PlaceFields
 
 /**
- * The address of the work `open`, a window in front, or not, that shows
- * `shown`, through the pages' `kinds`. Open on nothing, it names nothing, so
- * it reads back open.
+ * The address of the work whose window in front shows `inFront`, or none,
+ * with a pinned kind's place read from `pinned`, through the pages' `kinds`.
  */
-export function workAddress(open: boolean, shown: ShownWork, kinds: readonly TabKind<unknown>[]): WorkAddress {
-  if (!open) {
+export function workAddress(inFront: string | null, pinned: PinnedTabs, kinds: readonly TabKind<unknown>[]): WorkAddress {
+  if (inFront === null) {
     return {}
   }
-  const selection = shownSelection(shown.tabsState, kinds) ?? ''
+  const selection = inFront
   const kind = kinds.find((candidate) => candidate.kind === selection && candidate.pinned)
-  const data = kind?.place ? kind.schema.safeParse(pinnedData(shown.pinned, kind)) : null
+  const data = kind?.place ? kind.schema.safeParse(pinnedData(pinned, kind)) : null
   if (!kind?.place || !data?.success) {
     return { [TAB_FIELD]: selection }
   }

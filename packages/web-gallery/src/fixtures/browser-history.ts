@@ -9,15 +9,21 @@ interface Shown {
 /**
  * The web browser's history of one specimen's view, as the product keeps it
  * in the page's address: `step` adds what `current` reads as a step after the
- * one shown, `replace` takes the shown one's place, and Back and Forward
- * `restore` the step they reach, available while it shows the view open.
+ * one shown, unless it says the same, `replace` takes the shown one's place,
+ * and Back and Forward `restore` the step they reach, available while it
+ * shows the view open. A step restored and then said again is no new step,
+ * as the product's address does not change when it already says the same.
  */
 export function galleryHistory<T extends Shown>(current: () => T, restore: (step: T) => void) {
   const steps = shallowRef<T[]>([current()])
   const at = ref(0)
   return {
     step(): void {
-      steps.value = [...steps.value.slice(0, at.value + 1), current()]
+      const now = current()
+      if (JSON.stringify(now) === JSON.stringify(steps.value[at.value])) {
+        return
+      }
+      steps.value = [...steps.value.slice(0, at.value + 1), now]
       at.value = steps.value.length - 1
     },
     replace(): void {

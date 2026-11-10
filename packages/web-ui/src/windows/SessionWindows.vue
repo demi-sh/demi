@@ -15,7 +15,7 @@ import WorkWindowBody from './WorkWindowBody.vue'
 import type { WindowTab } from './WorkWindow.vue'
 import { windowHolding, workWindows, type ShownTab, type WorkWindow } from './work-windows'
 import type { BoundTabKind } from '../agent/tab-kinds/kind'
-import type { SessionWork } from './session-work'
+import type { FrontCause, SessionWork } from './session-work'
 import { tabsToClose, type TabCloseScope } from '../agent/tab-close'
 import { rearranged } from '../ui/drag-order'
 import { windowIcon } from './taskbar-icon'
@@ -38,11 +38,16 @@ import { t } from './locales/text'
  *   their window is open, as a closed window with nothing to count has
  *   nothing to show.
  *
- * The page's address names the tab of the work's window in front: a tab the
- * address selects brings its window in front, opening it in the middle of the
- * area the first time; a window brought in front selects its tab there; the
- * last of the work's windows put away leaves the address naming none. A
- * conversation opened anew shows the layout it keeps.
+ * The stage alone says which windows stand and which is in front; each
+ * window of the work shows the newest of its own tabs. The host's address
+ * follows: it names the tab of the work's window highest in front that is not
+ * minimized, or none (`inFront`). What asks for a tab from outside, a pill, a
+ * link, a kind's `shows` or a navigation of the history, comes as the work's
+ * `request`, which brings the tab's window to the front on it, opening it in
+ * the middle of the area the first time, or, naming none, minimizes the
+ * work's windows. Closing never opens or raises another window: the stage
+ * hands the front to the newest window still shown. A conversation opened
+ * anew shows the layout it keeps.
  *
  * On a phone the taskbar gives way to a list the top bar's Tabs button opens
  * (`listOpen`), and a window shows alone over the conversation.
@@ -125,8 +130,9 @@ function awaited(id: string): void {
 }
 
 // A window of kinds that are not pinned stands while it holds a tab, or
-// awaits one; one that comes without the address naming it waits minimized
-// on the taskbar.
+// awaits one; one that comes without a request for its tab waits minimized
+// on the taskbar. It runs before the watcher that says what is in front,
+// made after it, so a window its last closed tab leaves empty is gone by then.
 watch([windows, ready, awaiting], ([now]) => {
   for (const window of now) {
     if (window.tabs.some((tab) => !tab.pinned)) {
@@ -143,50 +149,57 @@ function awaitTab(id: string): void {
   show(id)
 }
 
-/** The tab the address names, while it names one. */
-const named = computed(() => {
+// A request brings its tab's window to the front on it once the window holds
+// the tab, as a click would; one naming none puts the work's windows away.
+watch([() => props.work?.request ?? null, windows, ready], ([request]) => {
   const work = props.work
-  if (!work?.open) {
-    return null
-  }
-  const id = work.tabsState.history.at(-1) ?? null
-  return id !== null && windowHolding(windows.value, id) ? id : null
-})
-// The address names a tab: its window comes in front.
-watch([named, ready], ([id]) => {
-  const window = id === null ? null : windowHolding(windows.value, id)
-  if (window && ensure(window.window.id)) {
-    props.stage.show(window.window.id)
-  }
-}, { immediate: true })
-/**
- * Whether the address follows this stage yet: a stage made from a kept layout
- * with a window in front names its tab in place of the address it opened on,
- * so opening the conversation is no step of the history.
- */
-let following = false
-watch(() => props.stage, () => {
-  following = false
-})
-// A window of the work comes in front: the address names its tab. None in front: it names none.
-watch([() => props.stage.state.focused, () => {
-  const focused = props.stage.state.focused
-  return focused === null ? null : workOf(focused)?.selected ?? null
-}], ([focused]) => {
-  const work = props.work
-  if (!work) {
+  if (!work || !request) {
     return
   }
-  const window = focused === null ? null : workOf(focused)
-  const shown = focused !== null && props.stage.find(focused)?.placement !== 'minimized'
-  if (window?.selected && shown) {
-    if (named.value !== window.selected) {
-      work.select(window.selected, following ? 'push' : 'replace')
+  if (request.tab === null) {
+    for (const placed of props.stage.state.windows) {
+      if (workIds.value.has(placed.id) && placed.placement !== 'minimized') {
+        props.stage.minimize(placed.id)
+      }
     }
-    following = true
-  } else if (focused === null && work.open && work.tabsRead) {
-    work.close()
+    work.took(request.id)
+    return
   }
+  const window = windowHolding(windows.value, request.tab)
+  if (window && ensure(window.window.id)) {
+    work.pick(request.tab)
+    props.stage.show(window.window.id)
+    work.took(request.id)
+  }
+}, { immediate: true })
+
+/** The tab of the work's window highest in front that is not minimized; none while no window of the work shows. */
+const inFront = computed(() => {
+  const shown = props.stage.state.windows
+    .filter((placed) => placed.placement !== 'minimized' && workIds.value.has(placed.id))
+    .sort((a, b) => b.order - a.order)
+  const front = shown[0]
+  return front ? workOf(front.id)?.selected ?? null : null
+})
+/** The stage the address last followed: the first word of another one writes the address in place. */
+let followed: WindowStageModel | null = null
+/** The tab last said in front: once no window holds it, it closed. */
+let said: string | null = null
+/** The window in front was closed since the windows last said what is. */
+let closing = false
+// What is in front is the address: said once the windows know their tabs and
+// have taken what the address asked of them.
+watch([() => props.stage, inFront, ready, () => props.work?.request ?? null, () => props.work?.tabsRead ?? false], ([stage, tab]) => {
+  const work = props.work
+  if (!work || !ready.value || work.request?.fromAddress || (!work.tabsRead && !work.beforeFirstMessage)) {
+    return
+  }
+  const gone = closing || (said !== null && said !== tab && !windowHolding(windows.value, said))
+  const cause: FrontCause = followed !== stage ? 'came' : gone ? 'closed' : 'moved'
+  followed = stage
+  said = tab
+  closing = false
+  work.inFront(tab, cause)
 }, { immediate: true })
 
 /** Every tab of the work, by id, as it reads now. */
@@ -296,7 +309,8 @@ const views = computed<StageWindowView[]>(() => props.stage.state.windows.flatMa
 
 function select(id: string, tab: string): void {
   if (workIds.value.has(id)) {
-    props.work?.select(tab)
+    props.work?.pick(tab)
+    props.stage.show(id)
   } else {
     ownOf(id)?.select(tab)
   }
@@ -338,6 +352,7 @@ function close(id: string): void {
   awaited(id)
   const window = workOf(id)
   if (window) {
+    closing ||= inFront.value !== null && windowHolding(windows.value, inFront.value)?.window.id === id
     const tabs = window.tabs.filter((tab) => !tab.pinned).map((tab) => tab.id)
     props.stage.remove(id)
     if (tabs.length) {
@@ -370,8 +385,8 @@ function open(id: string): void {
     const tab = window.selected
     if (tab !== null) {
       ensure(id)
+      props.work?.pick(tab)
       props.stage.show(id)
-      props.work?.select(tab)
     } else {
       newTab(id)
     }

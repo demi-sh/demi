@@ -63,7 +63,6 @@ function readmeFiles(files: ReturnType<typeof galleryFiles>): ReturnType<typeof 
   const url: typeof contents.url = (path, options) => (path === body ? DUO_BODY_URL : contents.url(path, options))
   return { ...files, tree: { ...tree, source: { ...tree.source, contents: { ...contents, url } } } } as typeof files
 }
-work.open.value = false
 const running = reactive<DemoDevices>({ primary: scene.primary ?? CLOUD, attached: [] })
 const devices = scene.devices ?? []
 /** Where the conversation's work starts on the device it runs on, which the header's directory names. */

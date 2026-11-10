@@ -153,7 +153,7 @@ export function productPageHost(): PageHost {
       tabs: (conversation, kind) =>
         work.stateFor(conversation).tabsState.tabs.filter((tab) => tab.kind === kind).map((tab) => tab.data),
       // Its window comes to the front on it once the tab is there, as a selection does.
-      select: (conversation, _kind, id) => work.select(conversation, id),
+      select: (conversation, _kind, id) => work.request(conversation, id),
       canGo: (conversation, direction) => work.canGo(conversation, direction),
       go: (direction) => work.go(direction),
     },

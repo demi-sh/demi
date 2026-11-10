@@ -77,7 +77,6 @@ import {
 import { LINKED_COMMIT, sharedHistory } from '../fixtures/history'
 import { COMMITS_HEIGHT } from '@demicodes/web-ui/files/file-view'
 import type { CommitHistorySource } from '@demicodes/web-ui/files/history'
-import { selectedTab } from '@demicodes/web-ui/agent/work-tabs'
 import type { BoundTabKind } from '@demicodes/web-ui/agent/tab-kinds/kind'
 import { BrowserTabsError, browserTabDataSchema, startingLabel, type StartingPhase } from '@demicodes/plugin-browser/live/tabs'
 import { SERVER_FAILED } from '../fixtures/plugins'
@@ -928,7 +927,7 @@ const changeStale = useChangeTab('commits', 'src/auth/cookie.ts', {
 const browserWork = useWorkTabs('change', { path: '' })
 /** The browser tab the specimen shows, as its kind reads it. */
 const shownBrowserTab = computed(() => {
-  const tab = selectedTab(browserWork.tabsState.value, browserWork.kinds.value)
+  const tab = browserWork.tabsState.value.tabs.find((candidate) => candidate.id === browserWork.front.value)
   const parsed = tab?.kind === 'browser' ? browserTabDataSchema.safeParse(tab.data) : null
   return parsed?.success ? (parsed.data.tab ?? null) : null
 })

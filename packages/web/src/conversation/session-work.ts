@@ -47,9 +47,10 @@ export function useSessionWork(conversationId: () => string | null): ComputedRef
       beforeFirstMessage: !work.recorded(id),
       // A Cloud that is stopped or starting is not offline: its tabs say what starts.
       deviceOffline: execution?.kind === 'device' && execution.state === 'offline' ? execution.name : null,
-      open: state.open,
-      select: (tab, how) => work.select(id, tab, how),
-      close: () => work.noneInFront(id),
+      request: state.request,
+      took: (request) => work.took(id, request),
+      inFront: (tab, cause) => work.inFront(id, tab, cause),
+      pick: (tab) => work.pick(id, tab),
       moveTab: (tab, index) => work.move(id, tab, index),
       updateTab: (tab, data) => work.update(id, tab, data),
       updatePinned: (kind, data, how) => work.updatePinned(id, kind, data, how),

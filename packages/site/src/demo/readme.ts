@@ -133,7 +133,7 @@ export const README_SCENES: Record<string, ReadmeScene> = {
       // narrows on camera.
       if (desktop) {
         await work.mobile.agentOpens('iPhone Duo')
-        work.open.value = true
+        work.select(work.tabsState.value.tabs.find((tab) => tab.kind === 'mobile')?.id ?? 'mobile')
         press(await shownText(c, '[data-work-window] [role="tab"]', 'Duo'))
       }
       // The recorder starts the scene on every screen at once.

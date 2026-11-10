@@ -121,14 +121,14 @@ function closeAt(index: number): void {
 }
 
 function closeActive(): void {
-  const selection = work.selected.value
+  const selection = work.front.value
   if (selection !== null) {
     closeTabs([selection])
   }
 }
 
 function closeOthers(): void {
-  closeTabs(ids().filter((id) => id !== work.selected.value))
+  closeTabs(ids().filter((id) => id !== work.front.value))
 }
 
 const STEPS: [string, () => void][] = [
