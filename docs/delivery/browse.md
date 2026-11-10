@@ -304,7 +304,8 @@ The browser runs as a process of its own that the tool's server reaches over
 the DevTools protocol. So when the tool's own code changes, only the server
 restarts, with the agent's current code. The browser, its pages, what was typed
 in them, `keep`, the network settings and the logs stay as they were. A call
-starts the browser again when it crashed.
+starts the browser again when it crashed or hung: its process does not answer,
+or a page of it does not let the tool attach.
 
 The slot comes from the working directory: slot *n* for `../demi-slots/n`, slot
 0 for the user's own checkout.

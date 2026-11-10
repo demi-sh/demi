@@ -8,7 +8,9 @@
 //
 // The browser's life:
 //
-// - A browser that crashed or was closed starts again on the next call.
+// - A browser that crashed or was closed starts again on the next call, and so
+//   does one that hung: its process does not answer, or a page of it does not
+//   let the server attach.
 // - `demi.stop`, `demi.down` and the idle timeout stop it.
 //
 // The server attaches without Playwright's defaults. Playwright's session with each
@@ -34,6 +36,12 @@ import type { Clip } from './shots'
 
 /** How long the browser may take to open its DevTools endpoint. */
 const START_MS = 30_000
+/**
+ * How long the process of a browser the slot recorded may take to answer
+ * its endpoint's version, which it does at once whatever its pages do: one
+ * that takes longer hung, and a new browser starts in its place.
+ */
+const ANSWER_MS = 10_000
 /** How long the browser may take to stop before it is killed. */
 const STOP_MS = 10_000
 /** How long asking the browser to quit may take, attaching to it first when the server is not. */
@@ -123,6 +131,8 @@ export class Browser {
    * the call, and a script still running meanwhile starts no other browser.
    */
   private hung = false
+  /** How many times `close` began: an attachment that began before one starts no browser. */
+  private closings = 0
   private current: Page | null = null
   /** The server's session with each page, which holds the page's emulation. */
   private readonly sessions = new WeakMap<Page, Promise<CDPSession>>()
@@ -143,9 +153,9 @@ export class Browser {
   }
 
   /**
-   * Attaches to the slot's browser when one runs, without starting one, and answers
-   * whether the server is attached. A server that starts again attaches at once, so that
-   * the page's logs go on without a gap.
+   * Attaches to the slot's browser when one runs, and answers whether the server is
+   * attached: it starts one only in place of a browser that hung. A server that starts
+   * again attaches at once, so that the page's logs go on without a gap.
    */
   async attachRunning(): Promise<boolean> {
     if (this.connected) {
@@ -198,32 +208,51 @@ export class Browser {
     return this.connected
   }
 
-  /** Attaches to the slot's browser, started first when none runs or it has no window one is asked for. */
+  /**
+   * Attaches to the slot's browser, started first when none runs, it has no window one
+   * is asked for, or it hung.
+   */
   private async connect(): Promise<Connection> {
+    const closings = this.closings
     const state = readState(this.slot)
     const recorded = state.browser
     const runs = recorded !== undefined && ownGroupRuns(recorded)
     const pageLogs = slotPaths(this.slot).pageLogs
-    let endpoint: string
-    let headed: boolean
+    let browser: PlaywrightBrowser | null = null
+    let endpoint = ''
+    let headed = false
+    /** How the recorded browser hung, which the new one is started for. */
+    let hung: string | null = null
     if (runs && (recorded.headed || !this.wantsWindow)) {
-      endpoint = recorded.endpoint
-      headed = recorded.headed
-      // The browser as the last server left it, whose logs go on.
-      this.logs.restore(pageLogs, endpoint)
-    } else {
+      // The browser as the last server left it, whose logs go on: restored
+      // before the first wait, so a call that comes meanwhile counts only its own.
+      this.logs.restore(pageLogs, recorded.endpoint)
+      const attached = await attachRecorded(recorded.endpoint)
+      if (typeof attached === 'string') {
+        hung = attached
+        await stopGroup(recorded, 0)
+      } else {
+        browser = attached
+        endpoint = recorded.endpoint
+        headed = recorded.headed
+      }
+    } else if (runs) {
+      await stopGroup(recorded, STOP_MS)
+    }
+    if (!browser) {
+      // A close that began meanwhile, such as `demi.stop`'s, wants no browser.
+      if (this.closings !== closings) {
+        throw new Failure('The browser was closed while the tool attached to it')
+      }
+      if (hung) {
+        this.print(`The slot's browser ${hung}; starting a new one`)
+      }
       this.logs.reset()
       rmSync(pageLogs, { force: true })
-      if (runs) {
-        await stopGroup(recorded, STOP_MS)
-      }
       headed = this.wantsWindow
       endpoint = await this.launch(headed)
+      browser = await attach(endpoint, START_MS)
     }
-    // A browser that hangs never answers the connection, which has no limit of its own.
-    // Without Playwright's defaults (the module's comment), which also leave
-    // downloads to the browser: Playwright's `download` event never comes.
-    const browser = await chromium.connectOverCDP(endpoint, { timeout: START_MS, noDefaults: true })
     const context = browser.contexts()[0]
     if (!context) {
       throw new Failure(`The browser at ${endpoint} has no default context`)
@@ -490,6 +519,7 @@ export class Browser {
    * period, and no other starts until the server ends.
    */
   async close(options: { hung?: boolean } = {}): Promise<void> {
+    this.closings += 1
     const connected = this.connected
     this.connected = null
     this.attached = null
@@ -525,9 +555,43 @@ export class Browser {
       }
     } catch (error) {
       // A browser that does not answer is stopped by its group after this.
-      this.print(`The browser did not quit when asked (${error instanceof Error ? error.message.split('\n')[0] : error}); stopping it`)
+      this.print(`The browser did not quit when asked (${firstLine(error)}); stopping it`)
     }
   }
+}
+
+/**
+ * Attaches to the browser at `endpoint`, failing after `ms`: a browser that
+ * hangs never answers the connection, which has no limit of its own. It
+ * attaches without Playwright's defaults (the module's comment), which also
+ * leaves downloads to the browser: Playwright's `download` event never comes.
+ */
+function attach(endpoint: string, ms: number): Promise<PlaywrightBrowser> {
+  return chromium.connectOverCDP(endpoint, { timeout: ms, noDefaults: true })
+}
+
+/**
+ * Attaches to a browser the slot recorded, or says how it hung: its process
+ * does not answer its endpoint's version within `ANSWER_MS`, or a page of it
+ * does not let the server attach within `START_MS`, as Playwright waits for
+ * every page. A page that is only busy for a while keeps its browser.
+ */
+async function attachRecorded(endpoint: string): Promise<PlaywrightBrowser | string> {
+  try {
+    await fetch(`${endpoint}/json/version`, { signal: AbortSignal.timeout(ANSWER_MS) })
+  } catch (error) {
+    return `did not answer (${firstLine(error)})`
+  }
+  try {
+    return await attach(endpoint, START_MS)
+  } catch (error) {
+    return `did not let the server attach (${firstLine(error)})`
+  }
+}
+
+/** The first line of what `error` says. */
+function firstLine(error: unknown): string {
+  return (error instanceof Error ? error.message : String(error)).split('\n')[0] ?? ''
 }
 
 /**
