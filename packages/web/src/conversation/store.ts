@@ -617,7 +617,9 @@ export const useConversations = defineStore('conversations', () => {
   }
 
   // Each part the channel or a write's answer changes reaches the list at
-  // once, in the same step, so what follows a write sees it.
+  // once, in the same step, so what follows a write sees it. It runs at every
+  // change of the state, a version alone included, so it costs one pass over
+  // the list: every conversation of every workspace.
   watch(
     () => product.snapshot,
     (snapshot) => {
@@ -626,23 +628,23 @@ export const useConversations = defineStore('conversations', () => {
         return
       }
       const previous = items.value
+      const held = new Map(previous.map((item) => [item.id, item]))
+      const listed = new Set(conversations.map((record) => record.id))
       for (const item of previous) {
-        if (item.persistence === 'synced' && !conversations.some((record) => record.id === item.id)) {
+        if (item.persistence === 'synced' && !listed.has(item.id)) {
           deleted.add(item.id)
         }
       }
-      for (const record of conversations) {
-        deleted.delete(record.id)
+      for (const id of deleted) {
+        if (listed.has(id)) {
+          deleted.delete(id)
+        }
       }
       // New conversations before their first send, which only this page
       // has; they keep the front, in their own order.
-      const local = previous.filter(
-        (item) =>
-          item.persistence !== 'synced' &&
-          !conversations.some((record) => record.id === item.id),
-      )
+      const local = previous.filter((item) => item.persistence !== 'synced' && !listed.has(item.id))
       const synced = conversations.map((record) => {
-        const current = items.value.find((item) => item.id === record.id)
+        const current = held.get(record.id)
         if (!current) {
           return newConversation(record)
         }
@@ -661,11 +663,16 @@ export const useConversations = defineStore('conversations', () => {
         return current
       })
       const next = [...local, ...synced]
-      items.value = next
-      cache.retain(new Set(next.map((item) => item.id)))
+      // The same conversations in the same order are the same list: what
+      // follows the list, every draft and the sidebar's rows, has nothing new.
+      if (next.length !== previous.length || next.some((item, index) => item !== previous[index])) {
+        items.value = next
+      }
+      const ids = new Set(next.map((item) => item.id))
+      cache.retain(ids)
       // Reads made for an address the state does not name are nobody's.
       for (const id of earlyReads.keys()) {
-        if (!next.some((item) => item.id === id)) {
+        if (!ids.has(id)) {
           earlyReads.delete(id)
         }
       }
