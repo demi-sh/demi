@@ -15,7 +15,7 @@ use garde::Validate;
 use serde::Deserialize;
 
 /// Where a project keeps its workflows, under the nearest directory from
-/// the working directory up to the repository's root that has it.
+/// the project's directory up to the repository's root that has it.
 pub const WORKFLOWS_DIRECTORY: [&str; 2] = [".demi", "workflows"];
 
 /// The extension of a workflow file; the file's name without it is the
@@ -38,7 +38,7 @@ const MENU_NAME_MARKS: &[char] = &[
 /// field, and a whole example (`crates/backend-user-shard/src/conversation/workflows.rs`).
 pub const WORKFLOWS_HELP: &str = r#"A workflow is a group of subagent profiles with instructions on how to split the work between them, kept in the project's repository so a team shares it. The user picks one for a conversation in the composer's Workflow menu, or lets an agent pick one with demi agent workflows use; nothing applies until one is picked. With a workflow picked, the conversation spawns its profiles and the user's own from Settings > Subagents, unless user_profiles turns the user's off, and its instructions and profiles reach the agent leading the conversation with the project's instructions.
 
-Where: .demi/workflows/<id>.yaml in the nearest directory, from the working directory up to the git repository's root, that has a .demi/workflows/ directory. The file's name without .yaml is the workflow's id.
+Where: .demi/workflows/<id>.yaml in the nearest directory, from the project's directory up to the git repository's root, that has a .demi/workflows/ directory. The file's name without .yaml is the workflow's id. A conversation that works in a linked git worktree of the project reads the project's files, so a branch's change to a workflow applies once the project's checkout holds it; list shows the worktree's own beside them while they differ, and use --worktree picks one.
 
 Fields:
   name          What the Workflow menu shows, so name it as a menu item: the way of working in a few words, never the task at hand, in English Title Case or as the user's language writes a menu item. With no colon, plus sign or brackets; check warns of a name that has. Good: Review Team, Parallel Development, 并行开发. Bad: Payments refactor: lead + 2 workers, Review (strict), 支付重构：主管 + 两个 worker. Required.

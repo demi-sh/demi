@@ -274,7 +274,7 @@ async fn check<H: DeviceResolver>(call: Invoked<H, CheckArgs>, port: RpcPort) ->
 fn notes(listing: &WorkflowListing) -> Vec<String> {
     let mut notes = Vec::new();
     let Some(directory) = &listing.directory else {
-        notes.push("this project has no workflows: no directory from the working directory up to the repository's root has .demi/workflows/".to_owned());
+        notes.push("this project has no workflows: no directory from the project's directory up to the repository's root has .demi/workflows/".to_owned());
         return notes;
     };
     if let Some(reason) = &listing.unavailable {

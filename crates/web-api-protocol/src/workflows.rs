@@ -21,7 +21,7 @@ use crate::files::AbsolutePath;
 #[serde(rename_all = "camelCase")]
 pub struct ConversationWorkflows {
     /// The `.demi/workflows` directory they are in; null when no directory
-    /// from the working directory up to the repository's root has one.
+    /// from the project's directory up to the repository's root has one.
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<String>")]
     pub directory: Option<String>,
