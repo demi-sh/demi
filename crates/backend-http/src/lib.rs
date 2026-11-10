@@ -86,6 +86,7 @@ mod shares;
 mod side_questions;
 mod sidebar;
 mod state;
+mod storage;
 mod streams;
 mod subagents;
 mod suggested_replies;
@@ -499,6 +500,10 @@ fn router(state: AppState, closing: CancellationToken, web_directory: Option<Pat
             "/providers/{id}/accounts/{credential}",
             delete(accounts::remove),
         )
+        .route("/storage", get(storage::read))
+        .route("/storage/rules", put(storage::set_rules))
+        .route("/storage/log", put(storage::set_log))
+        .route("/devices/{id}/storage", post(storage::device))
         .route("/server-upgrade", get(server_upgrade::read))
         .route("/server-upgrade/channel", put(server_upgrade::set_channel))
         .route("/server-upgrade/prepare-ahead", put(server_upgrade::set_prepare_ahead))

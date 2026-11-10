@@ -398,6 +398,13 @@ impl LinkPolicy for ShardPolicy {
         }
     }
 
+    fn storage_measured(&self, report: demi_runner_protocol::wire::StorageReport) {
+        // A shard that is closing keeps nothing; the next pass reports again.
+        if let Ok(shard) = self.shard() {
+            shard.storage_reported(&self.device, report);
+        }
+    }
+
     fn worktrees(&self, directory: String, worktrees: Vec<LinkedWorktree>) {
         // A shard that is closing stores nothing; the next connection
         // reports again.

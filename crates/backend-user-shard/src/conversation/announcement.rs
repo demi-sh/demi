@@ -61,7 +61,7 @@ const UTILITIES: &str = "sh, bash and the standard utilities that write files or
 const MACOS_UTILITIES: &str = "sh, bash and the standard utilities that write files or start programs (sed, cp, mv, rm, find, xargs, …) are Demi's own, GNU's, read macOS's forms too (`sed -i ''`), and what they write is recorded as your changes; every other program (grep, ls, cat, tar, patch, python, …) is macOS's own, in /bin and /usr/bin, and what it writes is not recorded";
 
 /// Where the agent keeps the files only it needs (`crates/runner-jobs/src/scratch.rs`), which every block says after where shells start.
-const SCRATCH: &str = "Files only you need (screenshots, probe scripts) go in $DEMI_SCRATCH, which shows as no change and lasts as long as the conversation.";
+const SCRATCH: &str = "Files only you need (screenshots, probe scripts) go in $DEMI_SCRATCH, which shows as no change; what goes unused for a while, or past its size limit, is removed.";
 
 /// What a block for a Cloud says of what it reaches, which the machine
 /// manager's firewall and resolver limit to what the master's network policy

@@ -9,6 +9,10 @@
     "routeFailed": "No se pudo cambiar la ruta",
     "resetNotStarted": "El restablecimiento no se inició. Revisa tu conexión y vuelve a intentarlo."
   },
+  "storage": {
+    "saveFailed": "No se pudo cambiar el ajuste",
+    "cleanUpFailed": "No se pudo limpiar"
+  },
   "portForwards": {
     "addFailed": "No se pudo agregar el reenvío",
     "saveFailed": "No se pudo cambiar el reenvío",

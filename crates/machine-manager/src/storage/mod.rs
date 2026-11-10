@@ -99,3 +99,34 @@ pub mod tree;
 pub mod state;
 pub mod store;
 pub mod working;
+
+/// The bytes the store at `data` takes on the disk. A store on a
+/// filesystem of its own, as a server's XFS with its shared blocks, is that
+/// filesystem's used bytes, each shared block counted once; one on the
+/// host's filesystem, as in development, is the sum of its files' blocks.
+pub fn disk_usage(data: &std::path::Path) -> std::io::Result<u64> {
+    use std::os::unix::fs::MetadataExt;
+    #[cfg(target_os = "linux")]
+    {
+        let own = std::fs::metadata(data)?;
+        let parent = data.parent().map(std::fs::metadata).transpose()?;
+        if parent.is_none_or(|parent| parent.dev() != own.dev()) {
+            let stats = rustix::fs::statvfs(data)?;
+            return Ok(stats.f_blocks.saturating_sub(stats.f_bfree).saturating_mul(stats.f_frsize));
+        }
+    }
+    let mut bytes = 0u64;
+    let mut seen = std::collections::HashSet::new();
+    let mut pending = vec![data.to_owned()];
+    while let Some(path) = pending.pop() {
+        let Ok(metadata) = std::fs::symlink_metadata(&path) else { continue };
+        // A file linked into several generations takes its blocks once.
+        if seen.insert((metadata.dev(), metadata.ino())) {
+            bytes = bytes.saturating_add(metadata.blocks().saturating_mul(512));
+        }
+        if metadata.is_dir() {
+            pending.extend(std::fs::read_dir(&path).into_iter().flatten().flatten().map(|entry| entry.path()));
+        }
+    }
+    Ok(bytes)
+}

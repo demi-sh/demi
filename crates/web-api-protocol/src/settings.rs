@@ -961,6 +961,16 @@ pub struct Preferences {
     #[schemars(with = "FileTree")]
     #[garde(dive)]
     pub file_tree: Option<FileTree>,
+    /// The rules for what Demi keeps on the user's devices, which `PUT
+    /// /storage/rules` sets. Absent means the defaults.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "unwrap_or_skip"
+    )]
+    #[schemars(with = "crate::storage::StorageRules")]
+    #[garde(dive)]
+    pub storage: Option<crate::storage::StorageRules>,
 }
 
 /// The most windows pinned to the taskbar: bounds what one preference stores,

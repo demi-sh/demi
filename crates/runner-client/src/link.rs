@@ -155,6 +155,11 @@ pub trait LinkPolicy {
     /// message, which may follow their change, as a move does.
     fn worktrees(&self, directory: String, worktrees: Vec<LinkedWorktree>);
 
+    /// The runner measured what Demi keeps on the device, on its own or for
+    /// a request (`crates/runner/src/storage.rs`). The policy keeps the
+    /// report before a request's caller reads it.
+    fn storage_measured(&self, report: wire::StorageReport);
+
     /// Where the device's log lines go; none keeps the connection without one,
     /// and then the backend never asks the runner to send them.
     fn device_log(&self) -> Option<Rc<dyn DeviceLog>> {
@@ -453,6 +458,7 @@ pub(crate) enum Expected {
     Release,
     PackageRelease,
     Sync,
+    Storage,
     Prefetch,
     Resident,
     JobRead,
@@ -472,6 +478,8 @@ pub(crate) enum Answer {
     Direct(DirectAnswer),
     /// The answer to a request the device made, but for its body.
     Http(HttpHead),
+    /// What Demi keeps on the device after a storage request.
+    Storage(wire::StorageReport),
     Done,
 }
 
@@ -1086,6 +1094,21 @@ impl Link {
             .map(|_| ())
     }
 
+    /// Removes what `action` names from the device and measures what Demi
+    /// keeps there then, which takes a walk of every file.
+    pub async fn storage(&self, action: wire::StorageAction) -> Result<wire::StorageReport, DeviceError> {
+        match self.call(Expected::Storage, |id| Inbound::Storage { id, action }).await? {
+            Answer::Storage(report) => Ok(report),
+            _ => unreachable!("a storage request is answered with a report"),
+        }
+    }
+
+    /// Tells the runner the rules its user set for what Demi keeps on their
+    /// devices.
+    pub fn set_storage_rules(&self, rules: wire::StorageRules) -> Result<(), DeviceError> {
+        self.send(&Inbound::StorageRules { rules })
+    }
+
     /// Tells the runner the packages of the backend's release, whose programs
     /// it keeps in its cache (`crates/runner/src/connection/owner.rs`), and
     /// lets it locate them.
@@ -1480,6 +1503,7 @@ impl Link {
             Expected::Release => "release",
             Expected::PackageRelease => "package_release",
             Expected::Sync => "sync",
+            Expected::Storage => "storage",
             Expected::Prefetch => "prefetch",
             Expected::Resident => "resident",
             Expected::JobRead => "job_read",
@@ -1621,6 +1645,12 @@ impl Link {
                 None => self.answer(&id, Expected::Sync, Answer::Done),
                 Some(error) => self.refuse(&id, DeviceError::failed(None, error)),
             },
+            Outbound::StorageMeasured { report } => self.0.policy.storage_measured(report),
+            Outbound::StorageDone { id, report } => {
+                self.0.policy.storage_measured(report.clone());
+                self.answer(&id, Expected::Storage, Answer::Storage(report));
+            }
+            Outbound::StorageFailed { id, reason } => self.refuse(&id, DeviceError::failed(None, reason)),
             // A repeated hello on a bound connection says nothing new.
             Outbound::Hello { .. } => {}
             Outbound::Installed { artifacts } => {

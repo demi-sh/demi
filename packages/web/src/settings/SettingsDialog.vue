@@ -50,6 +50,7 @@ import DevicesPanel from './DevicesPanel.vue'
 import WorkspacesPanel from './WorkspacesPanel.vue'
 import { useWorkspaces } from '../state/workspaces'
 import PortForwardsPanel from './PortForwardsPanel.vue'
+import StoragePanel from './StoragePanel.vue'
 import { useSettingsAddress } from './address'
 import { CODE_CORRECTIONS, EMAIL_CORRECTIONS, PASSWORD_CORRECTIONS } from './corrections'
 import { usePluginSettings } from './plugins'
@@ -484,6 +485,7 @@ function resetShortcuts(): void {
     <AgentPanel v-else-if="section === 'agent'" />
     <ProvidersPanel v-else-if="section === 'models' && resources.canConfigure" />
     <DevicesPanel v-else-if="section === 'devices'" />
+    <StoragePanel v-else-if="section === 'storage'" />
     <PortForwardsPanel v-else-if="section === 'portForwards'" />
     <UsersPanel v-else-if="section === 'users' && product.snapshot?.user?.role !== 'user'" />
     <CloudPanel v-else-if="section === 'cloud' && product.snapshot?.user?.role === 'master'" />

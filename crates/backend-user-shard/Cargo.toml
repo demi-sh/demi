@@ -54,6 +54,7 @@ futures-util.workspace = true
 http.workspace = true
 garde.workspace = true
 object_store.workspace = true
+sysinfo = { version = "0.39", default-features = false, features = ["disk"] }
 rand = "0.9"
 reqwest = { workspace = true, features = ["rustls", "stream"] }
 schemars.workspace = true

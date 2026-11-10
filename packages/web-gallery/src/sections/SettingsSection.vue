@@ -35,6 +35,7 @@ import GalleryUsers from '../components/GalleryUsers.vue'
 import { createUsersState } from '../fixtures/users'
 import GallerySubagents from '../components/GallerySubagents.vue'
 import GalleryAgent from '../components/GalleryAgent.vue'
+import GalleryStorage from '../components/GalleryStorage.vue'
 import { createSmallModelState } from '../fixtures/small-model'
 import { createCredentialState } from '../fixtures/credentials'
 import { createSubagentState } from '../fixtures/subagent-profiles'
@@ -61,6 +62,17 @@ const { view } = useGalleryView()
 const fullReselects = ref(0)
 const directDevices = useGalleryDevices(() => galleryDevices())
 directDevices.shown.value = 'mac'
+/**
+ * Who reads the Storage specimen: an administrator sees the whole server, the
+ * Clouds only where the server runs them.
+ */
+const STORAGE_VIEWERS = [
+  { value: 'administrator', label: 'Administrator' },
+  { value: 'noClouds', label: 'No Clouds' },
+  { value: 'member', label: 'Member' },
+] as const
+const storageViewer = ref<(typeof STORAGE_VIEWERS)[number]['value']>('administrator')
+
 const directScenario = computed({
   get: () => directDevices.scenarios.value['mac'] ?? 'connected',
   set: (scenario: DirectScenario) => directDevices.setScenario('mac', scenario),
@@ -339,6 +351,18 @@ const noCredentials = createCredentialState([])
               @reset-cloud="productWould('Reset the Cloud Environment')"
               @retry="productWould('Load the Devices Again')"
             />
+          </div>
+        </div>
+      </GallerySection>
+
+      <GallerySection
+        title="Storage"
+        note="The server first: its disk as one bar, Demi’s kinds in color, what other programs take in grey and the free room, with a row for each kind; an administrator sets how long the log is kept and how large it grows, and a member sees only their own conversations and attachments. Then the rules every device cleans up by, for temporary files and for the cache, each an age and a size per device, and the devices, each with what Demi keeps on it. A device’s page has its disk, the three kinds with Clean Up…, Clear… and Delete…, each asking first, and its conversations, largest first, each with Empty…, or Clean Up while it runs. Each button measures again and keeps its spinner until the device answers; build-01 is offline, so its buttons are off; studio-pc never measured."
+      >
+        <div class="flex w-full max-w-2xl flex-col gap-4">
+          <Segmented v-model="storageViewer" :options="STORAGE_VIEWERS" size="sm" />
+          <div class="@container rounded-xl border border-line bg-surface-dialog p-6">
+            <GalleryStorage :viewer="storageViewer" />
           </div>
         </div>
       </GallerySection>

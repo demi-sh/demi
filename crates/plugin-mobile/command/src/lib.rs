@@ -266,11 +266,6 @@ impl Handler for DemiMobile {
                 scratch: (installed && context.request.context.caller.agent_number().is_none())
                     .then(|| scratch.clone()),
                 library,
-                caller_scratch: context
-                    .request
-                    .env
-                    .get("DEMI_SCRATCH")
-                    .map_or_else(|| scratch.clone(), std::path::PathBuf::from),
                 agent: context.request.context.caller.agent_number().is_some(),
                 cancel: &context.cancellation,
             };

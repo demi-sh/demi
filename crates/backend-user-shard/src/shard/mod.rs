@@ -31,6 +31,7 @@ pub use self::plugins::ReloadRefusal;
 pub mod device_requests;
 mod policy;
 pub mod port_forwards;
+pub mod storage;
 pub mod subagents;
 mod worktrees;
 pub mod workspaces;

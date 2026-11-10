@@ -9,6 +9,10 @@
     "routeFailed": "無法變更連線路徑",
     "resetNotStarted": "重設未能開始。請檢查網路連線後重試。"
   },
+  "storage": {
+    "saveFailed": "無法更改設定",
+    "cleanUpFailed": "無法清理"
+  },
   "portForwards": {
     "addFailed": "無法加入轉送",
     "saveFailed": "無法變更轉送",

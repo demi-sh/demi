@@ -2,6 +2,7 @@
 //! trims.
 
 use std::path::Path;
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -87,7 +88,7 @@ fn own_line(level: LogLevel, event: &str, fields: serde_json::Value) -> Row {
 /// [`BATCH_INTERVAL`], first a line saying how many events the queue had no
 /// room for, and trims the log as it starts and every [`TRIM_INTERVAL`], one
 /// batch between two commits.
-pub(super) fn serve(path: &Path, limits: Limits, queue: &Receiver<Message>, dropped: &AtomicU64, waiting: &AtomicU64) {
+pub(super) fn serve(path: &Path, limits: &Mutex<Option<Limits>>, queue: &Receiver<Message>, dropped: &AtomicU64, waiting: &AtomicU64) {
     let mut database = Database::open(path);
     let mut trim_at = Instant::now();
     let mut trimming: Option<Trim> = None;
@@ -95,7 +96,12 @@ pub(super) fn serve(path: &Path, limits: Limits, queue: &Receiver<Message>, drop
     let mut batch = Vec::new();
     loop {
         if trimming.is_none() && Instant::now() >= trim_at {
-            trimming = Some(Trim::start());
+            if limits.lock().expect("the log's limits are intact").is_some() {
+                trimming = Some(Trim::start());
+            } else {
+                // The limits are not read yet: the next trim waits its turn.
+                trim_at = Instant::now() + TRIM_INTERVAL;
+            }
         }
         let wait = if trimming.is_some() {
             Duration::ZERO
@@ -111,7 +117,9 @@ pub(super) fn serve(path: &Path, limits: Limits, queue: &Receiver<Message>, drop
             Ok(Message::Close) | Err(RecvTimeoutError::Disconnected) => true,
             Err(RecvTimeoutError::Timeout) => {
                 // Nothing waits: one batch of the trim.
+                let limits = *limits.lock().expect("the log's limits are intact");
                 if let Some(trim) = trimming.as_mut()
+                    && let Some(limits) = limits
                     && let Some(line) = database.trim_step(trim, limits)
                 {
                     trimming = None;

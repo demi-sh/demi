@@ -214,7 +214,10 @@ CREATE TABLE devices (
   -- `Hardware`: its processor, memory, home volume's size and GPUs; none
   -- before its runner first reported it since the release that began
   -- keeping it.
-  hardware TEXT
+  hardware TEXT,
+  -- What Demi keeps on it, as its runner last measured, JSON, the web
+  -- contract's `DeviceStorageReport`; none before its runner first measured.
+  storage TEXT
 ) STRICT;
 CREATE UNIQUE INDEX devices_one_machine ON devices (user_id, machine) WHERE kind = 'managed';
 
@@ -1076,5 +1079,9 @@ CREATE TABLE server_settings (
   custom_internet INTEGER NOT NULL DEFAULT 1 CHECK (custom_internet IN (0, 1)),
   custom_private_network INTEGER NOT NULL DEFAULT 0 CHECK (custom_private_network IN (0, 1)),
   custom_developer_services INTEGER NOT NULL DEFAULT 0 CHECK (custom_developer_services IN (0, 1)),
-  custom_allowed  TEXT NOT NULL DEFAULT '[]'
+  custom_allowed  TEXT NOT NULL DEFAULT '[]',
+  -- How long the server keeps its log and how much of it at most, which an
+  -- administrator sets in Settings › Storage.
+  log_keep_days   INTEGER NOT NULL DEFAULT 14 CHECK (log_keep_days BETWEEN 1 AND 365),
+  log_max_bytes   INTEGER NOT NULL DEFAULT 2147483648 CHECK (log_max_bytes > 0)
 ) STRICT;

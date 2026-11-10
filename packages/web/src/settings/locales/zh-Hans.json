@@ -9,6 +9,10 @@
     "routeFailed": "无法更改连接路径",
     "resetNotStarted": "重置未能开始。请检查网络连接后重试。"
   },
+  "storage": {
+    "saveFailed": "无法更改设置",
+    "cleanUpFailed": "无法清理"
+  },
   "portForwards": {
     "addFailed": "无法添加转发",
     "saveFailed": "无法更改转发",

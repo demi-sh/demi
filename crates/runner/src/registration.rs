@@ -258,6 +258,17 @@ pub async fn run(options: Options, stop: CancellationToken) -> io::Result<Ending
         )
         .await?;
     let usage = crate::machine::report_usage(runner.identity.home_dir.clone().into());
+    let storage = crate::storage::Storage::start(
+        crate::storage::Places {
+            scratch: options.scratch.clone(),
+            directory: state.root.clone(),
+            artifacts: options.artifacts.clone(),
+            home: runner.identity.home_dir.clone().into(),
+            disk: runner.hardware.disk,
+        },
+        registry.handle(),
+        usage.clone(),
+    );
     let registered = Registered {
         installed: options.installed.map(Arc::new),
         managed: options.managed,
@@ -271,6 +282,7 @@ pub async fn run(options: Options, stop: CancellationToken) -> io::Result<Ending
         cached: registry.installed(),
         downloading: registry.downloading(),
         usage,
+        storage,
         dispatcher,
         index,
         paths,

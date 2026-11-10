@@ -14,6 +14,7 @@ use demi_runner_protocol::wire::{AutostartUnavailable, DeviceArtifact, Hardware,
 use demi_shared_types::Timestamp;
 use demi_web_api_protocol::devices::{DeviceKind, DeviceLogo, DeviceRoute};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, ProjectId};
+use demi_web_api_protocol::storage::DeviceStorageReport;
 use std::collections::HashMap;
 
 use rusqlite::{Connection, OptionalExtension, Row, params};
@@ -206,6 +207,38 @@ const CLAUDE_CODE_NAME: &str = "Claude Code";
 const CLOUD_PLATFORM: RunnerPlatform = RunnerPlatform::Linux;
 
 impl ControlService {
+    /// Keeps what Demi keeps on `device`, as its runner just measured.
+    pub async fn set_device_storage(&self, device: DeviceId, report: DeviceStorageReport) -> Result<(), StorageError> {
+        self.call(move |connection, _| {
+            connection.execute(
+                "UPDATE devices SET storage = ?1 WHERE id = ?2",
+                params![to_json(&report), device.as_str()],
+            )?;
+            Ok(())
+        })
+        .await
+    }
+
+    /// What each of `user`'s devices that measured keeps, as its runner last
+    /// measured.
+    pub async fn device_storage(&self, user: UserId) -> Result<Vec<(DeviceId, DeviceStorageReport)>, StorageError> {
+        self.call(move |connection, _| {
+            let mut statement = connection
+                .prepare("SELECT id, storage FROM devices WHERE user_id = ?1 AND storage IS NOT NULL AND (machine IS NULL OR machine = 'cloud')")?;
+            let rows = statement.query_map([user.as_str()], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })?;
+            let mut reports = Vec::new();
+            for row in rows {
+                let (id, text) = row?;
+                let id = decode("devices", "id", DeviceId::try_from(id))?;
+                reports.push((id, json("devices", "storage", &text)?));
+            }
+            Ok(reports)
+        })
+        .await
+    }
+
     /// Stores a device the user paired, with the hash of the token its
     /// runner receives.
     pub async fn create_device(

@@ -494,6 +494,7 @@ impl Backend {
         let settings = ServiceSettings {
             shared_subscriptions: config.shared_subscriptions,
             log: config.log,
+            data_dir: config.data_dir.clone(),
             web_build,
             runner_releases: RunnerReleases::new(config.runner_releases),
             stun: config.stun,

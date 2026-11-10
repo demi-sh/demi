@@ -26,21 +26,20 @@
 //!
 //! # Lifetime
 //!
-//! The directory goes with the conversation; archiving keeps it. The hello's
-//! answer names the user's conversations that still exist, and the runner
-//! removes every scratch directory not among them ([`Scratch::keep_only`]). A
-//! device that was offline when a conversation was deleted therefore cleans up as
-//! soon as it connects, with nothing to remember in between.
+//! The directory goes when the conversation is archived or deleted, with its
+//! recordings (`crates/shared-recording`) and its browser profile, each in a
+//! directory of its own inside it. The release the backend sends then says
+//! so ([`Scratch::forget_archived`]), and the hello's answer names the user's
+//! conversations that still exist and those of them that are archived, so a
+//! device that was offline then removes them as it connects
+//! ([`Scratch::keep_only`]), with nothing to remember in between. None of it
+//! depends on a resident running: a recording outlives every device and tab
+//! it recorded, the profile every browser that ran on it, and the
+//! conversation's idleness, its move to another device and the detaching of
+//! a device end neither.
 //!
-//! The conversation's recordings (`crates/shared-recording`) and its browser
-//! profile, each in a directory of its own inside it, go sooner: when the
-//! conversation is archived or deleted. The release the backend sends then
-//! says so ([`Scratch::forget_archived`]), and the hello's answer names the
-//! conversations that are archived, so a device that was offline then removes
-//! them as it connects. Neither depends on a resident running: a recording
-//! outlives every device and tab it recorded, the profile every browser that
-//! ran on it, and the conversation's idleness, its move to another device and
-//! the detaching of a device end neither.
+//! Before then, the rules the user set remove what goes unused or past its
+//! size limit (`crates/runner/src/storage.rs`).
 //!
 //! A backend that cannot read the conversations drops the connection rather
 //! than name none, which would remove every directory.
@@ -86,7 +85,7 @@ impl Scratch {
     }
 
     /// Removes the scratch directory of every conversation not in `existing`,
-    /// and the recordings and browser profiles of those `archived`.
+    /// and of those `archived`.
     ///
     /// It removes the directories under the root whose name no existing
     /// conversation has. Anything else there, such as a file or a link, is left
@@ -147,30 +146,24 @@ impl Scratch {
         Ok(names)
     }
 
-    /// Removes `conversation`'s recordings and browser profile: it was
-    /// archived or deleted. One that cannot be removed stays until the next
-    /// time the runner connects.
+    /// Removes `conversation`'s scratch directory: it was archived or
+    /// deleted. One that cannot be removed stays until the next time the
+    /// runner connects.
     pub async fn forget_archived(&self, conversation: &str) {
-        for (what, directory) in [
-            ("recordings", demi_command_protocol::recordings_directory(Some(&self.root), conversation)),
-            ("browser_profile", demi_command_protocol::browser_profile_directory(Some(&self.root), conversation)),
-        ] {
-            match tokio::fs::remove_dir_all(&directory).await {
-                Ok(()) => tracing::info!(
-                    event = "archived_files.removed",
-                    conversation,
-                    what,
-                    "what an archived or deleted conversation kept on the device was removed"
-                ),
-                Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-                Err(error) => tracing::warn!(
-                    event = "archived_files.remove_failed",
-                    conversation,
-                    what,
-                    %error,
-                    "what an archived or deleted conversation kept on the device could not be removed"
-                ),
-            }
+        let directory = demi_command_protocol::scratch_directory(Some(&self.root), conversation);
+        match tokio::fs::remove_dir_all(&directory).await {
+            Ok(()) => tracing::info!(
+                event = "archived_files.removed",
+                conversation,
+                "what an archived or deleted conversation kept on the device was removed"
+            ),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) => tracing::warn!(
+                event = "archived_files.remove_failed",
+                conversation,
+                %error,
+                "what an archived or deleted conversation kept on the device could not be removed"
+            ),
         }
     }
 }

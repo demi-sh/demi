@@ -101,6 +101,21 @@ pub enum FetchError<E> {
 }
 
 impl BlobStores {
+    /// The bytes each user's namespace holds, by the user's id: one listing of
+    /// every namespace, which on S3 is one request per 1,000 objects.
+    pub async fn bytes_by_user(&self) -> Result<HashMap<String, u64>, ObjectError> {
+        let mut listing = self.objects.list(Some(&Path::from("blobs")));
+        let mut bytes: HashMap<String, u64> = HashMap::new();
+        while let Some(object) = listing.next().await {
+            let object = object?;
+            let Some(user) = object.location.parts().nth(1) else {
+                continue;
+            };
+            *bytes.entry(user.as_ref().to_owned()).or_default() += object.size;
+        }
+        Ok(bytes)
+    }
+
     /// The namespaces in `objects`, whose puts are timed by `clock`.
     pub fn new(objects: Arc<dyn ObjectStore>, clock: Arc<dyn Clock>) -> Self {
         Self {

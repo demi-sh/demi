@@ -9,6 +9,10 @@
     "routeFailed": "Could Not Change the Route",
     "resetNotStarted": "The reset didn’t start. Check your connection and try again."
   },
+  "storage": {
+    "saveFailed": "Could Not Change the Setting",
+    "cleanUpFailed": "Could Not Clean Up"
+  },
   "portForwards": {
     "addFailed": "Could Not Add the Forward",
     "saveFailed": "Could Not Change the Forward",

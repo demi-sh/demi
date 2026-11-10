@@ -228,6 +228,8 @@ async fn handle(shared: &Arc<Shared>, call: MachineCall) -> Result<serde_json::V
         // Its guests run as processes of the host whatever the isolation.
         MachineCall::SetIsolation(_) => json(serde_json::Value::Null),
         MachineCall::CurrentBaseVersion(_) => json(serde_json::json!(BASE)),
+        // The scripted machines keep nothing on disk.
+        MachineCall::DiskUsage(_) => json(serde_json::json!(0)),
         MachineCall::ImageState(params) => {
             let image = shared
                 .lock()

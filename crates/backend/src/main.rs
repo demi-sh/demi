@@ -106,11 +106,8 @@ async fn run(
     }
     // What `DEMI_LOG` selects goes to standard error, which the process
     // supervisor keeps, and to the server log in the data directory.
-    let limits = server_log::Limits {
-        keep: std::time::Duration::from_secs(u64::from(config.log_keep_days) * 24 * 60 * 60),
-        max_bytes: config.log_max_size,
-    };
-    let (log, log_layer) = match server_log::open(&settings.data_dir, limits, config.log.clone()) {
+    // It trims once the control database, which holds its limits, is open.
+    let (log, log_layer) = match server_log::open(&settings.data_dir, config.log.clone()) {
         Ok(log) => log,
         Err(error) => {
             eprintln!("demi-backend: the server log cannot start: {error}");

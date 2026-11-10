@@ -808,6 +808,26 @@ impl ArtifactCache {
         }
     }
 
+    /// Removes every artifact no running resident holds and no update put
+    /// here ahead, as the user asked: each is downloaded again when a resident
+    /// needs it.
+    pub async fn remove_unheld(&self) {
+        let records = match self.records().await {
+            Ok(records) => records,
+            Err(error) => {
+                tracing::warn!(event = "artifact_cache.list_failed", step = "remove_unheld", %error, "the artifact cache could not be listed");
+                return;
+            }
+        };
+        for (sha256, record) in records {
+            if self.holds.held(&sha256) || self.ahead.lock().expect("the digests put here ahead are intact").contains(&sha256) {
+                continue;
+            }
+            self.remove_entry(&sha256, &record).await;
+        }
+        self.publish_contents().await;
+    }
+
     /// Removes the artifact `sha256` and its record from the cache, or says
     /// why it stays.
     async fn remove_entry(&self, sha256: &str, record: &LineRecord) {

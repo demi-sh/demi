@@ -38,10 +38,11 @@ pub struct Reading<'a> {
     pub sheet: bool,
     /// The time between a sheet's tiles; the default when none.
     pub every: Option<std::time::Duration>,
-    /// The directory an export without an output makes its own in: the
-    /// caller's scratch directory.
-    pub scratch: &'a Path,
 }
+
+/// The directory of a recording an export of its frames goes to unless told
+/// otherwise.
+const FRAMES: &str = "frames";
 
 /// What `record` answers.
 pub enum Answer {
@@ -171,9 +172,10 @@ impl Library {
                     path.to_owned()
                 }
                 None if reading.mp4 => stored[0].directory().join(format!("export-{}.mp4", unique())),
+                // Beside the first recording, which it goes with.
                 None => {
                     let ids = ids.iter().map(RecordingId::as_str).collect::<Vec<_>>().join("-");
-                    reading.scratch.join(format!("sheet-{ids}.{extension}"))
+                    stored[0].directory().join(format!("sheet-{ids}.{extension}"))
                 }
             };
             let parts = stored.iter().map(Part::of).collect::<Result<Vec<_>, _>>()?;
@@ -266,9 +268,10 @@ impl Library {
             ));
         }
         let stored = stored.pop().expect("one recording");
+        // Inside the recording, which it goes with.
         let directory = match reading.output {
             Some(path) => path.to_owned(),
-            None => reading.scratch.join(format!("recording-{}", info.id)),
+            None => stored.directory().join(FRAMES),
         };
         let crop = match (reading.region, reading.whole) {
             (Some(region), _) => Crop::Region(region.0),

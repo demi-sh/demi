@@ -14,6 +14,7 @@ demi-runner-device = { path = "../runner-device" }
 demi-runner-jobs = { path = "../runner-jobs" }
 demi-runner-process = { path = "../runner-process" }
 demi-runner-protocol = { path = "../runner-protocol" }
+demi-shared-recording-protocol = { path = "../shared-recording-protocol" }
 demi-runner-command-packages = { path = "../runner-command-packages" }
 demi-runner-shell = { path = "../runner-shell" }
 demi-shared-artifacts = { path = "../shared-artifacts" }
@@ -57,7 +58,7 @@ objc2-io-kit = { version = "0.3", default-features = false, features = ["std", "
 # `Run` value that starts it at logon, and the machine's GPUs, which SetupAPI
 # lists.
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61", features = ["Win32_Devices_DeviceAndDriverInstallation", "Win32_Foundation", "Win32_System_Console", "Win32_System_Registry"] }
+windows-sys = { version = "0.61", features = ["Win32_Devices_DeviceAndDriverInstallation", "Win32_Foundation", "Win32_System_Console", "Win32_System_Registry", "Win32_System_Threading"] }
 
 # sha2's ARM hardware backend is opt-in; artifact verification must not use
 # its unoptimized software fallback on supported Unix ARM devices.

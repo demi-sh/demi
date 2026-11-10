@@ -9,6 +9,10 @@
     "routeFailed": "Route konnte nicht geändert werden",
     "resetNotStarted": "Das Zurücksetzen wurde nicht gestartet. Prüfe deine Verbindung und versuche es erneut."
   },
+  "storage": {
+    "saveFailed": "Einstellung konnte nicht geändert werden",
+    "cleanUpFailed": "Aufräumen fehlgeschlagen"
+  },
   "portForwards": {
     "addFailed": "Weiterleitung konnte nicht hinzugefügt werden",
     "saveFailed": "Weiterleitung konnte nicht geändert werden",

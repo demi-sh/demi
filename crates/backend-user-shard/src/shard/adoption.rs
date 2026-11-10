@@ -123,6 +123,13 @@ impl Shard {
                 return;
             }
         };
+        let storage = match self.storage_rules().await {
+            Ok(rules) => crate::shard::storage::wire_rules(rules),
+            Err(error) => {
+                tracing::warn!(event = "runner_adoption.read_failed", device_id = %device.id, what = "storage_rules", outcome = "runner_reconnects", error = &error as &dyn std::error::Error, "the user's storage rules could not be read");
+                return;
+            }
+        };
         let stopped = match self.plugins().stopped_packages().await {
             Ok(stopped) => stopped,
             Err(error) => {
@@ -203,6 +210,7 @@ impl Shard {
             stopped,
             session: session.number(),
             received: beginning.received(),
+            storage,
         };
         // A runner that started anew kept nothing of its packages' state
         // (`crates/command-protocol/src/messages.rs`).
