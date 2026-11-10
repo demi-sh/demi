@@ -11,8 +11,9 @@ import { resized } from './taskbar-motion'
  * their count; a system button, its count alone; More, its name.
  *
  * The state says how it draws: closed and minimized windows are fainter; a
- * shown window wears a mark under it, the one in front the accent's, as a menu
- * the button opens does while it is open.
+ * shown window wears a mark under it, the one in front the accent's, as More
+ * does while the menu a click opens is open. The mark grows from its middle
+ * as it comes and shrinks to it as it goes, with the windows' motion.
  *
  * A system button may wear the accent's dot on its icon's corner, breathing
  * or steady as `dot` says.
@@ -101,24 +102,46 @@ onUpdated(() => {
   color: var(--color-fg-emphasis);
 }
 
-/* Shown windows wear a mark under their button, the one in front the accent's. */
-.taskbar-shown::after,
-.taskbar-front::after {
+/* Shown windows wear a mark under their button, the one in front the
+   accent's and wider. Every button holds the mark, at no width while it has
+   none, so it grows from its middle and shrinks back there; its color is the
+   new state's at once, and the old one's while it shrinks away. */
+.taskbar-button::after {
   content: "";
   position: absolute;
   left: 50%;
   bottom: 2px;
   height: 3px;
-  width: 10px;
-  margin-left: -5px;
+  width: 16px;
+  margin-left: -8px;
   border-radius: 2px;
   background: var(--color-fg-faint);
+  transform: scaleX(0);
+  /* The windows' motion (`taskbar-motion.ts`); a mark that goes keeps its
+     color until it has shrunk. */
+  transition:
+    transform 160ms cubic-bezier(0.2, 0, 0, 1),
+    background-color 0s 160ms;
+}
+
+.taskbar-shown::after,
+.taskbar-front::after {
+  transition: transform 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.taskbar-shown::after {
+  transform: scaleX(0.625);
 }
 
 .taskbar-front::after {
-  width: 16px;
-  margin-left: -8px;
+  transform: scaleX(1);
   background: var(--color-accent-fill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taskbar-button::after {
+    transition: none;
+  }
 }
 
 .taskbar-count {
