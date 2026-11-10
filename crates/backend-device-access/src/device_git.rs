@@ -8,17 +8,19 @@
 //!   the files' contents where the remote can leave them out, into a
 //!   directory of the device's own under `~/.demi/tmp/`. It lists the
 //!   commit's tree, fetches the objects of the files of every directory a
-//!   file named `marker` marks in one request, and reads them: the commit's
-//!   bytes, as the server's fetch reads them, with no checkout's line
-//!   endings or filters. One request, since git would otherwise fetch each
-//!   object on its own connection as it is read.
+//!   file named `marker` marks in one request, and reads them in one run:
+//!   the commit's bytes, as the server's fetch reads them, with no
+//!   checkout's line endings or filters. One request, since git would
+//!   otherwise fetch each object on its own connection as it is read; one
+//!   run, since each run costs a round trip to the device, and a repository
+//!   may hold thousands of such files.
 //!   The directory is removed afterwards, and a fetch first removes what an
 //!   earlier one cut off left behind.
 //!
 //! `git` never waits for anyone: its standard input is closed, every way it
 //! or SSH could ask for a credential is turned off, and each run has a time
 //! limit, after which it is killed. A failure answers `git`'s own words.
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -44,17 +46,22 @@ const DIRECTORY_PREFIX: &str = "git-fetch-";
 const LEFT_BEHIND: Duration = Duration::from_secs(60 * 60);
 
 /// The most bytes of one run's output Demi keeps: a large tree's listing
-/// fits, and a file is read alone, within the files' limit.
+/// fits. The files' read has the files' limit instead.
 const OUTPUT_MAX_BYTES: usize = 32 * 1024 * 1024;
+
+/// The room one object's header takes in `git cat-file --batch`'s output,
+/// `<object> blob <size>`, with the newline after its bytes: a SHA-256 name
+/// and a 20-digit size fit.
+const BATCH_HEADER_MAX_BYTES: usize = 128;
 
 /// How long a check may take before its `git` is killed.
 const CHECK_LIMIT: Duration = Duration::from_secs(60);
 
-/// How long a clone may take before its `git` is killed: a slow network
-/// fetches a 64 MiB repository within it.
-const CLONE_LIMIT: Duration = Duration::from_secs(10 * 60);
+/// How long a run that moves a repository's or its files' bytes may take
+/// before its `git` is killed: a slow network carries 64 MiB within it.
+const TRANSFER_LIMIT: Duration = Duration::from_secs(10 * 60);
 
-/// How long reading one object or the tree may take.
+/// How long a run that reads the clone, such as the tree, may take.
 const READ_LIMIT: Duration = Duration::from_secs(2 * 60);
 
 /// The variables that would point `git` at another repository than the one
@@ -202,7 +209,7 @@ async fn clone_and_read(
         "clone", "--bare", "--depth", "1", "--single-branch", "--no-tags", "--filter=blob:none", "--quiet", "--", url,
         directory,
     ];
-    git(device, None, &clone, CLONE_LIMIT, OUTPUT_MAX_BYTES).await?;
+    git(device, None, &clone, TRANSFER_LIMIT, OUTPUT_MAX_BYTES).await?;
     let commit = String::from_utf8_lossy(&git(device, Some(directory), &["rev-parse", "HEAD"], READ_LIMIT, 1024).await?)
         .trim()
         .to_owned();
@@ -269,24 +276,70 @@ async fn clone_and_read(
             "-c", "fetch.negotiationAlgorithm=noop", "fetch", "--quiet", "--no-tags", "--no-write-fetch-head",
             "--recurse-submodules=no", "--filter=blob:none", "--stdin", "origin",
         ];
-        run(device, Some(directory), &fetch, Some(Bytes::from(list)), CLONE_LIMIT, OUTPUT_MAX_BYTES).await?;
+        run(device, Some(directory), &fetch, Some(Bytes::from(list)), TRANSFER_LIMIT, OUTPUT_MAX_BYTES).await?;
     }
+    // The objects' own bytes: what the commit holds, as the server reads it,
+    // each object once, though several paths may hold it.
+    let unique: BTreeSet<&str> = wanted.iter().map(|(_, object)| object.as_str()).collect();
+    if unique.is_empty() {
+        return Ok(GitTree { commit, entries, files: Vec::new() });
+    }
+    let mut list = String::new();
+    for object in &unique {
+        list.push_str(object);
+        list.push('\n');
+    }
+    let room = files_max.saturating_add(unique.len().saturating_mul(BATCH_HEADER_MAX_BYTES));
+    let output = run(device, Some(directory), &["cat-file", "--batch"], Some(Bytes::from(list)), TRANSFER_LIMIT, room)
+        .await
+        .map_err(|error| match error {
+            DeviceGitError::FilesTooLarge { .. } => DeviceGitError::FilesTooLarge { limit: files_max },
+            error => error,
+        })?;
+    let objects = read_batch(Bytes::from(output))?;
     let mut files = Vec::new();
     let mut total = 0usize;
     for (entry, object) in wanted {
-        // The object's own bytes: what the commit holds, as the server reads
-        // it. A read stops at what the files may still hold.
-        let left = files_max.saturating_sub(total);
-        let bytes = git(device, Some(directory), &["cat-file", "blob", object], READ_LIMIT, left)
-            .await
-            .map_err(|error| match error {
-                DeviceGitError::FilesTooLarge { .. } => DeviceGitError::FilesTooLarge { limit: files_max },
-                error => error,
-            })?;
+        let bytes = objects
+            .get(object.as_str())
+            .cloned()
+            .ok_or_else(|| DeviceGitError::Failed(format!("git read no object {object}")))?;
         total += bytes.len();
-        files.push((entry.path.clone(), Bytes::from(bytes)));
+        if total > files_max {
+            return Err(DeviceGitError::FilesTooLarge { limit: files_max });
+        }
+        files.push((entry.path.clone(), bytes));
     }
     Ok(GitTree { commit, entries, files })
+}
+
+/// The objects `git cat-file --batch` wrote, by name: each a header line,
+/// `<object> <type> <size>`, its bytes and a newline, or `<object> missing`
+/// for one the clone lacks.
+fn read_batch(output: Bytes) -> Result<BTreeMap<String, Bytes>, DeviceGitError> {
+    let malformed = || DeviceGitError::Failed("git cat-file wrote what it should not".into());
+    let mut objects = BTreeMap::new();
+    let mut at = 0;
+    while at < output.len() {
+        let end = output[at..].iter().position(|byte| *byte == b'\n').ok_or_else(malformed)? + at;
+        let header = std::str::from_utf8(&output[at..end]).map_err(|_| malformed())?;
+        let mut fields = header.split(' ');
+        let (Some(object), Some(kind)) = (fields.next(), fields.next()) else {
+            return Err(malformed());
+        };
+        if kind == "missing" {
+            return Err(DeviceGitError::Failed(format!("git has no object {object}")));
+        }
+        let size: usize = fields.next().and_then(|size| size.parse().ok()).ok_or_else(malformed)?;
+        let start = end + 1;
+        let stop = start.checked_add(size).filter(|stop| *stop < output.len()).ok_or_else(malformed)?;
+        if output[stop] != b'\n' {
+            return Err(malformed());
+        }
+        objects.insert(object.to_owned(), output.slice(start..stop));
+        at = stop + 1;
+    }
+    Ok(objects)
 }
 
 /// Runs `git args` on `device`, in `directory` or the device's default, and
