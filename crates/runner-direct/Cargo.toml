@@ -32,3 +32,7 @@ tokio-util.workspace = true
 tracing.workspace = true
 # A STUN request's transaction id, which only has to be unpredictable.
 uuid = { version = "1", features = ["v4"] }
+
+[target.'cfg(windows)'.dependencies]
+# An interface's type, which tells a tunnel on Windows (`addresses.rs`).
+windows-sys = { version = "0.61", features = ["Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_Ndis", "Win32_Foundation"] }
