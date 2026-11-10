@@ -5,10 +5,32 @@ import type { TabUpdate } from '../plugins/page'
 import { useWindowStage, type StageState, type WindowStageModel } from './stage'
 
 /**
+ * A tab, or none, that something outside the windows asks to have in front:
+ * a pill, a link, a kind's `shows`, a plugin, or a navigation of the web
+ * browser's history. The windows take it once its tab's window can show it.
+ */
+export interface WorkRequest {
+  id: number
+  /** The tab whose window comes to the front on it; none minimizes the work's windows. */
+  tab: string | null
+  /** The address names it already: the windows say what is in front only once they took it. */
+  fromAddress: boolean
+}
+
+/**
+ * Why the windows say what is in front: their first word since the
+ * conversation came on screen (`came`), the window in front or its tab
+ * closed (`closed`), or anything else (`moved`).
+ */
+export type FrontCause = 'came' | 'closed' | 'moved'
+
+/**
  * What the host gives a conversation's windows: its tabs and their kinds, the
- * page's address over them, the layout the conversation keeps, and the user's
- * pins. The product's comes from the work store (`web/conversation/work.ts`),
- * the gallery's from its fixture.
+ * layout the conversation keeps, and the user's pins. The windows alone say
+ * which of them is in front; the host writes the page's address from what
+ * they say (`inFront`), and asks them for a tab through `request`. The
+ * product's comes from the work store (`web/conversation/work.ts`), the
+ * gallery's from its fixture.
  */
 export interface SessionWork {
   /** The tabs, in order, and the order they were shown in, the newest last, which each window shows its newest of. */
@@ -22,15 +44,14 @@ export interface SessionWork {
   beforeFirstMessage: boolean
   /** The name of the primary device while its runner is not connected, which a window says over its tabs. */
   deviceOffline: string | null
-  /** Whether the address names a tab, which the window holding it shows in front. */
-  open: boolean
-  /**
-   * The address names the tab `id`: its window comes in front on it. A step
-   * of the history, or with `replace` the address in place of the one shown.
-   */
-  select(id: string, how?: 'push' | 'replace'): void
-  /** The address names no tab: no window of the work is in front. */
-  close(): void
+  /** What the windows have yet to take, while there is something. */
+  request: WorkRequest | null
+  /** The windows took the request `id`. */
+  took(id: number): void
+  /** The tab of the work's window in front, or none: what the address names. */
+  inFront(tab: string | null, cause: FrontCause): void
+  /** The user picked `tab`: the newest its window showed. */
+  pick(tab: string): void
   moveTab(id: string, index: number): void
   updateTab(id: string, data: unknown, how?: TabUpdate): void
   updatePinned(kind: string, data: unknown, how?: TabUpdate): void

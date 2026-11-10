@@ -106,13 +106,16 @@ export type ResolvedTab =
  * drops a saved tab.
  */
 export function resolveTab(tab: WorkTab, kinds: readonly BoundTabKind[]): ResolvedTab {
+  const read = readTab(tab, kinds)
+  return read ? { tab, kind: read.kind, data: read.data, title: read.kind.title(read.data) } : { tab, kind: null, data: null, title: tab.kind }
+}
+
+/** The tab's kind among `kinds` and its data as the kind reads it: null while none of them reads it, so no window can show it. */
+export function readTab<Kind extends { kind: string; schema: z.ZodType }>(
+  tab: WorkTab,
+  kinds: readonly Kind[],
+): { kind: Kind; data: unknown } | null {
   const kind = kinds.find((candidate) => candidate.kind === tab.kind)
-  if (!kind) {
-    return { tab, kind: null, data: null, title: tab.kind }
-  }
-  const parsed = kind.schema.safeParse(tab.data)
-  if (!parsed.success) {
-    return { tab, kind: null, data: null, title: tab.kind }
-  }
-  return { tab, kind, data: parsed.data, title: kind.title(parsed.data) }
+  const parsed = kind?.schema.safeParse(tab.data)
+  return kind && parsed?.success ? { kind, data: parsed.data } : null
 }

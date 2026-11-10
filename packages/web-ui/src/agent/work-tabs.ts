@@ -1,4 +1,4 @@
-import { activeTab, closeTabs } from './tab-close'
+import { closeTabs } from './tab-close'
 import { dataChanges } from './work-changes'
 import type { BoundTabKind } from './tab-kinds/kind'
 import { intentKind, type AnyPluginPage, type TabKind } from '../plugins/page'
@@ -39,16 +39,6 @@ export function pinnedData(pinned: PinnedTabs, kind: Pick<BoundTabKind, 'kind' |
 }
 
 /**
- * What the windows show: the newest selection that names a pinned kind or a
- * tab the page shows, so a closed tab gives way to the one selected before
- * it, else its first pinned tab, else its first tab, else nothing.
- */
-export function shownSelection(state: TabsState, kinds: readonly Pick<BoundTabKind, 'kind' | 'pinned'>[]): string | null {
-  const pinned = kinds.filter((kind) => kind.pinned).map((kind) => kind.kind)
-  return activeTab([...pinned, ...state.tabs.map((tab) => tab.id)], state.history)
-}
-
-/**
  * A conversation's work as a page shows it: its tabs and selection, and
  * its pinned tabs' data.
  */
@@ -71,8 +61,9 @@ export interface IntentOutcome {
 /**
  * What opening `request` does: the first kind of a page the user has on that
  * opens it shows the data it returns, in its pinned tab or in a tab it creates.
+ * `inFront` is the tab of the work's window in front, as the windows say.
  *
- * - When the work's selected tab is that kind's and the kind, which alone
+ * - When the tab in front is that kind's and the kind, which alone
  *   knows what its data means, would show the same data for the request, the
  *   tab stays as it is, its data the same value, so a second click on a pill or
  *   a link leaves the work showing it.
@@ -87,16 +78,15 @@ export function openIntent(
   pages: readonly AnyPluginPage[],
   enabled: (plugin: string) => boolean,
   request: IntentRequest,
+  inFront: string | null,
 ): IntentOutcome | null {
   const kind = intentKind(pages, enabled, request.intent)
   if (!kind) {
     return null
   }
   const { pinned } = shown
-  const kinds = pages.filter((page) => enabled(page.plugin)).flatMap((page) => page.kinds ?? [])
-  const selection = shownSelection(shown.tabsState, kinds)
   if (!kind.pinned) {
-    const tab = shown.tabsState.tabs.find((candidate) => candidate.id === selection && candidate.kind === kind.kind)
+    const tab = shown.tabsState.tabs.find((candidate) => candidate.id === inFront && candidate.kind === kind.kind)
     const parsed = tab ? kind.schema.safeParse(tab.data) : null
     if (tab && parsed?.success && sameData(parsed.data, opened(kind, request, parsed.data))) {
       return { selection: tab.id, pinned, created: null }
@@ -112,8 +102,8 @@ export function openIntent(
   const stored = Object.hasOwn(pinned, kind.kind) ? kind.schema.safeParse(pinned[kind.kind]) : null
   const current = stored?.success ? stored.data : null
   const data = opened(kind, request, current)
-  if (selection === kind.kind && current !== null && sameData(current, data)) {
-    return { selection, pinned, created: null }
+  if (inFront === kind.kind && current !== null && sameData(current, data)) {
+    return { selection: inFront, pinned, created: null }
   }
   return { selection: kind.kind, pinned: { ...pinned, [kind.kind]: data }, created: null }
 }
@@ -162,12 +152,6 @@ function opened(kind: TabKind<unknown>, request: IntentRequest, current: unknown
     case 'media':
       return kind.intents?.media?.(request.payload, current)
   }
-}
-
-/** The tab the windows show, or null while it shows a pinned tab or nothing. */
-export function selectedTab(state: TabsState, kinds: readonly BoundTabKind[]): WorkTab | null {
-  const shown = shownSelection(state, kinds)
-  return state.tabs.find((tab) => tab.id === shown) ?? null
 }
 
 /**

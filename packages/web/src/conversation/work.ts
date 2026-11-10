@@ -9,7 +9,6 @@ import {
   type TabsState,
   type WorkTab,
   type PinnedTabs,
-  type ShownWork,
 } from '@demicodes/web-ui/agent/work-tabs'
 import {
   addressSelection,
@@ -23,6 +22,8 @@ import { TAB_HISTORY, selectTab } from '@demicodes/web-ui/agent/tab-close'
 import { usePhone } from '@demicodes/web-ui/ui/phone'
 import { intentKind, type HistoryDirection, type TabUpdate } from '@demicodes/web-ui/plugins/page'
 import type { IntentName, IntentRequest } from '@demicodes/web-ui/plugins/intents'
+import type { FrontCause, WorkRequest } from '@demicodes/web-ui/windows/session-work'
+import { readTab } from '@demicodes/web-ui/agent/tab-kinds/kind'
 import { workBackend } from '../api/work'
 import { reportError } from '@demicodes/web-ui/infra/errors'
 import { t } from './locales/text'
@@ -34,16 +35,11 @@ import { pluginEnabled } from '../plugins/enabled'
 import { useConversations } from './store'
 
 /**
- * One conversation's work as the page shows it: whether the address names a
- * tab in front, the order the tabs were shown in, its pinned tabs' data, and
- * the backend's tabs with this page's changes over them.
+ * One conversation's work as the page shows it: the order the tabs were shown
+ * in, its pinned tabs' data, the backend's tabs with this page's changes over
+ * them, and what its windows have yet to take.
  */
 export interface WorkState {
-  /**
-   * Whether the page's address shows the conversation and names a tab, whose
-   * window is then in front; without one the layout says what stands.
-   */
-  readonly open: boolean
   /** The tabs' and pinned kinds' ids in the order they were shown, the newest last. */
   readonly history: readonly string[]
   /** The pinned tabs' data, by kind, for the page's lifetime. */
@@ -55,7 +51,12 @@ export interface WorkState {
    * brings were there before the page looked, and show at once.
    */
   readonly tabsRead: boolean
+  /** A tab, or none, asked of the windows that they have not taken yet. */
+  readonly request: WorkRequest | null
 }
+
+/** No pinned tab's data kept yet: one value, so a read of it changes nothing. */
+const NO_PINNED: PinnedTabs = Object.freeze({})
 
 /**
  * The mark of a history entry whose address the work wrote: an address
@@ -94,13 +95,6 @@ interface ShownAddress {
   marked: boolean
 }
 
-/** What a move of a conversation's work leads to: open or closed, what it selected, and its pinned tabs' data. */
-interface WorkView {
-  open: boolean
-  history: readonly string[]
-  pinned: PinnedTabs
-}
-
 /**
  * The layout's field of what the conversation's tabs were shown in, newest
  * last, which each window shows its newest of: one record for every device.
@@ -132,16 +126,18 @@ function queryAddress(query: LocationQuery): WorkAddress {
 /**
  * The work's state per conversation, for the page's lifetime.
  *
- * - While the page's address shows a conversation, the address is the one
- *   source of what its work shows (`@demicodes/web-ui/agent/work-address`):
- *   the state is read from it, never written beside it. A move of the work
- *   is a move of the address, a step of the web browser's history unless it
- *   only changes how the same place is seen or corrects the address in
- *   place; a move that joins one on its way keeps it a step, and a kind's
- *   default, such as the view a file shows in, is written in the same move.
+ * - The windows alone say which is in front (`SessionWindows.vue`). While
+ *   the page's address shows a conversation, it names the tab of the work's
+ *   window in front as they last said (`inFront`), a step of the web
+ *   browser's history unless a close or a correction writes it in place, or
+ *   it only changes how the same place is seen; a move that joins one on its
+ *   way keeps it a step.
+ * - What asks for a tab from outside the windows, a pill, a link, a kind's
+ *   `shows`, a plugin, or a navigation of the history the store did not
+ *   write, is a request they take once its tab's window can show it. An
+ *   address naming a tab the work does not have is corrected in place.
  * - A show of a tab the first read of the tabs brings happened before the
- *   page read them, and never overrides an address that names what the
- *   windows show.
+ *   page read them, and never overrides an address that names a tab.
  * - What the tabs were shown in, newest last, is the conversation's, kept in
  *   its layout with its windows (`recent`), so every device shows each window
  *   on the same tab; a phone keeps its own in memory, as it writes no layout.
@@ -173,11 +169,15 @@ export const useWork = defineStore('work', () => {
    */
   const unwritten = reactive(new Map<string, readonly string[]>())
   /**
-   * The tab of each conversation a selection named before the work had it,
-   * as the stop of the watch that selects it once it arrives: a page's tab
-   * reaches the work only after the plugin that opened it asked for it.
+   * What each conversation's windows have yet to take: the newest request
+   * only, as a later one overrides it. A page's tab may reach the work only
+   * after the plugin that opened it asked for it, and the request waits.
    */
-  const awaited = new Map<string, () => void>()
+  const requests = reactive(new Map<string, WorkRequest>())
+  /** The number of the last request made. */
+  let requested = 0
+  /** The tab of each conversation's work window in front, as its windows last said; none while none is. */
+  const fronts = new Map<string, string | null>()
   const phone = usePhone()
   /** The conversation the page shows, as the frame tells it (`shown`). */
   let shownId: string | null = null
@@ -219,7 +219,7 @@ export const useWork = defineStore('work', () => {
         readBefore = created.read
         applyShows(conversationId, created.revision, current, firstRead)
         writeUnwritten(conversationId)
-        settle(conversationId)
+        settleRequest(conversationId)
       })
       tabs = created
     }
@@ -262,20 +262,11 @@ export const useWork = defineStore('work', () => {
     return product.snapshot !== null && (!recorded(conversationId) || tabsOf(conversationId).read)
   }
 
-  /** The selection the conversation's address names, while the work has it or may have it once read. */
-  function namedSelection(conversationId: string): string | null {
-    const shown = addressOf(conversationId)
-    const selection = shown ? addressSelection(shown.address) : null
-    if (selection === null) {
-      return null
-    }
-    return has(conversationId, selection) || !ready(conversationId) ? selection : null
-  }
-
-  /** Whether the work has the tab `id`: one of its tabs or a pinned kind. */
+  /** Whether a window can show the tab `id`: a pinned kind, or a tab of the work that a kind on reads. */
   function has(conversationId: string, id: string): boolean {
-    return kinds().some((kind) => kind.pinned && kind.kind === id)
-      || tabsOf(conversationId).tabs.value.some((tab) => tab.id === id)
+    const shown = kinds()
+    return shown.some((kind) => kind.pinned && kind.kind === id)
+      || tabsOf(conversationId).tabs.value.some((tab) => tab.id === id && readTab(tab, shown) !== null)
   }
 
   /** What the tabs were shown in, newest last: the layout's order, with what this page showed and did not write over it. */
@@ -319,54 +310,114 @@ export const useWork = defineStore('work', () => {
     }
   }
 
-  /** The conversation's work as its view's state says now. */
-  function viewOf(conversationId: string): WorkView {
-    const state = stateFor(conversationId)
-    return { open: state.open, history: state.history, pinned: state.pinned }
+  /**
+   * Asks the conversation's windows for the tab `tab`, or none, in place of
+   * what they have yet to take: a tab the work does not have yet shows once
+   * it arrives.
+   */
+  function request(conversationId: string, tab: string | null, fromAddress = false): void {
+    requested += 1
+    requests.set(conversationId, { id: requested, tab, fromAddress })
+  }
+
+  /** The windows took the request `id`. */
+  function took(conversationId: string, id: number): void {
+    if (requests.get(conversationId)?.id === id) {
+      requests.delete(conversationId)
+    }
   }
 
   /**
-   * Keeps what the address shows, for when it shows the conversation again
-   * without saying so, and has the address say what the windows show where it
-   * names what the work does not have or did not say what it shows.
+   * Drops a request the address made for a tab no window can show, once the
+   * page knows what the work has, and writes in place what the windows show.
    */
-  function settle(conversationId: string): void {
-    if (!addressOf(conversationId)) {
-      return
+  function settleRequest(conversationId: string): void {
+    const asked = requests.get(conversationId)
+    if (asked?.fromAddress && asked.tab !== null && ready(conversationId) && !has(conversationId, asked.tab)) {
+      requests.delete(conversationId)
+      writeAddress(conversationId, 'replace')
     }
-    move(conversationId, viewOf(conversationId), 'correct')
   }
 
   /**
-   * The work moved to `next`: kept, and, while the address shows the
-   * conversation, written into it as a step of the history (`push`), in
-   * its place (`replace`), or in its place once the page can judge what the
-   * address names (`correct`).
+   * The windows say `tab` is in front, or none: the address names it, in
+   * place for their first word since the conversation came on screen and
+   * for a close, a step of the history otherwise.
    */
-  function move(conversationId: string, next: WorkView, how: 'push' | 'replace' | 'correct'): void {
-    // Another tab selected, by the user or the product, overrides a selection
-    // that still waits for its tab; a correction of the address selects
-    // nothing of its own.
-    if (how !== 'correct' && next.history.at(-1) !== viewOf(conversationId).history.at(-1)) {
-      stopAwaiting(conversationId)
-    }
-    keepHistory(conversationId, next.history)
-    if (keptPinned.get(conversationId) !== next.pinned) {
-      keptPinned.set(conversationId, next.pinned)
-    }
+  function inFront(conversationId: string, tab: string | null, cause: FrontCause): void {
+    fronts.set(conversationId, tab)
+    writeAddress(conversationId, cause === 'moved' ? 'push' : 'replace')
+  }
+
+  /** The user picked `tab` in its window: the newest it showed. */
+  function pick(conversationId: string, tab: string): void {
+    keepHistory(conversationId, selectTab(historyOf(conversationId), tab))
+  }
+
+  /**
+   * While the address shows the conversation, writes into it the tab the
+   * windows last said is in front, with its pinned kind's place: a step of
+   * the history (`push`) or in place of the shown one (`replace`). An address
+   * that says the same already, but that the work did not write, is marked
+   * in place.
+   */
+  function writeAddress(conversationId: string, how: 'push' | 'replace'): void {
     const shown = addressOf(conversationId)
     if (!router || !shown) {
       return
     }
-    const view = { tabsState: { history: next.history, tabs: tabsOf(conversationId).tabs.value }, pinned: next.pinned }
-    const written = workAddress(next.open, view, kinds())
-    if (shown.marked && sameAddress(written, shown.address)) {
+    const written = workAddress(fronts.get(conversationId) ?? null, keptPinned.get(conversationId) ?? NO_PINNED, kinds())
+    if (sameAddress(written, shown.address)) {
+      if (!shown.marked) {
+        navigate(shown, written, 'replace')
+      }
       return
     }
-    if (how === 'correct' && !ready(conversationId)) {
+    navigate(shown, written, how)
+  }
+
+  /**
+   * A navigation the work did not write, such as Back, Forward or a link: a
+   * tab it names is asked of the windows, with its pinned kind's place; an
+   * entry the work wrote that names none puts the work's windows away; an
+   * address nobody marked that names none leaves them as the layout says.
+   */
+  function navigated(shown: ShownAddress): void {
+    const conversationId = shown.conversation
+    const tab = addressSelection(shown.address)
+    if (tab === null) {
+      if (shown.marked) {
+        request(conversationId, null, true)
+      } else {
+        writeAddress(conversationId, 'replace')
+      }
       return
     }
-    navigate(shown, written, how === 'push' ? 'push' : 'replace')
+    if (ready(conversationId) && !has(conversationId, tab)) {
+      writeAddress(conversationId, 'replace')
+      return
+    }
+    readPlace(shown)
+    request(conversationId, tab, true)
+  }
+
+  /**
+   * Keeps the place the address names for its pinned kind, such as the
+   * change Changes shows: read again once the pages the user has on are
+   * known, as a page that opens on the address knows them only after.
+   */
+  function readPlace(shown: ShownAddress): void {
+    const tab = addressSelection(shown.address)
+    const kind = kinds().find((candidate) => candidate.pinned && candidate.kind === tab)
+    if (!kind?.place) {
+      return
+    }
+    const kept = keptPinned.get(shown.conversation) ?? NO_PINNED
+    const current = pinnedData(kept, kind)
+    const data = placeData(kind, shown.address, current)
+    if (data !== current) {
+      keptPinned.set(shown.conversation, { ...kept, [kind.kind]: data })
+    }
   }
 
   /**
@@ -463,10 +514,12 @@ export const useWork = defineStore('work', () => {
     if (firstRead && shown && addressSelection(shown.address) !== null) {
       return
     }
-    const view = viewOf(conversationId)
-    const history = pending.shown.reduce<readonly string[]>((selected, id) => selectTab(selected, id), view.history)
-    const open = view.open || !phone.value || whileLooking
-    move(conversationId, { ...view, history, open }, 'push')
+    keepHistory(conversationId, pending.shown.reduce<readonly string[]>((selected, id) => selectTab(selected, id), historyOf(conversationId)))
+    const last = pending.shown.at(-1)
+    const anyInFront = (fronts.get(conversationId) ?? null) !== null
+    if (last !== undefined && (!phone.value || whileLooking || anyInFront)) {
+      request(conversationId, last)
+    }
   }
 
   /**
@@ -474,47 +527,34 @@ export const useWork = defineStore('work', () => {
    * windows show from here on opens it on a phone.
    */
   function shown(conversationId: string | null): void {
+    // A conversation off screen has no windows to say what is in front.
+    if (shownId !== null && shownId !== conversationId) {
+      fronts.delete(shownId)
+    }
     shownId = conversationId
     const revision = conversationId === null ? -1 : (tabsByConversation.get(conversationId)?.revision ?? -1)
     seenRevision = revision >= 0 ? revision : null
   }
 
-  /**
-   * The conversation's work as it shows: while the address shows the
-   * conversation, what the address says over what was kept; otherwise what
-   * was kept.
-   */
+  /** The conversation's work as it shows. */
   function stateFor(conversationId: string): WorkState {
     if (!states.has(conversationId)) {
       const tabs = tabsOf(conversationId)
       states.set(conversationId, {
-        // Only an address names a tab in front; without one the layout says what stands in front.
-        get open(): boolean {
-          const shownNow = addressOf(conversationId)
-          return shownNow !== null && addressSelection(shownNow.address) !== null
-        },
         get history(): readonly string[] {
-          const kept = historyOf(conversationId)
-          const selection = namedSelection(conversationId)
-          return selection === null || kept.at(-1) === selection ? kept : selectTab(kept, selection)
+          return historyOf(conversationId)
         },
         get pinned(): PinnedTabs {
-          const kept = keptPinned.get(conversationId) ?? {}
-          const shownNow = addressOf(conversationId)
-          const selection = namedSelection(conversationId)
-          const kind = kinds().find((candidate) => candidate.pinned && candidate.kind === selection)
-          if (!shownNow || !kind?.place) {
-            return kept
-          }
-          const current = pinnedData(kept, kind)
-          const data = placeData(kind, shownNow.address, current)
-          return data === current ? kept : { ...kept, [kind.kind]: data }
+          return keptPinned.get(conversationId) ?? NO_PINNED
         },
         get tabsState(): TabsState {
           return { history: this.history, tabs: tabs.tabs.value }
         },
         get tabsRead(): boolean {
           return tabs.read
+        },
+        get request(): WorkRequest | null {
+          return requests.get(conversationId) ?? null
         },
       })
     }
@@ -547,20 +587,26 @@ export const useWork = defineStore('work', () => {
     },
     { immediate: true, flush: 'sync' },
   )
-  // The pages the user has on say what an address names: a change of them reads the address again.
+  // The pages the user has on say what an address names: a change of them
+  // reads the place of its request and judges the request again.
   watch(
     () => product.snapshot === null ? null : kinds().map((kind) => kind.kind).join(),
     () => {
-      if (address.value) {
-        settle(address.value.conversation)
+      const shown = address.value
+      if (!shown) {
+        return
       }
+      if (requests.get(shown.conversation)?.fromAddress) {
+        readPlace(shown)
+      }
+      settleRequest(shown.conversation)
     },
   )
 
   /**
-   * Holds the work in `next`'s address: each navigation the router ends on
-   * a conversation shows that conversation's work as its address says.
-   * Returns what lets go of it.
+   * Holds the work in `next`'s address: a navigation the router ends on a
+   * conversation that the work did not write asks its windows for what the
+   * address names (`navigated`). Returns what lets go of it.
    */
   function attach(next: Router): () => void {
     router = next
@@ -568,10 +614,11 @@ export const useWork = defineStore('work', () => {
       if (failure) {
         return
       }
+      const ours = moving !== null
       moving = null
       address.value = routeAddress(to)
-      if (address.value) {
-        settle(address.value.conversation)
+      if (!ours && address.value) {
+        navigated(address.value)
       }
     })
     return () => {
@@ -590,11 +637,9 @@ export const useWork = defineStore('work', () => {
 
   /** The web browser's Back or Forward, as the work's address bar takes it. */
   function go(direction: HistoryDirection): void {
-    // Back and Forward select what the address names, overriding a
-    // selection that still waits for its tab.
-    for (const conversationId of [...awaited.keys()]) {
-      stopAwaiting(conversationId)
-    }
+    // Back and Forward ask for what the address names, in place of a request
+    // that still waits for its tab.
+    requests.clear()
     if (direction === 'back') {
       router?.back()
     } else {
@@ -624,37 +669,6 @@ export const useWork = defineStore('work', () => {
     }
   }
 
-  /** The address names no tab in front, as no window of the work is, a step of the history. */
-  function noneInFront(conversationId: string): void {
-    move(conversationId, { ...viewOf(conversationId), open: false }, 'push')
-  }
-
-  function stopAwaiting(conversationId: string): void {
-    awaited.get(conversationId)?.()
-    awaited.delete(conversationId)
-  }
-
-  /**
-   * Selects the tab `id`; one the work does not have yet is selected once it
-   * arrives, unless another tab is selected first. Written into the address
-   * before it arrives, it would yield to the tab the address can name.
-   */
-  function select(conversationId: string, id: string, how: 'push' | 'replace' = 'push'): void {
-    stopAwaiting(conversationId)
-    if (!has(conversationId, id)) {
-      const stop = watch(() => has(conversationId, id), (arrived) => {
-        if (arrived) {
-          stopAwaiting(conversationId)
-          select(conversationId, id, how)
-        }
-      })
-      awaited.set(conversationId, stop)
-      return
-    }
-    const view = viewOf(conversationId)
-    move(conversationId, { ...view, open: true, history: selectTab(view.history, id) }, how)
-  }
-
   /**
    * A new tab, after the others or at `options.index` among them, selected
    * unless `options` says not, with its window brought to the front; returns its id.
@@ -668,8 +682,7 @@ export const useWork = defineStore('work', () => {
     const id = crypto.randomUUID()
     tabsOf(conversationId).change({ type: 'create', tab: { id, kind, data }, index: options.index })
     if (options.select) {
-      const view = viewOf(conversationId)
-      move(conversationId, { ...view, open: true, history: selectTab(view.history, id) }, 'push')
+      request(conversationId, id)
     }
     return id
   }
@@ -685,36 +698,49 @@ export const useWork = defineStore('work', () => {
   }
 
   /**
-   * Closes the tabs `ids`; the windows show what was selected before a closed
-   * one, and the address says so in its place.
+   * Closes the tabs `ids`: each window shows the newest of its own tabs left,
+   * and one left with none closes; the windows then say what is in front.
    */
   function closeTabs(conversationId: string, ids: string[]): void {
-    const view = { ...viewOf(conversationId) }
-    closeWorkTabs(view, tabsOf(conversationId), ids)
-    move(conversationId, view, 'replace')
+    const selection = { history: historyOf(conversationId) }
+    closeWorkTabs(selection, tabsOf(conversationId), ids)
+    keepHistory(conversationId, selection.history)
+    const asked = requests.get(conversationId)
+    if (asked?.tab != null && ids.includes(asked.tab)) {
+      requests.delete(conversationId)
+    }
   }
 
-  /** A pinned tab's data, as its kind replaces it: a move to another place unless `how` says it is none. */
+  /** A pinned tab's data, as its kind replaces it: in front, a move to another place unless `how` says it is none. */
   function updatePinned(conversationId: string, kind: string, data: unknown, how?: TabUpdate): void {
-    const view = viewOf(conversationId)
-    move(conversationId, { ...view, pinned: { ...view.pinned, [kind]: data } }, how?.replace ? 'replace' : 'push')
+    keptPinned.set(conversationId, { ...(keptPinned.get(conversationId) ?? NO_PINNED), [kind]: data })
+    if (fronts.get(conversationId) === kind) {
+      writeAddress(conversationId, how?.replace ? 'replace' : 'push')
+    }
   }
 
   /**
    * Opens an intent in the conversation's work (`packages/web-ui/src/plugins/intents.ts`): the
-   * kind that opens it shows it, in its pinned tab or a new one, which takes the selection, with
-   * its window brought to the front. What the windows already show stays as it is (`openIntent`).
+   * kind that opens it shows it, in its pinned tab or a new one, whose window is asked to the
+   * front on it. What the windows already show stays as it is (`openIntent`).
    */
-  function openIn(conversationId: string, request: IntentRequest): void {
+  function openIn(conversationId: string, intent: IntentRequest): void {
     const state = stateFor(conversationId)
-    const opened = openIntent(state, PLUGIN_PAGES, enabled, request)
+    const front = fronts.get(conversationId) ?? null
+    const opened = openIntent(state, PLUGIN_PAGES, enabled, intent, front)
     if (!opened) {
       return
     }
     if (opened.created) {
       tabsOf(conversationId).change({ type: 'create', tab: opened.created })
     }
-    move(conversationId, { open: true, history: selectTab(state.history, opened.selection), pinned: opened.pinned }, 'push')
+    if (opened.pinned !== state.pinned) {
+      keptPinned.set(conversationId, opened.pinned)
+      if (front === opened.selection) {
+        writeAddress(conversationId, 'push')
+      }
+    }
+    request(conversationId, opened.selection)
   }
 
   /** Whether any page the user has on opens `intent`. */
@@ -737,9 +763,11 @@ export const useWork = defineStore('work', () => {
     recorded,
     shown,
     attach,
-    noneInFront,
     load,
-    select,
+    request,
+    took,
+    inFront,
+    pick,
     add,
     move: moveTab,
     update,

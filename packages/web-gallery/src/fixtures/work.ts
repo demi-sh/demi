@@ -6,7 +6,6 @@ import { WorkTabs, closeWorkTabs, updateWorkTab } from '@demicodes/web-ui/agent/
 import {
   openIntent,
   pendingShows,
-  shownSelection,
   type AppliedShows,
   type TabsState,
   type PinnedTabs,
@@ -14,6 +13,8 @@ import {
 import { selectTab } from '@demicodes/web-ui/agent/tab-close'
 import type { RequestEditSelection } from '@demicodes/web-ui/files/request-changes'
 import type { IntentRequest } from '@demicodes/web-ui/plugins/intents'
+import type { FrontCause, WorkRequest } from '@demicodes/web-ui/windows/session-work'
+import { readTab } from '@demicodes/web-ui/agent/tab-kinds/kind'
 import type { TabUpdate } from '@demicodes/web-ui/plugins/page'
 import { disposePluginStores } from '@demicodes/web-ui/plugins/stores'
 import {
@@ -87,7 +88,7 @@ export function useGalleryWork(
   selection: string | null,
   { files, browser = galleryBrowser(), screen, pictures, pages, open: startsOpen = true }: {
     files: ConversationFileService
-    /** Whether a window starts in front, the first step of its history: a phone's starts closed, over the conversation. */
+    /** Whether the windows are asked for `selection` at the start: a phone's shows the conversation instead. */
     open?: boolean
     browser?: GalleryBrowser
     /** The screen the simulators show in place of the gallery's own. */
@@ -140,34 +141,70 @@ export function useGalleryWork(
   const history = ref<readonly string[]>(selection === null ? [] : [selection])
   const pinned = ref<PinnedTabs>({})
   const tabsState = computed<TabsState>(() => ({ history: history.value, tabs: tabs.tabs.value }))
-  /** Whether the address names a tab, whose window shows in front; a tab its kind asks to show names it. */
-  const open = ref(startsOpen)
+  /** The tab of the work's window in front, as the windows last said; none while no window of it is. */
+  const front = ref<string | null>(null)
+  /** What the windows have yet to take: a tab to have in front, or none. */
+  const request = ref<WorkRequest | null>(null)
+  let requested = 0
   /**
    * The web browser's history of the address, as the product's keeps it
-   * (`packages/web-ui/src/agent/work-address.ts`): each move is a step, and
-   * Back and Forward show the work as it was there.
+   * (`packages/web-ui/src/agent/work-address.ts`): what the windows say is in
+   * front is a step, and Back and Forward ask the windows for the tab there.
    */
-  const steps = galleryHistory(() => ({ open: open.value, history: history.value, pinned: pinned.value }), (step) => {
-    open.value = step.open
-    history.value = step.history
-    pinned.value = step.pinned
-  })
-
-  function select(id: string, how: 'push' | 'replace' = 'push') {
-    history.value = selectTab(history.value, id)
-    open.value = true
-    if (how === 'replace') {
+  const steps = galleryHistory(() => ({ open: front.value !== null, front: front.value, pinned: pinned.value }), (step) => {
+    // A step whose tab closed since says in its place what the windows show, as the product's address does.
+    if (step.front !== null && !canShow(step.front)) {
       steps.replace()
-    } else {
-      steps.step()
+      return
+    }
+    pinned.value = step.pinned
+    ask(step.front, true)
+  })
+  /** The windows' next word starts the history over, as a specimen's Reset does. */
+  let restarting = false
+
+  /** Whether a window can show the tab `id`: a pinned kind, or a tab a kind on reads. */
+  function canShow(id: string): boolean {
+    return kinds.value.some((kind) => kind.pinned && kind.kind === id)
+      || tabs.tabs.value.some((tab) => tab.id === id && readTab(tab, kinds.value) !== null)
+  }
+  function ask(tab: string | null, fromAddress = false) {
+    requested += 1
+    request.value = { id: requested, tab, fromAddress }
+  }
+  /** Asks the windows to bring the tab `id` to the front on it, once the work has it. */
+  function select(id: string) {
+    ask(id)
+  }
+  /** The windows took the request `id`. */
+  function took(id: number) {
+    if (request.value?.id === id) {
+      request.value = null
     }
   }
-  /** The address names no tab: no window of the work is in front. */
-  function close() {
-    if (open.value) {
-      open.value = false
+  /**
+   * The windows say `tab` is in front, or none, as the product's address
+   * says it: in place for their first word and for a close, a step of the
+   * history otherwise.
+   */
+  function inFront(tab: string | null, cause: FrontCause) {
+    front.value = tab
+    if (restarting) {
+      restarting = false
+      steps.reset()
+    } else if (cause === 'moved') {
       steps.step()
+    } else {
+      steps.replace()
     }
+  }
+  /** The user picked `tab` in its window: the newest it showed. */
+  function pick(tab: string) {
+    history.value = selectTab(history.value, tab)
+  }
+  // The specimen opens on `selection` as the product opens on an address naming it.
+  if (startsOpen && selection !== null) {
+    ask(selection, true)
   }
   /** Each tab's showings the windows applied, as the product keeps them beside the history. */
   let applied: AppliedShows = {}
@@ -213,15 +250,19 @@ export function useGalleryWork(
   function update(id: string, data: unknown) {
     updateWorkTab(tabs, id, data)
   }
+  /** A pinned tab's data: a step of the history while its window is in front, unless `how` says it is none. */
   function updatePinned(kind: string, data: unknown, how?: TabUpdate) {
     pinned.value = { ...pinned.value, [kind]: data }
+    if (front.value !== kind) {
+      return
+    }
     if (how?.replace) {
       steps.replace()
     } else {
       steps.step()
     }
   }
-  /** Closed tabs go at once; the window shows what was selected before a closed one. */
+  /** Closed tabs go at once; each window shows the newest of its own tabs left. */
   function closeTabs(ids: string[]) {
     const selection = {
       get history() {
@@ -232,15 +273,22 @@ export function useGalleryWork(
       },
     }
     closeWorkTabs(selection, tabs, ids)
-    steps.replace()
+    if (request.value?.tab != null && ids.includes(request.value.tab)) {
+      request.value = null
+    }
   }
   /** Opens an intent as the product's work store does: what the windows already show stays as it is. */
-  function openIn(request: IntentRequest) {
-    const opened = openIntent({ tabsState: tabsState.value, pinned: pinned.value }, shown, enabled, request)
+  function openIn(intent: IntentRequest) {
+    const opened = openIntent({ tabsState: tabsState.value, pinned: pinned.value }, shown, enabled, intent, front.value)
     if (!opened) {
       return
     }
-    pinned.value = opened.pinned
+    if (opened.pinned !== pinned.value) {
+      pinned.value = opened.pinned
+      if (front.value === opened.selection) {
+        steps.step()
+      }
+    }
     if (opened.created) {
       tabs.change({ type: 'create', tab: opened.created })
     }
@@ -263,6 +311,16 @@ export function useGalleryWork(
     },
   })
   const kinds = useBoundKinds(() => shown.filter((page) => enabled(page.plugin)), host, () => CONVERSATION)
+  // A request the address made for a tab no window can show is dropped, and
+  // the step says in its place what the windows show, as the product's work
+  // store settles it.
+  watch([request, () => tabs.tabs.value, kinds], ([asked]) => {
+    if (asked?.fromAddress && asked.tab !== null && !canShow(asked.tab)) {
+      request.value = null
+      restarting = false
+      steps.replace()
+    }
+  })
   /**
    * Turns `plugin` on or off while its window is open, as the user does in
    * Settings: turned off, the backend closes its kinds' tabs in the work and
@@ -288,9 +346,6 @@ export function useGalleryWork(
     }
     disposePluginStores(host.pinia, pluginId)
   }
-  /** What the windows show, as their strips mark it. */
-  const selected = computed(() => shownSelection(tabsState.value, kinds.value))
-
   /** A file pill, through the `edit` intent. */
   function selectEdit(edit: RequestEditSelection) {
     openIn({ intent: 'edit', payload: edit })
@@ -300,7 +355,12 @@ export function useGalleryWork(
     closeTabs(tabs.tabs.value.map((tab) => tab.id))
     history.value = selection === null ? [] : [selection]
     pinned.value = {}
-    steps.reset()
+    if (startsOpen && selection !== null) {
+      restarting = true
+      ask(selection, true)
+    } else {
+      steps.reset()
+    }
   }
   /**
    * The agent shows `tab` with `demi browser show`: the browser tells the
@@ -321,10 +381,12 @@ export function useGalleryWork(
   return {
     tabsState,
     pinned,
-    open,
-    close,
     kinds,
-    selected,
+    front,
+    request,
+    took,
+    inFront,
+    pick,
     browser,
     mobile,
     agentShows,
