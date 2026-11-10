@@ -17,7 +17,9 @@ import type { ConversationSchedule } from './types'
  * the pointer rests on it, as the system buttons beside it show theirs, and
  * the menu goes once the pointer has left both. With no schedule left, the
  * button and its menu go. It is open when `open` says so: a schedule's name
- * in the transcript opens it, and it stays until a click elsewhere.
+ * in the transcript opens it, and it stays until a click elsewhere. A menu
+ * that resting opens is a glance, as the system buttons' are, so the button
+ * wears no window's mark under it while it shows.
  */
 defineProps<{
   schedules: readonly ConversationSchedule[]
@@ -82,7 +84,7 @@ onBeforeUnmount(stay)
       <TaskbarButton
         :icon="AlarmClock"
         :count="schedules.length"
-        :state="isOpen ? 'front' : 'closed'"
+        state="closed"
         fixed
         :aria-label="t('name')"
         :aria-expanded="isOpen"
