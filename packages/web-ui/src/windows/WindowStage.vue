@@ -434,8 +434,14 @@ watch(() => ({ model: props.model, placed: state.value.windows.map((window) => [
 
 defineExpose({ opening, measured })
 
-/** The keys a field takes for itself, Escape among them. */
-const FIELD = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]'
+/**
+ * The keys a field takes for itself, Escape among them. A read-only text,
+ * such as a file's or a change's, is editable to the browser so its text
+ * can be selected and searched, but takes no keys a window needs: Escape
+ * there is the window's, once the text's own use of it, such as closing its
+ * search bar, did not take it.
+ */
+const FIELD = 'input, textarea, select, [contenteditable=""]:not([aria-readonly="true"]), [contenteditable="true"]:not([aria-readonly="true"])'
 
 useEventListener(document, 'keydown', (event: KeyboardEvent) => {
   if (event.key !== 'Escape' || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || moving.value) {
