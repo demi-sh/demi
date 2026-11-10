@@ -4,7 +4,6 @@
   "switcher": "Switch Workspace",
   "new": "New Workspace",
   "settings": "Workspace Settings…",
-  "needsYou": "Something in another workspace needs you",
   "moveTo": "Move To",
   "title": "Workspaces",
   "description": "Each keeps its own conversations and projects. Settings are the same in every workspace.",

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { SerialQueue } from '@demicodes/utils'
 import { reportError } from '@demicodes/web-ui/infra/errors'
 import { newWorkspaceName, type WorkspaceView } from '@demicodes/web-ui/workspaces/workspaces'
+import { groupDot, type DotSource } from '@demicodes/web-ui/sidebar/conversation-dot'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   workspaceAnswerSchema,
@@ -13,6 +14,7 @@ import {
   type WorkspaceOrder,
 } from '../api/generated/web-api'
 import { useConversations } from '../conversation/store'
+import type { Conversation } from './types'
 import { t } from './locales/text'
 import { known, useProduct } from './product'
 import { useResources } from './resources'
@@ -59,16 +61,27 @@ export const useWorkspaces = defineStore('workspaces', () => {
     return list.value[0]?.id ?? null
   })
 
-  /** The workspaces with a conversation that waits for the user, as its sidebar row's dot says. */
-  const attention = computed((): string[] => {
-    const conversations = useConversations()
-    const waiting = new Set<string>()
-    for (const item of conversations.items) {
-      if (!item.archived && (item.needsYou || item.unread)) {
-        waiting.add(item.workspaceId)
+  /** The conversation whose dot each workspace's tile carries (`groupDot`), by workspace; a workspace without one is absent. */
+  const dots = computed((): Readonly<Record<string, DotSource>> => {
+    const byWorkspace = new Map<string, Conversation[]>()
+    for (const item of useConversations().items) {
+      if (!item.archived) {
+        const items = byWorkspace.get(item.workspaceId)
+        if (items) {
+          items.push(item)
+        } else {
+          byWorkspace.set(item.workspaceId, [item])
+        }
       }
     }
-    return list.value.filter((workspace) => waiting.has(workspace.id)).map((workspace) => workspace.id)
+    const found: Record<string, DotSource> = {}
+    for (const [workspaceId, items] of byWorkspace) {
+      const conversation = groupDot(items, null)
+      if (conversation) {
+        found[workspaceId] = conversation
+      }
+    }
+    return found
   })
 
   /** Remembers `conversation` as the one this browser last showed in its workspace. */
@@ -239,5 +252,5 @@ export const useWorkspaces = defineStore('workspaces', () => {
     settleDrafts,
   )
 
-  return { shownConversation, selected, naming, list, current, attention, showed, landing, chose, create, change, reorder, remove, move }
+  return { shownConversation, selected, naming, list, current, dots, showed, landing, chose, create, change, reorder, remove, move }
 })

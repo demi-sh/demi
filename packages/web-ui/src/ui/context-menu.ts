@@ -50,6 +50,8 @@ import type { DraftMessage, MessageFiles } from '../agent/comments/comments'
 
 /** One row of a context menu: what it says and what choosing it does. */
 export interface ContextMenuEntry {
+  /** What tells the row from the others when its label may repeat, such as a workspace's ID; the label otherwise. */
+  id?: string
   icon?: Component
   label: TitleText
   shortcut?: string
@@ -57,6 +59,11 @@ export interface ContextMenuEntry {
   /** Why it is disabled, as its tooltip. */
   disabledReason?: SentenceText
   danger?: boolean
+  /**
+   * The row is one of a set, with a check at its end while it is the one in
+   * effect, as a workspace menu's; choosing it closes the menu as any row does.
+   */
+  checked?: boolean
   /**
    * What choosing the row does, which may return the promise of its work:
    * its menu row shows it working and reports its failure as a control's

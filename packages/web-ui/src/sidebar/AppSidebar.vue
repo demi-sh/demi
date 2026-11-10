@@ -32,7 +32,7 @@ import { plainConversations, projectGroups } from './group-conversations'
 import { useSidebarDrag } from './useSidebarDrag'
 import { reorderPeers } from './reorder'
 import { listLines, type SidebarGroup } from './list-model'
-import { mostUrgentNews } from './conversation-dot'
+import { groupDot, type DotSource } from './conversation-dot'
 import { useSidebarList } from './useSidebarList'
 import SidebarAccountRow from './SidebarAccount.vue'
 import SidebarGroupLabel from './SidebarGroupLabel.vue'
@@ -95,8 +95,8 @@ const props = defineProps<{
   workspaces?: readonly WorkspaceView[]
   /** The workspace the lists are of. */
   workspaceId?: string | null
-  /** The workspaces with a conversation that waits for the user. */
-  workspaceAttention?: readonly string[]
+  /** The conversation whose dot each workspace's tile carries, by workspace (`groupDot`). */
+  workspaceDots?: Readonly<Record<string, DotSource>>
   /** The keys that switch to the workspace at each place of the list. */
   workspaceShortcuts?: readonly (string | undefined)[]
 }>()
@@ -182,11 +182,11 @@ const byId = keptComputed(
 )
 const projectById = computed(() => new Map(props.projects.map((project) => [project.id, project])))
 /** The dot each folded project's row carries for the conversations its fold hides. */
-const foldedProjectNews = computed(() => new Map(groups.value.flatMap((group) => {
+const foldedProjectDots = computed(() => new Map(groups.value.flatMap((group) => {
   if (!isFolded(group.project.id))
     return []
-  const news = mostUrgentNews(group.items, props.activeId)
-  return news ? [[group.project.id, news] as const] : []
+  const found = groupDot(group.items, props.activeId)
+  return found ? [[group.project.id, found] as const] : []
 })))
 /** The projects whose row names its device, since a project of the same name runs on another. */
 const qualifiers = keptComputed(() => projectQualifiers(shownProjects.value))
@@ -202,7 +202,7 @@ const groupLabels = computed(() => {
       group,
       text,
       folded,
-      news: folded ? mostUrgentNews(conversations, props.activeId) : null,
+      dot: folded ? groupDot(conversations, props.activeId) : null,
     }
   }
   return {
@@ -656,7 +656,7 @@ function selectProjectConversations(project: SidebarProject): void {
       <WorkspaceSwitcher
         :workspaces="workspaces"
         :current-id="workspaceId ?? null"
-        :attention="workspaceAttention ?? []"
+        :dots="workspaceDots ?? {}"
         :shortcuts="workspaceShortcuts"
         @switch="emit('switchWorkspace', $event)"
         @create="emit('createWorkspace')"
@@ -772,7 +772,7 @@ function selectProjectConversations(project: SidebarProject): void {
               v-if="entry.kind === 'heading'"
               :label="entry.text"
               :folded="entry.folded"
-              :news="entry.news"
+              :dot="entry.dot"
               @toggle="toggleGroup(entry.group)"
             >
               <template #action>
@@ -813,7 +813,7 @@ function selectProjectConversations(project: SidebarProject): void {
                 :project="projectById.get(entry.id)!"
                 :qualifier="qualifiers.get(entry.id)"
                 :collapsed="isFolded(entry.id)"
-                :news="foldedProjectNews.get(entry.id) ?? null"
+                :dot="foldedProjectDots.get(entry.id) ?? null"
                 :focused="list.keyboardNav.value && list.focusedId.value === entry.id"
                 :menu="projectMenu"
                 @toggle="list.onProjectClick"

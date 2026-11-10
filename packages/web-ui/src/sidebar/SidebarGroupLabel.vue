@@ -3,7 +3,7 @@ import FoldChevron from '@demicodes/web-ui/ui/FoldChevron.vue'
 import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
 import CapCentered from '@demicodes/web-ui/ui/CapCentered.vue'
 import ConversationDot from './ConversationDot.vue'
-import type { SidebarConversation } from './types'
+import type { DotSource } from './conversation-dot'
 
 /**
  * A group's label, Conversations or Projects, which folds the group under it as
@@ -13,19 +13,19 @@ import type { SidebarConversation } from './types'
  * - The chevron, in the label's faint color, shows while the pointer is over the
  *   label or the keyboard is on the button, and always on a phone, which has no
  *   hover.
- * - While the group is folded, the most urgent news of the conversations the
- *   fold hides, a failure, a request or a finished turn not read yet, puts its
- *   dot between the label and the chevron, so the chevron, hidden at rest,
- *   leaves no gap. A folded label keeps the dot's room while nothing is new, so
- *   news that comes or goes moves nothing.
+ * - While the group is folded, the dot of the conversations the fold hides
+ *   (`groupDot`), news first and then one that runs, stands between the label
+ *   and the chevron, so the chevron, hidden at rest, leaves no gap. A folded
+ *   label keeps the dot's room while it has none, so a dot that comes or goes
+ *   moves nothing.
  * - The `action` slot holds the group's button at the label's end, such as New
  *   conversation, which shows on hover.
  */
 defineProps<{
   label: string
   folded: boolean
-  /** The conversation whose dot the label carries; none while the group is open or nothing it hides is new. */
-  news: Pick<SidebarConversation, 'status' | 'needsYou' | 'unread'> | null
+  /** The conversation whose dot the label carries; none while the group is open or nothing it hides is new or runs. */
+  dot: DotSource | null
 }>()
 
 const emit = defineEmits<{
@@ -49,7 +49,7 @@ const emit = defineEmits<{
         <span class="truncate">{{ label }}</span>
         <CapCentered v-if="folded">
           <span class="flex size-3.5 shrink-0 phone:size-4">
-            <ConversationDot v-if="news" :conversation="news" />
+            <ConversationDot v-if="dot" :conversation="dot" />
           </span>
         </CapCentered>
         <CapCentered

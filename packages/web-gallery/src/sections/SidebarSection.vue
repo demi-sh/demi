@@ -40,6 +40,9 @@ import { PLUGIN_PAGES } from '../generated/pages'
 import { createSettingsState } from '../fixtures/settings'
 import { galleryPageHost, openExaSignIn, skillsPlugin, webPlugin } from '../fixtures/plugins'
 import { productWould } from '../product-would'
+import WorkspaceSwitcher from '@demicodes/web-ui/workspaces/WorkspaceSwitcher.vue'
+import { groupDot, type DotSource } from '@demicodes/web-ui/sidebar/conversation-dot'
+import type { WorkspaceView } from '@demicodes/web-ui/workspaces/workspaces'
 import HandoffDialog from '@demicodes/web-ui/auth/HandoffDialog.vue'
 import { galleryHandoff } from '../fixtures/handoff'
 import { slow } from '../fixtures/slow'
@@ -66,16 +69,11 @@ const shownConversations = computed(() =>
   ),
 )
 const shownProjects = computed(() => projects.value.filter((project) => inWorkspace(project.id) === workspaceId.value))
-/** The workspaces with a conversation that waits for the user, as their rows' dots say. */
-const workspaceAttention = computed(() =>
-  galleryWorkspaces.list
-    .filter((workspace) =>
-      conversations.value.some((conversation) =>
-        inWorkspace(conversation.projectId ?? conversation.id) === workspace.id && (conversation.needsYou || conversation.unread),
-      ),
-    )
-    .map((workspace) => workspace.id),
-)
+/** The conversation whose dot each workspace's tile carries, as the product finds it. */
+const workspaceDots = computed(() => Object.fromEntries(galleryWorkspaces.list.flatMap((workspace) => {
+  const found = groupDot(conversations.value.filter((conversation) => inWorkspace(conversation.projectId ?? conversation.id) === workspace.id), null)
+  return found ? [[workspace.id, found]] : []
+})))
 const workspaceShortcuts = appShortcuts()
   .filter((shortcut) => shortcut.id.startsWith('workspace'))
   .map((shortcut) => shortcut.keys)
@@ -223,7 +221,7 @@ const anatomy: [string, string][] = [
   ],
   [
     'Projects',
-    'Every directory a conversation runs in but a home, in manual order: moving a conversation to a directory makes its project, and moving it to the home takes it out; the whole group folds under its label (Folded Groups), each ending in the host it lives on as the same mark a conversation’s row ends in (Device Marks): the Cloud icon, or the device’s mark, its system’s logo with a dot, green while the device is online, amber while its runner updates itself, and faint while it is offline. A project shows its device’s name in words only beside another project of the same name on another device: the name stands before the mark, takes its own width, at most half of the text’s, and is cut at its end beyond that; the project’s name takes the rest and is cut only when it does not fit there; each cut name shows whole on hover. On hover the device’s name gives way and New conversation appears to the left of the mark; on a phone, where that button always shows, the name does not show. A project folds, and while a conversation its fold hides has news its row carries that dot after its name, as a folded group’s label does; its header reads as the group: bold, in the emphasis colour, and it sticks under the Projects heading while its rows scroll, which step in under it. A folded project keeps the open conversation under its header, as Slack’s folded sections keep the channel shown, so its place still shows; the fold stays as the user left it. A project shows only while it holds a conversation, the open one included: one whose last conversation is archived or deleted leaves the list (scratch here holds none), and Add project on its folder brings it back with a new conversation.'
+    'Every directory a conversation runs in but a home, in manual order: moving a conversation to a directory makes its project, and moving it to the home takes it out; the whole group folds under its label (Folded Groups), each ending in the host it lives on as the same mark a conversation’s row ends in (Device Marks): the Cloud icon, or the device’s mark, its system’s logo with a dot, green while the device is online, amber while its runner updates itself, and faint while it is offline. A project shows its device’s name in words only beside another project of the same name on another device: the name stands before the mark, takes its own width, at most half of the text’s, and is cut at its end beyond that; the project’s name takes the rest and is cut only when it does not fit there; each cut name shows whole on hover. On hover the device’s name gives way and New conversation appears to the left of the mark; on a phone, where that button always shows, the name does not show. A project folds, and while a conversation its fold hides has news or runs its row carries that dot after its name, as a folded group’s label does; its header reads as the group: bold, in the emphasis colour, and it sticks under the Projects heading while its rows scroll, which step in under it. A folded project keeps the open conversation under its header, as Slack’s folded sections keep the channel shown, so its place still shows; the fold stays as the user left it. A project shows only while it holds a conversation, the open one included: one whose last conversation is archived or deleted leaves the list (scratch here holds none), and Add project on its folder brings it back with a new conversation.'
   ],
   [
     'Row',
@@ -584,6 +582,30 @@ function selectFold(id: string): void {
   foldConversations.value = foldConversations.value.map((c) => (c.id === id ? read(c) : c))
 }
 
+/** Workspaces enough for every count the switcher specimens show, each with its own name, icon and color. */
+const SWITCHER_WORKSPACES: WorkspaceView[] = [
+  { id: 'ws-personal', name: null, icon: 'user', color: 'blue' },
+  { id: 'ws-work', name: 'Work', icon: 'briefcase', color: 'purple' },
+  { id: 'ws-home', name: 'Home', icon: 'house', color: 'green' },
+  { id: 'ws-side', name: 'Side Project', icon: 'code', color: 'amber' },
+  { id: 'ws-launch', name: 'Launch', icon: 'rocket', color: 'red' },
+  { id: 'ws-research', name: 'Research', icon: 'flask', color: 'teal' },
+  { id: 'ws-reading', name: 'Reading', icon: 'book', color: 'pink' },
+  { id: 'ws-design', name: 'Design', icon: 'palette', color: 'slate' },
+]
+/** The counts the switcher is shown at: one, two, a few, as many as fit, and more than fit. */
+const SWITCHER_COUNTS = [1, 2, 3, 4, 6, 8] as const
+/** Each specimen's shown workspace; the last specimen starts at its last, which scrolls it into view. */
+const switcherShown = ref<Record<number, string>>(Object.fromEntries(SWITCHER_COUNTS.map((count) => [count, count === 8 ? 'ws-design' : 'ws-personal'])))
+/** The conversation whose dot each workspace's tile carries: a request, an answer and a failure unread, a model at work, a command awaited. */
+const SWITCHER_DOTS: Readonly<Record<string, DotSource>> = {
+  'ws-work': { status: 'idle', needsYou: true, unread: null },
+  'ws-home': { status: 'done', unread: 'answered' },
+  'ws-side': { status: 'active', unread: null },
+  'ws-research': { status: 'awaiting_commands', unread: null },
+  'ws-reading': { status: 'error', unread: 'failed' },
+}
+
 const statusConversations = ref(statusRows())
 const statusActive = ref<string | null>(null)
 /** The rows a later event lights again, and what lights: an answer, a failure or a request. */
@@ -747,7 +769,7 @@ onBeforeUnmount(() => {
             :update="{ state: 'available', version: '0.1.5500' }"
             :workspaces="galleryWorkspaces.list"
             :workspace-id="workspaceId"
-            :workspace-attention="workspaceAttention"
+            :workspace-dots="workspaceDots"
             :workspace-shortcuts="workspaceShortcuts"
             @switch-workspace="switchWorkspace"
             @create-workspace="createWorkspace"
@@ -830,7 +852,7 @@ onBeforeUnmount(() => {
 
     <GallerySection
       title="Folded Groups"
-      note="Conversations and Projects each fold under their label, as Finder’s sidebar sections do. Click a label, or the chevron after it, which shows while the pointer is over the label and always on a phone: it points down while the group is open and right while it is folded. A folded group shows its label alone, but keeps the open conversation under it, in Projects with its project’s row above it so its place still shows, and while a conversation the fold hides has news, the label carries the dot of the most urgent, red for a failure, then yellow for a request, then green for a finished turn not read yet, between the label and the chevron, so whatever the tab’s title counts has a dot to find; the open conversation shows its own dot. A folded project's row carries the same dot after its name, as dotfiles does once Projects is unfolded. Here Projects starts folded with Cookie helper refactor open, its label green for dotfiles’ finished conversation; Ask for Permission in a Project makes Resize the product photos for the shop wait, and the label turns yellow, until Answer the Request or until it is opened and read, which settles its dot. The product keeps the folded groups per browser, across reloads. Reset gives the specimen its rows and folds again."
+      note="Conversations and Projects each fold under their label, as Finder’s sidebar sections do. Click a label, or the chevron after it, which shows while the pointer is over the label and always on a phone: it points down while the group is open and right while it is folded. A folded group shows its label alone, but keeps the open conversation under it, in Projects with its project’s row above it so its place still shows, and while a conversation the fold hides has news, the label carries the dot of the most urgent, red for a failure, then yellow for a request, then green for a finished turn not read yet, between the label and the chevron, so whatever the tab’s title counts has a dot to find; with no news it carries the accent while one runs, breathing while a model works and steady while only a command is awaited, and turns back to it once the news is read; the open conversation shows its own dot. A folded project's row carries the same dot after its name, as dotfiles does once Projects is unfolded. Here Projects starts folded with Cookie helper refactor open, its label green for dotfiles’ finished conversation; Ask for Permission in a Project makes Resize the product photos for the shop wait, and the label turns yellow, until Answer the Request or until it is opened and read, which settles its dot. The product keeps the folded groups per browser, across reloads. Reset gives the specimen its rows and folds again."
     >
       <div class="specimen-row specimen-row-wide items-start">
         <GallerySpecimen variant="projects folded · live">
@@ -979,6 +1001,27 @@ onBeforeUnmount(() => {
             </div>
           </GallerySpecimen>
         </div>
+      </div>
+    </GallerySection>
+
+    <GallerySection
+      title="Workspace Switcher"
+      note="Under the app’s name, in the sidebar’s width. With one workspace it is the row whose menu makes another. With two and more the workspaces are segments of one track, equally wide, the shown one on a segmented control’s thumb, and a click on another switches: with two each segment has its tile and name, with three and more its tile alone; each segment’s tooltip says the name and the keys that switch to it. When the tiles do not fit, the track scrolls sideways and shows whole tiles and half of the next, its end with more past it faded, and the shown one kept in view. Another workspace’s tile carries on its corner the dot its conversations would carry folded: the most urgent news, red, yellow, then green, and with none the accent while one runs, breathing while a model works; a tile the track hides lends its dot to that end’s corner. Left and Right, Home and End move the focus along the segments, and Return or Space switches to the focused one, as tabs that wait to be chosen do. A right-click opens the row’s own menu: every workspace with its keys and its tile’s dot, a check on the shown one, then New Workspace and Workspace Settings. Click any segment to switch in its specimen."
+    >
+      <div class="specimen-row specimen-row-wide items-start">
+        <GallerySpecimen v-for="count in SWITCHER_COUNTS" :key="count" :variant="count === 1 ? '1 workspace' : `${count} workspaces`">
+          <div class="w-64 rounded-lg bg-surface-base px-2 py-2">
+            <WorkspaceSwitcher
+              :workspaces="SWITCHER_WORKSPACES.slice(0, count)"
+              :current-id="switcherShown[count] ?? null"
+              :dots="SWITCHER_DOTS"
+              :shortcuts="workspaceShortcuts"
+              @switch="(id) => (switcherShown[count] = id)"
+              @create="productWould('Make a New Workspace')"
+              @open-settings="productWould('Open Settings › Workspaces')"
+            />
+          </div>
+        </GallerySpecimen>
       </div>
     </GallerySection>
 
