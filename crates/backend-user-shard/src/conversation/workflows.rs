@@ -1,8 +1,9 @@
 //! A project's workflows on the conversation's device.
 //!
 //! A workflow is a `.demi/workflows/*.yaml` file of the nearest directory that
-//! has it, from the conversation's working directory up to the root of its git
-//! repository. It is:
+//! has it, from the project's directory up to the root of its git repository;
+//! a conversation in a linked worktree of the project reads the project's, and
+//! the worktree's own only when it picks one of them. It is:
 //!
 //! - read through the conversation's device access, or through device access for a
 //!   new conversation before its first message;
@@ -486,7 +487,7 @@ impl Shard {
                 let place = if *worktree { "the worktree" } else { "the project" };
                 let chosen = &*chosen;
                 let Some(directory) = &found.directory else {
-                    return Err("this project has no workflows: no directory from the working directory up to the repository's root has .demi/workflows/".to_owned());
+                    return Err("this project has no workflows: no directory from the project's directory up to the repository's root has .demi/workflows/".to_owned());
                 };
                 if let Some(reason) = &found.unavailable {
                     return Err(format!("the workflows in {directory} cannot be used: {reason}"));

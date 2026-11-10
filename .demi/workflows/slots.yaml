@@ -13,7 +13,7 @@ instructions: |
   Branches
   - A branch starts from `origin/main` after a `git fetch`. A new decision record takes the next number that neither `origin/main`, nor a branch on origin, nor the board has taken.
   - A series of work packages the user asks for as one piece of work, such as a feature and the follow-ups it needs, lives on one branch, one commit for each package, and is merged as a whole once the last package is done: the user approves the series, not each package of it.
-  - Merge on `origin/main` only when the user approves, then delete the branch on origin and run `bun xtask sweep` in your slot.
+  - Merge on `origin/main` only when the user approves, then delete the branch on origin, fast-forward the main checkout to `origin/main` (`git merge --ff-only`), whose `.demi/workflows` every slot's conversation reads, and run `bun xtask sweep` in your slot. A main checkout that cannot fast-forward is shown to the user, never reset.
 
   Review before a commit
   1. Before you commit a change to what a program does, the review profile reads the change once: the uncommitted diff in your slot against `origin/main`. A change that leaves every program doing what it did, such as documents, styles, UI text, comments, licenses or package metadata, has no review.
