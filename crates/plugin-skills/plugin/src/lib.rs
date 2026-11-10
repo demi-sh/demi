@@ -793,19 +793,27 @@ impl State {
     /// Checks the default branch of each of the user's sources that has a
     /// commit, is not being fetched, and was checked by no user within
     /// [`CHECK_INTERVAL`]; a move found reaches every user's pages through
-    /// the heads.
-    async fn check_due(&self, port: &PluginPort) -> Result<(), PluginError> {
+    /// the heads. A source whose first fetch a shutdown or its device's
+    /// going away cut off, which recorded nothing, is fetched again once
+    /// its fetcher is there.
+    async fn check_due(self: &Rc<Self>, port: &PluginPort) -> Result<(), PluginError> {
+        // Read before the sources, so no fetch ends unseen between reading
+        // them and starting one.
+        let online: Vec<DeviceId> =
+            port.devices().await?.into_iter().filter(|device| device.online).map(|device| device.id).collect();
         let (all, _) = self.sources(port).await?;
         let now = self.clock.now();
         let mut due: Vec<(String, String)> = Vec::new();
         let mut on_devices: Vec<(String, DeviceId, String)> = Vec::new();
-        let online: Vec<DeviceId> = if all.values().any(|(source, _)| source.fetcher.is_some()) {
-            port.devices().await?.into_iter().filter(|device| device.online).map(|device| device.id).collect()
-        } else {
-            Vec::new()
-        };
         for (id, (source, _)) in all {
-            if source.commit.is_none() || self.fetching.borrow().contains_key(&id) {
+            if self.fetching.borrow().contains_key(&id) {
+                continue;
+            }
+            if source.commit.is_none() {
+                let there = source.fetcher.as_ref().is_none_or(|device| online.contains(device));
+                if source.failure.is_none() && there {
+                    self.start_fetch(port.clone(), id);
+                }
                 continue;
             }
             if let Some(device) = &source.fetcher {
