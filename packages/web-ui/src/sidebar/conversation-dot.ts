@@ -38,12 +38,10 @@ export type DotSource = Pick<SidebarConversation, 'status' | 'needsYou' | 'unrea
  * workspace's tile.
  *
  * - The one with the most urgent news, red, then yellow, then green.
- * - With no news, one that runs: one whose model works, so the dot breathes,
- *   before one that only waits for a command.
- * - The first listed among equals; null while none has news or runs.
+ * - The first listed among equals; null while none has news, however many
+ *   run: a dot there says that going there is worth it.
  *
- * The open conversation shows its own row, so it lends none. Once its news is
- * read, a group whose other conversations still run turns back to the accent.
+ * The open conversation shows its own row, so it lends none.
  */
 export function groupDot<C extends { id: string } & DotSource>(
   conversations: readonly C[],
@@ -63,15 +61,8 @@ export function groupDot<C extends { id: string } & DotSource>(
   return found
 }
 
-/** How urgent a conversation's dot is where it stands for others: news first, then a model at work, then a command. */
+/** How urgent a conversation's news is where it stands for others; none counts for nothing. */
 function groupDotRank(conversation: DotSource): number {
-  const tone = conversationDotTone(conversation)
-  const news = NEWS_TONES.indexOf(tone as NewsTone)
-  if (news >= 0)
-    return news
-  if (conversation.status === 'active')
-    return NEWS_TONES.length
-  if (conversation.status === 'awaiting_commands')
-    return NEWS_TONES.length + 1
-  return Number.POSITIVE_INFINITY
+  const news = NEWS_TONES.indexOf(conversationDotTone(conversation) as NewsTone)
+  return news >= 0 ? news : Number.POSITIVE_INFINITY
 }
