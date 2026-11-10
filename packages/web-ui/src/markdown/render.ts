@@ -43,20 +43,21 @@ function webLink(url: string, attributes = ''): string {
 
 /**
  * A link that opens a device file through the `file` intent, at its line when it
- * names one.
+ * names one. It opens a window, so a press on it puts none away
+ * (`KEEPS_WINDOWS`).
  */
 function fileLink({ path, line }: MessageFileTarget, attributes = ''): string {
   const at = line === null ? '' : ` data-line="${line}"`
-  return `<a href="${escapeHtml(path)}" data-file-link${at}${attributes}>`
+  return `<a href="${escapeHtml(path)}" data-file-link${at} ${KEEPS_WINDOWS}${attributes}>`
 }
 
 /**
  * A link that opens a commit's changes, in the repository of the folder `root`
- * when the link names one.
+ * when the link names one. It opens a window, as a file's link does.
  */
 function commitLink(commit: string, root: string | null, href: string, attributes = ''): string {
   const folder = root === null ? '' : ` data-commit-root="${escapeHtml(root)}"`
-  return `<a href="${escapeHtml(href)}" data-commit-link="${escapeHtml(commit)}"${folder}${attributes}>`
+  return `<a href="${escapeHtml(href)}" data-commit-link="${escapeHtml(commit)}"${folder} ${KEEPS_WINDOWS}${attributes}>`
 }
 
 /**

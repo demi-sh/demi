@@ -6,6 +6,7 @@
   },
   "dock": "Acoplar a la derecha",
   "anchor": "Mantener en la esquina",
+  "keepOpen": "Mantener abierto",
   "minimize": "Minimizar",
   "maximize": "Maximizar",
   "restore": "Restaurar",

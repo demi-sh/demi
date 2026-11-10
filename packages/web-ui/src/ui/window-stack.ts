@@ -22,6 +22,13 @@ import { onBeforeUnmount, shallowRef, watch, type ShallowRef } from 'vue'
 /** The attribute of a place where a press keeps the session's windows open. */
 export const KEEPS_WINDOWS = 'data-keeps-windows'
 
+/**
+ * The attribute of a place that bounds a conversation's area of windows: a
+ * press outside it puts none of them away, as one area among others on a
+ * page, such as a gallery specimen, is not the whole page.
+ */
+export const WINDOW_SCOPE = 'data-window-scope'
+
 /** What a press lands on: an element, whose ancestors `closest` reaches. */
 export interface PressPlace {
   closest(selectors: string): unknown
@@ -82,6 +89,14 @@ export function createWindowStack<Place extends PressPlace = Element>(): WindowS
 
 /** The page's windows: the session's and the viewer's are one stack. */
 const pageWindows = createWindowStack()
+
+/**
+ * Whether one of the page's windows is open: a press outside it closes that
+ * one first, and puts away nothing else.
+ */
+export function pageWindowOpen(): boolean {
+  return pageWindows.windows.value.length > 0
+}
 
 /**
  * Before the press reaches what it lands on, so a window a press opens again,

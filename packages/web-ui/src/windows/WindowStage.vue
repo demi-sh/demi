@@ -6,6 +6,8 @@ import ResizeHandle from '../ui/ResizeHandle.vue'
 import { startPointerDrag } from '../ui/pointer-drag'
 import { resizeWindowRect, type WindowEdges, type WindowRect } from '../ui/floating-window'
 import type { ContextMenuGroup } from '../ui/context-menu'
+import { appOverlayStore } from '../overlay/appOverlay'
+import { KEEPS_WINDOWS, WINDOW_SCOPE, pageWindowOpen } from '../ui/window-stack'
 import WorkWindow, { type WindowTab } from './WorkWindow.vue'
 import {
   WINDOW_GAP_PX,
@@ -66,7 +68,15 @@ import { moved } from '../ui/drag-order'
  *
  * Escape closes the window in front while it floats, is anchored or is
  * maximized, as a glance at a file or a picture is put away, unless a field
- * holds the keys.
+ * holds the keys. A press with the primary button outside the windows
+ * minimizes every one of them over the conversation that is not kept open
+ * (`minimizeUnkept`), and still does what it does there: a press in the
+ * composer puts away the windows and the caret in the message. A press
+ * minimizes nothing on the taskbar, on a control that opens or changes a
+ * window (`KEEPS_WINDOWS`), or while a menu, a dialog or the page's own
+ * window, such as the media viewer, takes it first. Where a place bounds
+ * the area (`WINDOW_SCOPE`), as a gallery specimen does among others, a
+ * press outside that place is not the area's.
  *
  * Sizes: the divider before the column sizes the column, the gaps between its
  * rows size the rows, a floating window's edges and corners size it, and an
@@ -443,6 +453,23 @@ defineExpose({ opening, measured })
  */
 const FIELD = 'input, textarea, select, [contenteditable=""]:not([aria-readonly="true"]), [contenteditable="true"]:not([aria-readonly="true"])'
 
+/** Before the press reaches what it lands on, so a window it opens is not put away by it. */
+useEventListener(document, 'pointerdown', (event: PointerEvent) => {
+  if (props.phone || event.button !== 0 || !event.isPrimary || moving.value || !(event.target instanceof Element)) {
+    return
+  }
+  const place = event.target
+  if (place.closest(`[data-stage-window], [data-taskbar], [${KEEPS_WINDOWS}]`) || appOverlayStore.hasExclusive() || pageWindowOpen()) {
+    return
+  }
+  // Within the place that bounds the area, where one does.
+  const scope = area.value?.closest(`[${WINDOW_SCOPE}]`)
+  if (scope && !scope.contains(place)) {
+    return
+  }
+  props.model.minimizeUnkept()
+}, { capture: true })
+
 useEventListener(document, 'keydown', (event: KeyboardEvent) => {
   if (event.key !== 'Escape' || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || moving.value) {
     return
@@ -788,8 +815,9 @@ function maximizePressed(window: StageWindow): void {
     >
       <slot />
     </div>
-    <!-- In the middle of the gap before the column, with a grip that shows it sizes, as a split view's divider does. -->
-    <div v-if="columnShown" class="group/column absolute inset-y-0 z-20 flex" :style="{ left: `${column.x + COLUMN_GUTTER_PX / 2}px` }">
+    <!-- In the middle of the gap before the column, with a grip that shows it sizes, as a split view's divider does.
+         It and the gaps between the rows size windows, so a press on them puts none away. -->
+    <div v-if="columnShown" class="group/column absolute inset-y-0 z-20 flex" :style="{ left: `${column.x + COLUMN_GUTTER_PX / 2}px` }" v-bind="{ [KEEPS_WINDOWS]: '' }">
       <span aria-hidden="true" class="window-grip pointer-events-none absolute left-0 top-1/2 h-10 w-1 -translate-x-1/2 -translate-y-1/2" />
       <ResizeHandle
         :model-value="column.width"
@@ -809,6 +837,7 @@ function maximizePressed(window: StageWindow): void {
         :key="`gap-${index}`"
         class="group/column absolute z-20 grid cursor-row-resize place-items-center"
         :style="{ left: `${rect.x}px`, width: `${rect.width}px`, top: `${rect.y + rect.height}px`, height: `${WINDOW_GAP_PX}px` }"
+        v-bind="{ [KEEPS_WINDOWS]: '' }"
         @pointerdown="sizeRows(index, $event)"
       >
         <span aria-hidden="true" class="window-grip pointer-events-none h-1 w-10" />
@@ -845,11 +874,13 @@ function maximizePressed(window: StageWindow): void {
           :focused="state.focused === view.id"
           :menu="view.menu"
           :anchors="view.anchors"
+          :kept-open="window.keptOpen"
           :phone="phone"
           @select="(tab) => emit('select', view.id, tab)"
           @close-tab="(tab) => emit('closeTab', view.id, tab)"
           @reorder="(from, to) => emit('reorder', view.id, from, to)"
           @new-tab="emit('newTab', view.id)"
+          @keep-open="(kept) => model.keepOpen(view.id, kept)"
           @anchor="anchorPressed(window)"
           @minimize="phone ? model.minimizeAll() : model.minimize(view.id)"
           @maximize="maximizePressed(window)"

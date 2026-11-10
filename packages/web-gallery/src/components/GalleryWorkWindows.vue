@@ -2,6 +2,7 @@
 import { watch } from 'vue'
 import SessionWindows from '@demicodes/web-ui/windows/SessionWindows.vue'
 import { useWindowStage } from '@demicodes/web-ui/windows/stage'
+import { WINDOW_SCOPE } from '@demicodes/web-ui/ui/window-stack'
 import { gallerySessionWork } from '../fixtures/session-work'
 import type { GalleryWork } from '../fixtures/work'
 
@@ -10,7 +11,9 @@ import type { GalleryWork } from '../fixtures/work'
  * with its taskbar, every event acting on it as the product's store would.
  * The conversation they stand over is a placeholder: the specimen shows the
  * windows. A window that opens fills the box, as a maximized one does, so the
- * view it holds shows at the box's size; Restore floats it.
+ * view it holds shows at the box's size; Restore floats it. The specimen is
+ * the area: a press in it outside the windows puts them away, and a press
+ * elsewhere on the page does not.
  */
 const props = defineProps<{ work: GalleryWork; beforeFirstMessage?: boolean; deviceOffline?: string | null }>()
 
@@ -31,7 +34,7 @@ watch(() => stage.state.windows.map((window) => window.id), (ids) => {
 </script>
 
 <template>
-  <div class="h-full min-w-0 flex-1" data-region>
+  <div class="h-full min-w-0 flex-1" data-region v-bind="{ [WINDOW_SCOPE]: '' }">
     <SessionWindows :stage="stage" :work="sessionWork" :own="[]" :bottom="0">
       <div class="grid h-full place-items-center text-[13px] text-fg-faint">Conversation</div>
     </SessionWindows>
