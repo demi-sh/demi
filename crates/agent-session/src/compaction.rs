@@ -58,7 +58,7 @@ pub const COMPACTION_SUMMARY_INSTRUCTION: &str = "Summarize the conversation abo
 The user's messages are kept beside the summary as they were written, so capture what they mean for the work, not their words.
 
 ## Goal
-## Constraints and preferences
+## The user's constraints and preferences
 ## Decisions
 What was decided, why, and what was ruled out.
 ## Progress
