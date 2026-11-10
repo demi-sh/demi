@@ -188,6 +188,7 @@ impl Plugin for CommandPlugin {
                 Request::ConversationDeleted { .. } | Request::ConversationForked { .. } => {
                     Err(PluginError::undeclared("conversations"))
                 }
+                Request::ConversationRunning { .. } => Err(PluginError::undeclared("running")),
                 Request::PackageMessage { .. } | Request::PackageLost { .. } => {
                     Err(PluginError::undeclared("package messages"))
                 }
@@ -217,6 +218,7 @@ impl Plugin for NoRequests {
             Request::Context { .. } => "context source",
             Request::ProjectSearch { .. } => "project search",
             Request::ConversationDeleted { .. } | Request::ConversationForked { .. } => "conversations",
+            Request::ConversationRunning { .. } => "running",
             Request::PackageMessage { .. } | Request::PackageLost { .. } => "package messages",
         };
         Box::pin(async move { Err(PluginError::undeclared(what)) })

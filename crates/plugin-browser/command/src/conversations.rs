@@ -82,7 +82,7 @@ use demi_shared_recording::{Answer, Library, Live, Reading};
 use crate::protocol::{
     self, ActionProgress, RecordAction, RecordInput, RecordTarget, BrowserCreatedBy, BrowserErrorCode, BrowserFailure, BrowserOperation, CapabilitiesResult,
     ContentReadResult, DEFAULT_NODES, FailureDocument, ImageMime, InstallResult,
-    ScreenshotResult, ShowResult, TabCloseResult, TabListResult, TabNewResult,
+    ScreenshotResult, ShowResult, TabCloseResult, TabListResult, TabNewResult, TabPruneResult,
 };
 use demi_command_package_browser_chrome::traced::SpawnTraced as _;
 
@@ -881,6 +881,88 @@ fn tab_rows(listing: &Snapshot, offset: usize, limit: usize) -> Vec<protocol::Br
         .collect()
 }
 
+/// Closes the agents' tabs the user did not make theirs (`prunable`), but
+/// for the ones a viewer watches, which it answers, and the tabs their pages
+/// came from, which a popup may still need, as a sign-in's does. It starts no
+/// browser. A tab that fails to close is left for the next pruning and the
+/// others still close.
+async fn prune_tabs(
+    browser: &ConversationBrowser,
+    cancellation: &CancellationToken,
+    timeout: std::time::Duration,
+) -> Result<TabPruneResult> {
+    let mut result = TabPruneResult {
+        closed: Vec::new(),
+        watched: Vec::new(),
+    };
+    let Some(started) = browser.started(None, cancellation).await? else {
+        return Ok(result);
+    };
+    let environment = &started.environment;
+    let listing = environment.listed(cancellation, timeout).await?;
+    let watched = started.live.watched().await;
+    // The watched tabs and every tab they came from.
+    let mut kept = std::collections::HashSet::new();
+    for id in &watched {
+        let mut at = listing.find(id);
+        while let Some(tab) = at
+            && kept.insert(tab.id().clone())
+        {
+            at = match tab.created_by() {
+                BrowserCreatedBy::Page { opener } => listing.find(opener),
+                _ => None,
+            };
+        }
+    }
+    for listed in &listing.tabs {
+        if !prunable(&listing, &listed.tab) {
+            continue;
+        }
+        let id = listed.tab.id().clone();
+        if kept.contains(&id) {
+            if watched.contains(&id) {
+                result.watched.push(id);
+            }
+            continue;
+        }
+        let closed = match listed.tab.close_request(cancellation, timeout).await {
+            Ok(closed) => closed,
+            Err(BrowserError::Cancelled) => return Err(BrowserError::Cancelled),
+            // Closed meanwhile, by its page or another command.
+            Err(BrowserError::TabNotFound) => continue,
+            Err(error) => {
+                tracing::warn!(event = "browser_tabs.prune_failed", tab = %id, %error, "an agent's tab did not close");
+                continue;
+            }
+        };
+        result.closed.push(id);
+        // Closing the last tab ends the browser, as `tab.close` does.
+        if matches!(closed, Closed::Environment) || environment.emptied().is_cancelled() {
+            browser.retire(environment).await?;
+            break;
+        }
+    }
+    Ok(result)
+}
+
+/// Whether `tab` is one Demi closes once the conversation stopped running:
+/// an agent made it, or a page opened it from such a tab, and the user did
+/// not make it theirs, which the agent's `show` or the user's own act in it
+/// does. A temporary command's tab closes with its command, and a page whose
+/// opener closed comes from nobody Demi knows, so it stays.
+fn prunable(listing: &Snapshot, tab: &demi_command_package_browser_chrome::tabs::tab::BrowserTab) -> bool {
+    if tab.shows() > 0 || tab.used() {
+        return false;
+    }
+    match tab.created_by() {
+        BrowserCreatedBy::Agent { .. } => true,
+        BrowserCreatedBy::Page { opener } => listing
+            .find(opener)
+            .is_some_and(|opener| prunable(listing, opener)),
+        BrowserCreatedBy::Temporary { .. } | BrowserCreatedBy::User {} => false,
+    }
+}
+
 /// The resident's browsers, one per conversation.
 pub(crate) struct Conversations {
     requests: mpsc::Sender<Find>,
@@ -1301,6 +1383,15 @@ impl Conversations {
                 "stop is the user's: an agent's command waits for its page instead".into(),
             ));
         }
+        if matches!(command, BrowserOperation::TabPrune(_)) {
+            if !user {
+                return Err(BrowserError::Configuration(
+                    "tab.prune is Demi's: an agent closes its tabs with tab close".into(),
+                ));
+            }
+            let pruned = prune_tabs(browser, cancellation, command.timeout()).await?;
+            return Ok(CommandOutput::Json(output::value(pruned)?));
+        }
         if let BrowserOperation::Record(input) = command {
             if let Some(why) = input.misfit() {
                 return Err(BrowserError::Configuration(why));
@@ -1420,6 +1511,8 @@ impl Conversations {
             return start_recording(browser, &environment, tab, input).await;
         }
         if matches!(command, BrowserOperation::Stop(_)) {
+            // Only the user stops a load.
+            tab.mark_used();
             let operation = tab.operation(cancellation, deadline);
             let stopped =
                 demi_command_package_browser_chrome::tabs::navigation::stop(tab, &operation)
@@ -1435,6 +1528,8 @@ impl Conversations {
                     | BrowserOperation::Forward(_)
             )
         {
+            // The user took the tab to a page of their own.
+            tab.mark_used();
             let operation = tab.operation(cancellation, deadline);
             let result = demi_command_package_browser_chrome::tabs::navigation::steer(
                 tab, command, &operation,

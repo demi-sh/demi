@@ -565,8 +565,9 @@ pub enum CallKind {
     /// An operation on what runs there, such as closing a tab: activity,
     /// but a stopped Cloud is refused rather than woken.
     Operates,
-    /// A look, such as listing the tabs: a stopped Cloud is refused, and
-    /// the look is no activity.
+    /// A look, such as listing the tabs, or upkeep nobody is there for, such
+    /// as closing the tabs a conversation's agents left: a stopped Cloud is
+    /// refused, and the call is no activity.
     Looks,
 }
 

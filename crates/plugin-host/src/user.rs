@@ -23,7 +23,7 @@
 //! outbound request is sent with, the public URL and the time.
 
 use std::cell::RefCell;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -376,6 +376,11 @@ pub(crate) struct Shared {
     /// shard started, by the plugin's index and the conversation; a pair
     /// without an entry has changed none.
     revisions: RefCell<HashMap<(usize, ConversationId), u64>>,
+    /// The conversations that run, as the shard last said.
+    running: RefCell<HashSet<ConversationId>>,
+    /// The conversations that run, as the plugins that follow it were
+    /// last told: `running` a moment ago, until the telling caught up.
+    told_running: RefCell<HashSet<ConversationId>>,
 }
 
 impl Shared {
@@ -734,7 +739,51 @@ impl UserPlugins {
             switched: RefCell::default(),
             directories: RefCell::new(None),
             revisions: RefCell::new(HashMap::new()),
+            running: RefCell::default(),
+            told_running: RefCell::default(),
         }))
+    }
+
+    /// Whether `conversation` runs now, which the shard says at each change
+    /// of its tree's status: each plugin that follows it and that the user
+    /// has on is told when it changed (`Request::ConversationRunning`).
+    ///
+    /// What is told is read after the plugins are, so a start and a stop
+    /// close together never reach a plugin in the wrong order: the telling
+    /// that comes last finds nothing left to tell.
+    pub fn conversation_running(&self, conversation: &ConversationId, running: bool) {
+        let changed = if running {
+            self.0.running.borrow_mut().insert(conversation.clone())
+        } else {
+            self.0.running.borrow_mut().remove(conversation)
+        };
+        if !changed {
+            return;
+        }
+        let this = Self(self.0.clone());
+        let conversation = conversation.clone();
+        tokio::task::spawn_local(async move {
+            let plugins = this
+                .receivers_of(|registered| registered.factory.manifest().running)
+                .await;
+            let running = this.0.running.borrow().contains(&conversation);
+            let told = if running {
+                this.0.told_running.borrow_mut().insert(conversation.clone())
+            } else {
+                this.0.told_running.borrow_mut().remove(&conversation)
+            };
+            if !told {
+                return;
+            }
+            for plugin in plugins {
+                let request = Request::ConversationRunning {
+                    user: this.0.user.clone(),
+                    conversation: conversation.clone(),
+                    running,
+                };
+                this.0.spawn_request(plugin, request, conversation.clone());
+            }
+        });
     }
 
     /// Whether the user has each plugin on, by its index.

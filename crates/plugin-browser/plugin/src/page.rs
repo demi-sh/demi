@@ -25,9 +25,9 @@
 use demi_command_declarations::NativeOperation;
 use demi_command_package_browser_protocol::PACKAGE;
 use demi_command_package_browser_protocol::browser::{
-    BackInput, BrowserErrorCode, BrowserOperation, BrowserTab,
+    BackInput, BrowserCreatedBy, BrowserErrorCode, BrowserOperation, BrowserTab,
     FailureDocument, ForwardInput, NavigationResult, OpenInput, PREFIX, ReloadInput, StopInput,
-    TabCloseInput, TabId, TabMoved, TabNewInput, TabNewResult,
+    TabCloseInput, TabId, TabMoved, TabNewInput, TabNewResult, TabPruneInput, TabPruneResult,
 };
 use demi_plugin_interface::{
     CallKind, Method, Page, PluginError, PluginPort, PortFailure, PortRefusal, Scope, State,
@@ -199,6 +199,26 @@ pub(crate) async fn close(port: &PluginPort, tab: &str) -> Result<(), PluginErro
         Err(failure) if stopped(&failure) || tab_missing(&failure) => Ok(()),
         Err(failure) => Err(refused(failure)),
     }
+}
+
+/// Whether the conversation's browser, as it last reported, has a tab an
+/// agent or a page opened that the agent never showed: one `prune` may
+/// close. Without one there is nothing to ask the device.
+pub(crate) async fn prunes_any(port: &PluginPort) -> Result<bool, PluginError> {
+    Ok(reported(port).await?.is_some_and(|reported| {
+        reported.tabs.iter().any(|tab| {
+            tab.shows == 0
+                && matches!(tab.created_by, BrowserCreatedBy::Agent { .. } | BrowserCreatedBy::Page { .. })
+        })
+    }))
+}
+
+/// Closes the agents' tabs the user did not make theirs, and answers the
+/// ones it left because a viewer watches them. The call is no activity, so
+/// it never keeps a Cloud up, and a stopped Cloud is refused, not woken.
+pub(crate) async fn prune(port: &PluginPort) -> Result<TabPruneResult, PortFailure> {
+    let input = TabPruneInput { timeout: None };
+    run(port, BrowserOperation::TabPrune, input, CallKind::Looks).await
 }
 
 /// Starts loading `url` in the browser's tab `tab`.

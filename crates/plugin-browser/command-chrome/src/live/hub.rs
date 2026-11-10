@@ -96,6 +96,10 @@ enum Request {
         reply: oneshot::Sender<Option<StreamView>>,
     },
     Mode(ModeRequest),
+    /// Which tabs viewers watch.
+    Watched {
+        reply: oneshot::Sender<Vec<TabId>>,
+    },
 }
 
 /// A tab's observer, once a viewer watched the tab.
@@ -185,6 +189,15 @@ impl Hub {
             .get_or_try_init(|| observers::start(tab, &self.downloads, &self.tasks))
             .await
             .cloned()
+    }
+
+    /// The tabs viewers watch now; none once the browser ended.
+    pub async fn watched(&self) -> Vec<TabId> {
+        let (reply, answer) = oneshot::channel();
+        if self.requests.send(Request::Watched { reply }).await.is_err() {
+            return Vec::new();
+        }
+        answer.await.unwrap_or_default()
     }
 
     /// Joins the hub; what it cannot do for the viewer arrives as notices.
@@ -417,6 +430,14 @@ impl Owner {
                     self.driver = Some(viewer);
                 }
                 self.due = true;
+            }
+            Request::Watched { reply } => {
+                let watched = self
+                    .viewers
+                    .values()
+                    .filter_map(|viewer| viewer.watching.as_ref().map(|tab| tab.id().clone()))
+                    .collect();
+                let _left = reply.send(watched);
             }
             Request::Watch { viewer, tab, reply } => {
                 // A viewer that left watches nothing: its request, sent as it

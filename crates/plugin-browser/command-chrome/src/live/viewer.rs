@@ -534,6 +534,16 @@ fn start_observer(
     starting
 }
 
+/// The tab a viewer's input, paste or choice acts in.
+fn acted_in(message: &LiveViewerMessage) -> Option<&TabId> {
+    match message {
+        LiveViewerMessage::Input { tab, .. }
+        | LiveViewerMessage::Paste { tab, .. }
+        | LiveViewerMessage::Choice { tab, .. } => Some(tab),
+        _ => None,
+    }
+}
+
 /// The watched tab's stream, while its pictures come.
 fn stream(watched: &Option<Watched>) -> Option<&StreamView> {
     watched.as_ref().and_then(|watched| watched.stream.as_ref())
@@ -662,6 +672,7 @@ impl Session<'_> {
                 if let Some(watched) = &self.watched
                     && watched.tab.id() == &tab
                 {
+                    watched.tab.mark_used();
                     commands::answer(watched.tab.clone(), accept, text, self.writer.clone());
                 }
             }
@@ -703,6 +714,11 @@ impl Session<'_> {
                 ) {
                     self.operated = Some(Instant::now());
                     self.membership.operated();
+                    if let Some(watched) = &self.watched
+                        && acted_in(&message) == Some(watched.tab.id())
+                    {
+                        watched.tab.mark_used();
+                    }
                 }
                 self.input.send(message);
             }

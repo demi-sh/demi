@@ -117,6 +117,7 @@ impl Plugin for Instance {
                 // The browser package it draws with keeps nothing of a
                 // conversation's for it: what the package says is not its.
                 Request::PackageMessage { .. } | Request::PackageLost { .. } => Ok(Reply::Done),
+                Request::ConversationRunning { .. } => Err(PluginError::undeclared("running")),
                 Request::ConversationDeleted { conversation, .. } => {
                     store::deleted(&port, conversation.as_str()).await?;
                     Ok(Reply::Done)

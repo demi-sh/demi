@@ -124,6 +124,11 @@ pub struct Manifest {
     /// user deletes or forks one ([`Request::ConversationDeleted`](crate::Request::ConversationDeleted),
     /// [`Request::ConversationForked`](crate::Request::ConversationForked)).
     pub conversations: bool,
+    /// Whether it follows whether each conversation runs, and so is told
+    /// each time one starts or stops running
+    /// ([`Request::ConversationRunning`](crate::Request::ConversationRunning)).
+    #[serde(default)]
+    pub running: bool,
     /// Its user streams.
     #[serde(default)]
     pub streams: Vec<Stream>,
@@ -147,6 +152,7 @@ impl Manifest {
             context: false,
             project_search: false,
             conversations: false,
+            running: false,
             streams: Vec::new(),
             page: None,
             oauth: None,
