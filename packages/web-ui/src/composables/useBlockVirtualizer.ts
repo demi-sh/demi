@@ -562,6 +562,12 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
   const isAtBottom = computed(() => shouldAutoScroll.value || endDistance.value < AT_END_PX)
   let isProgrammaticScroll = false
   let pendingIntent: ScrollIntent = null
+  /**
+   * The reader's current scroll goes up, until it settles or turns down: a
+   * wheel's notch or a flick asks once and the browser moves the view over
+   * the frames after, which say nothing of where they go.
+   */
+  let scrollingUp = false
   let touchStartY = 0
   let furthestDistanceSinceDisengage = 0
 
@@ -804,7 +810,15 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
     // does not take that end for the reader's.
     if (isProgrammaticScroll || placingPart())
       return
-    if (pendingIntent === 'up') {
+    // A scroll up leaves the end once it takes the end out of view, in any
+    // frame of it: one that keeps the end in view, as a wheel's last small
+    // turn or a trackpad's settling, leaves the reader at the end, as
+    // `isAtBottom` says they are.
+    if (pendingIntent === 'up')
+      scrollingUp = true
+    else if (pendingIntent === 'down')
+      scrollingUp = false
+    if (scrollingUp && dist >= AT_END_PX) {
       follow(false, 'reader_scrolled_up')
     } else if (pendingIntent === 'down' &&
       dist <= threshold &&
@@ -1456,6 +1470,7 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
       clearTimeout(scrollSettle)
       scrollSettle = setTimeout(() => {
         scrollSettle = undefined
+        scrollingUp = false
         writeScrolled()
       }, SCROLL_SETTLE_MS)
     }
