@@ -25,7 +25,7 @@ subagent_instructions: |
 profiles:
   - id: review
     description: "Use to review a change before it is committed."
-    model: claude-fable-5-1
+    model: claude-fable-5-2
     effort: high
     instructions: |
       You review the change the brief names: the diff and the code around it. Report each problem with its file and line, how it happens and what it does. You build and run nothing, and change nothing.
