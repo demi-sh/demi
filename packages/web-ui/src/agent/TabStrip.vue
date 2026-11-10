@@ -13,6 +13,7 @@ import {
   enterTab,
   isLeavingTab,
   fadeRoom,
+  sidewaysWheel,
   keepingCloseMotion,
   leaveTab,
   resettleClosing,
@@ -360,17 +361,11 @@ function revealActive(): void {
   updateEdges()
 }
 
-// A wheel over the tabs moves them, whichever axis it turns on. The page keeps
-// the event only when the strip has nothing to scroll that way.
+// A wheel over the tabs moves them, whichever axis it turns on (`sidewaysWheel`).
 function onWheel(event: WheelEvent): void {
   const strip = scroller()
-  if (!strip || strip.scrollWidth <= strip.clientWidth) {
-    return
-  }
-  const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
-  const max = strip.scrollWidth - strip.clientWidth
-  const atEdge = delta < 0 ? strip.scrollLeft <= 0 : strip.scrollLeft >= max
-  if (atEdge) {
+  const delta = strip ? sidewaysWheel(strip, event) : null
+  if (!strip || delta === null) {
     return
   }
   event.preventDefault()

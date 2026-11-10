@@ -13,7 +13,8 @@ import { usePhone } from '@demicodes/web-ui/ui/phone'
 import ConversationDot from './ConversationDot.vue'
 import DeviceMark from './DeviceMark.vue'
 import { projectTarget, type ProjectQualifier } from './project-devices'
-import type { SidebarConversation, SidebarProject } from './types'
+import type { SidebarProject } from './types'
+import type { DotSource } from './conversation-dot'
 
 /** A project row: the checkout's name, the device it is on as the row's end mark, and the fold. */
 const props = defineProps<{
@@ -26,13 +27,13 @@ const props = defineProps<{
   qualifier?: ProjectQualifier
   collapsed: boolean
   /**
-   * The conversation whose dot the folded row carries after the name: the most
-   * urgent news of the conversations the fold hides, as a folded group's label
-   * carries; none while the project is open or nothing it hides is new. A
-   * folded row keeps the dot's room either way, so news that comes or goes
-   * moves nothing.
+   * The conversation whose dot the folded row carries after the name, for the
+   * conversations the fold hides (`groupDot`), as a folded group's label
+   * carries; none while the project is open or nothing it hides is new or
+   * runs. A folded row keeps the dot's room either way, so a dot that comes
+   * or goes moves nothing.
    */
-  news: Pick<SidebarConversation, 'status' | 'needsYou' | 'unread'> | null
+  dot: DotSource | null
   /** The keyboard cursor is here. */
   focused: boolean
   /** The menu of the project. */
@@ -89,7 +90,7 @@ const emit = defineEmits<{
         >
           <TruncatedText class="font-medium text-fg-emphasis" :text="project.name" />
           <span v-if="collapsed" class="flex size-3.5 shrink-0 phone:size-4">
-            <ConversationDot v-if="news" :conversation="news" />
+            <ConversationDot v-if="dot" :conversation="dot" />
           </span>
           <FoldChevron
             :open="!collapsed"

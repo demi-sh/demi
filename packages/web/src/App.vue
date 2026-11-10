@@ -513,7 +513,7 @@ useAppShortcuts(
           :update="sidebarUpdate"
           :workspaces="workspaces.list"
           :workspace-id="workspaces.current"
-          :workspace-attention="workspaces.attention"
+          :workspace-dots="workspaces.dots"
           :workspace-shortcuts="workspaceShortcuts"
           @switch-workspace="switchWorkspace"
           @create-workspace="createWorkspace"

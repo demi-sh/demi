@@ -2,6 +2,7 @@
 import { t } from './locales/text'
 import { computed } from 'vue'
 import StatusDot from '@demicodes/web-ui/ui/StatusDot.vue'
+import CornerDot from '@demicodes/web-ui/ui/CornerDot.vue'
 import { conversationDotTone } from './conversation-dot'
 import type { SidebarConversation } from './types'
 
@@ -15,17 +16,29 @@ import type { SidebarConversation } from './types'
 // decision), and a conversation that ran nothing leave the row settled: a faint
 // ring in the dot's place, so the column under a project's icon is never empty.
 //
-// A folded group's label carries the dot of a conversation in it that waits, so
-// the mark is drawn here alone.
+// A folded group's label, a folded project's row and another workspace's tile
+// carry the dot of the conversation that stands for those they hide
+// (`groupDot`), so the mark is drawn here alone. On an icon's corner, as a workspace's tile
+// carries it, a settled conversation draws nothing.
 const props = defineProps<{
   conversation: Pick<SidebarConversation, 'status' | 'needsYou' | 'unread'>
+  /** On the corner of the icon its parent holds (`CornerDot`). */
+  corner?: boolean
 }>()
 
 const tone = computed(() => conversationDotTone(props.conversation))
 </script>
 
 <template>
-  <span class="flex size-3.5 shrink-0 items-center justify-center phone:size-4 phone:[&>*]:scale-[1.35]">
+  <template v-if="corner">
+    <CornerDot
+      v-if="tone"
+      :tone="tone"
+      :breathing="tone !== 'attention' && conversation.status === 'active'"
+      :label="tone === 'attention' ? t('dot.needsYou') : undefined"
+    />
+  </template>
+  <span v-else class="flex size-3.5 shrink-0 items-center justify-center phone:size-4 phone:[&>*]:scale-[1.35]">
     <StatusDot v-if="tone === 'attention'" tone="attention" :label="t('dot.needsYou')" />
     <StatusDot v-else-if="tone" :tone="tone" :breathing="conversation.status === 'active'" />
     <StatusDot v-else tone="muted" ring />

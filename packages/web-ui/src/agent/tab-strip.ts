@@ -190,6 +190,22 @@ export function revealScroll(
 }
 
 /**
+ * How far a wheel turned over a strip that scrolls sideways moves it, on
+ * whichever axis the wheel turns, so a mouse whose wheel turns only up and
+ * down moves it too; null when the strip has nothing to scroll that way, and
+ * the page keeps the event.
+ */
+export function sidewaysWheel(strip: HTMLElement, event: WheelEvent): number | null {
+  if (strip.scrollWidth <= strip.clientWidth) {
+    return null
+  }
+  const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+  const max = strip.scrollWidth - strip.clientWidth
+  const atEdge = delta < 0 ? strip.scrollLeft <= 0 : strip.scrollLeft >= max
+  return atEdge ? null : delta
+}
+
+/**
  * How wide each edge fade may be so it never lies over the selected tab:
  * the room between the view's edge and the tab, in the view's coordinates.
  * The fades give way to the selected tab while it shows whole, and while
