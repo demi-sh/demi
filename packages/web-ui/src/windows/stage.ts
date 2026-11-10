@@ -25,10 +25,11 @@ import { moved, rearranged } from '../ui/drag-order'
  *   what it shows.
  * - Anchored: in the area's bottom left corner, over the conversation and
  *   the composer's start, above the taskbar's system buttons that open it, at
- *   the size the user gave it; it does not move. A window that follows the
- *   conversation's own work, such as Agents, opens there, and goes from there
- *   to floating and back. One window stands there at a time: one that comes
- *   puts the one there to the taskbar, minimized.
+ *   the size the user gave it. A window that follows the conversation's own
+ *   work, such as Agents, opens there, and goes from there to floating and
+ *   back, by its title bar's button or by a drag of its title bar. One window
+ *   stands there at a time: one that comes puts the one there to the
+ *   taskbar, minimized.
  * - Docked: a row of the column at the area's right; the conversation narrows
  *   beside it. The column stacks rows only, never columns.
  * - Maximized: over the conversation's side of the area under its top bar,
@@ -39,6 +40,11 @@ import { moved, rearranged } from '../ui/drag-order'
  * closed, and its floating box, so each way back puts it there again. The
  * windows' order is the taskbar's: the order they came in, as the user
  * arranges it.
+ *
+ * A window over the conversation, floating, anchored or maximized, is most
+ * often a glance: a press outside it minimizes it, unless the user keeps it
+ * open (`keptOpen`), which it remembers as it does its box. A docked window
+ * is a layout the user arranged, and stays.
  *
  * The state is plain data, every box and size in shares of the area, so the
  * conversation keeps it and the same layout fits a screen of another size.
@@ -73,12 +79,16 @@ export interface StageWindow {
   box: WindowBox
   /** Its size while anchored; absent, it has its opening size there. */
   corner?: WindowSize
+  /** It stays at a press outside it (Keep Open); absent, it does not. */
+  keptOpen?: boolean
+  /** It was maximized when it was minimized, and comes back maximized. */
+  wasMaximized?: boolean
   /** Its place in the stacking order: the highest is in front. */
   order: number
 }
 
 /** What a closed window opens with again. */
-export type ClosedWindow = Pick<StageWindow, 'return' | 'row' | 'box' | 'corner'>
+export type ClosedWindow = Pick<StageWindow, 'return' | 'row' | 'box' | 'corner' | 'keptOpen'>
 
 /**
  * The most rows the column holds: three windows stacked still show each its
@@ -116,20 +126,25 @@ export const DOCK_ZONE_SHARE = 0.25
 /** How far a press moves before it drags a docked or maximized window out, in px. */
 export const UNDOCK_PX = 6
 
-/** A window's share of the area above the composer when it first opens. */
-export const OPENING_SHARE = { width: 0.6, height: 0.72 }
+/**
+ * A window's share of the area above the composer when it first opens: most
+ * of it, so a file, a change or a page shows enough to read, with the
+ * conversation's edges still in sight around it.
+ */
+export const OPENING_SHARE = { width: 0.85, height: 0.85 }
 
 /**
  * The largest box a window first opens in, in px: on a large screen a glance
  * reads a page or a file at its usual width, not across the whole screen.
  */
-export const OPENING_MAX_PX = { width: 1100, height: 820 }
+export const OPENING_MAX_PX = { width: 1400, height: 1000 }
 
 /**
- * The smallest box a window first opens in, in px, where the area has the
- * room: a file's bar and a page's toolbar fit in one row.
+ * Where the area above the composer is smaller than this, in px, a window
+ * first opens over the whole area, as large as maximized: in a small browser
+ * window a share of it would show too little of a file or a page.
  */
-export const OPENING_MIN_PX = { width: 480, height: 360 }
+export const OPENING_FULL_BELOW_PX = { width: 960, height: 640 }
 
 /** How far each window that opens where another floats moves down and to the right, in px. */
 export const CASCADE_PX = 24
@@ -183,8 +198,12 @@ export function boxOfRect(rect: WindowRect, size: Size): WindowBox {
  * of the `taken` px boxes that stands at the same place.
  */
 export function openingBox(size: Size, bounds: Size, taken: readonly WindowRect[]): WindowBox {
-  const width = Math.min(bounds.width, Math.max(OPENING_MIN_PX.width, Math.min(OPENING_MAX_PX.width, bounds.width * OPENING_SHARE.width)))
-  const height = Math.min(bounds.height, Math.max(OPENING_MIN_PX.height, Math.min(OPENING_MAX_PX.height, bounds.height * OPENING_SHARE.height)))
+  if (bounds.width < OPENING_FULL_BELOW_PX.width || bounds.height < OPENING_FULL_BELOW_PX.height) {
+    const full = { x: WINDOW_GAP_PX, y: WINDOW_GAP_PX, width: size.width - 2 * WINDOW_GAP_PX, height: size.height - 2 * WINDOW_GAP_PX }
+    return boxOfRect(full, size)
+  }
+  const width = Math.min(OPENING_MAX_PX.width, bounds.width * OPENING_SHARE.width)
+  const height = Math.min(OPENING_MAX_PX.height, bounds.height * OPENING_SHARE.height)
   const middle = { x: (bounds.width - width) / 2, y: (bounds.height - height) / 2, width, height }
   return boxOfRect(cascade(middle, taken, bounds), size)
 }
@@ -380,13 +399,21 @@ const stageStateSchema = z.object({
     row: z.number().int(),
     box: boxSchema,
     corner: sizeSchema.optional(),
+    keptOpen: z.boolean().optional(),
+    wasMaximized: z.boolean().optional(),
     order: z.number(),
   })),
   column: z.array(z.string()).max(COLUMN_ROWS),
   share: z.number(),
   rowShares: z.array(z.number()),
   focused: z.string().nullable(),
-  closed: z.record(z.string(), z.object({ return: returnSchema, row: z.number().int(), box: boxSchema, corner: sizeSchema.optional() })),
+  closed: z.record(z.string(), z.object({
+    return: returnSchema,
+    row: z.number().int(),
+    box: boxSchema,
+    corner: sizeSchema.optional(),
+    keptOpen: z.boolean().optional(),
+  })),
 })
 
 /** A layout the conversation kept, or null for one this page cannot read, as one an older page wrote. */
@@ -457,7 +484,9 @@ export function useWindowStage(saved?: StageState, { putAway = false }: { putAwa
       return existing
     }
     const closed = state.closed[id]
-    const before = closed && opens !== 'anchored' ? closed : { return: opens, row: COLUMN_ROWS, box: closed?.box ?? box, corner: closed?.corner }
+    const before = closed && opens !== 'anchored'
+      ? closed
+      : { return: opens, row: COLUMN_ROWS, box: closed?.box ?? box, corner: closed?.corner, keptOpen: closed?.keptOpen }
     delete state.closed[id]
     state.windows.push({ id, placement: 'minimized', ...before, order: 0 })
     return find(id)!
@@ -474,6 +503,7 @@ export function useWindowStage(saved?: StageState, { putAway = false }: { putAwa
       row: window.placement === 'docked' ? row : window.row,
       box: window.box,
       corner: window.corner,
+      keptOpen: window.keptOpen,
     }
     state.windows.splice(state.windows.indexOf(window), 1)
     if (state.focused === id) {
@@ -583,19 +613,26 @@ export function useWindowStage(saved?: StageState, { putAway = false }: { putAwa
     if (window.placement === 'docked') {
       window.row = leaveColumn(window)
     }
+    window.wasMaximized = window.placement === 'maximized' || undefined
     window.placement = 'minimized'
     if (state.focused === id) {
       state.focused = newest()
     }
   }
 
-  /** Puts `id` back where it returns to: its row while the column has room, else floating; or its corner. */
+  /**
+   * Puts `id` back where it returns to: maximized, as it was minimized from;
+   * else its row while the column has room, else floating; or its corner.
+   */
   function restore(id: string): void {
     const window = find(id)
     if (!window) {
       return
     }
-    if (window.return === 'docked' && state.column.length < COLUMN_ROWS) {
+    if (window.wasMaximized) {
+      delete window.wasMaximized
+      maximize(id)
+    } else if (window.return === 'docked' && state.column.length < COLUMN_ROWS) {
       dock(id, window.row)
     } else if (window.return === 'anchored') {
       anchor(id)
@@ -653,6 +690,30 @@ export function useWindowStage(saved?: StageState, { putAway = false }: { putAwa
     }
   }
 
+  /** Keeps `id` open at a press outside it, or no longer. */
+  function keepOpen(id: string, kept: boolean): void {
+    const window = find(id)
+    if (window) {
+      window.keptOpen = kept || undefined
+    }
+  }
+
+  /**
+   * Minimizes every window over the conversation that is not kept open, at
+   * a press outside them: floating, anchored or maximized. Docked ones stay.
+   * Counted in `settled` only when one went, as most presses find none.
+   */
+  function minimizeUnkept(): void {
+    const going = state.windows.filter((window) =>
+      (window.placement === 'floating' || window.placement === 'anchored' || window.placement === 'maximized') && !window.keptOpen)
+    for (const window of going) {
+      minimize(window.id)
+    }
+    if (going.length > 0) {
+      settled.value += 1
+    }
+  }
+
   if (putAway) {
     minimizeAll()
   }
@@ -677,6 +738,8 @@ export function useWindowStage(saved?: StageState, { putAway = false }: { putAwa
     maximize: settling(maximize),
     minimize: settling(minimize),
     minimizeAll: settling(minimizeAll),
+    keepOpen: settling(keepOpen),
+    minimizeUnkept,
     restore: settling(restore),
     show: settling(show),
     toggle: settling(toggle),

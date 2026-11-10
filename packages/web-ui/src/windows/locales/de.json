@@ -6,6 +6,7 @@
   },
   "dock": "Rechts andocken",
   "anchor": "In der Ecke halten",
+  "keepOpen": "Geöffnet lassen",
   "minimize": "Minimieren",
   "maximize": "Maximieren",
   "restore": "Wiederherstellen",

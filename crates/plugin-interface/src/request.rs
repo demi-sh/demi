@@ -133,6 +133,17 @@ pub enum Request {
         conversation: ConversationId,
         from: ConversationId,
     },
+    /// `conversation` started (`running`) or stopped running, for a plugin
+    /// that follows it ([`crate::Manifest::running`]) and the user has on. A
+    /// conversation runs while any agent of its tree works on a turn or
+    /// waits for its commands. A plugin hears each change once, in order,
+    /// and nothing of a conversation that ran before the backend started:
+    /// what it keeps by them is lost with the backend.
+    ConversationRunning {
+        user: UserId,
+        conversation: ConversationId,
+        running: bool,
+    },
     /// The facts of the reply blocks `ids` of the plugin's `tag`, which a
     /// reply's data carries for the page's component to draw each with
     /// before anything loads, such as a widget's frame and name. It reaches

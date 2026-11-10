@@ -2772,6 +2772,8 @@ dependencies = [
  "serde_json",
  "serde_plain",
  "tokio",
+ "tokio-util",
+ "tracing",
 ]
 
 [[package]]

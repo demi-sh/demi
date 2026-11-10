@@ -14,7 +14,7 @@ import type { DotSource } from './conversation-dot'
  *   label or the keyboard is on the button, and always on a phone, which has no
  *   hover.
  * - While the group is folded, the dot of the conversations the fold hides
- *   (`groupDot`), news first and then one that runs, stands between the label
+ *   (`groupDot`), the most urgent news, stands between the label
  *   and the chevron, so the chevron, hidden at rest, leaves no gap. A folded
  *   label keeps the dot's room while it has none, so a dot that comes or goes
  *   moves nothing.
@@ -24,7 +24,7 @@ import type { DotSource } from './conversation-dot'
 defineProps<{
   label: string
   folded: boolean
-  /** The conversation whose dot the label carries; none while the group is open or nothing it hides is new or runs. */
+  /** The conversation whose dot the label carries; none while the group is open or nothing it hides is new. */
   dot: DotSource | null
 }>()
 

@@ -59,6 +59,8 @@ pub(crate) fn render(operation: &BrowserOperation, value: Value) -> Result<Strin
             let result: TabCloseResult = typed(value)?;
             format!("Closed {}.\n", result.closed)
         }
+        // Only Demi prunes tabs, and it reads the JSON.
+        BrowserOperation::TabPrune(_) => "Pruned the agents' tabs.\n".to_owned(),
         BrowserOperation::Inspect(_) => inspect(&typed(value)?),
         BrowserOperation::Find(_) => find(&typed(value)?),
         BrowserOperation::Read(_) => read(&typed(value)?),

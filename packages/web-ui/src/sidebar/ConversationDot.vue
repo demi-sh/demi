@@ -34,7 +34,6 @@ const tone = computed(() => conversationDotTone(props.conversation))
     <CornerDot
       v-if="tone"
       :tone="tone"
-      :breathing="tone !== 'attention' && conversation.status === 'active'"
       :label="tone === 'attention' ? t('dot.needsYou') : undefined"
     />
   </template>

@@ -6,6 +6,7 @@
   },
   "dock": "吸附到右栏",
   "anchor": "固定在角落",
+  "keepOpen": "保持打开",
   "minimize": "最小化",
   "maximize": "最大化",
   "restore": "还原",

@@ -957,6 +957,7 @@ async fn command_run(
             | BrowserOperation::TabList(_)
             | BrowserOperation::Stop(_)
             | BrowserOperation::TabClose(_)
+            | BrowserOperation::TabPrune(_)
             | BrowserOperation::Screenshot(_)
             | BrowserOperation::Record(_)
             | BrowserOperation::Capabilities(_)

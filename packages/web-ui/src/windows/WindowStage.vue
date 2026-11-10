@@ -6,6 +6,8 @@ import ResizeHandle from '../ui/ResizeHandle.vue'
 import { startPointerDrag } from '../ui/pointer-drag'
 import { resizeWindowRect, type WindowEdges, type WindowRect } from '../ui/floating-window'
 import type { ContextMenuGroup } from '../ui/context-menu'
+import { appOverlayStore } from '../overlay/appOverlay'
+import { KEEPS_WINDOWS, WINDOW_SCOPE, pageWindowOpen } from '../ui/window-stack'
 import WorkWindow, { type WindowTab } from './WorkWindow.vue'
 import {
   WINDOW_GAP_PX,
@@ -45,12 +47,13 @@ import { moved } from '../ui/drag-order'
  *
  * - Dragging its title bar's room moves a floating window, which stays a gap
  *   inside the area: an edge that reaches the gap stops there and the window
- *   narrows behind the pointer, as long as the drag lasts. An anchored window
- *   does not move. A maximized one comes out as a floating window under the
- *   pointer once the press has moved a few px. It shrinks to its floating
- *   size in one motion while it follows the pointer, which holds the same
- *   spot of its title bar throughout, as a system's maximized window dragged
- *   by its title bar does.
+ *   narrows behind the pointer, as long as the drag lasts. A maximized one
+ *   comes out as a floating window under the pointer once the press has
+ *   moved a few px. It shrinks to its floating size in one motion while it
+ *   follows the pointer, which holds the same spot of its title bar
+ *   throughout, as a system's maximized window dragged by its title bar does.
+ *   An anchored one comes out the same way at the size it had in its corner,
+ *   which it keeps for its next time there.
  * - A window lands by where its middle is, not the pointer. While its middle
  *   is over the column, or over the area's right quarter while the column is
  *   empty, a box shows where it lands and what it does there (Dock, Place
@@ -66,7 +69,15 @@ import { moved } from '../ui/drag-order'
  *
  * Escape closes the window in front while it floats, is anchored or is
  * maximized, as a glance at a file or a picture is put away, unless a field
- * holds the keys.
+ * holds the keys. A press with the primary button outside the windows
+ * minimizes every one of them over the conversation that is not kept open
+ * (`minimizeUnkept`), and still does what it does there: a press in the
+ * composer puts away the windows and the caret in the message. A press
+ * minimizes nothing on the taskbar, on a control that opens or changes a
+ * window (`KEEPS_WINDOWS`), or while a menu, a dialog or the page's own
+ * window, such as the media viewer, takes it first. Where a place bounds
+ * the area (`WINDOW_SCOPE`), as a gallery specimen does among others, a
+ * press outside that place is not the area's.
  *
  * Sizes: the divider before the column sizes the column, the gaps between its
  * rows size the rows, a floating window's edges and corners size it, and an
@@ -434,8 +445,31 @@ watch(() => ({ model: props.model, placed: state.value.windows.map((window) => [
 
 defineExpose({ opening, measured })
 
-/** The keys a field takes for itself, Escape among them. */
-const FIELD = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]'
+/**
+ * The keys a field takes for itself, Escape among them. A read-only text,
+ * such as a file's or a change's, is editable to the browser so its text
+ * can be selected and searched, but takes no keys a window needs: Escape
+ * there is the window's, once the text's own use of it, such as closing its
+ * search bar, did not take it.
+ */
+const FIELD = 'input, textarea, select, [contenteditable=""]:not([aria-readonly="true"]), [contenteditable="true"]:not([aria-readonly="true"])'
+
+/** Before the press reaches what it lands on, so a window it opens is not put away by it. */
+useEventListener(document, 'pointerdown', (event: PointerEvent) => {
+  if (props.phone || event.button !== 0 || !event.isPrimary || moving.value || !(event.target instanceof Element)) {
+    return
+  }
+  const place = event.target
+  if (place.closest(`[data-stage-window], [data-taskbar], [${KEEPS_WINDOWS}]`) || appOverlayStore.hasExclusive() || pageWindowOpen()) {
+    return
+  }
+  // Within the place that bounds the area, where one does.
+  const scope = area.value?.closest(`[${WINDOW_SCOPE}]`)
+  if (scope && !scope.contains(place)) {
+    return
+  }
+  props.model.minimizeUnkept()
+}, { capture: true })
 
 useEventListener(document, 'keydown', (event: KeyboardEvent) => {
   if (event.key !== 'Escape' || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || moving.value) {
@@ -497,10 +531,6 @@ function grab(id: string, event: PointerEvent): void {
     return
   }
   props.model.focus(id)
-  // An anchored window stays in its corner.
-  if (window.placement === 'anchored') {
-    return
-  }
   const start = local(event)
   const from = { placement: window.placement, return: window.return, row: state.value.column.indexOf(id), box: { ...window.box } }
   const drawn = rectOf(window)
@@ -520,6 +550,10 @@ function grab(id: string, event: PointerEvent): void {
   /** It comes out floating under the pointer at `point`, shrinking to its floating box. */
   function comeOut(point: Point): void {
     out = true
+    if (from.placement === 'anchored') {
+      // Out of its corner at its corner's size, where it then floats.
+      dragged.box = { ...dragged.box, width: drawn.width / Math.max(1, size.value.width), height: drawn.height / Math.max(1, size.value.height) }
+    }
     const floating = own(dragged)
     const heldFrom = hold
     // The same share of the title bar, further along where the box would pass the area's far edge,
@@ -610,6 +644,8 @@ function grab(id: string, event: PointerEvent): void {
           // Back to maximized, still returning where it did before.
           window.return = from.return
           props.model.maximize(id)
+        } else if (from.placement === 'anchored') {
+          props.model.anchor(id)
         }
         return
       }
@@ -782,8 +818,9 @@ function maximizePressed(window: StageWindow): void {
     >
       <slot />
     </div>
-    <!-- In the middle of the gap before the column, with a grip that shows it sizes, as a split view's divider does. -->
-    <div v-if="columnShown" class="group/column absolute inset-y-0 z-20 flex" :style="{ left: `${column.x + COLUMN_GUTTER_PX / 2}px` }">
+    <!-- In the middle of the gap before the column, with a grip that shows it sizes, as a split view's divider does.
+         It and the gaps between the rows size windows, so a press on them puts none away. -->
+    <div v-if="columnShown" class="group/column absolute inset-y-0 z-20 flex" :style="{ left: `${column.x + COLUMN_GUTTER_PX / 2}px` }" v-bind="{ [KEEPS_WINDOWS]: '' }">
       <span aria-hidden="true" class="window-grip pointer-events-none absolute left-0 top-1/2 h-10 w-1 -translate-x-1/2 -translate-y-1/2" />
       <ResizeHandle
         :model-value="column.width"
@@ -803,6 +840,7 @@ function maximizePressed(window: StageWindow): void {
         :key="`gap-${index}`"
         class="group/column absolute z-20 grid cursor-row-resize place-items-center"
         :style="{ left: `${rect.x}px`, width: `${rect.width}px`, top: `${rect.y + rect.height}px`, height: `${WINDOW_GAP_PX}px` }"
+        v-bind="{ [KEEPS_WINDOWS]: '' }"
         @pointerdown="sizeRows(index, $event)"
       >
         <span aria-hidden="true" class="window-grip pointer-events-none h-1 w-10" />
@@ -839,11 +877,13 @@ function maximizePressed(window: StageWindow): void {
           :focused="state.focused === view.id"
           :menu="view.menu"
           :anchors="view.anchors"
+          :kept-open="window.keptOpen"
           :phone="phone"
           @select="(tab) => emit('select', view.id, tab)"
           @close-tab="(tab) => emit('closeTab', view.id, tab)"
           @reorder="(from, to) => emit('reorder', view.id, from, to)"
           @new-tab="emit('newTab', view.id)"
+          @keep-open="(kept) => model.keepOpen(view.id, kept)"
           @anchor="anchorPressed(window)"
           @minimize="phone ? model.minimizeAll() : model.minimize(view.id)"
           @maximize="maximizePressed(window)"

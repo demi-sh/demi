@@ -13,7 +13,13 @@
 //! tab that drew none would hold a click or scroll until the user brought it to
 //! the front. The cost is that a tab behind another keeps rendering.
 
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+    time::Duration,
+};
 
 use chromiumoxide::{Page, cdp::browser_protocol::page::EventJavascriptDialogOpening};
 use tokio::sync::watch;
@@ -67,6 +73,8 @@ pub struct TabState {
     pub favicon: watch::Sender<Option<String>>,
     /// How many times the agent showed the tab to the user.
     pub shows: watch::Sender<u64>,
+    /// Whether the user acted in the tab in its live view.
+    used: AtomicBool,
     /// Counts the changes to what the browser shows, the environment's.
     pub changes: watch::Sender<u64>,
     /// The environment's tasks, which retirement joins: work for the tab that
@@ -115,6 +123,7 @@ impl TabState {
             history,
             favicon,
             shows: watch::channel(0).0,
+            used: AtomicBool::new(false),
             changes,
             tasks: tasks.clone(),
             inputs: Default::default(),
@@ -207,6 +216,19 @@ impl BrowserTab {
     pub fn show(&self) {
         self.state.shows.send_modify(|shows| *shows += 1);
         self.state.changes.send_modify(|revision| *revision += 1);
+    }
+
+    /// Whether the user acted in the tab: in its live view, pressed a button
+    /// or a key, turned the wheel, pasted, chose or answered a dialog; or in
+    /// its window, went to an address, back, forward, reloaded or stopped it.
+    /// Once the user did, the tab is the user's, and Demi never prunes it.
+    pub fn used(&self) -> bool {
+        self.state.used.load(Ordering::Relaxed)
+    }
+
+    /// The user acted in the tab.
+    pub fn mark_used(&self) {
+        self.state.used.store(true, Ordering::Relaxed);
     }
 
     /// Who opened the tab.

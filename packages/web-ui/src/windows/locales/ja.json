@@ -6,6 +6,7 @@
   },
   "dock": "右側にドッキング",
   "anchor": "隅に固定",
+  "keepOpen": "開いたままにする",
   "minimize": "しまう",
   "maximize": "拡大",
   "restore": "元のサイズに戻す",

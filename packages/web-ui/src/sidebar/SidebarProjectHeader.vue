@@ -29,8 +29,8 @@ const props = defineProps<{
   /**
    * The conversation whose dot the folded row carries after the name, for the
    * conversations the fold hides (`groupDot`), as a folded group's label
-   * carries; none while the project is open or nothing it hides is new or
-   * runs. A folded row keeps the dot's room either way, so a dot that comes
+   * carries; none while the project is open or nothing it hides is new. A
+   * folded row keeps the dot's room either way, so a dot that comes
    * or goes moves nothing.
    */
   dot: DotSource | null

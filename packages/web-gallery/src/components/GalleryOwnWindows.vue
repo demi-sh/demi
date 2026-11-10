@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { WINDOW_SCOPE } from '@demicodes/web-ui/ui/window-stack'
 import SubagentHistoryMenu from '@demicodes/web-ui/agent/SubagentHistoryMenu.vue'
 import SubagentPanel from '@demicodes/web-ui/agent/SubagentPanel.vue'
 import TerminalPanel from '@demicodes/web-ui/agent/TerminalPanel.vue'
@@ -103,7 +104,13 @@ watch(() => showing('agents'), (shown) => {
 </script>
 
 <template>
-  <SessionWindows ref="area" :stage="stage" :own="[agentsWindow.window.value, ...commandWindows.windows.value]" :bottom="0">
+  <SessionWindows
+    ref="area"
+    :stage="stage"
+    :own="[agentsWindow.window.value, ...commandWindows.windows.value]"
+    :bottom="0"
+    v-bind="{ [WINDOW_SCOPE]: '' }"
+  >
     <slot />
     <template #own="{ id }">
       <SubagentPanel

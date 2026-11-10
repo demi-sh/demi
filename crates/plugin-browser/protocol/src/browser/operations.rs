@@ -413,6 +413,22 @@ pub struct TabCloseResult {
 }
 
 input! {
+    /// `tab.prune`: closes the agents' tabs the user did not make theirs,
+    /// once the conversation stopped running. Demi's, never an agent's: it
+    /// has no `demi browser` leaf.
+    pub struct TabPruneInput {}
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct TabPruneResult {
+    pub closed: Vec<TabId>,
+    /// The tabs it would have closed but left, because a viewer watches
+    /// them.
+    pub watched: Vec<TabId>,
+}
+
+input! {
     tab
     /// `inspect`: reads a tab's accessibility or DOM tree.
     pub struct InspectInput {
@@ -1639,6 +1655,7 @@ operations! {
     "tab.new" => TabNew(TabNewInput),
     "tab.list" => TabList(TabListInput),
     "tab.close" => TabClose(TabCloseInput),
+    "tab.prune" => TabPrune(TabPruneInput),
     "open" => Open(OpenInput),
     "show" => Show(ShowInput),
     "info" => Info(InfoInput),
@@ -1750,7 +1767,7 @@ fn operands(name: &str) -> &'static [&'static str] {
         "webmcp.call" => &["tab", "tool"],
         // The first operand is a tab for start, a recording for the others.
         "record" => &["target", "action", "text"],
-        "tab.new" | "tab.list" | "content.fetch" | "install" => &[],
+        "tab.new" | "tab.list" | "tab.prune" | "content.fetch" | "install" => &[],
         _ => &["tab"],
     }
 }

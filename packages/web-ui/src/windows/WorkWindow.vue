@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, h, type Component, type FunctionalComponent } from 'vue'
-import { ChevronDown, ChevronLeft, Maximize2, Minimize2, Minus, PictureInPicture2, Plus, X } from '@lucide/vue'
+import { ChevronDown, ChevronLeft, Maximize2, Minimize2, Minus, PictureInPicture2, Pin, Plus, X } from '@lucide/vue'
 import { appOverlayStore } from '../overlay/appOverlay'
 import Dropdown from '../ui/Dropdown.vue'
 import IconButton from '../ui/IconButton.vue'
@@ -35,6 +35,9 @@ import { t as agentText } from '../agent/locales/text'
  *   double-clicking it maximizes or restores it.
  * - What the window adds, such as Agents' Completed (`trailing`).
  * - A divider before the controls every window has.
+ * - Keep Open, for a window over the conversation, pressed while it is kept
+ *   open (`keptOpen`): a press outside it then leaves it. A docked window has
+ *   none, as it never goes at a press outside.
  * - Keep in Corner, for a window that anchors (`anchors`), pressed while it is
  *   anchored: a press anchors it, or lets it float again.
  * - Minimize, Maximize or Restore, and Close. A window docks by being dragged
@@ -75,6 +78,8 @@ const props = defineProps<{
   menu?: () => readonly ContextMenuGroup[]
   /** Whether it can stand anchored in the corner, with Keep in Corner. */
   anchors?: boolean
+  /** Whether it stays at a press outside it, which Keep Open shows. */
+  keptOpen?: boolean
   phone?: boolean
 }>()
 
@@ -90,6 +95,8 @@ const emit = defineEmits<{
   closeTab: [tab: string]
   reorder: [from: number, to: number]
   newTab: []
+  /** Keep Open, with whether it is kept open now. */
+  keepOpen: [kept: boolean]
   /** Keep in Corner. */
   anchor: []
   minimize: []
@@ -199,6 +206,15 @@ function doubleClick(event: MouseEvent): void {
       <!-- The tabs and the window's own actions stand a divider apart from the controls every window has. -->
       <span v-if="!phone" class="mx-1 h-5 w-px shrink-0 bg-line" aria-hidden="true" />
       <div v-if="!phone" class="flex shrink-0 items-center" data-window-control>
+        <Tooltip v-if="placement !== 'docked'" :content="t('keepOpen')">
+          <IconButton
+            :icon="Pin"
+            variant="ghost"
+            :aria-label="t('keepOpen')"
+            :pressed="keptOpen === true"
+            @click="emit('keepOpen', !keptOpen)"
+          />
+        </Tooltip>
         <Tooltip v-if="anchors" :content="t('anchor')">
           <IconButton
             :icon="PictureInPicture2"

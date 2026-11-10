@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: proposed, superseded in part by 0317
 ---
 
 # The workspace switcher shows every workspace and what each one's conversations do

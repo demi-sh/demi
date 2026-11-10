@@ -350,6 +350,7 @@ impl Plugin for Instance {
                 Request::ReplyBlocks { .. } | Request::ReplyBlockDocument { .. } => {
                     Err(PluginError::undeclared("reply blocks"))
                 }
+                Request::ConversationRunning { .. } => Err(PluginError::undeclared("running")),
                 Request::ConversationDeleted { .. } | Request::ConversationForked { .. } => {
                     Err(PluginError::undeclared("conversations"))
                 }

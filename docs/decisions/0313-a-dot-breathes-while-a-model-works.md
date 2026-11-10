@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: proposed, superseded in part by 0317
 ---
 
 # A running dot breathes while a model works, and all breathe as one

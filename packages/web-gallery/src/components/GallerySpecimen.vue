@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { WINDOW_SCOPE } from '@demicodes/web-ui/ui/window-stack'
+
 withDefaults(defineProps<{
   variant?: string
   wide?: boolean
@@ -14,6 +16,7 @@ withDefaults(defineProps<{
   <div
     class="gallery-specimen"
     :class="wide ? 'gallery-specimen-wide' : ''"
+    v-bind="{ [WINDOW_SCOPE]: '' }"
   >
     <div
       v-if="variant"

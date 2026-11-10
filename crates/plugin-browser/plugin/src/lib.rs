@@ -6,7 +6,9 @@
 //!   `demi.browser` command package, which runs it on the device;
 //! - the `browser` user stream of the live view;
 //! - the tab list and tab methods of the work's `browser` kind;
-//! - the kind's tabs on the backend.
+//! - the kind's tabs on the backend;
+//! - the wait after each conversation stops running, at whose end the
+//!   agents' tabs close (`pruning`).
 //!
 //! It holds no browser logic. Commands are declared from the operation types of
 //! `command-package-browser-protocol`, the tab methods and the work's tabs
@@ -18,6 +20,7 @@
 
 mod browser;
 pub mod page;
+mod pruning;
 mod tabs;
 pub mod reason;
 
@@ -50,6 +53,7 @@ impl Browser {
         manifest.commands = commands().manifest_commands();
         manifest.streams = vec![live_stream()];
         manifest.page = Some(page::page());
+        manifest.running = true;
         Self { manifest }
     }
 }
@@ -69,6 +73,7 @@ impl PluginFactory for Browser {
         Rc::new(Instance {
             commands: commands(),
             work: tabs::Work::default(),
+            pruning: pruning::Pruning::default(),
         })
     }
 }
@@ -121,11 +126,12 @@ fn commands() -> CommandPlugin {
 }
 
 /// One user's browser plugin: its commands are all native, so only its
-/// conversation state, the tab list, the tab methods, its kind's tabs and
-/// the browser package's messages reach it.
+/// conversation state, the tab list, the tab methods, its kind's tabs, the
+/// browser package's messages and whether each conversation runs reach it.
 struct Instance {
     commands: CommandPlugin,
     work: tabs::Work,
+    pruning: pruning::Pruning,
 }
 
 impl Plugin for Instance {
@@ -194,6 +200,14 @@ impl Plugin for Instance {
                 }
                 Request::ConversationDeleted { .. } | Request::ConversationForked { .. } => {
                     Err(PluginError::undeclared("conversations"))
+                }
+                Request::ConversationRunning {
+                    conversation,
+                    running,
+                    ..
+                } => {
+                    self.pruning.changed(&conversation, running, &port).await;
+                    Ok(Reply::Done)
                 }
                 Request::PageState {
                     conversation: Some(_),
