@@ -42,7 +42,7 @@ cargo check --workspace --all-targets
 cargo test --workspace  # the compaction tests
 
 bun install
-bun run typecheck:web   # type-check web-ui, web-gallery and web
+bun run typecheck:web   # type-check the browser packages
 ```
 
 Every Rust command selects the whole workspace, so they share one build.
