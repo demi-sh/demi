@@ -126,20 +126,25 @@ export const DOCK_ZONE_SHARE = 0.25
 /** How far a press moves before it drags a docked or maximized window out, in px. */
 export const UNDOCK_PX = 6
 
-/** A window's share of the area above the composer when it first opens. */
-export const OPENING_SHARE = { width: 0.6, height: 0.72 }
+/**
+ * A window's share of the area above the composer when it first opens: most
+ * of it, so a file, a change or a page shows enough to read, with the
+ * conversation's edges still in sight around it.
+ */
+export const OPENING_SHARE = { width: 0.85, height: 0.85 }
 
 /**
  * The largest box a window first opens in, in px: on a large screen a glance
  * reads a page or a file at its usual width, not across the whole screen.
  */
-export const OPENING_MAX_PX = { width: 1100, height: 820 }
+export const OPENING_MAX_PX = { width: 1400, height: 1000 }
 
 /**
- * The smallest box a window first opens in, in px, where the area has the
- * room: a file's bar and a page's toolbar fit in one row.
+ * Where the area above the composer is smaller than this, in px, a window
+ * first opens over the whole area, as large as maximized: in a small browser
+ * window a share of it would show too little of a file or a page.
  */
-export const OPENING_MIN_PX = { width: 480, height: 360 }
+export const OPENING_FULL_BELOW_PX = { width: 960, height: 640 }
 
 /** How far each window that opens where another floats moves down and to the right, in px. */
 export const CASCADE_PX = 24
@@ -193,8 +198,12 @@ export function boxOfRect(rect: WindowRect, size: Size): WindowBox {
  * of the `taken` px boxes that stands at the same place.
  */
 export function openingBox(size: Size, bounds: Size, taken: readonly WindowRect[]): WindowBox {
-  const width = Math.min(bounds.width, Math.max(OPENING_MIN_PX.width, Math.min(OPENING_MAX_PX.width, bounds.width * OPENING_SHARE.width)))
-  const height = Math.min(bounds.height, Math.max(OPENING_MIN_PX.height, Math.min(OPENING_MAX_PX.height, bounds.height * OPENING_SHARE.height)))
+  if (bounds.width < OPENING_FULL_BELOW_PX.width || bounds.height < OPENING_FULL_BELOW_PX.height) {
+    const full = { x: WINDOW_GAP_PX, y: WINDOW_GAP_PX, width: size.width - 2 * WINDOW_GAP_PX, height: size.height - 2 * WINDOW_GAP_PX }
+    return boxOfRect(full, size)
+  }
+  const width = Math.min(OPENING_MAX_PX.width, bounds.width * OPENING_SHARE.width)
+  const height = Math.min(OPENING_MAX_PX.height, bounds.height * OPENING_SHARE.height)
   const middle = { x: (bounds.width - width) / 2, y: (bounds.height - height) / 2, width, height }
   return boxOfRect(cascade(middle, taken, bounds), size)
 }
