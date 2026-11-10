@@ -25,10 +25,11 @@ import { moved, rearranged } from '../ui/drag-order'
  *   what it shows.
  * - Anchored: in the area's bottom left corner, over the conversation and
  *   the composer's start, above the taskbar's system buttons that open it, at
- *   the size the user gave it; it does not move. A window that follows the
- *   conversation's own work, such as Agents, opens there, and goes from there
- *   to floating and back. One window stands there at a time: one that comes
- *   puts the one there to the taskbar, minimized.
+ *   the size the user gave it. A window that follows the conversation's own
+ *   work, such as Agents, opens there, and goes from there to floating and
+ *   back, by its title bar's button or by a drag of its title bar. One window
+ *   stands there at a time: one that comes puts the one there to the
+ *   taskbar, minimized.
  * - Docked: a row of the column at the area's right; the conversation narrows
  *   beside it. The column stacks rows only, never columns.
  * - Maximized: over the conversation's side of the area under its top bar,

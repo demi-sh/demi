@@ -47,12 +47,13 @@ import { moved } from '../ui/drag-order'
  *
  * - Dragging its title bar's room moves a floating window, which stays a gap
  *   inside the area: an edge that reaches the gap stops there and the window
- *   narrows behind the pointer, as long as the drag lasts. An anchored window
- *   does not move. A maximized one comes out as a floating window under the
- *   pointer once the press has moved a few px. It shrinks to its floating
- *   size in one motion while it follows the pointer, which holds the same
- *   spot of its title bar throughout, as a system's maximized window dragged
- *   by its title bar does.
+ *   narrows behind the pointer, as long as the drag lasts. A maximized one
+ *   comes out as a floating window under the pointer once the press has
+ *   moved a few px. It shrinks to its floating size in one motion while it
+ *   follows the pointer, which holds the same spot of its title bar
+ *   throughout, as a system's maximized window dragged by its title bar does.
+ *   An anchored one comes out the same way at the size it had in its corner,
+ *   which it keeps for its next time there.
  * - A window lands by where its middle is, not the pointer. While its middle
  *   is over the column, or over the area's right quarter while the column is
  *   empty, a box shows where it lands and what it does there (Dock, Place
@@ -530,10 +531,6 @@ function grab(id: string, event: PointerEvent): void {
     return
   }
   props.model.focus(id)
-  // An anchored window stays in its corner.
-  if (window.placement === 'anchored') {
-    return
-  }
   const start = local(event)
   const from = { placement: window.placement, return: window.return, row: state.value.column.indexOf(id), box: { ...window.box } }
   const drawn = rectOf(window)
@@ -553,6 +550,10 @@ function grab(id: string, event: PointerEvent): void {
   /** It comes out floating under the pointer at `point`, shrinking to its floating box. */
   function comeOut(point: Point): void {
     out = true
+    if (from.placement === 'anchored') {
+      // Out of its corner at its corner's size, where it then floats.
+      dragged.box = { ...dragged.box, width: drawn.width / Math.max(1, size.value.width), height: drawn.height / Math.max(1, size.value.height) }
+    }
     const floating = own(dragged)
     const heldFrom = hold
     // The same share of the title bar, further along where the box would pass the area's far edge,
@@ -643,6 +644,8 @@ function grab(id: string, event: PointerEvent): void {
           // Back to maximized, still returning where it did before.
           window.return = from.return
           props.model.maximize(id)
+        } else if (from.placement === 'anchored') {
+          props.model.anchor(id)
         }
         return
       }
