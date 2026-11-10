@@ -68,6 +68,8 @@ onBeforeUnmount(() => {
 const cardsRef = ref<HTMLElement>()
 provide(dockCardsKey, cardsRef)
 
+const rowRef = ref<HTMLElement>()
+const { height: rowHeight } = useElementSize(rowRef, { width: 0, height: 0 }, { box: 'border-box' })
 const composerRef = ref<HTMLElement>()
 const { height: composerHeight } = useElementSize(composerRef, { width: 0, height: 0 }, { box: 'border-box' })
 const surfaceComposer = inject(sessionComposerKey, null)
@@ -83,15 +85,25 @@ onBeforeUnmount(() => {
 })
 /** The chips row's step over the composer (its `pb-2`). */
 const STEP_PX = DOCK_STEP_PX
+/** A step above whatever is the dock's top: what waits for a decision over it, or else its first part. */
+const overTop = computed(() => `calc(100% + ${coverHeight.value + STEP_PX}px)`)
 /**
- * The scroll control stands a step above whatever is the dock's top, centred
- * over the column: what waits for a decision over it, or else its first part.
+ * The scroll control stands centred over the column, level with the chips
+ * row while it shows, in the room the row keeps for it; without the row, over
+ * the dock's top.
  */
-const scrollBottom = computed(() => `calc(100% + ${coverHeight.value + STEP_PX}px)`)
-/** The catching-up spinner stands there too, a step above the scroll control while it shows. */
-const catchUpBottom = computed(() => props.showScrollToBottom
+const scrollPlace = computed(() =>
+  rowHeight.value > 0
+    ? { bottom: `${composerHeight.value + STEP_PX}px`, height: `${rowHeight.value - STEP_PX}px` }
+    : { bottom: overTop.value },
+)
+/**
+ * The catching-up spinner stands over the dock's top, a step above the scroll
+ * control when that stands there too.
+ */
+const catchUpBottom = computed(() => props.showScrollToBottom && rowHeight.value === 0
   ? `calc(100% + ${coverHeight.value + 2 * STEP_PX}px + var(--spacing-chip))`
-  : scrollBottom.value)
+  : overTop.value)
 const iconPx = useIconPx()
 </script>
 
@@ -109,13 +121,13 @@ const iconPx = useIconPx()
   -->
   <div class="session-dock relative">
     <!--
-      The scroll control stands over the dock's top, centred, and takes no
-      room in it. It shows only away from the scroll bottom, where it covers
-      nothing the user reads last.
+      The scroll control stands centred in the chips row's middle, or over the
+      dock's top without the row. It shows only away from the scroll bottom,
+      where it covers nothing the user reads last.
     -->
     <span
-      class="pointer-events-none absolute left-1/2 z-20 inline-flex size-chip -translate-x-1/2"
-      :style="{ bottom: scrollBottom }"
+      class="pointer-events-none absolute left-1/2 z-20 inline-flex w-chip min-h-chip -translate-x-1/2 items-center"
+      :style="scrollPlace"
     >
       <Transition
         appear
@@ -171,23 +183,26 @@ const iconPx = useIconPx()
     -->
     <div ref="cardsRef" class="flex flex-col" />
     <!--
-      Chips read from the left, then the reading at the right end, its end
-      over the send button's. A chip or the reading renders nothing while it
-      has nothing to say, so the row shows only while one of its parts holds
-      an element.
+      Chips read from the left, the scroll control's room in the middle, then
+      the reading at the right end, its end over the send button's. A chip or
+      the reading renders nothing while it has nothing to say, so the row
+      shows only while one of its parts holds an element; the empty room
+      counts for none.
 
-      The chips keep their room: on a narrow row the reading gives way, its
-      speed first. When the chips alone are wider than the row, as four are on
-      a phone, they stay on one line and scroll sideways, so the dock's height
-      does not change. A scroller clips what reaches past its padding box, as
-      the chips' 0.5px ring does, so its padding holds the ring, and its
-      margin of the same width keeps the chips where they stand.
+      The room stays while the control is hidden, so nothing in the row moves
+      when it comes. Each side has half of the rest: on a narrow row the
+      reading gives way, its speed first, and chips wider than their half, as
+      several are on a phone, stay on one line and scroll sideways, so the
+      dock's height does not change. A scroller clips what reaches past its
+      padding box, as the chips' 0.5px ring does, so its padding holds the
+      ring, and its margin of the same width keeps the chips where they stand.
     -->
-    <div class="hidden items-center gap-1.5 pb-2 has-[>*>*]:flex">
-      <div class="-m-px flex min-w-0 shrink items-center gap-1.5 overflow-x-auto p-px overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
+    <div ref="rowRef" class="hidden grid-cols-[minmax(0,1fr)_var(--spacing-chip)_minmax(0,1fr)] items-center gap-1.5 pb-2 has-[>*>*]:grid">
+      <div class="-m-px flex min-w-0 items-center gap-1.5 overflow-x-auto p-px overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
         <slot name="chips" />
       </div>
-      <div class="flex min-w-0 flex-1 justify-end pe-[var(--composer-inset)]">
+      <div />
+      <div class="flex min-w-0 justify-end pe-[var(--composer-inset)]">
         <RequestOutputMeter :output="output" :scope="scope" :turn-speed="turnSpeed" :visible="outputSpeed" />
       </div>
     </div>
