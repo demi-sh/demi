@@ -733,9 +733,12 @@ function selectProjectConversations(project: SidebarProject): void {
           :loading-label="t('list.loading')"
           :on-retry="() => emit('retryList')"
         />
-        <!-- Rows sit a hairline apart, the way menu items and the entries above do. -->
+        <!-- Rows sit a hairline apart, the way menu items and the entries above do.
+             Another workspace is another list, which replaces this one at once, as a switch of
+             folder in Finder does: rows of one workspace never leave for or enter from another's. -->
         <TransitionGroup
           v-else
+          :key="workspaceId ?? ''"
           name="sidebar-items"
           tag="div"
           class="relative flex flex-col gap-px"
