@@ -17,7 +17,6 @@
 use demi_agent_store::attachments::{Upload, unavailable, upload_blocks};
 use demi_agent_store::media::HeldMedia;
 use demi_agent_store::pixels::pixel_size;
-use demi_backend_blobs::blobs::OPENING_BYTES;
 use demi_shared_types::{B64Bytes, UserContentBlock};
 use demi_web_api_protocol::ids::{AttachmentId, ConversationId};
 
@@ -58,12 +57,11 @@ impl dyn DeviceShard + '_ {
         let Some(bytes) = blobs.get(&record.sha256).await.map_err(|error| error.to_string())? else {
             return not_available();
         };
-        let opening = bytes.slice(..bytes.len().min(OPENING_BYTES as usize));
         let numbered = Unnumbered {
             name: file_name.to_owned(),
             media_type: record.media_type.clone(),
             size: bytes.len() as u64,
-            pixels: pixel_size(opening, &record.media_type),
+            pixels: pixel_size(bytes.clone(), &record.media_type),
             blob: record.sha256.clone(),
             // The user's file is no agent's upload.
             node: None,

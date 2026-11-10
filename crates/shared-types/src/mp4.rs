@@ -12,7 +12,9 @@ use mp4parse::TrackType;
 pub struct Mp4Facts {
     /// How long its longest track plays, in seconds.
     pub seconds: f64,
-    /// The picture's size in pixels, from the video track's header.
+    /// The picture's size in pixels as a player shows it, from the video
+    /// track's header: a track turned a quarter by its matrix, as a phone's
+    /// portrait video is, swaps its stored width and height.
     pub width: u32,
     pub height: u32,
     /// Whether it has a sound track.
@@ -54,8 +56,13 @@ pub fn read(bytes: &[u8]) -> Result<Mp4Facts, NotMp4> {
         seconds = seconds.max(presented(&context, track).unwrap_or(0.0));
         match track.track_type {
             TrackType::Video if size.is_none() => {
-                // The track header holds the size as 16.16 fixed point.
-                size = track.tkhd.as_ref().map(|header| (header.width >> 16, header.height >> 16));
+                // The track header holds the size as 16.16 fixed point, and
+                // a matrix whose diagonal is zero turns it a quarter.
+                size = track.tkhd.as_ref().map(|header| {
+                    let stored = (header.width >> 16, header.height >> 16);
+                    let turned = header.matrix.a == 0 && header.matrix.d == 0;
+                    if turned { (stored.1, stored.0) } else { stored }
+                });
             }
             TrackType::Audio => sound = true,
             _ => {}

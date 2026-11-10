@@ -10,8 +10,8 @@
 //!    the invocation, through the conversation's device access. It refuses one
 //!    over 25 MiB before reading a byte.
 //! 2. A blob the conversation owner's namespace holds already is not read
-//!    again. Only its first 64 KiB come from the object store, for its media
-//!    type.
+//!    again from the device. Its first 64 KiB come from the object store, for
+//!    its media type, and the whole of an image or a video, for its size.
 //! 3. Otherwise the runner streams the file's bytes to the backend through a
 //!    pipe (`crates/runner-device/src/files.rs`), and the backend stores the blob
 //!    in that namespace.
@@ -50,7 +50,8 @@
 use std::rc::{Rc, Weak};
 
 use bytes::Bytes;
-use demi_agent_store::{attachments::upload_media_type, pixels::pixel_size};
+use demi_agent_store::attachments::upload_media_type;
+use demi_agent_store::pixels::{has_pixel_size, pixel_size};
 use demi_backend_blobs::blobs::{FetchError, OPENING_BYTES};
 use demi_backend_database::conversation_attachments::{
     self, AttachmentNumber, AttachmentRow, AttachmentSource, StoredAttachment,
@@ -480,11 +481,12 @@ async fn store(
         .await
         .map_err(|error| CopyError::Unreadable(error.to_string()))?;
     let deduplicated = held.is_some();
-    // The media type and an image's or a video's size come from the file's
-    // opening, so a held blob is read only that far, and a file read whole
-    // is read only that far too: the same file gets the same record.
-    let (blob, opening, size) = match held {
-        Some(opening) => (sha256, opening.bytes, opening.size),
+    // The media type comes from the file's opening, so a held blob is read
+    // only that far, and a file read whole is read only that far too: the
+    // same file gets the same record. An image's or a video's size comes from
+    // the whole file, which a held blob is then read for.
+    let (blob, opening, whole, size) = match held {
+        Some(opening) => (sha256, opening.bytes, None, opening.size),
         None => {
             // A copy of the same bytes under way is waited for, not made twice.
             let read = || async move {
@@ -499,7 +501,7 @@ async fn store(
             })?;
             let size = u64::try_from(bytes.len()).expect("an attachment's size fits u64");
             let opened = bytes.len().min(OPENING_BYTES as usize);
-            (sha256, bytes.slice(..opened), size)
+            (sha256, bytes.slice(..opened), Some(bytes), size)
         }
     };
     let sent = preview_media_type(path).unwrap_or(UNKNOWN_MEDIA_TYPE);
@@ -507,7 +509,15 @@ async fn store(
     if purpose == Purpose::Picture && !media_type.starts_with("image/") {
         return Err(CopyError::NotAnImage(media_type));
     }
-    let pixels = pixel_size(opening, &media_type);
+    let whole = match whole {
+        Some(bytes) => Some(bytes),
+        None if has_pixel_size(&media_type) => blobs
+            .get(&blob)
+            .await
+            .map_err(|error| CopyError::Unreadable(error.to_string()))?,
+        None => None,
+    };
+    let pixels = whole.and_then(|bytes| pixel_size(bytes, &media_type));
     let name = path
         .rsplit(['/', '\\'])
         .next()

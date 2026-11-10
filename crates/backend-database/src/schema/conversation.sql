@@ -320,12 +320,13 @@ CREATE INDEX running_commands_of_node ON running_commands (node_id);
 -- Each attachment of the conversation, one the user sent or one the agent
 -- uploaded, by its number in the conversation's attachment sequence: the
 -- file's name, the media type read from its bytes, its size, an image's or a
--- video's width and height in pixels when its header gives them, its
--- blob in the owner's namespace, and the node of the agent whose
--- `demi attachment upload` stored it, a side question's included, null for
--- a file the user sent or uploaded themselves; only that agent's replies,
--- and those of the agents forked from it, show it (`file-previews.md`
--- § Attachment blocks). An upload also keeps the file it was uploaded from:
+-- video's width and height in pixels when its header gives them, wherever in
+-- the file it stands, its blob in the owner's namespace, and the node of the
+-- agent whose `demi attachment upload` stored it, a side question's
+-- included, null for a file the user sent or uploaded themselves; only that
+-- agent's replies, and those of the agents forked from it, show it
+-- (`file-previews.md` § Attachment blocks). An upload also keeps the file it
+-- was uploaded from:
 -- the device the command ran on and the file's full path as that device
 -- writes it, both null for a file the user sent and for an upload stored
 -- before uploads kept them.

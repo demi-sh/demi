@@ -20,7 +20,7 @@ testing = []
 bytes.workspace = true
 demi-command-protocol = { path = "../command-protocol" }
 demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
-demi-shared-types = { path = "../shared-types" }
+demi-shared-types = { path = "../shared-types", features = ["mp4"] }
 demi-provider-common = { path = "../provider-common" }
 demi-device-interface = { path = "../device-interface" }
 demi-device-paths = { path = "../device-paths" }

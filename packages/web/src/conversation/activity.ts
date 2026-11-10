@@ -96,17 +96,22 @@ export function takeAgents(
 
 /**
  * Holds `attachments`, the descriptions of attachments of the conversation,
- * as a frame or a page brings them; a description held already stands, as the
- * attachment does.
+ * as a frame or a page brings them. A description the backend sends that
+ * differs from the one held replaces it, as a size the backend learned
+ * after the page kept the description does; an equal one leaves it. Those
+ * of this web browser's copy of the conversation, `fromCopy`, are older
+ * than any the backend sent, and only fill what the page lacks.
  */
 export function describeAttachments(
   holder: Pick<Conversation, 'attachmentDescriptions'>,
   attachments: readonly ConversationAttachment[],
+  fromCopy = false,
 ): void {
   // The raw map's checks, so descriptions stay plain objects the offline copy can keep.
   const held = toRaw(holder.attachmentDescriptions)
   for (const attachment of attachments) {
-    if (!(attachment.id in held)) {
+    const before = held[attachment.id]
+    if (!before || (!fromCopy && JSON.stringify(before) !== JSON.stringify(attachment))) {
       holder.attachmentDescriptions[attachment.id] = attachment
     }
   }
