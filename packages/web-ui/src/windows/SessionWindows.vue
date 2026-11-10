@@ -50,6 +50,8 @@ import { t } from './locales/text'
 export interface OwnWindow extends StageWindowView {
   /** The count its system button shows; absent, it is no system button and shows only while open. */
   count?: number
+  /** The dot its system button wears (`TaskbarItem.dot`). */
+  dot?: TaskbarItem['dot']
   select(tab: string): void
   closeTab?(tab: string): void
   /** Its window closed: it forgets the tab it showed. */
@@ -436,6 +438,7 @@ function itemOf(id: string): TaskbarItem | null {
     pinned: false,
     state: stateOf(id),
     count: own.count,
+    dot: own.dot,
   }
 }
 

@@ -6,13 +6,14 @@ import type { OwnWindow } from '../windows/SessionWindows.vue'
 import { t as windowsText } from '../windows/locales/text'
 import AgentMark from './AgentMark.vue'
 import { agentMenu } from './agent-menu'
-import { agentName, subagentTabs, type SubagentRecord } from './subagents'
+import { agentName, isSubagentRunning, subagentStatus, subagentTabs, type SubagentRecord } from './subagents'
 import { t } from './locales/text'
 
 /**
  * A conversation's Agents window: a tab for each running child, and the
  * finished one it shows (`activeId`). A finished child's tab closes, a running
- * one's stays until the child is stopped. Its count is the running children's.
+ * one's stays until the child is stopped. Its count is the running children's,
+ * and its dot shows while one runs, breathing while a model of one works.
  *
  * With any tab, one is selected, as in a web browser: the child picked while
  * its tab stays, else the first tab, so the window never stands on no tab.
@@ -49,12 +50,14 @@ export function useAgentsWindow(
   }
 
   const window = computed<OwnWindow>(() => {
-    const running = agents().filter((agent) => agent.phase === 'running')
+    const running = agents().filter((agent) => isSubagentRunning(agent.phase))
+    const working = running.some((agent) => subagentStatus(agent) === 'active')
     return {
       id: 'agents',
       icon: Bot,
       name: windowsText('names.agents'),
       count: running.length,
+      dot: running.length === 0 ? undefined : working ? 'breathing' : 'steady',
       anchors: true,
       tabs: tabs.value.map((agent) => ({
         id: agent.id,

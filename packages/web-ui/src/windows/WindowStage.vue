@@ -70,7 +70,7 @@ import { moved } from '../ui/drag-order'
  *
  * Sizes: the divider before the column sizes the column, the gaps between its
  * rows size the rows, a floating window's edges and corners size it, and an
- * anchored one's top and left edges and their corner size it. While any of
+ * anchored one's top and right edges and their corner size it. While any of
  * these drags, the windows follow it with no motion. A window opens above the
  * `bottom` px the composer keeps; a floating or anchored one may cover the
  * composer; a maximized one covers the conversation's side of the area, the
@@ -676,7 +676,7 @@ function resize(id: string, edges: WindowEdges, event: PointerEvent): void {
 
 /** The edges a window sizes from: all of a floating one's; an anchored one's away from its corner. */
 function edgesOf(window: StageWindow): readonly { edges: WindowEdges; class: string }[] {
-  return window.placement === 'anchored' ? EDGES.filter(({ edges }) => !edges.right && !edges.bottom) : EDGES
+  return window.placement === 'anchored' ? EDGES.filter(({ edges }) => !edges.left && !edges.bottom) : EDGES
 }
 
 const columnBounds = computed(() => ({

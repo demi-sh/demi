@@ -51,11 +51,15 @@ export function useCommandWindows(
   }
 
   function window(kind: CommandKind, id: string, icon: typeof Activity, name: string): OwnWindow {
+    const count = runningOfKind(terminals(), kind).length
     return {
       id,
       icon,
       name,
-      count: runningOfKind(terminals(), kind).length,
+      count,
+      // A running command has the accent's steady dot; a service that runs is
+      // in its settled state, so Services has none.
+      dot: kind === 'command' && count > 0 ? 'steady' : undefined,
       anchors: true,
       tabs: tabs(kind).map((terminal) => ({
         id: terminal.id,

@@ -16,15 +16,15 @@ import { moved, rearranged } from '../ui/drag-order'
  * |        +-----------+           |           |
  * | [ composer                   ] |           |
  * +--------------------------------+-----------+
- * | + | pinned | open windows ...    | system  |   taskbar
+ * | + | system | pinned | open windows ...    |   taskbar
  * +--------------------------------------------+
  * ```
  *
  * - Floating: where the user put it, over the conversation and the column. A
  *   window opens floating in the middle of the area, at a size to glance at
  *   what it shows.
- * - Anchored: in the area's bottom right corner, over the conversation and
- *   the composer's end, above the taskbar's system buttons that open it, at
+ * - Anchored: in the area's bottom left corner, over the conversation and
+ *   the composer's start, above the taskbar's system buttons that open it, at
  *   the size the user gave it; it does not move. A window that follows the
  *   conversation's own work, such as Agents, opens there, and goes from there
  *   to floating and back. One window stands there at a time: one that comes
@@ -242,14 +242,14 @@ function keptAlong(start: number, length: number, room: number, least: number): 
 }
 
 /**
- * An anchored window's box in an area of `size`: its bottom right corner a gap
+ * An anchored window's box in an area of `size`: its bottom left corner a gap
  * inside the area's, at `corner` or else `CORNER_SHARE`, kept inside it.
  */
 export function cornerRect(corner: WindowSize | undefined, size: Size): WindowRect {
   const share = corner ?? CORNER_SHARE
   const width = Math.round(clamp(share.width * size.width, 0, Math.max(0, size.width - 2 * WINDOW_GAP_PX)))
   const height = Math.round(clamp(share.height * size.height, 0, Math.max(0, size.height - 2 * WINDOW_GAP_PX)))
-  return { x: size.width - WINDOW_GAP_PX - width, y: size.height - WINDOW_GAP_PX - height, width, height }
+  return { x: WINDOW_GAP_PX, y: size.height - WINDOW_GAP_PX - height, width, height }
 }
 
 /** The column's width for the area's `width` at `share`. */

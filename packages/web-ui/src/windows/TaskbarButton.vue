@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUpdate, onUpdated, useTemplateRef, type Component } from 'vue'
+import CornerDot from '../ui/CornerDot.vue'
 import { ICON_PX } from '../ui/icon-metrics'
 import type { TaskbarItem } from './Taskbar.vue'
 import { resized } from './taskbar-motion'
@@ -12,11 +13,15 @@ import { resized } from './taskbar-motion'
  * The state says how it draws: closed and minimized windows are fainter; a
  * shown window wears a mark under it, the one in front the accent's, as a menu
  * the button opens does while it is open.
+ *
+ * A system button may wear the accent's dot on its icon's corner, breathing
+ * or steady as `dot` says.
  */
 defineProps<{
   icon: Component
   label?: string
   count?: number
+  dot?: TaskbarItem['dot']
   state?: TaskbarItem['state']
   /** Keeps its width while the taskbar narrows its windows' buttons. */
   fixed?: boolean
@@ -42,7 +47,10 @@ onUpdated(() => {
     class="taskbar-button"
     :class="[state ? `taskbar-${state}` : '', { 'taskbar-fixed': fixed }]"
   >
-    <component :is="icon" :size="ICON_PX.chip" class="shrink-0" />
+    <span class="relative flex shrink-0">
+      <component :is="icon" :size="ICON_PX.chip" />
+      <CornerDot v-if="dot" tone="accent" size="xs" :breathing="dot === 'breathing'" />
+    </span>
     <span v-if="label" class="min-w-0 truncate">{{ label }}</span>
     <span v-if="count !== undefined" class="taskbar-count">{{ count }}</span>
   </button>
@@ -63,6 +71,13 @@ onUpdated(() => {
   font-size: var(--text-chrome);
   color: var(--color-fg);
   cursor: default;
+}
+
+/* The fill the count steps from and a corner dot's ring cuts it out of. */
+.taskbar-button:hover,
+.taskbar-front {
+  --surface-current: var(--color-surface-base);
+  --fill-color: var(--color-surface-base);
 }
 
 .taskbar-button:hover {
@@ -116,7 +131,9 @@ onUpdated(() => {
   padding-inline: 4px;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
-  background: var(--color-surface-raised);
+  /* A track's fill on the button's own, so it reads on the hovered button
+     and in light, where the raised surface is the taskbar's own white. */
+  background: color-mix(in srgb, var(--surface-current), var(--overlay) 10%);
   color: var(--color-fg-muted);
 }
 </style>

@@ -23,7 +23,7 @@ import { t } from './locales/text'
  * operating system's taskbar lists its programs':
  *
  * ```text
- * | + pinned ... | open ... | More |                     | system ... |
+ * | + | system ... | pinned ... | open ... | More |                     |
  * ```
  *
  * - Open (+) lists what can open: a kind already open shows its window, and a
@@ -33,16 +33,16 @@ import { t } from './locales/text'
  *   it is in front.
  * - Resting on a button lists the window's tabs over it: a press on one shows
  *   it, and each closes from its own row.
- * - Its menu pins it to the taskbar's start, after Open and before the
- *   divider, where it stays while the window is closed; or unpins it; and
- *   closes the window.
+ * - Its menu pins it before the open windows' divider, where it stays while
+ *   the window is closed; or unpins it; and closes the window.
  * - Dragging a button along its group, the pinned or the open, arranges it
  *   among them (`arrange`), as an operating system's taskbar does.
  * - Buttons narrow to a least width as more come; those that do not fit then
  *   are listed under More.
- * - The system's own buttons stand at the end, after a divider, in their
- *   order: they are not pinned or unpinned, show their count in place of a
- *   title, and their menus open leftward from there. The `system` slot adds
+ * - The system's own buttons stand right after Open, between dividers, in
+ *   their order, where they keep their place however many windows open:
+ *   they are not pinned or unpinned, show their count in place of a title,
+ *   and their menus open rightward from there. The `system` slot adds
  *   buttons there that open a menu, such as Schedules.
  */
 export interface TaskbarTab {
@@ -68,6 +68,8 @@ export interface TaskbarItem {
   state: 'closed' | 'minimized' | 'shown' | 'front'
   /** The count a system button shows in place of a title. */
   count?: number
+  /** The accent's dot on a system button's icon: steady, or breathing while a model works. */
+  dot?: 'steady' | 'breathing'
 }
 
 export interface TaskbarOpen {
@@ -161,8 +163,8 @@ function menu(item: TaskbarItem, system: boolean): () => ContextMenuGroup[] {
   }
 }
 
-/** The button whose tabs the menu over it lists; a system button's opens leftward, from the taskbar's end. */
-const listed = shallowRef<{ id: string; anchor: HTMLElement; system: boolean } | null>(null)
+/** The button whose tabs the menu over it lists. */
+const listed = shallowRef<{ id: string; anchor: HTMLElement } | null>(null)
 const listedItem = computed(() => [...props.items, ...props.system].find((item) => item.id === listed.value?.id) ?? null)
 const menuOwner = ref<string | null>(null)
 provide(taskbarMenuKey, menuOwner)
@@ -205,7 +207,7 @@ function rest(item: TaskbarItem, event: PointerEvent, system = false): void {
   }
   const anchor = event.currentTarget as HTMLElement
   const place = () => {
-    listed.value = { id: item.id, anchor, system }
+    listed.value = { id: item.id, anchor }
   }
   if (listed.value || system) {
     place()
@@ -287,6 +289,35 @@ function press(item: TaskbarItem): void {
         </Menu>
       </template>
     </Dropdown>
+    <!--
+      The system's buttons stand between dividers drawn by their own box: the
+      one before them while it holds a button, as it does not with no
+      schedule, so Open then meets the windows' divider alone; the one after
+      them only before pinned buttons, the open windows having their own.
+      Each divider opens and closes with the buttons' motion, so the buttons
+      beside it slide rather than jump.
+    -->
+    <div class="taskbar-system flex shrink-0 items-center gap-0.5" :class="{ 'taskbar-system-pinned': pinned.length > 0 }">
+      <TransitionGroup :css="false" @enter="grow" @leave="shrink">
+        <!-- No tip: resting on one shows its menu at once, which its name heads. -->
+        <TaskbarButton
+          v-for="item in system"
+          :key="item.id"
+          :icon="item.icon"
+          :count="item.count ?? item.tabs.length"
+          :dot="item.dot"
+          :state="item.state"
+          :aria-label="item.name"
+          fixed
+          v-context-menu="menu(item, true)"
+          @contextmenu="dismiss"
+          @click="press(item)"
+          @pointerenter="rest(item, $event, true)"
+          @pointerleave="leave"
+        />
+      </TransitionGroup>
+      <slot name="system" />
+    </div>
     <div ref="pinnedList" class="contents">
       <TransitionGroup :css="false" @enter="grow" @leave="shrink">
         <TaskbarButton
@@ -346,35 +377,13 @@ function press(item: TaskbarItem): void {
         </template>
       </Dropdown>
     </div>
-    <span v-if="system.length || $slots.system" class="mx-1 h-5 w-px shrink-0 bg-line" aria-hidden="true" />
-    <!-- No box of its own: the buttons stand in the taskbar's row, with its gaps. -->
-    <div class="contents">
-      <TransitionGroup :css="false" @enter="grow" @leave="shrink">
-        <!-- No tip: resting on one shows its menu at once, which its name heads. -->
-        <TaskbarButton
-          v-for="item in system"
-          :key="item.id"
-          :icon="item.icon"
-          :count="item.count ?? item.tabs.length"
-          :state="item.state"
-          :aria-label="item.name"
-          fixed
-          v-context-menu="menu(item, true)"
-          @contextmenu="dismiss"
-          @click="press(item)"
-          @pointerenter="rest(item, $event, true)"
-          @pointerleave="leave"
-        />
-      </TransitionGroup>
-      <slot name="system" />
-    </div>
     <!-- The window's tabs, a menu over its button while the pointer rests there, as a taskbar's thumbnails list a program's windows. -->
     <Popover
       :overlay-store="appOverlayStore"
       :is-open="listed !== null && listedItem !== null"
       :anchor-el="listed?.anchor"
       side="top"
-      :align="listed?.system ? 'end' : 'start'"
+      align="start"
       @close="dismiss"
     >
       <Menu v-if="listed && listedItem" class="min-w-56 max-w-80" :autofocus="false" @pointerenter="keep" @pointerleave="leave">
@@ -397,3 +406,33 @@ function press(item: TaskbarItem): void {
     </Popover>
   </nav>
 </template>
+
+<style scoped>
+.taskbar-system::before,
+.taskbar-system::after {
+  content: "";
+  height: 20px;
+  width: 0;
+  margin-inline: 0;
+  opacity: 0;
+  background: var(--color-line);
+  transition-property: width, margin-inline, opacity;
+  /* The buttons' motion (`taskbar-motion.ts`). */
+  transition-duration: 160ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.taskbar-system:has(button)::before,
+.taskbar-system-pinned:has(button)::after {
+  width: 1px;
+  margin-inline: 4px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taskbar-system::before,
+  .taskbar-system::after {
+    transition: none;
+  }
+}
+</style>

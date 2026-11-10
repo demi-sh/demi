@@ -75,8 +75,8 @@ onBeforeUnmount(stay)
 </script>
 
 <template>
-  <!-- At the taskbar's end, the menu lines up with the button's end and opens leftward. -->
-  <Dropdown v-if="schedules.length > 0" v-model:open="open" :overlay-store="appOverlayStore" side="top" align="end" :offset="8">
+  <!-- Near the taskbar's start, the menu lines up with the button's start and opens rightward. -->
+  <Dropdown v-if="schedules.length > 0" v-model:open="open" :overlay-store="appOverlayStore" side="top" align="start" :offset="8">
     <template #trigger="{ isOpen }">
       <!-- Resting on it opens the menu; a click there leaves it open. -->
       <TaskbarButton
