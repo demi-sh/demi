@@ -175,8 +175,8 @@ export interface Conversation extends Omit<SidebarConversation, 'device'> {
   /**
    * The descriptions of the attachments its replies name, by their ids, such
    * as `a3`, whichever agent uploaded them: what the transcript's frames and
-   * pages and the lane's later uploads bring.
-   * An attachment never changes, so a description, once held, stands.
+   * pages and the lane's later uploads bring. The backend's latest replaces
+   * one held, as when it learned a video's size after the page kept it.
    */
   attachmentDescriptions: Record<string, ConversationAttachment>
   /**

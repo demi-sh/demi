@@ -1136,13 +1136,15 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
         const offset = currentInstance.scrollOffset ?? 0
         // Following, a row that reaches into the view grows below what the
         // reader sees of it, as streamed text does: the view glides to the
-        // end instead (followEnd). What it grew above the text it ends with,
-        // as a formula drawn late does, would push what the reader reads
-        // down, and is made up at once, as for a row above the view.
+        // end instead (followEnd). What a row across the view's top grew
+        // above the text it ends with, as a formula drawn late, would push
+        // what the reader reads down; what any row in view shrank above it,
+        // as a video's box once the video tells its size, would pull it up.
+        // Either is made up at once, as for a row above the view.
         if (shouldAutoScroll.value && shownPlaced && item.start + item.size > offset) {
-          const row = item.start < offset ? currentInstance.elementsCache.get(item.key) : undefined
+          const row = currentInstance.elementsCache.get(item.key)
           const above = row ? tailDisplaced(row, settledTails.get(String(item.key))) : 0
-          if (above > RESIZED_PX) {
+          if ((above > RESIZED_PX && item.start < offset) || above < -RESIZED_PX) {
             resizeCorrections += 1
             resizeCorrectedPx += Math.round(above)
             followRowsAbove(above, { key: String(item.key), index: item.index })

@@ -1806,7 +1806,7 @@ export const useConversations = defineStore('conversations', () => {
       }
     }
     if (copy) {
-      describeAttachments(conversation, Object.values(copy.attachments))
+      describeAttachments(conversation, Object.values(copy.attachments), true)
       for (const [key, facts] of Object.entries(copy.replyBlocks)) {
         conversation.replyBlockFacts[key] ??= facts
       }
