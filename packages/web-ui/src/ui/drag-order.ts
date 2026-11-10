@@ -1,7 +1,8 @@
 /**
  * Where a dragged item of a strip or a list lands, and how the others make
- * room for it, as a web browser's tabs and a macOS list's rows do: the same
- * slots along either axis (`TabStrip`, `useListReorder`).
+ * room for it, as a macOS list's rows do, along either axis
+ * (`useListReorder`); a tab strip steps its tabs aside the same way, and picks
+ * the slot as Chrome does (`TabStrip`).
  */
 
 /** How far the pointer moves before a pressed item starts to drag, so a click with a tremor stays a click. */
