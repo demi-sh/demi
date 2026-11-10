@@ -134,7 +134,22 @@ export interface PersistedScrollState {
    * meanwhile, as a chat app reopens a conversation left at its latest.
    */
   anchor: ScrollAnchor | null
+  /**
+   * Where the transcript ended when the reader left (`transcriptEnd`): one
+   * that ends elsewhere now opens at its end, with what arrived, rather than
+   * at `anchor`.
+   */
+  end?: string
   heightCache: Map<string, number>
+}
+
+/**
+ * Whether the transcript ends where it did when the reader left. Unknown on
+ * either side, as for a window of older history, counts as the same, since
+ * nothing says the end moved.
+ */
+function sameEnd(saved: string | undefined, now: string | undefined): boolean {
+  return saved === undefined || now === undefined || saved === now
 }
 
 /**
@@ -177,6 +192,8 @@ export interface BlockVirtualizerOptions<Block extends VirtualizedBlock> {
    * measurements. Never, by default.
    */
   behind?: () => boolean
+  /** Where the shown transcript ends (`transcriptEnd`), while the list shows its latest window. */
+  end?: () => string | undefined
 }
 
 export function useBlockVirtualizer<Block extends VirtualizedBlock>(
@@ -1529,12 +1546,13 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
       return
     isRestored.value = true
 
-    const anchor = persistedState?.anchor
+    const changed = !sameEnd(persistedState?.end, options.end?.())
+    const anchor = changed ? null : persistedState?.anchor
     if (!anchor) {
       scrollToBottom()
       scrollOffset.value = el.scrollTop
       lastScrollTop = el.scrollTop
-      logList('info', 'list.placed', { how: 'end', saved: persistedState !== undefined, scroll_top_px: Math.round(el.scrollTop) })
+      logList('info', 'list.placed', { how: 'end', saved: persistedState !== undefined, changed, scroll_top_px: Math.round(el.scrollTop) })
       nextTick(() => updateAnchor())
       return
     }
@@ -1688,6 +1706,7 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
     if (!lastAnchor && !following)
       return undefined
     return {
+      end: options.end?.(),
       anchor: following || !lastAnchor ? null : {
         blockId: lastAnchor.blockId,
         anchorIndex: lastAnchor.anchorIndex,

@@ -22,6 +22,29 @@ export function latestBlocks(history: HeldTranscript): HeldBlock[] {
 }
 
 /**
+ * Rows that are no news to a reader: what the session writes about its own
+ * upkeep, a compaction or a resume, and what no row shows.
+ */
+const NOT_NEWS = new Set(['compaction_boundary', 'compaction_marker', 'resume', 'context', 'response'])
+
+/**
+ * Where the transcript ends for a reader: its last block that is news, by
+ * place, id and length of text, which grows as it streams; undefined without
+ * the latest window.
+ */
+export function transcriptEnd(history: HeldTranscript): string | undefined {
+  const window = latestWindow(history)
+  if (!window)
+    return undefined
+  const index = window.blocks.findLastIndex((block) => !NOT_NEWS.has(block.type))
+  const block = window.blocks[index]
+  if (!block)
+    return undefined
+  const text = 'text' in block && typeof block.text === 'string' ? block.text.length : 0
+  return `${window.start + index}:${block.id}:${text}`
+}
+
+/**
  * A block to bring into view and mark for a moment, in the transcript of the
  * agent `node`, the root's for null.
  */

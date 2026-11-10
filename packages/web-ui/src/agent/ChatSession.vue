@@ -85,7 +85,7 @@ import { provideLabelRoom } from '../ui/label-room'
 import { continueWithOffer, endsWithErrorRecord, openProvidersOffer, sessionFailureNotice, sessionShown, behindSession, CATCH_UP_WAIT_MS, transcriptShown, turnRecovery } from './session-status'
 import { getVisibleBlocks, isCompactionDivider } from './visible-blocks'
 import { latestWindow } from '@demicodes/conversation-client'
-import { latestBlocks, shownWindow, windowEdges, type TranscriptReveal } from './history'
+import { latestBlocks, shownWindow, transcriptEnd, windowEdges, type TranscriptReveal } from './history'
 import { provideBlockReader, type BlockReader } from './whole-blocks'
 import type { PersistedScrollState } from '../composables/useBlockVirtualizer'
 import { useHeldFor } from '../composables/useHeldFor'
@@ -1104,6 +1104,7 @@ watch(
               @delete-unsent="(id) => emit('deleteUnsent', id)"
               :bottom-offset="surface?.dockHeight ?? 0"
               :persisted-scroll-state="conversation.scroll ?? undefined"
+              :transcript-end="shownLatest ? transcriptEnd(conversation.history) : undefined"
               :reveal-block-id="reveal?.node === null ? reveal.blockId : null"
               @revealed="emit('revealed')"
               @save-scroll-state="(id, state) => emit('saveScroll', id, state ?? null)"
