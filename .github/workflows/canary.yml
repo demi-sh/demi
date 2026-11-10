@@ -80,7 +80,13 @@ jobs:
 
           run=$(gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main \
             -f commit="$COMMIT" -f prerelease=true)
-          gh run watch --repo "$GITHUB_REPOSITORY" --exit-status "${run##*/}" > /dev/null || true
+          # A watch ends at the first error of the API, such as the 404 it
+          # answers for a run it made a moment ago or a passing 500, which says
+          # nothing of the release: it watches again until the run completed,
+          # and the job's timeout bounds it. The release says how it went.
+          until [ "$(gh run view --repo "$GITHUB_REPOSITORY" "${run##*/}" --json status -q .status 2> /dev/null)" = completed ]; do
+            gh run watch --repo "$GITHUB_REPOSITORY" --interval 30 "${run##*/}" > /dev/null 2>&1 || sleep 5
+          done
           if ! draft=$(gh release view "v$version" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft); then
             git fetch --quiet --tags
             newest=$(git tag --list 'v[0-9]*' | sort -V | tail -n 1)

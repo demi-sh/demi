@@ -494,13 +494,17 @@ published() {
 }
 if ! published; then
   run=$(gh workflow run release.yml --ref main -f commit="$commit" -f prerelease=true)
-  gh run watch --exit-status "${run##*/}" || true
+  until [ "$(gh run view "${run##*/}" --json status -q .status 2> /dev/null)" = completed ]; do
+    gh run watch --interval 30 "${run##*/}" > /dev/null 2>&1 || sleep 5
+  done
   published
 fi
 ```
 
 `gh workflow run` prints the URL of the run it started, which `gh run watch`
-takes by its number. A release makes a draft, uploads the files into it and
+takes by its number. A watch ends at the first error of the API, such as the
+404 it answers for a run it started a moment ago, so the deploy watches again
+until the run completed. A release makes a draft, uploads the files into it and
 publishes it last, and `gh release view` finds a draft too, so a release
 counts only once it is no draft. A release that `canary.yml` started for the
 same commit meanwhile makes this one wait behind it and then refuse the

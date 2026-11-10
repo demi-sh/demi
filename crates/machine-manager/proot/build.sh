@@ -24,11 +24,12 @@ work=$(mktemp -d)
 mkdir -p "$output/proot-sources"
 
 # Downloads a pinned source archive, checks it, and keeps it for the release.
+# A transient error, such as a host's 503, is tried again.
 fetch() {
   name=$1
   version=$(jq -r ".$name.version" "$pins")
   archive="$output/proot-sources/$name-$version.tar.gz"
-  curl -fsSL -o "$archive" "$(jq -r ".$name.url" "$pins")"
+  curl -fsSL --retry 5 --retry-all-errors -o "$archive" "$(jq -r ".$name.url" "$pins")"
   echo "$(jq -r ".$name.sha256" "$pins")  $archive" | sha256sum -c - >/dev/null
   tar -xzf "$archive" -C "$work"
   echo "$work/$name-$version"
