@@ -356,14 +356,16 @@ const idleText = computed(() => {
 const kind = computed(() => selectedChange.value ? previewKind(selectedChange.value.path) : 'text')
 const sourceView = computed(() => selectedChange.value !== null && hasSourceView(selectedChange.value.path))
 
+/** Whether the selected file opens: the page opens files, and the change did not delete it. */
+const pathOpens = computed(() => props.opens !== false && selectedChange.value !== null && selectedChange.value.kind !== 'deleted')
+
 /**
  * What stands where the diff would, when the contents it needs were not
  * kept: a binary file's edit says why and opens the file as it is now.
  */
 const unkept = computed(() => {
   if (mode.value === 'conversation' && requestFile.value && selectionIsBinary(requestFile.value, editAt.value)) {
-    const opens = props.opens !== false && selectedChange.value?.kind !== 'deleted'
-    return { label: t('changes.binaryNotKept'), action: opens ? t('actions.openFile') : undefined }
+    return { label: t('changes.binaryNotKept'), action: pathOpens.value ? t('actions.openFile') : undefined }
   }
   const label = selectedChange.value?.kind === 'deleted' ? t('changes.previousNotKept') : t('changes.changeNotKept')
   return { label, action: undefined }
@@ -732,11 +734,21 @@ function pick(path: string): void {
         </template>
         <!-- Path and counts use different fonts and sizes: they align on the baseline, as the file pills do. -->
         <span class="flex min-w-0 items-baseline gap-2.5">
-          <!-- One path: its folders give way from the left, then its name from its end (the gallery's Files page). -->
-          <span class="flex min-w-0 items-baseline">
+          <!--
+            One path: its folders give way from the left, then its name from
+            its end (the gallery's Files page). It opens the file as Open File
+            does, as a code review's file name links to the file.
+          -->
+          <component
+            :is="pathOpens ? 'button' : 'span'"
+            :type="pathOpens ? 'button' : undefined"
+            class="flex min-w-0 items-baseline"
+            :class="{ '*:underline-offset-2 hover:*:underline focus-visible:*:underline': pathOpens }"
+            @click="pathOpens && openSelected()"
+          >
             <span class="min-w-0 truncate text-fg-muted [direction:rtl] [flex-shrink:1000000000]"><bdi>{{ heading.folder }}</bdi></span>
             <TruncatedText :class="heading.deleted ? 'deleted-name' : 'text-fg'" :text="heading.name" />
-          </span>
+          </component>
           <LineCounts v-if="counts" :added="counts.added" :removed="counts.removed" />
         </span>
         <TruncatedText v-if="editAt !== null" class="flex-[1_1_0%] pl-2 text-right text-fg-subtle" :text="edits[editAt]?.title ?? ''" />
