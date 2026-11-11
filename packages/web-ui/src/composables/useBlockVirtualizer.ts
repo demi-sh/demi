@@ -1,7 +1,7 @@
 import { keptComputed } from '../infra/keep-same'
 import { computed, nextTick, onScopeDispose, readonly, ref, shallowRef, type Ref, watch } from 'vue'
 import { elementScroll, measureElement as measureRow, observeElementOffset, useVirtualizer, type Range, type VirtualItem, type Virtualizer } from '@tanstack/vue-virtual'
-import { BOTTOM_THRESHOLD_PX, distanceFromBottom } from './scroll-bottom'
+import { AT_END_PX, BOTTOM_THRESHOLD_PX, distanceFromBottom } from './scroll-bottom'
 import { FOLD_MS } from '../ui/fold'
 import { pageLog } from '../infra/log'
 import { deviceSystem } from '../auth/device-unlock'
@@ -67,11 +67,6 @@ function rowsInView(rows: readonly Pick<VirtualItem, 'start' | 'end'>[], view: {
 
 /** Space between transcript rows; a row placed after the list keeps it too. */
 export const BLOCK_GAP = 4
-/**
- * The reader is at the end while the end of the list is in view or less than
- * this far below it: the list follows its end from there.
- */
-const AT_END_PX = 16
 /** A row the reader acted on changed its height by more than rounding. */
 const RESIZED_PX = 1
 /**

@@ -107,7 +107,8 @@ describe them by purpose.
 
 `demi.up(...servers)` starts `backend`, `web` and `gallery`, the first two when
 none is named, on the slot's ports (slot *n*: backend 33*n*0, web 33*n*1,
-gallery 33*n*2). It waits until each answers, and signs the browser in with the
+gallery 33*n*2; the tool's own network listens on 33*n*3 and its scripted
+model on 33*n*4). It waits until each answers, and signs the browser in with the
 development account, keeping the page it shows when the backend still knows its
 session.
 
@@ -284,6 +285,151 @@ The following helpers drive the product itself:
   - `demi.runner({ backend })` and `.start({ backend })` have the runner reach
     the backend at another address, such as a local proxy that stands in for a
     CDN's edge.
+
+### The scripted model
+
+A check that needs a transcript of a certain shape, arriving at a certain
+pace, writes it itself. `demi.model.answers([...])` queues the model's replies
+to the next requests of a turn:
+
+```js
+await demi.model.answers([
+  [{ think: 'The year is asked for.', ms: 400 }, { run: 'date +%Y' }],
+  [{ say: 'It is **2031**.', ms: 800 }],
+])
+await demi.message('What year is it?')
+```
+
+The slot's tool serves an Anthropic-compatible Messages endpoint on the
+slot's model port (33*n*4), as `xtask dev`'s echo model does, and
+`demi.model.answers` adds it to the slot's backend as a provider entry named
+Scripted and chooses it in the composer's model menu. Everything between the
+endpoint and the page is the product's own: the backend's provider, the agent,
+the command's run on the device, the page's connection.
+
+- **An answer** is the reply to one request: its steps in order.
+  - `{ think, ms }` is thinking and `{ say, ms }` is Markdown text. Either
+    streams word by word over `ms` milliseconds, or arrives at once without
+    `ms`.
+  - `{ run }` is a shell command, which ends the answer as a tool call. The
+    backend runs it and asks again, which takes the next answer.
+  - `{ wait }` is a pause of so many milliseconds.
+- **A turn's request that finds no answer queued** gets one line of text, so a
+  turn always ends. The queue lives as long as the tool's server, which starts
+  again when the tool's code changes.
+- **A request that offers no tool**, such as one for a conversation's title, is
+  no step of a turn. It takes no answer and gets a fixed line.
+- `demi.model.requests()` returns what the backend asked, each request with the
+  answer it took. `demi.model.left()` returns how many answers are still
+  queued.
+
+### The transcript's ruler
+
+A transcript that twitches does so for a frame or two, when several things
+happen at once: a reply streams, a row folds, the reader scrolls. No
+screenshot shows that, and no person can watch for it in every state. So the
+tool reads the transcript in every frame the page paints, and judges each
+frame by rules that say what a reader must see.
+
+For example, a reader scrolls up into an earlier answer while a new one
+streams below. From then on, the paragraph at the top of the view must stand
+where it is, in every frame, until the reader scrolls again:
+
+```js
+const seen = await demi.transcript.watch()
+await demi.message('Summarize the changes.', { wait: false })
+await seen.grown(200)
+await page.locator('[data-transcript]').hover()
+await page.mouse.wheel(0, -700)
+await demi.turn()
+console.log(demi.transcript.judge(await seen.stop()))
+```
+
+**What a watch reads.** `demi.transcript.watch()` reads the transcript the
+page shows, by the hooks its components carry (`data-transcript`,
+`data-row-key`, `data-session-surface`, `data-scroll-to-bottom`,
+`data-composer-send`), and nothing of the list's own state. So the same watch
+and the same rules judge any list that carries the hooks, however it is
+built. In each frame it reads the following:
+
+- Where each row stands in the view, and how tall it is
+- The first blocks of text from the view's top down, such as paragraphs and
+  list items, each named the same from frame to frame
+- The scroller's position and size
+- Whether the Scroll to Bottom control is shown
+- Which conversation's list it is
+
+A frame is read as it is painted, by the last script the frame runs: after
+the page's own animation-frame callbacks and resize observers, where the list
+lays its rows out, and before the paint. A read after the paint would also
+see what the page did since, such as a key it handled, which that frame never
+showed (`packages/browse/src/transcript/probe.ts`).
+
+A watch also notes what the reader does, at the time the event happened: a
+wheel's turn, a touch, a held pointer, a key that scrolls, a row opened or
+folded, a message sent, the Scroll to Bottom control, and the page going to
+the background.
+
+A watch's `shown()`, `grown(px)` and `still(ms)` wait for what the list shows,
+so a script acts at the same point of a transcript on a fast machine and a
+slow one. `stop()` returns the recording.
+
+**The rules.** What the reader is doing decides which rules a frame is held
+to. The rules decide that from what the reader did, never by asking the list:
+whether the list follows its end is one of the things judged.
+
+| The reader | What every frame must show | The violation |
+| --- | --- | --- |
+| Follows the end | The end is in view, or the list glides to it and reaches it once it stops growing | `end-left` |
+| Follows the end | No row in view moves down, unless the view got taller or the dock shorter by as much | `moved-down` |
+| Reads above the end | The block at the view's top stands where it stood, and stands there again when the reader comes back to the conversation | `place-moved` |
+| Scrolls | The rows go the way the scroll goes | `pulled-back` |
+| Opened a row | The row's top stands where it stood | `control-moved` |
+| Folded a row | The control they folded it with stands where it stood | `control-moved` |
+| Any | No part of the view taller than a line shows no row | `blank` |
+| Any | The Scroll to Bottom control shows while the reader reads above the end, and only then | `scroll-to-bottom` |
+
+A reader follows the end until their own scroll takes the view up by more
+than brings the end out of view. They follow it again once they scroll down
+to it, send a message or use the Scroll to Bottom control. A tap, a click on
+text or a wheel's smallest turn leaves a reader who follows the end following
+it. The distances are the product's own
+(`packages/web-ui/src/composables/scroll-bottom.ts`).
+
+The rules have the following limits:
+
+- A list the recording first sees above its end is taken for one the reader
+  reads. The rules cannot tell that it should have opened at its end.
+- After the reader opens or folds a row, the list follows its end or not by
+  where that left it, a moment later. There the Scroll to Bottom control
+  tells the rules which, and they hold the list to it from then on.
+
+`demi.transcript.judge(recording)` returns the violations, each with the
+rule, when it began, how many frames showed it and the largest distance.
+
+A ruler that reports nothing proves nothing until it is seen to report a
+defect. `demi.transcript.planted()` plays scenes in which the script itself
+moves the list as a defect would
+(`packages/browse/src/transcript/planted.ts`), and prints whether the rule of
+each reported it. It also plays a list at rest, which no rule may report. Run
+it after any change to the rules or to what a watch reads.
+
+**Scenes.** A scene is a conversation the scripted model writes and what its
+reader does meanwhile (`packages/browse/src/transcript/scenes.ts`). It says
+nothing of what the list should do, since the rules judge every frame of it.
+`demi.transcript.run()` plays every scene, each in a new conversation, and
+prints each one's violations. `demi.transcript.run('read-earlier')` plays the
+scenes named. Each recording is written to `.cache/browse/transcript/`. A run
+leaves the slot's screen and network as it found them.
+
+The web app's development server sends the page each module that changes,
+and the page then makes its components anew, the list among them, which
+places itself again. A scene the server reloaded a module in is played
+again, since the jump it shows is the reload's.
+
+A change to the transcript's list is checked by playing the scenes before and
+after it. A twitch someone saw becomes a scene first, which shows the
+violation, and the fix makes it go.
 
 ### WebKit's capabilities
 

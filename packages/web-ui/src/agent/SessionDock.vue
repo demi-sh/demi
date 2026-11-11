@@ -145,6 +145,7 @@ const iconPx = useIconPx()
           size="chip"
           circle
           :aria-label="t('dock.scrollToBottom')"
+          data-scroll-to-bottom
           @click="emit('scrollToBottom')"
           @transitionend.stop
         />

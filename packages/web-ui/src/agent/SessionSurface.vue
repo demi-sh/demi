@@ -55,8 +55,12 @@ defineExpose({ dockHeight, dockFootprint })
     The conversation reads in one column at most 50rem wide, its transcript and
     its dock alike. The space either side, --session-gutter, is padding inside
     the full-width scroller, so the scrollbar stays at the edge.
+
+    data-session-surface: the product checks find a transcript's own dock by
+    it (`demi.transcript`).
   -->
   <div
+    data-session-surface
     class="relative h-full flex-1 overflow-hidden bg-surface [container-type:inline-size]"
     style="--session-gutter: max(0px, calc((100cqw - 50rem) / 2))"
   >

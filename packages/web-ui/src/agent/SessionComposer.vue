@@ -989,6 +989,7 @@ function changeDraft(markdown: string, attachments: MessageCapsule[]): void {
               :loading="shownEdit?.phase === 'sending'"
               :disabled-reason="sendBlockReason"
               :aria-label="submitLabel"
+              data-composer-send
               @mousedown.prevent
               @click="submit(clickAsksOtherWay($event))"
             />

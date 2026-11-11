@@ -77,8 +77,11 @@ const labelText = computed(() => {
     Where the row has no room for the whole chip, the chip gives way. Its text
     is cut short with an ellipsis, the model's name in the ready chip. The
     level, the marks and the chevron stay.
+
+    data-model-selector, data-model: the product checks find the chip and read
+    the model it shows by them, in any language (`demi.model`).
   -->
-  <div class="flex min-w-0">
+  <div class="flex min-w-0" data-model-selector :data-model="selected ? `${selected.providerId}:${selected.modelId}` : undefined">
     <span
       v-if="load === 'loading'"
       class="relative inline-flex h-chip min-w-0 items-center overflow-hidden px-2 text-chrome text-fg-subtle"

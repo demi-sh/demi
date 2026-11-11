@@ -41,6 +41,12 @@ what it returns, then the page's state; a call ends after ten minutes unless
     demi.gallery(path)                   open a gallery page, such as '/session?view=blocks'
     demi.message(text, { files, wait, timeout })   send in the open conversation, with files from this machine, and wait for its turn, not for subagents; fails at once, with the page's words, when it is not delivered or the turn fails, and before writing when the draft holds files
     demi.turn({ timeout })               wait until the open conversation no longer runs, from a message on its way to the subagents and background jobs it started
+    demi.model.answers([[{ think, ms }, { say, ms }, { run }, { wait }], …])   script the model's replies to the next requests of a turn, each a list of steps; adds the Scripted model to the backend and chooses it in the composer
+    demi.model.requests() .left() .forget()   what the backend asked the scripted model, how many answers are still queued, and drop both
+    demi.transcript.watch()              read the transcript in every painted frame; .shown() .grown(px) .still(ms) wait for what it shows, .stop() answers the recording
+    demi.transcript.judge(recording)     the recording's violations of the rules a transcript keeps (browse.md § The transcript's ruler)
+    demi.transcript.run(...names)        play the scenes named, or all, each in a new conversation with the scripted model, and print each one's violations; demi.transcript.scenes() lists them
+    demi.transcript.planted()            plant a defect of each kind in the running page and print whether its rule reported it
     demi.device(name)                    have the open conversation run on the device name, such as the slot's runner, before its first message; the Cloud's environment is the development setup's, not a device's
     demi.runner({ fresh, backend }) .stop() .start({ backend })   the slot's runner, paired through Add Device; backend: another address to reach the backend at, such as a proxy
     demi.log.console() .network() .sockets() ({ all, modules }), demi.log.mark(name)

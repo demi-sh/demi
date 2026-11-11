@@ -800,8 +800,13 @@ defineExpose({
   <!--
     The transcript is read as one text: its rows are antialiased as its prose
     is, so they never draw heavier beside it.
+
+    data-transcript: the product checks find a list and its rows by it, and
+    tell one conversation's list from another's by its value
+    (`demi.transcript`).
   -->
   <div
+    :data-transcript="conversationId"
     class="relative h-full antialiased"
     :style="{ '--transcript-clearance': `${props.bottomOffset + COMPOSER_CLEARANCE_PX}px` }"
   >
