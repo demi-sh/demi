@@ -892,8 +892,17 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
     (el, _, onCleanup) => {
       if (!el)
         return
+      // The rows still sliding to their places go there at once when the
+      // reader scrolls: a slide that ran on would carry what they scroll to
+      // against their scroll. Where the rows stood meanwhile is forgotten
+      // with it, so the next update slides no row from there.
+      const stopSlides = () => {
+        stopRowMoves(el)
+        seen = null
+      }
       const onWheel = (e: WheelEvent) => {
         readerTakes()
+        stopSlides()
         if (e.deltaY < 0)
           pendingIntent = 'up'
         if (e.deltaY > 0)
@@ -934,6 +943,7 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
         endMomentumLater()
       }
       const onTouchMove = (e: TouchEvent) => {
+        stopSlides()
         const touchY = e.touches[0]?.clientY ?? touchStartY
         if (touchY > touchStartY)
           pendingIntent = 'up'
