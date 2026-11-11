@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use demi_provider_common::Provider;
 use demi_provider_common::quota::ProbeCost;
-use demi_shared_types::{AuthState, RuntimeState};
+use demi_shared_types::{AuthState, Rotation, RuntimeState};
 use demi_web_api_protocol::providers::{
     AccountDto, Availability, ProbeCost as ProbeCostDto, ProviderDetails, QuotaCapability,
     SetupPart, UnavailableReason,
@@ -22,8 +22,15 @@ use crate::registry::{ProviderRegistry, RegistryError};
 pub const NO_ACCOUNT: &str = "This provider has no account. Add one in Settings to use it.";
 
 impl ProviderRegistry {
-    /// The provider's authentication and runtime state. A subscription entry
-    /// without an account is unauthenticated whatever its provider says.
+    /// The entry's authentication state and its provider's runtime state. A
+    /// subscription entry without an account is unauthenticated whatever its
+    /// provider says.
+    ///
+    /// Under Manual every agent uses the active account, whose state is the
+    /// entry's. Under a rotation a choice passes over an account its vendor
+    /// signed out (`candidates`), so an active account signed out gives way to
+    /// the first account a choice reads: one account signed out leaves the
+    /// others to serve every agent.
     pub async fn health(
         &self,
         entry: &ProviderEntry,
@@ -52,9 +59,28 @@ impl ProviderRegistry {
                 message: Some(NO_ACCOUNT.into()),
             }
         } else {
-            provider.auth_status().await
+            let active = provider.auth_status().await;
+            if entry.rotation() == Rotation::Manual || !refused(&active) {
+                active
+            } else {
+                self.serving_auth(entry).await.unwrap_or(active)
+            }
         };
         (auth, provider.runtime_state())
+    }
+
+    /// The state of the first account a choice reads, when it passes over the
+    /// active one, which its vendor signed out; none while a choice may take
+    /// the active account, as one whose sign-in does not read, when no account
+    /// is left, or when the accounts do not read.
+    async fn serving_auth(&self, entry: &ProviderEntry) -> Option<AuthState> {
+        let candidates = self.candidates(entry, false).await.ok()?;
+        if candidates.iter().any(|candidate| entry.active() == Some(&candidate.id)) {
+            return None;
+        }
+        let first = candidates.first()?;
+        let provider = self.provider_of(entry, Some(&first.id)).await.ok()?;
+        Some(provider.auth_status().await)
     }
 
     /// The entry's details; `disclose` for a user who configures the entry,
@@ -159,10 +185,7 @@ pub fn availability(
     if !missing.is_empty() {
         return Availability::setup(missing);
     }
-    if matches!(
-        auth,
-        AuthState::Unauthenticated { .. } | AuthState::Error { .. }
-    ) {
+    if refused(auth) {
         return Availability::Unavailable {
             reason: UnavailableReason::Authentication,
             message: "Provider login is unavailable".into(),
@@ -179,4 +202,9 @@ pub fn availability(
         }
         RuntimeState::Unknown { .. } | RuntimeState::Ready { .. } => Availability::Available {},
     }
+}
+
+/// Whether `auth` leaves the account's models unavailable ([`availability`]).
+fn refused(auth: &AuthState) -> bool {
+    matches!(auth, AuthState::Unauthenticated { .. } | AuthState::Error { .. })
 }

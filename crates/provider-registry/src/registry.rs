@@ -339,7 +339,7 @@ impl ProviderRegistry {
     /// one. The facts count because a vendor's come from the models.dev copy,
     /// which a provider built without one would otherwise miss until the
     /// entry changes.
-    async fn provider_of(
+    pub(crate) async fn provider_of(
         &self,
         entry: &ProviderEntry,
         account: Option<&CredentialId>,
