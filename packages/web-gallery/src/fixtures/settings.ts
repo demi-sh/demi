@@ -583,9 +583,12 @@ export function mockProviders(): MockProvider[] {
           plan: 'Pro',
           active: false,
           quotaAt: ago(5 * HOUR),
-          // The full window's reset has passed and the next snapshot has not come yet.
+          // The full window resets half a minute after the page opens: from then it reads
+          // 0% used, with no reset, and the account loses Limit reached, as rotation counts
+          // it, until the backend reads the account again half a minute later and the next
+          // window shows.
           quota: [
-            { id: 'five_hour', name: windowNamed('limit', 5 * HOUR_SECONDS), used: 100, max: 100, resetsAt: ahead(-20 * SECOND) },
+            { id: 'five_hour', name: windowNamed('limit', 5 * HOUR_SECONDS), used: 100, max: 100, resetsAt: ahead(30 * SECOND) },
             { id: 'seven_day', name: windowNamed('limit', WEEK_SECONDS), used: 88, max: 100, resetsAt: ahead(5 * DAY) },
           ]
         },
@@ -610,8 +613,9 @@ export function mockProviders(): MockProvider[] {
           // column fits the longest. Its
           // usage comes as used ÷ limit × 100 in floating point, which reads in whole percent,
           // rounded down, so a window shows full only once it is. The short windows reset within
-          // the minute and then read "now"; Daily resets on the hour, so its minutes are left
-          // out, and a window whose reset the vendor does not report has no reset line.
+          // the minute and then read 0% used, with no reset; Daily resets on the hour, so its
+          // minutes are left out, and a window whose reset the vendor does not report has no
+          // reset line.
           quota: [
             { id: 'requests', name: windowNamed('requests', null), used: 7.000000000000001, max: 100, resetsAt: ahead(40 * SECOND) },
             { id: 'tokens', name: windowNamed('tokens', null), used: 0.4, max: 100, resetsAt: ahead(42 * MINUTE + 30 * SECOND) },

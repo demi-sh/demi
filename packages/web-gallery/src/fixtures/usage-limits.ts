@@ -3,6 +3,8 @@ import { requestFailure } from './request-failures'
 import type { ShownError } from '@demicodes/web-ui/infra/errors'
 import type { UsageLimits } from '@demicodes/web-ui/agent/context-usage'
 import type { QuotaKind, QuotaWindowName } from '@demicodes/protocol'
+import { hasReset } from '@demicodes/web-ui/settings/quota-window'
+import type { SettingsQuotaWindow } from '@demicodes/web-ui/settings/types'
 import { DAY, HOUR, MINUTE, ago, ahead } from './time'
 
 /** Seconds in an hour, a day and a week, which a window's period counts. */
@@ -17,6 +19,18 @@ export const WEEK_SECONDS = 7 * DAY_SECONDS
  */
 export function windowNamed(kind: QuotaKind, periodSeconds: number | null, model: string | null = null): QuotaWindowName {
   return { kind, periodSeconds, scope: model === null ? null : { kind: 'model', label: model } }
+}
+
+/**
+ * A window as the vendor's next answer reports it, `step` points further used:
+ * one whose reset has passed is a new period, started by the use the answer
+ * follows, which resets a period from now (an hour when it names none).
+ */
+export function reported<W extends SettingsQuotaWindow>(window: W, step: number): W {
+  if (hasReset(window, Date.now())) {
+    return { ...window, used: Math.min(window.max, step), resetsAt: ahead((window.name.periodSeconds ?? 60 * 60) * 1000) }
+  }
+  return { ...window, used: Math.min(window.max, window.used + step) }
 }
 
 /**
@@ -47,7 +61,7 @@ export function useCardLimits(accountLabel: string, failure: string | null = nul
     error: error.value,
   }))
   function answer(): void {
-    windows.value = windows.value.map((window) => ({ ...window, used: Math.min(window.max, window.used + 1) }))
+    windows.value = windows.value.map((window) => reported(window, 1))
     observedAt.value = new Date().toISOString()
     error.value = null
   }

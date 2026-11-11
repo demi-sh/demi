@@ -43,7 +43,7 @@ use crate::vendors::{VendorCatalog, sort_by_name};
 /// The family of the vendors that make media and no text (`crates/backend/src/families.rs`).
 pub const MEDIA_FAMILY: &str = "media";
 use crate::entry::{EntryCredential, ProviderEntry};
-use crate::quotas::AccountQuotas;
+use crate::quotas::{AccountQuotas, ResetRead};
 use crate::store::{RegistryStore, StoreError};
 
 /// Why an entry's provider could not be built.
@@ -112,6 +112,8 @@ pub struct ProviderRegistry {
 }
 
 impl ProviderRegistry {
+    /// The registry, which `quotas`' timers read accounts again through
+    /// (`crate::quotas`).
     pub fn new(
         store: Arc<dyn RegistryStore>,
         families: FamilyRegistry,
@@ -121,20 +123,64 @@ impl ProviderRegistry {
         http: reqwest::Client,
         clock: Arc<dyn Clock>,
         media: MediaCatalog,
-    ) -> Self {
-        Self {
-            media,
-            store,
-            families,
-            quotas,
-            catalogs,
-            vendors,
-            http,
-            clock,
-            built: Mutex::default(),
-            rotation: AccountRotation::new(),
-            devices: OnceLock::new(),
+    ) -> Arc<Self> {
+        Arc::new_cyclic(|registry| {
+            quotas.set_registry(registry.clone());
+            Self {
+                media,
+                store,
+                families,
+                quotas,
+                catalogs,
+                vendors,
+                http,
+                clock,
+                built: Mutex::default(),
+                rotation: AccountRotation::new(),
+                devices: OnceLock::new(),
+            }
+        })
+    }
+
+    /// Reads `account`'s usage from its vendor again as a window of it
+    /// resets (`crate::quotas`); a read that fails is logged. A signed-out
+    /// account, or one removed meanwhile, is not read.
+    pub(crate) async fn probe_account(&self, entry: &ProviderId, account: &CredentialId) -> ResetRead {
+        let provider = match self.reset_provider(entry, account).await {
+            Ok(Some(provider)) => provider,
+            Ok(None) => return ResetRead::Gone,
+            Err(error) => {
+                tracing::warn!(event = "account_usage.reset_read_failed", provider = %entry, account = %account, %error, "an account's usage was not read again after a reset: its provider was not built");
+                return ResetRead::Failed;
+            }
+        };
+        let Some(quota) = provider.quota() else {
+            return ResetRead::Gone;
+        };
+        match quota.probe().await {
+            Ok(_) => ResetRead::Read,
+            Err(error) => {
+                tracing::warn!(event = "account_usage.reset_read_failed", provider = %entry, account = %account, %error, "an account's usage was not read again after a reset; its snapshot stays");
+                ResetRead::Failed
+            }
         }
+    }
+
+    /// The provider of `entry`'s account `account`; none when either is gone
+    /// or the vendor signed the account out.
+    async fn reset_provider(
+        &self,
+        entry: &ProviderId,
+        account: &CredentialId,
+    ) -> Result<Option<Arc<dyn Provider>>, RegistryError> {
+        let Some(entry) = self.store.entry(entry.clone()).await? else {
+            return Ok(None);
+        };
+        let record = self.store.account(entry.id.clone(), account.clone()).await?;
+        if record.is_none_or(|record| record.signed_out) {
+            return Ok(None);
+        }
+        self.provider_of(&entry, Some(account)).await.map(Some)
     }
 
     /// Sets the way to the users' devices, once, as the backend's shards start.

@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use demi_backend_database::providers::CredentialRow;
 use demi_provider_common::credentials::CredentialPool;
+use demi_provider_registry::entry::ProviderEntry;
 use demi_provider_registry::store::{RegistryStore, StoreError, StoredAccount};
 use demi_shared_types::{CatalogRecord, QuotaSnapshot, Timestamp};
 use demi_web_api_protocol::ids::{CredentialId, ProviderId};
@@ -30,6 +31,10 @@ pub fn stored(row: CredentialRow) -> StoredAccount {
 }
 
 impl RegistryStore for Vault {
+    fn entry(&self, id: ProviderId) -> BoxFuture<'_, Result<Option<ProviderEntry>, StoreError>> {
+        async move { Vault::entry(self, id).await.map_err(StoreError::new) }.boxed()
+    }
+
     fn accounts(&self, entry: ProviderId) -> BoxFuture<'_, Result<Vec<StoredAccount>, StoreError>> {
         async move {
             let rows = Vault::accounts(self, entry).await.map_err(StoreError::new)?;

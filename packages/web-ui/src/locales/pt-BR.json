@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "Redefine agora",
       "underMinute": "Redefine em <1 min",
       "in": "Redefine em {span}",
       "weekday": "Redefine {weekday} {clock}",

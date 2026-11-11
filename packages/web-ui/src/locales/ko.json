@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "지금 초기화",
       "underMinute": "1분 이내에 초기화",
       "in": "{span} 후 초기화",
       "weekday": "{weekday} {clock}에 초기화",

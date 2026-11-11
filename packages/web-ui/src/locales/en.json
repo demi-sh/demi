@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "Resets now",
       "underMinute": "Resets in <1m",
       "in": "Resets in {span}",
       "weekday": "Resets {weekday} {clock}",

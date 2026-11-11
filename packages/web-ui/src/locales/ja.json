@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "今すぐリセット",
       "underMinute": "1 分以内にリセット",
       "in": "{span}後にリセット",
       "weekday": "{weekday} {clock} にリセット",

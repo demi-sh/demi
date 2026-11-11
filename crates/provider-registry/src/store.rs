@@ -12,6 +12,8 @@ use demi_shared_types::{CatalogRecord, QuotaSnapshot, Timestamp};
 use demi_web_api_protocol::ids::{CredentialId, ProviderId};
 use futures_util::future::BoxFuture;
 
+use crate::entry::ProviderEntry;
+
 /// A failure of the program's storage, which the registry passes on.
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
@@ -57,6 +59,9 @@ impl StoredAccount {
 
 /// The storage of the registry's entries, which the program implements.
 pub trait RegistryStore: Send + Sync {
+    /// The entry `id`; none once it is deleted.
+    fn entry(&self, id: ProviderId) -> BoxFuture<'_, Result<Option<ProviderEntry>, StoreError>>;
+
     /// The entry's accounts in the list's order.
     fn accounts(&self, entry: ProviderId) -> BoxFuture<'_, Result<Vec<StoredAccount>, StoreError>>;
 
