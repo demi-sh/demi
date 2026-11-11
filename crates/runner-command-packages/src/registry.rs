@@ -430,7 +430,7 @@ impl ResidentHandle {
     }
 
     /// Stops the residents of `packages`, by their ids, and waits until each
-    /// has ended: a resident that stops releases every conversation it
+    /// has ended: a resident that stops lets go of every conversation it
     /// holds, and the next caller of a package starts it again.
     pub async fn stop_packages(&self, packages: Vec<String>) {
         self.stop(Some(packages)).await;
@@ -1055,7 +1055,7 @@ async fn live(
     });
     let ended = resident.ended().await;
     let Some(reason) = ended.reason else {
-        // A resident asked to stop released its conversations first.
+        // A resident asked to stop let go of its conversations first.
         tracing::info!(
             event = "resident.state_changed",
             resident = descriptor.id.as_str(),

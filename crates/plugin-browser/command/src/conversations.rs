@@ -9,8 +9,9 @@
 //! ```text
 //! Resident
 //!   conversations ............. finds each invocation's conversation browser
-//!    `-- conversation browser . one per conversation: absent | starting |
-//!          |                    ready | closing; admits commands, runs release
+//!    `-- conversation browser . one per conversation: absent | left |
+//!          |                    starting | ready | closing; admits commands,
+//!          |                    runs release
 //!          `-- Chrome environment: process tree, profile, CDP event pump
 //!                |-- tab registry ..... tabs, handles, openers; snapshot
 //!                |-- capture channel .. the capture extension's connection
@@ -31,12 +32,16 @@
 //!   conversation's profile, as an upgrade's next release does. It has no idle timer and no notion
 //!   of agent activity. The backend decides when to release, and an open tab, a
 //!   loading page or a running download never postpones it.
+//! - The last tab closing, the release and Chrome being lost end the
+//!   browser's tabs. A handoff, and the resident's own end, leave them to the
+//!   next resident, which opens them again when the conversation first reaches
+//!   it (`crate::tab_record`).
 //! - Retirement invalidates tabs, references and debugging handles together. A
 //!   release cancels the commands that run (`cancelled`) before it retires. A
 //!   command still running when another closes the last tab fails with
-//!   `browser_lost`. No tab is restored: the next `tab.new` starts a browser
-//!   with none. The conversation's profile stays, so its sign-ins, cookies and
-//!   site storage carry over to the next browser.
+//!   `browser_lost`. A browser whose tabs ended is not restored: the next
+//!   `tab.new` starts one with none. The conversation's profile stays, so its
+//!   sign-ins, cookies and site storage carry over to the next browser.
 //! - A failed cleanup keeps another environment from starting over the
 //!   unresolved owner. After a completed one the next `tab.new` may start a
 //!   fresh browser.
@@ -44,7 +49,7 @@
 //!   as the slowest. A resident that ends first leaves them to the sweep in
 //!   `tabs::environment`.
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use bytes::Bytes;
 use tokio::{
@@ -80,10 +85,11 @@ use demi_shared_openh264::Codec;
 use demi_shared_recording::{Answer, Library, Live, Reading};
 
 use crate::protocol::{
-    self, ActionProgress, RecordAction, RecordInput, RecordTarget, BrowserCreatedBy, BrowserErrorCode, BrowserFailure, BrowserOperation, CapabilitiesResult,
+    self, ActionProgress, RecordAction, RecordInput, RecordTarget, BrowserCreatedBy, BrowserErrorCode, BrowserFailure, BrowserInput, BrowserOperation, CapabilitiesResult,
     ContentReadResult, DEFAULT_NODES, FailureDocument, ImageMime, InstallResult,
-    ScreenshotResult, ShowResult, TabCloseResult, TabListResult, TabNewResult, TabPruneResult,
+    ScreenshotResult, ShowResult, TabCloseResult, TabListResult, TabNewInput, TabNewResult, TabPruneResult,
 };
+use crate::tab_record::{self, RecordedTab, TabRecord};
 use demi_command_package_browser_chrome::traced::SpawnTraced as _;
 
 /// Requests waiting for an owner; a full queue holds back their senders.
@@ -126,6 +132,10 @@ enum EnvironmentFailure {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Lifecycle {
     Absent,
+    /// No browser runs, and the tabs of the last one wait in its record for
+    /// the next resident (`crate::tab_record`): this resident says nothing
+    /// of them.
+    Left,
     Starting,
     Ready,
     Closing,
@@ -139,8 +149,7 @@ struct ConversationBrowser {
     cancellation: CancellationToken,
     /// The invocations admitted into the conversation.
     commands: TaskTracker,
-    /// The conversation's tab numbers and its tabs closed on purpose, which
-    /// outlast each browser.
+    /// The conversation's tab numbers, which outlast each browser.
     numbers: TabNumbers,
     /// The conversation's recordings, which outlast each browser, and the
     /// tabs the running ones record.
@@ -156,11 +165,13 @@ struct Recordings {
 }
 
 /// What starts a conversation's browser: the starting caller's locale and
-/// color scheme.
+/// color scheme, and the tabs of an earlier browser it opens again before
+/// any command reaches it.
 #[derive(Clone)]
 pub(crate) struct Starting {
     pub(crate) locale: CommandLocale,
     pub(crate) color_scheme: ColorScheme,
+    pub(crate) resume: Vec<RecordedTab>,
 }
 
 enum Request {
@@ -174,21 +185,27 @@ enum Request {
         environment: BrowserEnvironment,
         reply: oneshot::Sender<Result<()>>,
     },
-    /// The conversation's release: retires the browser, and starts none
-    /// again.
-    Release { reply: oneshot::Sender<Result<()>> },
+    /// The conversation's release, or the resident's end: retires the
+    /// browser, and starts none again. Only a release ends its tabs
+    /// (`forget`); the resident's end leaves them to the next resident.
+    Release {
+        forget: bool,
+        reply: oneshot::Sender<Result<()>>,
+    },
 }
 
 impl ConversationBrowser {
     /// The browser of `conversation`, whose every Chrome runs on `profile`,
     /// whose tabs take their numbers from `numbers` across every browser it
     /// starts, and whose changes `messages` tells the plugin of while its
-    /// owner runs.
+    /// owner runs. The record of its tabs at `record` that an earlier
+    /// resident left starts the browser at once, with them.
     fn start(
         tasks: &TaskTracker,
         chrome: Chrome,
         conversation: String,
         profile: std::path::PathBuf,
+        record: std::path::PathBuf,
         numbers: TabNumbers,
         messages: watch::Receiver<Option<Messages>>,
         library: Arc<Library>,
@@ -196,22 +213,31 @@ impl ConversationBrowser {
         let (requests, receiver) = mpsc::channel(REQUESTS);
         let (published, lifecycle) = watch::channel(Lifecycle::Absent);
         let cancellation = CancellationToken::new();
+        let left = TabRecord::read(&record);
         let owner = Owner {
             state: State::Absent,
             chrome,
             profile,
+            record,
+            listed: numbers.watch_changes(),
+            recorded: left.clone(),
             numbers: numbers.clone(),
             published,
             released: cancellation.clone(),
             tasks: tasks.clone(),
         };
+        let resume = left.map(|left| Starting {
+            locale: left.locale,
+            color_scheme: left.color_scheme,
+            resume: left.tabs,
+        });
         let owned = CancellationToken::new();
         // The owner's events name the conversation, which it does not hold.
         let span = tracing::info_span!("conversation_browser", conversation = %conversation);
         let announced = owned.clone();
         tasks.spawn_traced(
             async move {
-                owner.run(receiver).await;
+                owner.run(receiver, resume).await;
                 owned.cancel();
             }
             .instrument(span),
@@ -232,14 +258,21 @@ impl ConversationBrowser {
     }
 
     /// The conversation's tabs as the user's `browser.tab.list` lists them, all
-    /// of them, at the list's number, and the latest tabs closed on purpose;
-    /// no tab while no browser runs. It never starts a browser.
-    async fn report(&self, cancel: &CancellationToken) -> Result<(u64, Vec<protocol::BrowserTab>, Vec<protocol::TabId>)> {
+    /// of them, at the list's number; no tab while no browser runs, and
+    /// nothing while the last browser's tabs wait for the next resident. It
+    /// never starts a browser.
+    async fn report(&self, cancel: &CancellationToken) -> Result<Option<(u64, Vec<protocol::BrowserTab>)>> {
         let Some(environment) = self.environment(None, cancel).await? else {
-            return Ok((self.numbers.list_number(), Vec::new(), self.numbers.closed()));
+            return Ok(self.unlisted());
         };
         let (list, listing) = environment.numbered_unbounded(cancel).await?;
-        Ok((list, tab_rows(&listing, 0, usize::MAX), self.numbers.closed()))
+        Ok(Some((list, tab_rows(&listing, 0, usize::MAX))))
+    }
+
+    /// What a report says while no browser runs: no tab, or nothing while
+    /// the last browser's tabs wait for the next resident, which lists them.
+    fn unlisted(&self) -> Option<(u64, Vec<protocol::BrowserTab>)> {
+        (*self.lifecycle.borrow() != Lifecycle::Left).then(|| (self.numbers.list_number(), Vec::new()))
     }
 
     /// Admits an invocation, unless the conversation's release has begun.
@@ -324,18 +357,32 @@ impl ConversationBrowser {
     /// Whether the conversation holds a browser: starting, running or
     /// retiring.
     fn holds(&self) -> bool {
-        *self.lifecycle.borrow() != Lifecycle::Absent
+        matches!(
+            *self.lifecycle.borrow(),
+            Lifecycle::Starting | Lifecycle::Ready | Lifecycle::Closing
+        )
     }
 
     /// The conversation's release: its commands are cancelled and joined,
-    /// then its browser retires.
+    /// then its browser retires, and its tabs end with it.
     async fn release(&self) -> Result<()> {
+        self.end(true).await
+    }
+
+    /// The resident's end: the conversation's commands are cancelled and
+    /// joined, then its browser retires, and the next resident opens its
+    /// tabs again.
+    async fn let_go(&self) -> Result<()> {
+        self.end(false).await
+    }
+
+    async fn end(&self, forget: bool) -> Result<()> {
         self.cancellation.cancel();
         self.commands.close();
         // Once fenced, the release finishes even if its requester goes away.
         self.commands.wait().await;
         self.ask(
-            |reply| Request::Release { reply },
+            |reply| Request::Release { forget, reply },
             &CancellationToken::new(),
         )
         .await
@@ -356,6 +403,14 @@ struct Owner {
     chrome: Chrome,
     /// The conversation's profile, which every browser it starts runs on.
     profile: std::path::PathBuf,
+    /// Where the record of its tabs is (`crate::tab_record`).
+    record: std::path::PathBuf,
+    /// Follows the changes of the tab list, which the record follows.
+    listed: watch::Receiver<u64>,
+    /// The record as it is on disk, read at the start or last written, so a
+    /// change that leaves it as it was writes nothing; none while there is
+    /// none.
+    recorded: Option<TabRecord>,
     /// The conversation's tab numbers, which outlast each browser.
     numbers: TabNumbers,
     published: watch::Sender<Lifecycle>,
@@ -378,6 +433,10 @@ struct Running {
     ready: watch::Receiver<Readiness>,
     stop: CancellationToken,
     task: JoinHandle<Result<()>>,
+    /// The locale and color scheme the browser started in, which its record
+    /// starts the next browser in.
+    locale: CommandLocale,
+    color_scheme: ColorScheme,
 }
 
 impl Running {
@@ -388,6 +447,22 @@ impl Running {
             .as_ref()
             .and_then(|ready| ready.as_ref().ok())
             .map(|started| started.environment.clone())
+    }
+
+    /// Whether this browser's last tab closed.
+    fn emptied(&self) -> bool {
+        self.environment()
+            .is_some_and(|environment| environment.emptied().is_cancelled())
+    }
+
+    /// Whether Chrome went away while nobody stopped this browser or asked
+    /// for its profile.
+    fn lost(&self) -> bool {
+        self.environment().is_some_and(|environment| {
+            environment.ended().is_cancelled()
+                && !self.stop.is_cancelled()
+                && !environment.handoff_asked().is_cancelled()
+        })
     }
 
     /// Whether this browser is on its way out: stopped, lost, emptied, or
@@ -409,10 +484,17 @@ enum Event {
     Request(Option<Request>),
     Finished(std::result::Result<Result<()>, tokio::task::JoinError>),
     Changed,
+    /// The tab list changed.
+    Listed,
 }
 
 impl Owner {
-    async fn run(mut self, mut requests: mpsc::Receiver<Request>) {
+    /// Serves `requests`, after starting the browser at once when `resume`
+    /// names the tabs of an earlier resident's browser.
+    async fn run(mut self, mut requests: mpsc::Receiver<Request>, resume: Option<Starting>) {
+        if let Some(starting) = resume {
+            self.start(starting);
+        }
         loop {
             self.publish();
             let event = match &mut self.state {
@@ -432,6 +514,7 @@ impl Owner {
                         request = requests.recv() => Event::Request(request),
                         finished = &mut running.task => Event::Finished(finished),
                         Ok(()) = running.ready.changed() => Event::Changed,
+                        Ok(()) = self.listed.changed() => Event::Listed,
                         () = async {
                             match &leaving {
                                 Some((ended, emptied)) => {
@@ -454,7 +537,7 @@ impl Owner {
                 // Every handle is gone: whatever still runs retires.
                 Event::Request(None) => break,
                 Event::Finished(finished) => {
-                    if let Err(error) = self.finished(finished) {
+                    if let Err(error) = self.finished(finished, false) {
                         tracing::warn!(
                             event = "browser_cleanup.failed",
                             %error,
@@ -463,6 +546,7 @@ impl Owner {
                     }
                 }
                 Event::Changed => {}
+                Event::Listed => self.keep_record(),
             }
         }
         if let Err(error) = self.retire().await {
@@ -476,12 +560,14 @@ impl Owner {
 
     fn publish(&self) {
         let lifecycle = match &self.state {
+            State::Absent | State::Ended { .. } if self.recorded.is_some() => Lifecycle::Left,
             State::Absent | State::Ended { .. } => Lifecycle::Absent,
             State::Running(running) if running.leaving() => Lifecycle::Closing,
             State::Running(running) if running.ready.borrow().is_none() => Lifecycle::Starting,
             State::Running(_) => Lifecycle::Ready,
         };
-        let ended = lifecycle == Lifecycle::Absent && *self.published.borrow() != Lifecycle::Absent;
+        let none = |lifecycle: Lifecycle| matches!(lifecycle, Lifecycle::Absent | Lifecycle::Left);
+        let ended = none(lifecycle) && !none(*self.published.borrow());
         self.published.send_if_modified(|published| {
             let changed = *published != lifecycle;
             *published = lifecycle;
@@ -511,8 +597,11 @@ impl Owner {
                 };
                 let _gone = reply.send(answer);
             }
-            Request::Release { reply } => {
+            Request::Release { forget, reply } => {
                 let answer = self.retire().await;
+                if forget {
+                    self.forget_record();
+                }
                 if matches!(self.state, State::Absent) {
                     self.state = State::Ended { cleanup: None };
                 }
@@ -573,17 +662,28 @@ impl Owner {
         let profile = self.profile.clone();
         let numbers = self.numbers.clone();
         let owner_stop = stop.clone();
+        let locale = starting.locale.clone();
+        let color_scheme = starting.color_scheme;
         let task = self.tasks.spawn_traced(async move {
             let publisher = publish.clone();
             let retire = owner_stop.clone();
             let result = async {
                 let installation = chrome.installation().await?;
                 demi_command_package_browser_chrome::tabs::environment::swept(&chrome).await;
+                let Starting {
+                    locale,
+                    color_scheme,
+                    resume,
+                } = starting;
                 with_browser(
-                    LaunchOptions::pinned(installation, profile, starting.locale, starting.color_scheme)?,
+                    LaunchOptions::pinned(installation, profile, locale, color_scheme)?,
                     numbers,
                     owner_stop.clone(),
                     move |environment| async move {
+                        // An earlier browser's tabs open before any command
+                        // finds the browser ready, so a command on one of
+                        // them waits for it rather than failing.
+                        reopen(&environment, &resume, &retire).await;
                         let live =
                             Arc::new(demi_command_package_browser_chrome::live::hub::Hub::start(
                                 &environment,
@@ -626,6 +726,8 @@ impl Owner {
             ready: ready.clone(),
             stop,
             task,
+            locale,
+            color_scheme,
         });
         self.publish();
         ready
@@ -636,22 +738,36 @@ impl Owner {
         let State::Running(running) = &mut self.state else {
             return self.cleanup_failure();
         };
+        // Read before the stop, which hides a loss that came first.
+        let lost = running.lost();
         running.stop.cancel();
         self.publish();
         let State::Running(running) = &mut self.state else {
             unreachable!("the browser still runs");
         };
         let finished = (&mut running.task).await;
-        self.finished(finished)
+        self.finished(finished, lost)
     }
 
-    /// Takes the browser task's end. Only a failed cleanup keeps the
-    /// conversation from starting another browser; startup and transport
+    /// Takes the browser task's end, which `lost` says came with Chrome's
+    /// loss when the owner stopped it. The browser's tabs end with it when
+    /// its last tab closed or Chrome was lost, ready or not; a stop and a
+    /// handoff leave them to the next resident. Only a failed cleanup keeps
+    /// the conversation from starting another browser; startup and transport
     /// failures reached their callers through the readiness.
     fn finished(
         &mut self,
         finished: std::result::Result<Result<()>, tokio::task::JoinError>,
+        lost: bool,
     ) -> Result<()> {
+        if let State::Running(running) = &self.state
+            && (lost
+                || running.lost()
+                || running.emptied()
+                || matches!(finished, Ok(Err(BrowserError::Connection(_)))))
+        {
+            self.forget_record();
+        }
         let failure = match finished {
             Ok(Err(
                 error @ (BrowserError::Cleanup { .. } | BrowserError::ProfileRetained { .. }),
@@ -673,6 +789,39 @@ impl Owner {
         }
     }
 
+    /// Writes the record of the running browser's tabs, or removes it while
+    /// the browser has none to open again. A browser on its way out writes
+    /// none: the list it leaves with is the one it had, and one whose tabs
+    /// ended has none to leave.
+    fn keep_record(&mut self) {
+        let State::Running(running) = &self.state else {
+            return;
+        };
+        if running.leaving() {
+            return;
+        }
+        let Some(environment) = running.environment() else {
+            return;
+        };
+        let record = TabRecord::of(&environment.latest(), &running.locale, running.color_scheme);
+        if self.recorded == record {
+            return;
+        }
+        match record {
+            Some(record) => {
+                record.write(&self.record);
+                self.recorded = Some(record);
+            }
+            None => self.forget_record(),
+        }
+    }
+
+    /// Removes the record: the browser's tabs ended.
+    fn forget_record(&mut self) {
+        tab_record::forget(&self.record);
+        self.recorded = None;
+    }
+
     /// The failed cleanup that ended the conversation's browsers, if one did.
     fn cleanup_failure(&self) -> Result<()> {
         match &self.state {
@@ -682,6 +831,39 @@ impl Owner {
                 "the browser's cleanup failed: {cleanup}"
             ))),
             _ => Ok(()),
+        }
+    }
+}
+
+/// Opens again, in order, the tabs of an earlier browser that `resume` names:
+/// each under its id, made as it was, with its showings and whether it is the
+/// user's, loading its address. A tab that does not open is logged, and the
+/// others still open; a stop ends the opening.
+async fn reopen(environment: &BrowserEnvironment, resume: &[RecordedTab], stop: &CancellationToken) {
+    // Each waits as long as `tab.new` waits for its tab.
+    let wait = Duration::from_millis(<TabNewInput as BrowserInput>::DEFAULT_TIMEOUT_MS);
+    for recorded in resume {
+        if stop.is_cancelled() {
+            return;
+        }
+        let deadline = tokio::time::Instant::now() + wait;
+        let reopened = async {
+            let tab = environment
+                .reopen_tab(recorded.id.clone(), recorded.created_by.clone(), stop, deadline)
+                .await?;
+            tab.keep_shows(recorded.shows);
+            if recorded.used {
+                tab.mark_used();
+            }
+            // A blank tab stays blank, as a new tab is.
+            if recorded.url != "about:blank" {
+                demi_command_package_browser_chrome::tabs::navigation::start_loading(&tab, &recorded.url)?;
+            }
+            Ok::<_, BrowserError>(())
+        }
+        .await;
+        if let Err(error) = reopened {
+            tracing::warn!(event = "browser_tab.reopen_failed", tab = %recorded.id, %error, "a tab of an earlier browser did not open again");
         }
     }
 }
@@ -823,20 +1005,18 @@ async fn announce(
         let sender = messages.borrow_and_update().clone();
         if let Some(sender) = sender {
             let report = match browser.report(&owned).await {
-                Ok(report) => Some(report),
-                // The owner ended while it listed: no browser, no tabs.
-                Err(BrowserError::Cancelled | BrowserError::Closed) => {
-                    Some((browser.numbers.list_number(), Vec::new(), browser.numbers.closed()))
-                }
+                Ok(report) => report,
+                // The owner ended while it listed: no browser.
+                Err(BrowserError::Cancelled | BrowserError::Closed) => browser.unlisted(),
                 Err(error) => {
                     // The next change tells the list again.
                     tracing::warn!(event = "browser_tabs.list_failed", %conversation, %error, "the conversation's tabs were not listed for the plugin");
                     None
                 }
             };
-            if let Some((revision, tabs, closed)) = report {
+            if let Some((revision, tabs)) = report {
                 let message = serde_json::to_value(BrowserMessage {
-                    tabs: TabsChange::Tabs { revision, tabs, closed },
+                    tabs: TabsChange::Tabs { revision, tabs },
                 })
                 .expect("the browser's message is JSON");
                 if let Err(error) = sender.send(&conversation, message).await {
@@ -980,7 +1160,6 @@ pub(crate) struct Conversations {
 
 /// What a conversation keeps on this device beside its scratch files: its
 /// library of recordings and its browser profile.
-#[derive(Clone)]
 struct Kept {
     /// The runner's scratch root; none for a resident without an
     /// installation.
@@ -998,6 +1177,10 @@ impl Kept {
 
     fn profile(&self, conversation: &str) -> std::path::PathBuf {
         demi_command_protocol::browser_profile_directory(self.scratch_root.as_deref(), conversation)
+    }
+
+    fn tab_record(&self, conversation: &str) -> std::path::PathBuf {
+        demi_command_protocol::browser_tab_record(self.scratch_root.as_deref(), conversation)
     }
 }
 
@@ -1027,7 +1210,10 @@ async fn serve(
                             TabNumbers::from_source(numbers.borrow().clone(), conversation.clone());
                         let library = kept.library(&conversation);
                         let profile = kept.profile(&conversation);
-                        ConversationBrowser::start(&tasks, chrome.clone(), conversation, profile, tabs, messages.clone(), library)
+                        // The conversation's first call to this resident
+                        // takes back what an earlier one left open.
+                        let record = kept.tab_record(&conversation);
+                        ConversationBrowser::start(&tasks, chrome.clone(), conversation, profile, record, tabs, messages.clone(), library)
                     })
                     .clone();
                 let _gone = reply.send(browser);
@@ -1374,8 +1560,8 @@ impl Conversations {
             .await?;
             return Ok(CommandOutput::Json(output::value(drawn)?));
         }
-        // Only the user's page reads the tab list's number and its tabs closed
-        // on purpose, and only it stops a load.
+        // Only the user's page reads the tab list's number, and only it stops
+        // a load.
         let user = context.request.context.caller.agent_number().is_none();
         if matches!(command, BrowserOperation::Stop(_)) && !user {
             // The agent waits for its commands rather than stopping a load.
@@ -1408,6 +1594,7 @@ impl Conversations {
         let starting = starts.then(|| Starting {
             locale: context.request.context.locale.clone(),
             color_scheme: context.request.context.color_scheme,
+            resume: Vec::new(),
         });
         let waiting = std::time::Instant::now();
         let environment = browser.environment(starting.as_ref(), cancellation).await;
@@ -1420,7 +1607,6 @@ impl Conversations {
                     list: user.then(|| browser.numbers.list_number()),
                     tabs: Vec::new(),
                     truncated: false,
-                    closed: user.then(|| browser.numbers.closed()),
                 })?));
             }
             return Err(BrowserError::TabNotFound);
@@ -1442,6 +1628,11 @@ impl Conversations {
                 .await?;
             if let Some(url) = &input.url {
                 demi_command_package_browser_chrome::tabs::navigation::start_loading(&tab, url)?;
+            }
+            // The user asked to see the tab they opened: it comes into the
+            // work selected.
+            if user {
+                tab.show();
             }
             // The user's new tab answers at once: the browser window shows its
             // loading. The agent's names its viewport when the tab reports it
@@ -1494,7 +1685,6 @@ impl Conversations {
                 list: user.then_some(list),
                 tabs: rows,
                 truncated: listing.tabs.len() > offset.saturating_add(limit),
-                closed: user.then(|| browser.numbers.closed()),
             })?));
         }
         let id = command.tab().ok_or(BrowserError::TabNotFound)?;
@@ -1805,7 +1995,8 @@ impl Conversations {
                     })
                     .await
                     .flatten();
-                // An unknown conversation is harmless to release.
+                // An unknown conversation is harmless to release; the runner
+                // removes the tab record an earlier resident left.
                 if let Some(browser) = browser {
                     // The browser's recordings end, complete, before it goes.
                     let released = browser.release().await;
@@ -1837,8 +2028,9 @@ impl Conversations {
             .ask(|reply| Find::Close { reply })
             .await
             .unwrap_or_default();
+        // The browsers' tabs outlast the resident: the next opens them again.
         let released =
-            futures_util::future::join_all(browsers.iter().map(|browser| browser.release())).await;
+            futures_util::future::join_all(browsers.iter().map(|browser| browser.let_go())).await;
         drop(browsers);
         // Each conversation browser's owner ends once its handles are gone.
         self.tasks.close();

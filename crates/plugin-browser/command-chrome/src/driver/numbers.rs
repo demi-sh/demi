@@ -4,9 +4,8 @@
 //! eight at a time (`crates/command-protocol/src/numbers.rs`), so most tabs
 //! take theirs without waiting. A number it never uses is a gap.
 //!
-//! A tab's id outlasts each browser of the conversation, so do the record of
-//! the tabs closed on purpose and the count that numbers the tab lists, which
-//! only grows within the conversation.
+//! A tab's id outlasts each browser of the conversation, so does the count
+//! that numbers the tab lists, which only grows within the conversation.
 
 use std::{
     collections::VecDeque,
@@ -19,21 +18,15 @@ use demi_command_sdk::Numbers;
 use tokio::sync::watch;
 
 use crate::driver::operation::{BrowserError, Result};
-use demi_command_package_browser_protocol::browser::TabId;
 
 /// How many numbers one draw takes.
 const DRAW: u32 = 8;
 /// How long the backend has to answer a draw; past it, the step that needed
 /// a number fails.
 const DRAW_TIMEOUT: Duration = Duration::from_secs(15);
-/// How many tabs closed on purpose the conversation remembers. The browser
-/// window reads the tab list after each job, so it learns of a close long
-/// before this many follow it; an older one reads as lost with the browser.
-const CLOSED: usize = 256;
 
-/// One conversation's tab numbers at hand, where more come from, the tabs
-/// closed on purpose, and the count of changes its tab lists are numbered
-/// by. Cloning shares them.
+/// One conversation's tab numbers at hand, where more come from, and the
+/// count of changes its tab lists are numbered by. Cloning shares them.
 #[derive(Clone)]
 pub struct TabNumbers(Arc<Inner>);
 
@@ -43,8 +36,6 @@ struct Inner {
     numbers: Option<Numbers>,
     conversation: String,
     spare: Mutex<VecDeque<u64>>,
-    /// The latest tabs closed on purpose, oldest first.
-    closed: Mutex<VecDeque<TabId>>,
     /// Counts the changes to what the conversation's browsers show, each
     /// browser's after the one before, so a tab list is numbered after every
     /// list an earlier browser numbered.
@@ -64,7 +55,6 @@ impl TabNumbers {
             numbers,
             conversation,
             spare: Mutex::new(VecDeque::new()),
-            closed: Mutex::new(VecDeque::new()),
             changes: watch::channel(0).0,
         }))
     }
@@ -115,26 +105,6 @@ impl TabNumbers {
     /// while no browser runs carries.
     pub fn list_number(&self) -> u64 {
         *self.0.changes.borrow()
-    }
-
-    /// Records that `tab` was closed on purpose, by a command or by its own
-    /// page, rather than lost with its browser.
-    pub fn closed_on_purpose(&self, tab: TabId) {
-        // No section panics while it holds the lock.
-        let mut closed = self.0.closed.lock().unwrap_or_else(PoisonError::into_inner);
-        if closed.contains(&tab) {
-            return;
-        }
-        if closed.len() == CLOSED {
-            closed.pop_front();
-        }
-        closed.push_back(tab);
-    }
-
-    /// The latest tabs closed on purpose, oldest first.
-    pub fn closed(&self) -> Vec<TabId> {
-        let closed = self.0.closed.lock().unwrap_or_else(PoisonError::into_inner);
-        closed.iter().cloned().collect()
     }
 
     fn spare(&self) -> MutexGuard<'_, VecDeque<u64>> {

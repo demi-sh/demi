@@ -11,8 +11,17 @@ import { useWindowStage, type StageState, type WindowStageModel } from './stage'
  */
 export interface WorkRequest {
   id: number
-  /** The tab whose window comes to the front on it; none minimizes the work's windows. */
+  /**
+   * The tab whose window comes to the front on it; none minimizes the work's
+   * windows, unless `opens` names a tab to come.
+   */
   tab: string | null
+  /**
+   * A tab of a kind whose plugin makes its tabs (`TabKind.open`), with its
+   * data: the plugin is asked for it, and its window comes to the front to
+   * wait for it.
+   */
+  opens?: { kind: string; data: unknown }
   /** The address names it already: the windows say what is in front only once they took it. */
   fromAddress: boolean
 }

@@ -1018,7 +1018,21 @@ impl BrowserEnvironment {
         deadline: tokio::time::Instant,
     ) -> Result<BrowserTab> {
         let operation = Operation::until(&self.ended, cancellation, deadline);
-        self.create(created_by, &operation).await
+        self.create(created_by, None, &operation).await
+    }
+
+    /// An empty tab under `id`, which a tab of an earlier browser of the
+    /// conversation had, made by `created_by` as that one was: the tab
+    /// opened again when a resident takes the conversation's tabs back.
+    pub async fn reopen_tab(
+        &self,
+        id: TabId,
+        created_by: BrowserCreatedBy,
+        cancellation: &CancellationToken,
+        deadline: tokio::time::Instant,
+    ) -> Result<BrowserTab> {
+        let operation = Operation::until(&self.ended, cancellation, deadline);
+        self.create(created_by, Some(id), &operation).await
     }
 
     /// Creates `count` temporary tabs, and keeps the environment from
@@ -1040,7 +1054,7 @@ impl BrowserEnvironment {
         let result = async {
             for _ in 0..count {
                 let created_by = BrowserCreatedBy::Temporary { number: caller };
-                batch.tabs.push(self.create(created_by, &operation).await?);
+                batch.tabs.push(self.create(created_by, None, &operation).await?);
             }
             Ok(())
         }
@@ -1058,9 +1072,10 @@ impl BrowserEnvironment {
     async fn create(
         &self,
         created_by: BrowserCreatedBy,
+        id: Option<TabId>,
         operation: &Operation<'_>,
     ) -> Result<BrowserTab> {
-        let mut creation = operation.run(self.tabs.create(created_by)).await?;
+        let mut creation = operation.run(self.tabs.create(created_by, id)).await?;
         match operation.run(creation.tab()).await {
             Ok(tab) => Ok(tab),
             Err(error) if creation.answered() => Err(error),
@@ -1112,6 +1127,12 @@ impl BrowserEnvironment {
     ) -> Result<(u64, Arc<Snapshot>)> {
         let number = *self.changes.borrow();
         Ok((number, self.listed(cancellation, timeout).await?))
+    }
+
+    /// The tabs as the registry last published them, without waiting for
+    /// the ones it still registers, which a later publication names.
+    pub fn latest(&self) -> Arc<Snapshot> {
+        self.tabs.latest()
     }
 
     /// [`Self::numbered`] with no time limit, for the report of a conversation's

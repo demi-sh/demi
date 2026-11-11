@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 
 /// Every reason the page's tab methods, its tab list, its tabs' failures
 /// and its view's notices give: the browser's own codes, the view's capture
-/// codes, the conversation's device access's refusals and the plugin call
-/// route's own.
+/// codes, the conversation's device access's refusals, the plugin call
+/// route's own and the plugin's.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ControlReason {
@@ -67,6 +67,9 @@ pub enum ControlReason {
     // The plugin call route's own.
     UnknownPluginMethod,
     PluginDisabled,
+    // The plugin's: the conversation's work holds the most tabs it can, so a
+    // tab opened now would not show.
+    WorkFull,
 }
 
 serde_plain::derive_display_from_serialize!(ControlReason);

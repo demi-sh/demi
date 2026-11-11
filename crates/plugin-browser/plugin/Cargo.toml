@@ -16,9 +16,9 @@ demi-command-declarations = { path = "../../command-declarations" }
 demi-command-package-browser-protocol = { path = "../protocol" }
 demi-device-interface = { path = "../../device-interface" }
 demi-plugin-interface = { path = "../../plugin-interface" }
+demi-shared-types = { path = "../../shared-types" }
 demi-web-api-protocol = { path = "../../web-api-protocol" }
 futures-util.workspace = true
-http.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true

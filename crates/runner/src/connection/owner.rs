@@ -734,6 +734,9 @@ impl Owner<'_> {
         release.extend(told.iter().filter(|conversation| !listed.contains(conversation.as_str())).cloned());
         for conversation in &release {
             self.kept.handle.release_told(conversation);
+            // Before the residents release it: once they have, a browser
+            // started for the conversation again keeps a record of its own.
+            registered.scratch.forget_released(conversation).await;
             if let Err(error) = registered.residents.release_conversation(conversation).await {
                 tracing::warn!(event = "release.reconcile_failed", %conversation, %error, "a resident could not release a conversation the backend does not name as held");
             }
@@ -759,6 +762,10 @@ impl Owner<'_> {
                 let control = self.live.control.clone();
                 let closed = self.live.closed.clone();
                 self.work.spawn(async move {
+                    // Before the residents release it: once they have, a
+                    // browser started for the conversation again keeps a
+                    // record of its own.
+                    scratch.forget_released(&conversation_id).await;
                     // The residents end what they hold; the runner holds no
                     // files of the conversation (`crates/backend-user-shard/src/lifecycle/conversations.rs`).
                     let result = tokio::select! {

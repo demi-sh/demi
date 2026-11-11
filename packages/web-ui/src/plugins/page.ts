@@ -430,7 +430,7 @@ export interface KindTab {
  * A tab kind, declared once on its page. Its functions are methods, so kinds of different
  * data fit one list.
  */
-export interface TabKind<Data> {
+export interface TabKind<Data, Opens = Data> {
   /** Its id, unique across plugins. */
   kind: string
   /** A tab's `data`, checked where saved state enters the page. */
@@ -444,7 +444,16 @@ export interface TabKind<Data> {
    * The data of a new tab, which the window's + and the taskbar's + open;
    * without it the kind opens tabs only by intents. Never for a pinned kind.
    */
-  start?(): Data
+  start?(): Opens
+  /**
+   * Has the kind's plugin make the tab `opens` asks for, which the window's +
+   * (`start`) or an intent (`intents`) gives, in place of the work creating
+   * it: the kind of a device's live tabs, which only the device makes, and
+   * whose `Opens` is what it asks the device for. The tab comes with the work
+   * once the device has it, and the window shows `opening` meanwhile, which
+   * says `failed` for an open the plugin refused, as the kind reports.
+   */
+  open?(opens: Opens, tab: KindTab): void
   title(data: Data, tab: KindTab): string
   /**
    * What the tab's pane says it reads while it waits for what it shows
@@ -521,15 +530,18 @@ export interface TabKind<Data> {
    * it holds no tab.
    */
   opening?: Component
-  /** The intents it opens: for each, the data its tab shows next, from the payload and what it shows now. */
+  /**
+   * The intents it opens: for each, the data its tab shows next, from the
+   * payload and what it shows now, or what `open` asks for.
+   */
   intents?: {
-    file?(payload: IntentPayloads['file'], current: Data | null): Data
-    edit?(payload: IntentPayloads['edit'], current: Data | null): Data
-    commit?(payload: IntentPayloads['commit'], current: Data | null): Data
-    branch?(payload: IntentPayloads['branch'], current: Data | null): Data
-    attachment?(payload: IntentPayloads['attachment'], current: Data | null): Data
-    media?(payload: IntentPayloads['media'], current: Data | null): Data
-    web?(payload: IntentPayloads['web'], current: Data | null): Data
+    file?(payload: IntentPayloads['file'], current: Data | null): Opens
+    edit?(payload: IntentPayloads['edit'], current: Data | null): Opens
+    commit?(payload: IntentPayloads['commit'], current: Data | null): Opens
+    branch?(payload: IntentPayloads['branch'], current: Data | null): Opens
+    attachment?(payload: IntentPayloads['attachment'], current: Data | null): Opens
+    media?(payload: IntentPayloads['media'], current: Data | null): Opens
+    web?(payload: IntentPayloads['web'], current: Data | null): Opens
   }
 }
 
@@ -970,6 +982,7 @@ function bindKind(kind: TabKind<unknown>, tab: KindTab, context: PageContext): B
     schema: kind.schema,
     window: kind.window,
     start: kind.start,
+    open: kind.open && ((data) => kind.open?.(data, tab)),
     title: (data) => kind.title(data, tab),
     subject: subject && ((data) => subject(data, tab)),
     mark: kind.mark,

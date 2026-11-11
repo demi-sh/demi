@@ -52,8 +52,9 @@ function openPage(): void {
   const round = Math.floor(opened / TITLES.length)
   const title = `${TITLES[opened % TITLES.length]!}${round > 0 ? ` ${round + 1}` : ''}`
   opened += 1
-  // The body never shows here, so no picture is shown; the title names the tab.
-  work.add(BROWSER_TAB_KIND, { url: 'https://example.test/', title })
+  // The body never shows here, so no browser has the tab and no picture is shown; the title names the tab,
+  // as the plugin writes it, at once, so each motion of the strip is the button's own.
+  work.add(BROWSER_TAB_KIND, { tab: `t${opened}`, url: 'https://example.test/', title })
 }
 
 function closeTabs(ids: string[]): void {

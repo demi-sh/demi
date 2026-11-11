@@ -1,118 +1,107 @@
-//! The `browser` kind's tabs on the backend:
+//! The `browser` kind's tabs on the backend: the work shows exactly the
+//! browser tabs the conversation's primary device lists.
 //!
-//! - A work tab is added for each tab the agent opens and each tab a page
-//!   opens, beside its opener.
-//! - A browser tab is opened again for a work tab whose browser lost it, or
-//!   that failed to open, once its content asks.
-//! - The browser's tab is closed with its work tab, and gone ones are marked.
+//! ```text
+//!  close, + , a link's Open --call--> browser package on the device
+//!                                            | the tabs, whole
+//!                                            v
+//!  work tabs <-- mirror_tabs <-- plugin <-- kept list (page::keep)
+//! ```
 //!
-//! One conversation's work runs one piece at a time, so a change is never based
-//! on what was read before an earlier change of the same conversation. The
-//! plugin never adds a work tab for a browser tab it is opening for a work
-//! tab, and never marks a tab closed on a list read before the tab opened.
+//! - Each list the browser package reports becomes the kind's work tabs, as
+//!   one change (`PluginPort::mirror_tabs`): a work tab for each browser tab,
+//!   its data as the list says it, and no work tab for a browser tab the list
+//!   does not name; a tab the work has no room for waits for a later list.
+//!   Nothing else adds or removes one; the page opens a tab by asking the
+//!   device (`Work::open`), which answers once the work holds the tab.
+//! - A work tab the user closes closes its browser tab. A device that cannot
+//!   hear of it then closes it when it lists the tab again: the mirroring
+//!   answers the listed tabs whose work tab the user closed.
+//! - A device that cannot be reached changes no tab: the backend keeps its
+//!   last list, which the work shows until the next one.
+//! - When the package's state on the device ended unsaid (`package_lost`), as
+//!   when the runner restarted, the last list stays. A look on the device
+//!   brings the conversation to the next resident, which opens the browser's
+//!   tabs again and lists them.
 //!
 //! # Rules
 //!
 //! - A tab id is used once per conversation, so a tab the user closed never
-//!   comes back, and a tab is added once however often the list is read. Adding
-//!   does not select; only a raised `shows` does.
+//!   comes back.
 //! - A page's tab goes right after its opener, behind the tabs that opener
-//!   opened before, as Chrome places them. The agent's go at the end.
-//!   `openedBy` keeps this in the work tab's data so a reload keeps the order.
-//! - A tab closed on purpose (the browser's list of closed tabs says so) is
-//!   removed. A tab lost with the browser stays, marked `closed`, and opens
-//!   again on its address when shown, as Chrome reloads a discarded tab. On
-//!   `package_lost` every work tab is marked lost without reading the device,
-//!   whose browser is gone.
-//! - A device that cannot be reached for a moment changes no tab: the browser may
-//!   still run there.
-//! - `shows` is the agent's decision that the user sees a tab. `show` only
-//!   raises the count in the browser's list, and the work applies a count once
-//!   per page, so the user's own selection after it stands.
+//!   opened before, as Chrome places them; the others go at the end.
+//! - `shows` is the count of the times the agent, or the user's own Open,
+//!   asked that the user see the tab, which the page applies once per rise.
 
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use demi_command_package_browser_protocol::browser::{BrowserCreatedBy, BrowserTab, TabId};
-use demi_plugin_interface::{PluginError, PluginPort, PortFailure, PortRefusal};
+use demi_command_package_browser_protocol::browser::{BrowserCreatedBy, BrowserTab};
+use demi_plugin_interface::{PluginError, PluginPort};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId};
 use demi_web_api_protocol::work::{CreateWorkTab, WorkTab};
-use http::StatusCode;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value, json};
-use tokio::sync::Mutex;
+use serde_json::{Map, Value};
+use tokio::sync::{Mutex, watch};
 
-use crate::page;
+use crate::page::{self, TabOpened};
 use crate::reason::ControlReason;
 
 /// The kind whose tabs the plugin takes part in.
 pub const KIND: &str = "browser";
 
-/// What a `browser` tab keeps.
+/// What a `browser` tab keeps: the browser tab it shows, as the device last
+/// listed it, so the strip names it before the page reads the list.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TabData {
-    /// The address the tab shows, written by the page and the plugin, or the
-    /// one the user last asked for while the tab has no browser tab yet.
+    /// The id of the conversation browser's tab it shows.
+    tab: String,
     url: String,
-    /// The page's title as the plugin or the page last wrote it, so the strip
-    /// names the tab while no view shows it.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    title: Option<String>,
-    /// The id of the conversation browser's tab it shows, once it has one.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    tab: Option<String>,
-    /// The browser lost that tab with the browser itself; the tab opens again
-    /// on its address when shown.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    closed: Option<bool>,
-    /// `{ code, message }`: why the plugin could not open a browser tab for
-    /// it.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    failure: Option<Value>,
-    /// How many times the agent showed its browser tab, as the plugin last
-    /// wrote it; absent while it never did.
+    title: String,
+    /// How many times the agent, or the user's own Open, asked that the
+    /// user see it; absent while none did.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     shows: Option<u64>,
-    /// The work tab whose page opened it, by a link or script of the page,
-    /// which the plugin writes when it adds the tab.
+    /// The work tab whose page opened it, by a link or script of the page.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     opened_by: Option<String>,
 }
 
 impl TabData {
-    /// The data of `tab`; none for one that does not fit the kind, which
-    /// the plugin leaves as it is.
+    /// The data of `tab`; none for one that does not fit the kind.
     fn of(tab: &WorkTab) -> Option<Self> {
         serde_json::from_value(Value::Object(tab.data.clone())).ok()
     }
-
-    /// The browser tab it shows, while the browser has it.
-    fn live(&self) -> Option<&str> {
-        match self.closed {
-            Some(true) => None,
-            _ => self.tab.as_deref(),
-        }
-    }
 }
 
-/// The id of the work tab for the browser's tab `tab` that the plugin
-/// adds: a tab the user closed is never added again, since an id is used
-/// once.
-fn added_id(tab: &str) -> String {
+/// The id of the work tab for the browser's tab `tab`: a tab the user closed
+/// is never added again, since an id is used once.
+fn work_id(tab: &str) -> String {
     format!("browser-{tab}")
+}
+
+/// The browser's tab a work tab the plugin made shows.
+fn browser_tab(work_tab: &str) -> Option<&str> {
+    work_tab.strip_prefix("browser-")
 }
 
 /// One conversation's work at a time.
 #[derive(Default)]
 pub struct Work {
     locks: RefCell<HashMap<ConversationId, Rc<Mutex<()>>>>,
-    /// The browser tabs this plugin opened for work tabs, by conversation,
-    /// each with the number of the first list that names it, until a list
-    /// that numbered arrives: one taken before the tab opened, which can
-    /// arrive after, says nothing of it.
-    opened: RefCell<HashMap<ConversationId, HashMap<String, u64>>>,
+    /// Each conversation's last list the work followed, which an open waits
+    /// on.
+    followed: RefCell<HashMap<ConversationId, watch::Sender<Followed>>>,
+}
+
+/// A list of the primary device's the work followed: its number and the
+/// browser tabs it named.
+#[derive(Default)]
+struct Followed {
+    list: u64,
+    tabs: HashSet<String>,
 }
 
 impl Work {
@@ -124,44 +113,70 @@ impl Work {
             .clone()
     }
 
-    /// Opens a browser tab for the work tab `id`, unless it shows one.
-    ///
-    /// It opens a tab when the work tab shows none:
-    ///
-    /// - one that failed to open, which Retry opens again;
-    /// - one whose browser tab the browser lost, shown again.
-    ///
-    /// It answers the browser tab the work tab shows now. It answers none when
-    /// the work no longer has the tab or it could not open one, which its data
-    /// says: any step that fails is the tab's `failure`, which its content
-    /// shows with Retry.
-    pub async fn bind(
+    fn followed(&self, conversation: &ConversationId) -> watch::Sender<Followed> {
+        self.followed
+            .borrow_mut()
+            .entry(conversation.clone())
+            .or_insert_with(|| watch::channel(Followed::default()).0)
+            .clone()
+    }
+
+    /// Opens a tab of the conversation's browser for the user, on `url` or
+    /// blank, and answers it once the work holds it: once the device listed
+    /// it and the work followed. Its opening on the page ends on every path:
+    /// a tab the work has no room for closes again and is refused, and one
+    /// that closed before the work held it is refused as gone.
+    pub async fn open(
         &self,
         conversation: &ConversationId,
         port: &PluginPort,
-        id: &str,
-    ) -> Result<Option<String>, PluginError> {
-        let lock = self.lock(conversation);
-        let _turn = lock.lock().await;
-        let Some(data) = data_of(port, id).await? else {
-            return Ok(None);
-        };
-        if let Some(tab) = data.live()
-            && data.failure.is_none()
-        {
-            return Ok(Some(tab.to_owned()));
-        }
-        match open_for(self, conversation, port, id, data).await {
-            Ok(tab) => Ok(tab),
-            Err(error) => {
-                port.update_tab(id, fields([("failure", failure(&error))]))
-                    .await?;
-                Ok(None)
+        url: Option<String>,
+    ) -> Result<TabOpened, PluginError> {
+        // Followed from before the device opens the tab: a list the work
+        // followed earlier may be of a browser before the one it opens in,
+        // numbered apart from it.
+        let mut followed = self.followed(conversation).subscribe();
+        let opened = page::new_tab(port, url).await?;
+        let list = opened.list.ok_or_else(|| {
+            PluginError::failed("the device did not number the list its new tab is in")
+        })?;
+        let tab = opened.tab.to_string();
+        loop {
+            if followed.changed().await.is_err() {
+                return Err(PluginError::failed("the plugin stopped following the tabs"));
             }
+            let named = {
+                let now = followed.borrow_and_update();
+                if now.tabs.contains(&tab) {
+                    true
+                } else if now.list >= list {
+                    false
+                } else {
+                    continue;
+                }
+            };
+            if !named {
+                return Err(page::refusal(
+                    ControlReason::TabNotFound,
+                    "the tab closed before the work held it".into(),
+                ));
+            }
+            let id = work_id(&tab);
+            if port.work_tabs().await?.tabs.iter().any(|held| held.id == id) {
+                return Ok(TabOpened { tab, list });
+            }
+            // The list named it and the work left it out: a tab the user
+            // cannot see does not stay open.
+            close(port, &tab).await;
+            return Err(page::refusal(
+                ControlReason::WorkFull,
+                "the conversation holds the most tabs it can".into(),
+            ));
         }
     }
 
-    /// Closes the browser's tab of a work tab its user removed.
+    /// Closes the browser's tab of a work tab its user removed. A device that
+    /// cannot do it now closes it when it lists the tab again.
     pub async fn removed(
         &self,
         conversation: &ConversationId,
@@ -170,52 +185,36 @@ impl Work {
     ) -> Result<(), PluginError> {
         let lock = self.lock(conversation);
         let _turn = lock.lock().await;
-        match TabData::of(tab).as_ref().and_then(TabData::live) {
-            Some(browser_tab) => page::close(port, browser_tab).await,
-            None => Ok(()),
-        }
-    }
-
-    /// Marks every bound tab lost with the browser, whose package's state
-    /// on the device `device` ended unsaid: each opens again when shown. The
-    /// report kept for the device becomes no tabs, and nothing is read from the
-    /// device, whose browser is gone.
-    pub async fn lost(
-        &self,
-        conversation: &ConversationId,
-        port: &PluginPort,
-        device: &DeviceId,
-    ) -> Result<(), PluginError> {
-        let lock = self.lock(conversation);
-        let _turn = lock.lock().await;
-        if !page::keep(port, device, 0, Vec::new()).await? {
-            return Ok(());
-        }
-        self.opened.borrow_mut().remove(conversation);
-        let work = port.work_tabs().await?;
-        for tab in work.tabs.iter().filter(|tab| tab.kind == KIND) {
-            if TabData::of(tab).as_ref().and_then(TabData::live).is_some() {
-                port.update_tab(tab.id.as_str(), fields([("closed", Value::Bool(true))]))
-                    .await?;
-            }
+        if let Some(data) = TabData::of(tab) {
+            close(port, &data.tab).await;
         }
         Ok(())
     }
 
-    /// Keeps the browser's tabs `listed`, as the package on the device `device`
-    /// reported them, and updates the work from them:
-    ///
-    /// - A tab is added for each tab the agent or a page opened, a page's
-    ///   beside its opener's (`after_opened`) and the agent's after the others.
-    /// - Each bound tab gets the count of the times the agent showed its
-    ///   browser tab, when the count rose.
-    /// - Each bound tab gets its address and title as the list says them,
-    ///   but one whose opening failed keeps the address its Retry opens.
-    /// - Every bound tab whose browser tab was closed on purpose is removed.
-    /// - Every bound tab whose browser tab was lost with the browser is marked
-    ///   closed, to open again when shown; one the list names again is not
-    ///   lost, as when a report taken before its tab opened marked it. A
-    ///   list taken before the plugin opened a tab says nothing of it.
+    /// The package's state on a device ended unsaid. The primary device's
+    /// last list stays; while it names tabs, a look on the device brings the
+    /// conversation to the next resident, which opens them again and lists
+    /// them. A device that cannot be reached now does when the next resident
+    /// first hears of the conversation.
+    pub async fn lost(&self, port: &PluginPort) -> Result<(), PluginError> {
+        let Some(kept) = page::reported(port).await? else {
+            return Ok(());
+        };
+        if kept.tabs.is_empty() {
+            return Ok(());
+        }
+        if let Err(error) = page::look(port).await {
+            tracing::info!(event = "browser_tabs.look_failed", %error, "the device did not take the conversation's tabs back now");
+        }
+        Ok(())
+    }
+
+    /// Keeps the browser's tabs `listed`, as the package on the device
+    /// `device` reported them at `revision`, and makes the work's tabs those
+    /// of the conversation's primary device: a work tab for each, placed
+    /// beside its opener (`after_opened`) or at the end, and none for a tab
+    /// the list does not name. A listed tab whose work tab the user closed is
+    /// closed on the device.
     pub async fn sync(
         &self,
         conversation: &ConversationId,
@@ -223,7 +222,6 @@ impl Work {
         device: &DeviceId,
         revision: u64,
         listed: Vec<BrowserTab>,
-        closed: Vec<TabId>,
     ) -> Result<(), PluginError> {
         let lock = self.lock(conversation);
         let _turn = lock.lock().await;
@@ -233,103 +231,56 @@ impl Work {
             return Ok(());
         }
         let work = port.work_tabs().await?;
-        let bound: Vec<(String, TabData)> = work
-            .tabs
-            .iter()
-            .filter(|tab| tab.kind == KIND)
-            .filter_map(|tab| TabData::of(tab).map(|data| (tab.id.clone(), data)))
-            .collect();
-        let shown: HashSet<&str> = bound
-            .iter()
-            .filter_map(|(_, data)| data.tab.as_deref())
-            .collect();
-        // The work's tabs in order, as this sync leaves them.
+        // The kind's tabs in order, as the mirroring leaves them.
         let mut order: Vec<Placed> = work.tabs.iter().map(Placed::of).collect();
+        let shown: HashSet<String> = order.iter().filter_map(|placed| placed.shows.clone()).collect();
+        let mut tabs = Vec::with_capacity(listed.len());
         for tab in &listed {
-            if tab.created_by == (BrowserCreatedBy::User {}) || shown.contains(tab.id.as_str()) {
-                continue;
-            }
-            let opener = opener_of(&order, tab);
-            let index = opener.map(|at| after_opened(&order, at));
-            let opened_by = opener.map(|at| order[at].id.clone());
-            let id = added_id(tab.id.as_str());
-            let create = CreateWorkTab {
-                id: id.clone(),
-                kind: KIND.into(),
-                data: added(tab, opened_by.as_deref()),
-                index,
+            let id = work_id(tab.id.as_str());
+            let opened_by = opener(tab).map(work_id);
+            let index = if shown.contains(tab.id.as_str()) {
+                None
+            } else {
+                let index = opener_of(&order, tab).map(|at| after_opened(&order, at));
+                let placed = Placed {
+                    id: id.clone(),
+                    shows: Some(tab.id.to_string()),
+                    opened_by: opened_by.clone(),
+                };
+                order.insert(index.unwrap_or(order.len()), placed);
+                index
             };
-            port.create_tab(create).await?;
-            let placed = Placed {
+            tabs.push(CreateWorkTab {
                 id,
-                shows: Some(tab.id.to_string()),
-                opened_by,
-            };
-            order.insert(index.unwrap_or(order.len()), placed);
+                kind: KIND.into(),
+                data: data(tab, opened_by),
+                index,
+            });
         }
-        let present: HashMap<&str, &BrowserTab> =
-            listed.iter().map(|tab| (tab.id.as_str(), tab)).collect();
-        // The tabs opened after this list was taken, which it cannot name;
-        // a list as new as a tab is the last that needs remembering it.
-        let unlisted: HashSet<String> = {
-            let mut opened = self.opened.borrow_mut();
-            let tabs = opened.entry(conversation.clone()).or_default();
-            tabs.retain(|_, listed_from| *listed_from > revision);
-            let unlisted = tabs.keys().cloned().collect();
-            if tabs.is_empty() {
-                opened.remove(conversation);
-            }
-            unlisted
-        };
-        for (id, data) in &bound {
-            let Some(browser_tab) = data.tab.as_deref() else {
-                continue;
-            };
-            let lost = data.live().is_none();
-            match present.get(browser_tab) {
-                None if lost || unlisted.contains(browser_tab) => {}
-                None if closed.iter().any(|tab| tab.as_str() == browser_tab) => {
-                    port.remove_tab(id.as_str()).await?;
-                }
-                None => {
-                    port.update_tab(id.as_str(), fields([("closed", Value::Bool(true))]))
-                        .await?;
-                }
-                // The tab follows its page: its address and title as the list
-                // says them, and the count of its showings when it rose. A tab
-                // whose page failed to open keeps its own address: its browser
-                // tab may still show the blank page it was made with.
-                //
-                // A tab marked lost that the list names was never lost: a
-                // report taken before it opened, applied after, marked it.
-                Some(tab) => {
-                    let mut follows = Map::new();
-                    if lost {
-                        follows.insert("closed".into(), Value::Null);
-                    }
-                    if data.failure.is_none() {
-                        if data.url != tab.url {
-                            follows.insert("url".into(), Value::from(tab.url.clone()));
-                        }
-                        if data.title.as_deref() != Some(tab.title.as_str()) {
-                            follows.insert("title".into(), Value::from(tab.title.clone()));
-                        }
-                    }
-                    if tab.shows > data.shows.unwrap_or(0) {
-                        follows.insert("shows".into(), Value::from(tab.shows));
-                    }
-                    if !follows.is_empty() {
-                        port.update_tab(id.as_str(), follows).await?;
-                    }
-                }
+        let closed = port.mirror_tabs(KIND, tabs).await?;
+        self.followed(conversation).send_replace(Followed {
+            list: revision,
+            tabs: listed.iter().map(|tab| tab.id.to_string()).collect(),
+        });
+        for closed in closed {
+            if let Some(tab) = browser_tab(&closed) {
+                close(port, tab).await;
             }
         }
         Ok(())
     }
 }
 
+/// Closes the browser's tab `tab`. One the device cannot close now stays
+/// until the device lists it again, when the mirroring answers it.
+async fn close(port: &PluginPort, tab: &str) {
+    if let Err(error) = page::close(port, tab).await {
+        tracing::info!(event = "browser_tab.close_deferred", tab, %error, "a browser tab whose work tab was closed closes when its device lists it again");
+    }
+}
+
 /// A work tab as the sync places others beside it: the browser tab it
-/// shows, while the browser has it, and the work tab that opened it.
+/// shows, and the work tab that opened it.
 struct Placed {
     id: String,
     shows: Option<String>,
@@ -341,9 +292,18 @@ impl Placed {
         let data = (tab.kind == KIND).then(|| TabData::of(tab)).flatten();
         Self {
             id: tab.id.clone(),
-            shows: data.as_ref().and_then(|data| data.live().map(str::to_owned)),
+            shows: data.as_ref().map(|data| data.tab.clone()),
             opened_by: data.and_then(|data| data.opened_by),
         }
+    }
+}
+
+/// The browser's tab whose page opened `tab`; none for a tab no page
+/// opened.
+fn opener(tab: &BrowserTab) -> Option<&str> {
+    match &tab.created_by {
+        BrowserCreatedBy::Page { opener } => Some(opener.as_str()),
+        _ => None,
     }
 }
 
@@ -351,12 +311,10 @@ impl Placed {
 /// page opened `tab`; none for a tab no page opened, or whose opener the
 /// work does not show.
 fn opener_of(order: &[Placed], tab: &BrowserTab) -> Option<usize> {
-    let BrowserCreatedBy::Page { opener } = &tab.created_by else {
-        return None;
-    };
+    let opener = opener(tab)?;
     order
         .iter()
-        .position(|placed| placed.shows.as_deref() == Some(opener.as_str()))
+        .position(|placed| placed.shows.as_deref() == Some(opener))
 }
 
 /// Where a tab the work tab at `at` opened goes: right after it, behind the
@@ -371,125 +329,18 @@ fn after_opened(order: &[Placed], at: usize) -> usize {
     at + 1 + run
 }
 
-/// Gives the work tab `id`, with `data`, a browser tab on the address its user
-/// asked for last.
-///
-/// - A tab whose browser tab opened but whose address could not load there
-///   loads it in that tab again, as a browser's Reload does after a load that
-///   failed.
-/// - Any other tab opens one on its address.
-/// - If the user asked for another address meanwhile, the tab loads that one.
-/// - If the user closed the work tab meanwhile, its browser tab closes.
-async fn open_for(
-    work: &Work,
-    conversation: &ConversationId,
-    port: &PluginPort,
-    id: &str,
-    data: TabData,
-) -> Result<Option<String>, PluginError> {
-    // A new tab is bound before its page opens, so the list that names it
-    // finds it bound and adds no work tab of its own. It starts loading its
-    // address in the same call: a second call would cost the user another
-    // round trip to the device. An address the device refuses makes no tab: if
-    // the user asked for another meanwhile, the tab opens on that one.
-    let (tab, made) = match data.live() {
-        Some(tab) => (tab.to_owned(), None),
-        None => {
-            let mut asked = data.url;
-            loop {
-                let url = (asked != "about:blank").then(|| asked.clone());
-                match page::new_tab(port, url).await {
-                    Ok(made) => {
-                        let tab = made.tab.to_string();
-                        if let Some(listed_from) = made.list {
-                            work.opened
-                                .borrow_mut()
-                                .entry(conversation.clone())
-                                .or_default()
-                                .insert(tab.clone(), listed_from);
-                        }
-                        break (tab, Some(asked));
-                    }
-                    Err(error) => match data_of(port, id).await? {
-                        Some(now) if now.url != asked => asked = now.url,
-                        _ => return Err(error),
-                    },
-                }
-            }
-        }
+/// The data of the work tab for the browser's `tab`, opened by the work tab
+/// `opened_by`'s page.
+fn data(tab: &BrowserTab, opened_by: Option<String>) -> Map<String, Value> {
+    let data = TabData {
+        tab: tab.id.to_string(),
+        url: tab.url.clone(),
+        title: tab.title.clone(),
+        shows: (tab.shows > 0).then_some(tab.shows),
+        opened_by,
     };
-    let bound = fields([
-        ("tab", Value::String(tab.clone())),
-        ("closed", Value::Null),
-        ("failure", Value::Null),
-    ]);
-    port.update_tab(id, bound).await?;
-    match data_of(port, id).await? {
-        None => page::close(port, &tab).await.map(|()| None),
-        // A new tab loads the address it was made on already.
-        Some(now) if made.as_ref() == Some(&now.url) => Ok(Some(tab)),
-        Some(now) => page::navigate(port, &tab, now.url)
-            .await
-            .map(|_| Some(tab)),
-    }
-}
-
-/// Why a browser tab could not be opened, as the tab's content shows it:
-/// the reason the page has words for, the browser's or the device's, or else
-/// the HTTP status a page call would answer the same failure with, and the
-/// message.
-fn failure(error: &PluginError) -> Value {
-    let message = error.to_string();
-    let (reason, status) = match error {
-        PluginError::Refused { reason, .. } => {
-            (reason.parse::<ControlReason>().ok(), StatusCode::CONFLICT)
-        }
-        PluginError::Port {
-            refusal: PortRefusal::Device { code, status, .. },
-        } => (
-            ControlReason::of_device(*code),
-            StatusCode::from_u16(*status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
-        ),
-        _ => (None, StatusCode::INTERNAL_SERVER_ERROR),
+    let Ok(Value::Object(data)) = serde_json::to_value(data) else {
+        unreachable!("a browser tab's data serializes to an object")
     };
-    match reason {
-        Some(reason) => json!({ "code": reason, "message": message }),
-        None => json!({ "status": status.to_string(), "message": message }),
-    }
-}
-
-/// The data of the work tab `id`; none once the work no longer has it.
-async fn data_of(port: &PluginPort, id: &str) -> Result<Option<TabData>, PortFailure> {
-    let work = port.work_tabs().await?;
-    Ok(work
-        .tabs
-        .iter()
-        .find(|tab| tab.id == id)
-        .and_then(TabData::of))
-}
-
-/// The data of the work tab the plugin adds for the browser's `tab`: its
-/// page's title names it in the strip until a view shows it, the times the
-/// agent showed it, once it did, and the work tab `opener` whose page
-/// opened it.
-fn added(tab: &BrowserTab, opener: Option<&str>) -> Map<String, Value> {
-    let mut data = fields([
-        ("url", Value::String(tab.url.clone())),
-        ("tab", Value::String(tab.id.to_string())),
-        ("title", Value::String(tab.title.clone())),
-    ]);
-    if tab.shows > 0 {
-        data.insert("shows".to_owned(), Value::from(tab.shows));
-    }
-    if let Some(opener) = opener {
-        data.insert("openedBy".to_owned(), Value::String(opener.to_owned()));
-    }
     data
-}
-
-fn fields<const N: usize>(fields: [(&str, Value); N]) -> Map<String, Value> {
-    fields
-        .into_iter()
-        .map(|(field, value)| (field.to_owned(), value))
-        .collect()
 }

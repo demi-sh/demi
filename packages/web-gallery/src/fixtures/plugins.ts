@@ -15,7 +15,7 @@ import {
   type StateFeed,
   type PageDevice,
 } from '@demicodes/web-ui/plugins/page'
-import { bindTabSchema, navigateTabSchema, stopTabSchema, tabHistorySchema } from '@demicodes/plugin-browser'
+import { navigateTabSchema, openTabSchema, stopTabSchema, tabHistorySchema } from '@demicodes/plugin-browser'
 import {
   addSourceSchema,
   setEnabledSchema,
@@ -37,7 +37,6 @@ import { productWould } from '../product-would'
 import { galleryWorkspaces } from './workspaces'
 import { galleryDevices } from './devices'
 import type { GalleryBrowser } from './live-browser'
-import type { GalleryBrowserPlugin } from './work-record'
 
 /**
  * The plugins as the gallery's specimens answer them: each over the specimen's own state, so every
@@ -204,15 +203,16 @@ function beat(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-/**
- * The conversation browser's plugin over the gallery's `browser`: its tab
- * list, its tab methods, and `work`, its part in the work's tabs.
- */
-export function browserPlugin(browser: GalleryBrowser, work: GalleryBrowserPlugin): GalleryPlugin {
+/** The conversation browser's plugin over the gallery's `browser`: its tab list and its tab methods. */
+export function browserPlugin(browser: GalleryBrowser): GalleryPlugin {
   async function call(method: string, params: object): Promise<unknown> {
     switch (method) {
-      case 'bind':
-        return { tab: await work.bind(bindTabSchema.parse(params).workTab) }
+      case 'open': {
+        const { url } = openTabSchema.parse(params)
+        const tab = await browser.newTab(url ?? null)
+        // The list that named it, which the work followed by now.
+        return { tab: tab.id, list: browser.listed.value.list }
+      }
       case 'navigate': {
         const { tab, url } = navigateTabSchema.parse(params)
         return { list: await browser.navigate(tab, url) }

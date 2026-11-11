@@ -33,7 +33,10 @@ export interface WorkWindow {
   selected: string | null
   /** The kind whose new tab its + opens, if one of its kinds opens tabs. */
   starts: BoundTabKind | null
-  /** The kind whose rows its entry in the taskbar's Open lists, if one of its kinds has some. */
+  /**
+   * The kind whose rows its entry in the taskbar's Open lists, and that says
+   * what it opens meanwhile, if one of its kinds has either.
+   */
   offers: BoundTabKind | null
 }
 
@@ -53,7 +56,7 @@ export function workWindows(tabsState: TabsState, pinned: PinnedTabs, kinds: rea
     if (kind.start && !kind.pinned && !window.starts) {
       window.starts = kind
     }
-    if (kind.openMenu && !window.offers) {
+    if ((kind.openMenu || kind.opening) && !window.offers) {
       window.offers = kind
     }
     if (kind.pinned) {

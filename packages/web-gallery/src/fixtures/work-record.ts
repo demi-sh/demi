@@ -3,11 +3,9 @@
  * plugin's part in its tabs, in memory: the gallery's windows change the way the product's do, a beat late, over the
  * gallery's own browser.
  */
-import { BrowserTabsError, addedWorkTab, browserTabDataSchema, type BrowserTabData, type TabFailure } from '@demicodes/plugin-browser/live/tabs'
-import { SERVER_FAILED } from './plugins'
-import { applyWorkChange, type WorkAnswer, type WorkBackend, type WorkChange, type WorkRead } from '@demicodes/web-ui/agent/work-changes'
+import { addedWorkTab, browserTabDataSchema, type BrowserTabData } from '@demicodes/plugin-browser/live/tabs'
+import { applyWorkChange, dataChanges, type WorkAnswer, type WorkBackend, type WorkChange, type WorkRead } from '@demicodes/web-ui/agent/work-changes'
 import type { WorkTab } from '@demicodes/web-ui/agent/work-tabs'
-import type { BrowserTab } from '@demicodes/plugin-browser/generated/plugin'
 import type { GalleryBrowser } from './live-browser'
 
 /** How long the backend takes over a change of the work. */
@@ -66,6 +64,39 @@ export class GalleryWorkRecord implements WorkBackend {
     }
   }
 
+  /**
+   * Makes the tabs of `kind` the tabs `listed`, the tabs a device has open,
+   * as one change, as the backend mirrors them: creates each listed tab the
+   * work never had, at its index; sets the data of each it has to the listed
+   * data; and removes each tab of the kind the list does not name. Answers
+   * the listed ids the work retired, tabs their user closed.
+   */
+  mirror(kind: string, listed: readonly { id: string; data: Record<string, unknown>; index?: number }[]): string[] {
+    const before = this.revision
+    const closed: string[] = []
+    const named = new Set(listed.map((tab) => tab.id))
+    for (const { id, data, index } of listed) {
+      const current = this.tab(id)
+      if (this.retired.has(id)) {
+        closed.push(id)
+      } else if (current) {
+        this.change({ type: 'update', id, data: dataChanges(current.data, data) })
+      } else {
+        this.change({ type: 'create', tab: { id, kind, data }, index })
+      }
+    }
+    for (const tab of this.tabs.filter((each) => each.kind === kind && !named.has(each.id))) {
+      this.change({ type: 'remove', id: tab.id })
+    }
+    if (this.revision > before) {
+      // The mirroring counts as one change, however many it made.
+      this.revision = before + 1
+      const record = this.current()
+      queueMicrotask(() => this.changed?.(record))
+    }
+    return closed
+  }
+
   /** Applies `change`, counting it in the revision when it changes the tabs; answers the tab it removed, if any. */
   private change(change: WorkChange): WorkTab | null {
     if (change.type === 'create' && (this.retired.has(change.tab.id) || this.tab(change.tab.id))) {
@@ -99,56 +130,49 @@ function browserData(tab: WorkTab | null): BrowserTabData | null {
   return parsed.success ? parsed.data : null
 }
 
-/** The browser tab a work tab shows, while the browser has it. */
-function live(data: BrowserTabData): string | undefined {
-  return data.closed ? undefined : data.tab
+/** A work tab as the mirroring places others beside it: the browser tab it shows, and the work tab that opened it. */
+interface Placed {
+  id: string
+  shows: string | null
+  openedBy: string | null
+}
+
+function placed(tab: WorkTab): Placed {
+  const data = tab.kind === 'browser' ? browserData(tab) : null
+  return { id: tab.id, shows: data?.tab ?? null, openedBy: data?.openedBy ?? null }
 }
 
 /**
- * The work tab that shows the browser tab whose page opened `tab`; none for
- * a tab no page opened, or whose opener the work does not have.
+ * Where a tab the work tab at `at` opened goes: right after it, behind the
+ * tabs it opened before that still stand right after it, as Chrome places
+ * the tabs a link opens and the backend's plugin places them.
  */
-function openerFor(record: GalleryWorkRecord, tab: BrowserTab): string | undefined {
-  if (tab.createdBy.kind !== 'page') {
-    return undefined
-  }
-  const opener = tab.createdBy.opener
-  return record.all.find((each) => {
-    const data = each.kind === 'browser' ? browserData(each) : null
-    return data !== null && live(data) === opener
-  })?.id
-}
-
-/**
- * Where a tab `opener` opened goes: right after it, behind the tabs it opened
- * before that still stand right after it, as Chrome places the tabs a link
- * opens and the backend's plugin places them; after the others (undefined)
- * when the work no longer has the opener.
- */
-function openedIndex(record: GalleryWorkRecord, opener: string): number | undefined {
-  const tabs = record.all
-  const at = tabs.findIndex((tab) => tab.id === opener)
-  if (at < 0) {
-    return undefined
-  }
+function afterOpened(order: readonly Placed[], at: number): number {
+  const opener = order[at]!.id
   let end = at + 1
-  while (end < tabs.length && browserData(tabs[end]!)?.openedBy === opener) {
+  while (end < order.length && order[end]!.openedBy === opener) {
     end += 1
   }
   return end
 }
 
+/** The browser tab a work tab the plugin made shows. */
+function browserTab(workTab: string): string | null {
+  return workTab.startsWith('browser-') ? workTab.slice('browser-'.length) : null
+}
+
 /** The browser plugin's part in the work's `browser` tabs, as the backend's plugin does it. */
 export interface GalleryBrowserPlugin {
-  /** Opens a browser tab for the work tab, unless it shows one; answers the tab it shows then, as the plugin does. */
-  bind(workTab: string): Promise<string | null>
   /** Closes the browser tab of a work tab its user removed. */
   removed(tab: WorkTab): Promise<void>
-  /**
-   * The browser told the plugin its tabs changed: adds the agent's and the
-   * pages' tabs, removes the ones closed on purpose and marks the ones the browser lost.
-   */
+  /** The browser told the plugin its tabs changed: the work's `browser` tabs become the ones it lists (`mirror`). */
   tabsChanged(): Promise<void>
+  /**
+   * Makes the work's `browser` tabs the browser's, now: a tab for each,
+   * placed beside its opener or at the end, and none for a tab the list does
+   * not name; a listed tab whose work tab the user closed is closed.
+   */
+  mirror(): void
   /** Resolves once the plugin did the work it was given so far. */
   settled(): Promise<void>
 }
@@ -163,100 +187,46 @@ export function galleryBrowserPlugin(browser: GalleryBrowser, record: GalleryWor
     return run
   }
 
+  function mirror(): void {
+    const order = record.all.map(placed)
+    const shown = new Set(order.map((tab) => tab.shows))
+    const tabs = browser.listed.value.tabs.map((tab) => {
+      const id = addedWorkTab(tab.id)
+      const opener = tab.createdBy.kind === 'page' ? tab.createdBy.opener : null
+      const openedBy = opener === null ? null : addedWorkTab(opener)
+      let index: number | undefined
+      if (!shown.has(tab.id)) {
+        // Beside its opener, as the backend's plugin places it.
+        const at = opener === null ? -1 : order.findIndex((each) => each.shows === opener)
+        index = at < 0 ? undefined : afterOpened(order, at)
+        order.splice(index ?? order.length, 0, { id, shows: tab.id, openedBy })
+      }
+      const data: BrowserTabData = { tab: tab.id, url: tab.url, title: tab.title }
+      if (tab.shows > 0) {
+        data.shows = tab.shows
+      }
+      if (openedBy !== null) {
+        data.openedBy = openedBy
+      }
+      return { id, data, index }
+    })
+    for (const closed of record.mirror('browser', tabs)) {
+      const tab = browserTab(closed)
+      if (tab !== null) {
+        void browser.close(tab)
+      }
+    }
+  }
+
   return {
-    bind: (workTab) => inTurn(async () => {
-      const data = browserData(record.tab(workTab))
-      if (!data) {
-        return null
-      }
-      const shown = live(data)
-      if (shown !== undefined && !data.failure) {
-        return shown
-      }
-      try {
-        // The tab whose page failed to open loads it again; any other gets a
-        // new tab, bound before its page opens, as the backend's plugin does.
-        const made = shown === undefined
-        const tab = shown ?? (await browser.newTab()).id
-        record.apply({ type: 'update', id: workTab, data: { tab, closed: null, failure: null } })
-        const now = browserData(record.tab(workTab))
-        if (!now) {
-          await browser.close(tab)
-          return null
-        }
-        // A new tab is blank already.
-        if (!made || now.url !== 'about:blank') {
-          await browser.navigate(tab, now.url)
-        }
-        return tab
-      } catch (error) {
-        // The browser's or the device's own reason, as the backend's plugin keeps
-        // it, or the status a call would answer a failure without one with.
-        const message = error instanceof Error ? error.message : String(error)
-        const reason = error instanceof BrowserTabsError ? error.reason : null
-        const failure: TabFailure = reason ? { code: reason, message } : { status: SERVER_FAILED, message }
-        record.apply({ type: 'update', id: workTab, data: { failure } })
-        return null
-      }
-    }),
     removed: (tab) => inTurn(async () => {
       const data = browserData(tab)
-      const shown = data ? live(data) : undefined
-      if (shown !== undefined) {
-        await browser.close(shown)
+      if (data) {
+        await browser.close(data.tab)
       }
     }),
     settled: () => turn,
-    tabsChanged: () => inTurn(async () => {
-      const listed = browser.listed.value.tabs
-      const bound = record.all
-        .filter((tab) => tab.kind === 'browser')
-        .map((tab) => ({ id: tab.id, data: browserData(tab) }))
-      const shown = new Set(bound.map((tab) => tab.data?.tab))
-      for (const tab of listed) {
-        if (tab.createdBy.kind !== 'user' && !shown.has(tab.id)) {
-          const data: BrowserTabData = { url: tab.url, tab: tab.id, title: tab.title }
-          if (tab.shows > 0) {
-            data.shows = tab.shows
-          }
-          const opener = openerFor(record, tab)
-          if (opener !== undefined) {
-            data.openedBy = opener
-          }
-          // Beside its opener, as the backend's plugin places it.
-          const index = opener === undefined ? undefined : openedIndex(record, opener)
-          record.apply({ type: 'create', tab: { id: addedWorkTab(tab.id), kind: 'browser', data }, index })
-        }
-      }
-      for (const { id, data } of bound) {
-        const tab = data ? live(data) : undefined
-        if (tab === undefined) {
-          continue
-        }
-        const present = listed.find((candidate) => candidate.id === tab)
-        if (!present && browser.closedOnPurpose.has(tab)) {
-          record.apply({ type: 'remove', id })
-        } else if (!present) {
-          record.apply({ type: 'update', id, data: { closed: true } })
-        } else {
-          // The tab follows its page's address and title, and the agent's
-          // showings, which each page selects once. One whose page failed to
-          // open keeps its own address, as the backend's plugin keeps it.
-          const follows: Partial<BrowserTabData> = {}
-          if (!data?.failure && present.url !== data?.url) {
-            follows.url = present.url
-          }
-          if (!data?.failure && present.title !== data?.title) {
-            follows.title = present.title
-          }
-          if (present.shows > (data?.shows ?? 0)) {
-            follows.shows = present.shows
-          }
-          if (Object.keys(follows).length > 0) {
-            record.apply({ type: 'update', id, data: follows })
-          }
-        }
-      }
-    }),
+    tabsChanged: () => inTurn(async () => mirror()),
+    mirror,
   }
 }

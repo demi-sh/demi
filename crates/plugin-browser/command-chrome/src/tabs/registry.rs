@@ -20,9 +20,9 @@
 //!   never waits for the page.
 //! - A number that cannot be drawn (the backend has 15 seconds) fails only the
 //!   step that needs it; the environment and its other tabs stay.
-//! - Every change of what `browser.tab.list` lists also tells `plugin-browser` with
-//!   `{"tabs":"changed"}`; the resident keeps the conversations that changed
-//!   since it last wrote, so a burst costs one message.
+//! - Every change of what `browser.tab.list` lists also tells `plugin-browser`
+//!   the whole list (`TabsChange::Tabs`); the resident keeps the conversations
+//!   that changed since it last wrote, so a burst costs one message.
 
 use std::{
     collections::{HashMap, HashSet, VecDeque},
@@ -143,12 +143,13 @@ impl Tabs {
         answer.await.map_err(|_| BrowserError::Closed)?
     }
 
-    /// Asks for a new blank tab, registered once it can be operated. A
+    /// Asks for a new blank tab, registered once it can be operated, under
+    /// `id` when given, else under the conversation's next number. A
     /// creation whose answer nobody waits for closes its tab again.
-    pub async fn create(&self, created_by: BrowserCreatedBy) -> Result<Creation> {
+    pub async fn create(&self, created_by: BrowserCreatedBy, id: Option<TabId>) -> Result<Creation> {
         let (reply, answer) = oneshot::channel();
         self.requests
-            .send(Request::Create { created_by, reply })
+            .send(Request::Create { created_by, id, reply })
             .await
             .map_err(|_| BrowserError::Closed)?;
         Ok(Creation { answer })
@@ -269,6 +270,9 @@ impl Drop for Hold {
 enum Request {
     Create {
         created_by: BrowserCreatedBy,
+        /// The id a tab of an earlier browser of the conversation had, which
+        /// the tab opened again for it takes; none for a new tab.
+        id: Option<TabId>,
         reply: oneshot::Sender<Result<BrowserTab>>,
     },
     Close {
@@ -304,6 +308,7 @@ enum Request {
     Opened {
         page: Result<Page>,
         created_by: BrowserCreatedBy,
+        id: Option<TabId>,
         reply: oneshot::Sender<Result<BrowserTab>>,
     },
     /// The tab set up for `target`, or why it could not be; `reply` is its
@@ -683,8 +688,12 @@ impl<T: Clone> Book<T> {
     /// Names `target` with `number` for the browser's generation, after the
     /// pages named before it.
     fn name(&mut self, target: &TargetId, number: u64) -> TabId {
+        self.name_as(target, TabId::numbered(number))
+    }
+
+    /// Names `target` `id`, after the pages named before it.
+    fn name_as(&mut self, target: &TargetId, id: TabId) -> TabId {
         let order = self.public_ids.len();
-        let id = TabId::numbered(number);
         self.public_ids.insert(target.clone(), (id.clone(), order));
         id
     }
@@ -969,7 +978,7 @@ impl Owner {
 
     async fn request(&mut self, request: Request) {
         match request {
-            Request::Create { created_by, reply } => {
+            Request::Create { created_by, id, reply } => {
                 if !self.book.admit() {
                     let _gone = reply.send(Err(BrowserError::Closed));
                     return;
@@ -984,6 +993,7 @@ impl Owner {
                         .tell(Request::Opened {
                             page,
                             created_by,
+                            id,
                             reply,
                         })
                         .await;
@@ -992,11 +1002,16 @@ impl Owner {
             Request::Opened {
                 page,
                 created_by,
+                id,
                 reply,
             } => match page {
                 Ok(page) => {
                     let target = page.target_id().clone();
-                    match self.number(&target).await {
+                    let named = match id {
+                        Some(id) => Ok(self.book.name_as(&target, id)),
+                        None => self.number(&target).await,
+                    };
+                    match named {
                         Ok(id) => self.set_up(target, page, id, created_by, Some(reply)),
                         // The creation fails, and its blank page goes again.
                         Err(error) => {
@@ -1205,9 +1220,6 @@ impl Owner {
             // a popup this one just opened.
             self.reconcile().await;
             if self.book.closable(&target) && self.book.only(&target, *self.holds.borrow()) {
-                if let Some(id) = self.book.public_id(&target) {
-                    self.numbers.closed_on_purpose(id);
-                }
                 self.book.sealed = true;
                 self.context.tabs.emptied.cancel();
                 let _gone = reply.send(Ok(Closed::Environment));
@@ -1254,7 +1266,6 @@ impl Owner {
         // page. A browser that ends loses its tabs without this.
         if let Some(tab) = tab {
             tab.ended.cancel();
-            self.numbers.closed_on_purpose(tab.id().clone());
         }
         if changed {
             self.publish();

@@ -218,6 +218,14 @@ impl BrowserTab {
         self.state.changes.send_modify(|revision| *revision += 1);
     }
 
+    /// Takes the count of showings a tab of an earlier browser had: the tab
+    /// opened again in its place keeps it, so the next showing still raises
+    /// the count the user's browser window has seen.
+    pub fn keep_shows(&self, shows: u64) {
+        self.state.shows.send_replace(shows);
+        self.state.changes.send_modify(|revision| *revision += 1);
+    }
+
     /// Whether the user acted in the tab: in its live view, pressed a button
     /// or a key, turned the wheel, pasted, chose or answered a dialog; or in
     /// its window, went to an address, back, forward, reloaded or stopped it.

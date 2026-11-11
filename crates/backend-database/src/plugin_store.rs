@@ -5,12 +5,12 @@
 use std::collections::BTreeMap;
 
 use demi_plugin_host::store::{
-    OAuthClient, WorkOutcome, PluginReport, PluginStore, PluginValue, SealedSecret, SecretRow, StoreError, Stored,
+    MirrorOutcome, OAuthClient, WorkOutcome, PluginReport, PluginStore, PluginValue, SealedSecret, SecretRow, StoreError, Stored,
     ValueWrite, Written,
 };
 use demi_plugin_interface::{DeviceDirectory, WorkspaceName};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, WorkspaceId};
-use demi_web_api_protocol::work::{WorkChange, Work};
+use demi_web_api_protocol::work::{CreateWorkTab, WorkChange, Work};
 use futures_util::FutureExt;
 use serde_json::Value;
 
@@ -151,6 +151,20 @@ impl PluginStore for ControlService {
 
     fn work(&self, conversation: ConversationId) -> Stored<'_, Work> {
         async move { ControlService::work(self, conversation).await.map_err(StoreError::new) }.boxed_local()
+    }
+
+    fn mirror_work(
+        &self,
+        conversation: ConversationId,
+        kind: String,
+        listed: Vec<CreateWorkTab>,
+    ) -> Stored<'_, MirrorOutcome> {
+        async move {
+            ControlService::mirror_work(self, conversation, kind, listed)
+                .await
+                .map_err(StoreError::new)
+        }
+        .boxed_local()
     }
 
     fn change_work(&self, conversation: ConversationId, changes: Vec<WorkChange>) -> Stored<'_, WorkOutcome> {

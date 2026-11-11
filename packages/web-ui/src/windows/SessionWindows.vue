@@ -156,6 +156,16 @@ watch([() => props.work?.request ?? null, windows, ready], ([request]) => {
   if (!work || !request) {
     return
   }
+  if (request.opens) {
+    const { kind, data } = request.opens
+    const opens = work.kinds.find((candidate) => candidate.kind === kind)
+    if (opens?.open) {
+      awaitTab(opens.window.id)
+      opens.open(data)
+    }
+    work.took(request.id)
+    return
+  }
   if (request.tab === null) {
     for (const placed of props.stage.state.windows) {
       if (workIds.value.has(placed.id) && placed.placement !== 'minimized') {
@@ -339,12 +349,19 @@ function reorder(id: string, from: number, to: number): void {
   }
 }
 
+/** The window's + and the taskbar's +: a new tab, which the plugin of a device's live tabs makes while the window waits for it. */
 function newTab(id: string): void {
   const starts = workOf(id)?.starts
   const data = starts?.start?.()
-  if (starts && data !== undefined) {
-    props.work?.add(starts.kind, data)
+  if (!starts || data === undefined) {
+    return
   }
+  if (starts.open) {
+    awaitTab(id)
+    starts.open(data)
+    return
+  }
+  props.work?.add(starts.kind, data)
 }
 
 /** Closes the window `id`: a window of the work closes its tabs with it, as a web browser's does. */

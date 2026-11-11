@@ -13,34 +13,31 @@ import { PaneReading, downloadProgress, downloadUrl, formatByteRatio, formatByte
 import { clientPlatform } from '@demicodes/utils'
 import type { LiveDownload } from '../generated/plugin'
 import LiveView from './LiveView.vue'
+import WaitingNote from './WaitingNote.vue'
 import { t } from '../locales/text'
 import { browserShortcut } from './input'
-import { BLANK_URL, failureSentence, startingLabel, type BrowserTabData, type BrowserTabsController, type KeptPicture } from './tabs'
+import { startingLabel, type BrowserTabData, type BrowserTabsController, type KeptPicture } from './tabs'
 import { BLANK_PAGE, deviceSnap, panelSize, viewportChoices, type PanelSize, type ViewportChoice } from './view'
 
 /**
- * A `browser` tab's content. It shows at once what the tab's data says, and
- * what the device sends replaces it when it arrives:
+ * A `browser` tab's content: the device's browser tab its data names. It
+ * shows at once what the tab's data says, and what the device sends
+ * replaces it when it arrives:
  *
- * - Before the browser has the tab: the panel's own background, which says at
- *   once what Demi is doing.
+ * - While the browser does not have the tab, as while a browser that starts
+ *   again opens the tabs of the one before: the panel's own background, which
+ *   says what Demi is doing.
  * - Then a blank page until the browser tab's first picture.
  * - An address the user submits shows at once, with the page loading over the
  *   picture the tab still shows.
  *
- * The plugin opens, binds and closes the browser tab on the backend; only a
- * failure interrupts, where it happened, with a way on. A tab whose browser tab
- * the browser lost opens again on its address as soon as it is shown, loading
- * as any page does, never saying that the page was closed. A content stays
- * mounted while another tab is selected (`shown` false), so shown again it
- * shows its picture, address and title at once.
+ * The tab is there exactly while the device lists its browser tab: the
+ * content changes no tab. A content stays mounted while another tab is
+ * selected (`shown` false), so shown again it shows its picture, address and
+ * title at once.
  *
- * Two choices have a reason:
- *
- * - Words appear in the same frame as the click that opens the tab, since an
- *   empty area would read as Demi doing nothing.
- * - The blank page has Chrome's empty-page color in the tab's scheme, so the
- *   first picture does not flash.
+ * The blank page has Chrome's empty-page color in the tab's scheme, so the
+ * first picture does not flash.
  */
 const props = defineProps<{
   conversation: string
@@ -50,17 +47,14 @@ const props = defineProps<{
   data: BrowserTabData
   shown: boolean
 }>()
-const emit = defineEmits<{ update: [data: BrowserTabData] }>()
 
 const addressBar = ref<InstanceType<typeof AddressBar> | null>(null)
 
 const { overlays, errors, files, intents } = usePage()
 const platform = clientPlatform(navigator)
-/** The plugin opens a browser tab for this work tab again. */
-const opening = computed(() => props.session.opening(props.tabId, props.data))
 const view = computed(() => props.session.session.value)
-/** The browser tab the work tab's data names, unless the browser lost it; the browser may not list it yet. */
-const bound = computed(() => (props.data.closed ? undefined : props.data.tab))
+/** The browser tab the work tab shows; the browser may not list it yet. */
+const bound = computed(() => props.data.tab)
 /** The bound tab as a view last reported it, kept while no view is open or the view reconnects. */
 const live = computed(() => props.session.tab(bound.value))
 const viewport = computed(() => live.value?.viewport ?? null)
@@ -73,9 +67,9 @@ const MODE_ICONS: Record<ViewportChoice['mode'], Component> = { web: Monitor, mo
 const pane = usePaneWaiting()
 usePaneReady(() => props.session.list.value !== null || props.session.listError.value !== null || props.session.api.deviceStarting())
 /** What Demi does before the browser has the tab, if it does not have it yet. */
-const phase = computed(() => props.session.startingPhase(props.tabId, props.data))
+const phase = computed(() => props.session.startingPhase(props.data))
 /** The tab loads: Stop, the strip's spinner and the progress line show it. */
-const busy = computed(() => props.session.busy(props.tabId, props.data))
+const busy = computed(() => props.session.busy(props.data))
 /** Back and Forward are unavailable while the browser says the tab has no page that way, or has said nothing yet. */
 const backReason = computed(() => (live.value?.canGoBack ? null : t('address.noBack')))
 const forwardReason = computed(() => (live.value?.canGoForward ? null : t('address.noForward')))
@@ -90,7 +84,7 @@ watch(
       props.session.hide(props.tabId)
     }
     if (shown) {
-      props.session.show(props.tabId, tab ?? null)
+      props.session.show(props.tabId, tab)
     }
   },
   { immediate: true, flush: 'post' },
@@ -151,43 +145,12 @@ onBeforeUnmount(() => {
   props.session.hide(props.tabId)
 })
 
-// The tab saves where the page went, with the page's title for the strip. A
-// blank page the browser first reports while the tab asks for an address is a
-// browser tab that has not started on it yet. A title names the address the tab
-// asks for only: a page the user is leaving keeps its title to itself.
-watch(
-  [() => live.value?.url, () => live.value?.title],
-  ([url, title], [before]) => {
-    if (url === undefined) {
-      return
-    }
-    const moved = url !== props.data.url
-    if (moved && (url === before || (before === undefined && url === BLANK_URL))) {
-      return
-    }
-    if (!moved && (title ?? '') === (props.data.title ?? '')) {
-      return
-    }
-    const { title: _left, ...data } = props.data
-    emit('update', title ? { ...data, url, title } : { ...data, url })
-  },
-)
-
 /**
- * The address shows at once and the tab keeps it. A tab with its browser tab
- * loads it now; one without loads it once the plugin opened its browser tab,
- * on the address the user asked for last.
+ * The address shows at once, and the tab loads it; a refused one leaves the
+ * tab on the page the browser still shows, with its address and title.
  */
 function submit(url: string): void {
-  // The page it leaves names the tab no more.
-  const { title: _left, ...data } = props.data
-  emit('update', { ...data, url })
-  if (bound.value !== undefined) {
-    props.session.navigate(bound.value, url).catch((error: unknown) => {
-      errors.report(t('failures.openAddress'), error)
-      restore()
-    })
-  }
+  props.session.navigate(bound.value, url).catch((error: unknown) => errors.report(t('failures.openAddress'), error))
 }
 
 /** The live view's last picture of the bound tab, for the next view of it, as after a conversation switch. */
@@ -198,26 +161,13 @@ function keepPicture(picture: KeptPicture): void {
   }
 }
 
-/** A refused address leaves the tab on the page the browser still shows, with its address and title. */
-function restore(): void {
-  const page = live.value
-  if (!page) {
-    return
-  }
-  // The address bar follows the tab's data.
-  const { title: _left, ...data } = props.data
-  emit('update', page.title ? { ...data, url: page.url, title: page.title } : { ...data, url: page.url })
-}
-
 /** What a toast names when Back, Forward or Reload was refused. */
 const couldNot = (action: 'back' | 'forward' | 'reload') =>
   t(action === 'back' ? 'failures.goBack' : action === 'forward' ? 'failures.goForward' : 'failures.reloadPage')
 
 /** Back, Forward and Reload, on the bound tab; a refusal is reported as any failed request is. */
 function history(action: 'back' | 'forward' | 'reload'): void {
-  if (bound.value !== undefined) {
-    props.session.history(bound.value, action).catch((error: unknown) => errors.report(couldNot(action), error))
-  }
+  props.session.history(bound.value, action).catch((error: unknown) => errors.report(couldNot(action), error))
 }
 
 /**
@@ -284,44 +234,10 @@ function showInFiles(download: LiveDownload): void {
   intents.open(props.conversation, { intent: 'file', payload: { path: download.path } })
 }
 
-/**
- * Stop, on the bound tab; a refusal is a toast. Before the browser has the
- * tab, Stop gives up its address, and the tab opens blank, as stopping a page
- * before it shows anything leaves a browser's tab blank.
- */
+/** Stop, on the bound tab; a refusal is a toast. */
 function stop(): void {
-  if (phase.value !== null) {
-    const { title: _left, ...data } = props.data
-    emit('update', { ...data, url: BLANK_URL })
-    return
-  }
-  if (bound.value !== undefined) {
-    props.session.stop(bound.value).catch((error: unknown) => errors.report(t('failures.stopLoading'), error))
-  }
+  props.session.stop(bound.value).catch((error: unknown) => errors.report(t('failures.stopLoading'), error))
 }
-
-/**
- * Retry, and a lost tab shown: the plugin opens a browser tab for this work
- * tab again, and the tab loads meanwhile. A failure to open it is the tab's
- * own state; a refused request is a toast.
- */
-function reopen(): Promise<void> {
-  return props.session.bind(props.tabId).catch((error: unknown) => errors.report(t('failures.openPage'), error))
-}
-
-// A tab whose browser tab the browser lost opens again once shown, as a web
-// browser reloads a tab it discarded, and one the page made, as a link's Open
-// in Browser Window does, opens its browser tab (`bind` answers for a work tab
-// that has none); one whose opening failed waits for its Retry.
-watch(
-  () => props.shown && (props.data.closed === true || props.data.tab === undefined) && !props.data.failure,
-  (lost) => {
-    if (lost) {
-      void reopen()
-    }
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
@@ -331,7 +247,6 @@ watch(
       :address="session.address(data)"
       :back-reason="backReason"
       :forward-reason="forwardReason"
-      :can-reload="bound !== undefined"
       :loading="busy"
       @submit="submit"
       @back="history('back')"
@@ -432,24 +347,13 @@ watch(
     >
       <PaneReading />
       <ProgressLine :active="busy" />
-      <!-- A tab the plugin could not open cannot be shown at all. Retry returns it to opening in the same
-           frame: the region leaves, and the tab loads as a new one does. -->
-      <RegionStatus
-        v-if="data.failure && !opening"
-        class="min-h-0 flex-1"
-        status="failed"
-        :label="t('region.couldntOpen')"
-        :detail="failureSentence(data.failure)"
-        :on-retry="reopen"
-      />
       <div
-        v-else-if="bound !== undefined && props.session.pictures.value === 'unsupported'"
+        v-if="props.session.pictures.value === 'unsupported'"
         class="flex min-h-0 flex-1 items-center justify-center px-6 text-center text-[13px] text-fg-faint"
       >
         {{ t('region.noH264') }}
       </div>
-      <!-- Before the browser has the tab: the panel's own background, which says what Demi does from the frame
-           the tab starts opening. -->
+      <!-- While the browser does not have the tab: the panel's own background, which says what Demi does. -->
       <RegionStatus
         v-else-if="phase !== null"
         class="min-h-0 flex-1"
@@ -468,12 +372,15 @@ watch(
         @history="history"
         @keep="keepPicture"
       />
-      <!-- What a tab shows before its picture, and a blank tab: a blank page. -->
+      <!-- What a tab shows before its picture, and a blank tab: a blank page, which says so while the view
+           waits for the device. -->
       <div
         v-else
-        class="min-h-0 flex-1"
+        class="relative min-h-0 flex-1"
         :class="BLANK_PAGE"
-      />
+      >
+        <WaitingNote v-if="session.waiting()" />
+      </div>
     </div>
   </div>
 </template>

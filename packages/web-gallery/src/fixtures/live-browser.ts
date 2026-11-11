@@ -628,8 +628,8 @@ class GalleryBrowserView {
 export interface GalleryBrowser {
   /** The tab list, as the plugin's conversation state last brought it. */
   listed: ShallowRef<BrowserTabList>
-  /** Makes an empty tab, as the user's `tab.new` does; the window opens its page in it next. */
-  newTab(): Promise<BrowserTab>
+  /** Makes a tab of the user's on `url`, or blank, and shows it, as the user's `tab.new` does. */
+  newTab(url: string | null): Promise<BrowserTab>
   /** Closes the tab; a tab the browser does not have is closed already. */
   close(tab: string): Promise<void>
   /** Answers the number of the last tab list before the request started, as a user's navigation on the device does. */
@@ -637,12 +637,16 @@ export interface GalleryBrowser {
   history(tab: string, action: 'back' | 'forward' | 'reload'): Promise<number>
   /** Stops loading the tab's page; answers as `navigate` does. */
   stop(tab: string): Promise<number>
-  /** The tabs closed on purpose, which the work removes rather than open again. */
-  closedOnPurpose: ReadonlySet<string>
-  /** The tab closes on the device on purpose, as the agent's `demi browser tab close` closes it. */
+  /** The tab closes on the device, as the agent's `demi browser tab close` closes it. */
   closeOnDevice(tab: string): void
-  /** The browser ends on the device and takes its tabs with it, as a release or a stopped Cloud does. */
+  /** The browser ends on the device and takes its tabs with it, as a release or a crash of the browser does. */
   end(): void
+  /**
+   * The runner restarts on the device: its browser ends, and the next one
+   * opens the same tabs on their addresses, each loading anew, while the
+   * backend keeps the last list.
+   */
+  restart(): void
   /** The next tab the browser opens fails with `failure`, as an offline device or a browser that cannot start fails it. */
   failNextOpen(failure: BrowserTabsError): void
   /** The agent shows the tab to the user, as `demi browser show` does: its count of showings rises. */
@@ -658,7 +662,11 @@ export interface GalleryBrowser {
   deviceStarting: ShallowRef<boolean>
   /** What the device downloads of the browser's packages, as the product state says while Chrome downloads. */
   downloading: ShallowRef<readonly DeviceDownload[]>
-  /** The Cloud stops, as an idle Cloud does, and its browser ends with it; the next tab opened or shown starts it again. */
+  /**
+   * The Cloud stops, as an idle Cloud does: its browser ends, its tabs kept
+   * for the next one, and nobody reaches it until the next tab the user
+   * opens starts it.
+   */
   stopCloud(): void
   /** What a held opening waits for, and nothing once `finish` let it go on. */
   held: ShallowRef<StartingPhase | null>
@@ -722,14 +730,14 @@ export function galleryBrowser(
     }
   }
 
-  const listed = shallowRef<BrowserTabList>({ tabs: tabs.map(info) })
-
   /** Each change of the tabs is a new tab list, numbered as the device numbers them. */
   let lists = 0
 
+  const listed = shallowRef<BrowserTabList>({ list: lists, tabs: tabs.map(info) })
+
   function changed(): void {
     lists += 1
-    listed.value = { tabs: tabs.map(info) }
+    listed.value = { list: lists, tabs: tabs.map(info) }
     for (const view of views) {
       view.state()
     }
@@ -799,9 +807,6 @@ export function galleryBrowser(
     }
   }
 
-  /** The tabs closed on purpose, as the device's tab list names them. */
-  const closedOnPurpose = new Set<string>()
-
   /** The downloads the user started in each tab, kept while views come and go, as the device keeps them. */
   const downloaded = new Map<string, LiveDownload[]>()
   const downloads: GalleryDownloads = {
@@ -840,7 +845,8 @@ export function galleryBrowser(
       capture,
       pageOpens,
       downloads,
-      () => held.value === 'connecting',
+      // A stopped Cloud reaches no view, as the page's stream to it is refused.
+      () => held.value === 'connecting' || cloudStopped,
       recaptured,
       page,
     )
@@ -864,7 +870,6 @@ export function galleryBrowser(
     clearTimeout(loads.get(id))
     loads.delete(id)
     if (index >= 0) {
-      closedOnPurpose.add(id)
       tabs.splice(index, 1)
       changed()
     }
@@ -908,8 +913,9 @@ export function galleryBrowser(
 
   /**
    * What an opening waits for before the browser opens its tab: a held
-   * phase until `finish`, a stopped Cloud while it starts, and a browser
-   * with no tabs while it starts, each as the device takes it.
+   * phase until `finish`, a stopped Cloud while it starts, whose browser
+   * opens the tabs it had, and a browser with no tabs while it starts, each
+   * as the device takes it.
    */
   async function started(): Promise<void> {
     if (held.value !== null) {
@@ -923,6 +929,32 @@ export function galleryBrowser(
     }
     if (tabs.length === 0) {
       await wait(BROWSER_START_MS)
+      reopen()
+    }
+  }
+
+  /** The tabs the browser had when it left, which the next one opens, as the next resident opens the record of the one before. */
+  let kept: LiveTab[] = []
+
+  /** The browser leaves the device and keeps its tabs for the next one; the device says nothing more, so the backend keeps its last list. */
+  function leave(): void {
+    for (const timer of loads.values()) {
+      clearTimeout(timer)
+    }
+    loads.clear()
+    kept = [...kept, ...tabs.splice(0)]
+  }
+
+  /** The next browser opens the tabs the one before kept, on their addresses, each loading anew. */
+  function reopen(): void {
+    const reopened = kept
+    kept = []
+    for (const tab of reopened) {
+      tabs.push(tab)
+      load(tab, tab.url)
+    }
+    for (const view of views) {
+      view.state()
     }
   }
 
@@ -932,6 +964,7 @@ export function galleryBrowser(
       clearTimeout(timer)
     }
     loads.clear()
+    kept = []
     tabs.splice(0)
     changed()
   }
@@ -952,9 +985,8 @@ export function galleryBrowser(
     load(tab, url)
   }
 
-  /** The browser makes an empty tab, after a device's moment; fails once `failNextOpen` said so. */
-  function made(): Promise<BrowserTab> {
-    const url = 'about:blank'
+  /** The browser makes a tab of the user's on `url` and shows it, after a device's moment; fails once `failNextOpen` said so. */
+  function made(url: string): Promise<BrowserTab> {
     return later(() => {
       if (failOpen) {
         const failure = failOpen
@@ -972,6 +1004,8 @@ export function galleryBrowser(
         canGoForward: false,
       }
       tabs.push(tab)
+      // The user's own tab is shown to the user, as the device shows it.
+      shows.set(tab.id, 1)
       load(tab, url)
       return info(tab)
     })
@@ -979,9 +1013,9 @@ export function galleryBrowser(
 
   const browser: GalleryBrowser = {
     listed,
-    newTab: async () => {
+    newTab: async (url) => {
       await started()
-      return made()
+      return made(url ?? 'about:blank')
     },
     close: (id) => later(() => remove(id)),
     navigate: (id, url) => later(() => {
@@ -1024,9 +1058,16 @@ export function galleryBrowser(
       changed()
       return before
     }),
-    closedOnPurpose,
     closeOnDevice: remove,
     end,
+    restart: () => {
+      leave()
+      // The page's view reaches the next resident, whose browser has not opened the tabs yet.
+      for (const view of views) {
+        view.state()
+      }
+      setTimeout(reopen, BROWSER_START_MS)
+    },
     failNextOpen: (failure) => {
       failOpen = failure
     },
@@ -1067,7 +1108,11 @@ export function galleryBrowser(
     deviceStarting,
     stopCloud: () => {
       cloudStopped = true
-      end()
+      leave()
+      // The page's stream to the stopped Cloud ends, and connects again once it runs.
+      for (const view of [...views]) {
+        view.stop()
+      }
     },
     held,
     downloading,

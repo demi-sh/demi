@@ -40,8 +40,13 @@ export interface BoundTabKind<Data = unknown> {
   schema: z.ZodType<Data>
   /** The window its tabs open in. */
   window: WindowKind
-  /** The data of a new tab the window's + opens; absent, it opens tabs only by intents. */
-  start?(): Data
+  /** The data of a new tab the window's + opens, or what `open` asks for; absent, it opens tabs only by intents. */
+  start?(): unknown
+  /**
+   * Has the kind's plugin make the tab `opens` asks for in place of the work
+   * creating it; the window waits for it, showing `opening`.
+   */
+  open?(opens: unknown): void
   // A method, so kinds of different data fit one list of kinds.
   title(data: Data): string
   /** What the pane says it reads while it waits, such as a file's name; absent, the title. */

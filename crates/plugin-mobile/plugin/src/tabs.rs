@@ -1,20 +1,23 @@
 //! The `mobile` kind's tabs on the backend (`crates/plugin-mobile/plugin/src/lib.rs`):
 //! one tab for each simulator the conversation has open on its own device.
 //!
-//! - A tab is added when the agent opens the device.
-//! - A tab is removed when the device closes or is lost, that is, when the
-//!   device no longer lists it as open. A
+//! - The work's tabs of the kind are the simulators the device lists as open,
+//!   as one change (`PluginPort::mirror_tabs`): a tab is added when the agent
+//!   or the user's Open opens the device, and removed when the device closes
+//!   or is lost, that is, when the device no longer lists it as open. A
 //!   resident that starts again, an update or a stopped device loses no tab: the
 //!   device's resident takes its simulators back under their handles, and a stopped
 //!   device's tabs stay as they were until it lists them again.
-//! - Closing a tab closes its device, as `demi mobile close` does.
+//! - Closing a tab closes its device, as `demi mobile close` does. A device
+//!   that cannot hear of it then closes it when it lists the device again: the
+//!   mirroring answers the listed devices whose tab the user closed.
 //! - A simulator the agent opens on an attached device has no tab: the work shows
 //!   the conversation's device's simulators alone.
 //!
 //! One conversation's work runs one piece at a time.
 
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::rc::Rc;
 
 use demi_plugin_interface::{PluginError, PluginPort};
@@ -55,6 +58,11 @@ pub(crate) fn added_id(device: &str) -> String {
     format!("mobile-{device}")
 }
 
+/// The device a tab the plugin added shows.
+fn device_of(tab: &str) -> Option<&str> {
+    tab.strip_prefix("mobile-")
+}
+
 /// One conversation's work at a time.
 #[derive(Default)]
 pub struct Work {
@@ -70,7 +78,8 @@ impl Work {
             .clone()
     }
 
-    /// Closes the device of a tab its user closed.
+    /// Closes the device of a tab its user closed. A device that cannot do it
+    /// now closes it when it lists the device again.
     pub async fn removed(
         &self,
         conversation: &ConversationId,
@@ -79,10 +88,10 @@ impl Work {
     ) -> Result<(), PluginError> {
         let lock = self.lock(conversation);
         let _turn = lock.lock().await;
-        match TabData::of(tab) {
-            Some(data) => page::close(port, &data.device).await,
-            None => Ok(()),
+        if let Some(data) = TabData::of(tab) {
+            close(port, &data.device).await;
         }
+        Ok(())
     }
 
     /// Reads the device's simulators and updates the work's tabs: a tab for each simulator
@@ -103,54 +112,50 @@ impl Work {
         self.show(port, &listed.devices).await
     }
 
-    /// A tab for each of `listed` this conversation has open that has none,
-    /// and each tab whose device is not among them removed.
+    /// Makes the work's tabs the simulators of `listed` this conversation has
+    /// open, and closes each of them whose tab the user closed.
     async fn show(
         &self,
         port: &PluginPort,
         listed: &[demi_command_package_mobile_protocol::mobile::Simulator],
     ) -> Result<(), PluginError> {
-        let open: Vec<(&str, &demi_command_package_mobile_protocol::mobile::Simulator)> = listed
+        let tabs = listed
             .iter()
-            .filter_map(|simulator| simulator.open.as_ref().map(|device| (device.as_str(), simulator)))
+            .filter_map(|simulator| {
+                let device = simulator.open.as_ref()?;
+                let mut data = fields([
+                    ("device", Value::from(device.as_str())),
+                    ("nativeId", Value::from(simulator.native_id.clone())),
+                    ("name", Value::from(simulator.name.clone())),
+                    ("platform", Value::from(simulator.platform.to_string())),
+                ]);
+                // The model the driver reads, which the toolbar shows after the
+                // name; a device whose driver knows none has none.
+                if !simulator.model.is_empty() {
+                    data.insert("model".into(), Value::from(simulator.model.clone()));
+                }
+                Some(CreateWorkTab {
+                    id: added_id(device.as_str()),
+                    kind: KIND.into(),
+                    data,
+                    index: None,
+                })
+            })
             .collect();
-        let work = port.work_tabs().await?;
-        let bound: Vec<(String, TabData)> = work
-            .tabs
-            .iter()
-            .filter_map(|tab| TabData::of(tab).map(|data| (tab.id.clone(), data)))
-            .collect();
-        let shown: HashSet<&str> = bound.iter().map(|(_, data)| data.device.as_str()).collect();
-        for (device, simulator) in &open {
-            if shown.contains(device) {
-                continue;
-            }
-            let mut data = fields([
-                ("device", Value::from(*device)),
-                ("nativeId", Value::from(simulator.native_id.clone())),
-                ("name", Value::from(simulator.name.clone())),
-                ("platform", Value::from(simulator.platform.to_string())),
-            ]);
-            // The model the driver reads, which the toolbar shows after the
-            // name; a device whose driver knows none has none.
-            if !simulator.model.is_empty() {
-                data.insert("model".into(), Value::from(simulator.model.clone()));
-            }
-            let create = CreateWorkTab {
-                id: added_id(device),
-                kind: KIND.into(),
-                data,
-                index: None,
-            };
-            port.create_tab(create).await?;
-        }
-        let present: HashSet<&str> = open.iter().map(|(device, _)| *device).collect();
-        for (id, data) in &bound {
-            if !present.contains(data.device.as_str()) {
-                port.remove_tab(id.as_str()).await?;
+        for closed in port.mirror_tabs(KIND, tabs).await? {
+            if let Some(device) = device_of(&closed) {
+                close(port, device).await;
             }
         }
         Ok(())
+    }
+}
+
+/// Closes the simulator `device`. One the device cannot close now stays
+/// until the device lists it again, when the mirroring answers it.
+async fn close(port: &PluginPort, device: &str) {
+    if let Err(error) = page::close(port, device).await {
+        tracing::info!(event = "mobile_device.close_deferred", device, %error, "a simulator whose tab was closed closes when its device lists it again");
     }
 }
 

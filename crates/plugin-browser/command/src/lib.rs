@@ -55,6 +55,7 @@
 #![recursion_limit = "256"]
 
 mod conversations;
+mod tab_record;
 
 use std::{future::Future, pin::Pin, sync::Arc};
 

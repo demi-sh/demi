@@ -151,8 +151,7 @@ impl Plugin for Instance {
                     conversation: Some(conversation),
                     ..
                 } => {
-                    let result =
-                        page::call(&method, params, &port, &self.work, &conversation).await?;
+                    let result = page::call(&method, params, &conversation, &port, &self.work).await?;
                     Ok(Reply::Result { result })
                 }
                 Request::PageCall {
@@ -171,28 +170,20 @@ impl Plugin for Instance {
                     ..
                 } => {
                     let BrowserMessage {
-                        tabs:
-                            TabsChange::Tabs {
-                                revision,
-                                tabs,
-                                closed,
-                            },
+                        tabs: TabsChange::Tabs { revision, tabs },
                     } = serde_json::from_value(message).map_err(|error| {
                         PluginError::failed(format!("the browser's message does not decode: {error}"))
                     })?;
                     self.work
-                        .sync(&conversation, &port, &device, revision, tabs, closed)
+                        .sync(&conversation, &port, &device, revision, tabs)
                         .await?;
                     port.changed(Scope::Conversation).await?;
                     Ok(Reply::Done)
                 }
-                Request::PackageLost {
-                    conversation,
-                    device,
-                    ..
-                } => {
-                    self.work.lost(&conversation, &port, &device).await?;
-                    port.changed(Scope::Conversation).await?;
+                // The tabs stay as last reported until the next resident
+                // reports them, so nothing the page reads changed.
+                Request::PackageLost { .. } => {
+                    self.work.lost(&port).await?;
                     Ok(Reply::Done)
                 }
                 Request::ReplyBlocks { .. } | Request::ReplyBlockDocument { .. } => {
