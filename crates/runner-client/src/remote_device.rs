@@ -1824,7 +1824,7 @@ impl DeviceProcess for RemoteDevice {
                 cwd: request.cwd.or_else(|| self.cwd()),
                 env,
                 inherit_env,
-                kill_process_group: None,
+                kill_process_group: request.process_group.then_some(true),
                 descriptors: (!request.descriptors.is_empty()).then(|| {
                     request
                         .descriptors

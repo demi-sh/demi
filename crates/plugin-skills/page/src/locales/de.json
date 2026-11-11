@@ -67,9 +67,7 @@
   },
   "problems": {
     "fetch": {
-      "repository_too_large": "Das Repository ist größer als {limit}.",
       "no_commit": "Das Repository hat keine Commits.",
-      "files_too_large": "Die Dateien der Skills sind größer als {limit}.",
       "no_skill": "Das Repository enthält keine Skills."
     },
     "skip": {

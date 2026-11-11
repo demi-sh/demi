@@ -173,17 +173,10 @@ impl ProductPort for ShardPort {
         device: &'a DeviceId,
         url: &'a str,
         marker: &'a str,
-        repository_max: u64,
-        files_max: u64,
     ) -> LocalBoxFuture<'a, Result<GitTree, PortFailure>> {
         Box::pin(async move {
             let shard = self.shard()?;
-            let limit = |bytes: u64| usize::try_from(bytes).unwrap_or(usize::MAX);
-            let tree = shard
-                .device_shard()
-                .device_git_fetch(device, url, marker, limit(repository_max), limit(files_max))
-                .await
-                .map_err(git_refusal)?;
+            let tree = shard.device_shard().device_git_fetch(device, url, marker).await.map_err(git_refusal)?;
             Ok(GitTree {
                 commit: tree.commit,
                 entries: tree
@@ -194,7 +187,7 @@ impl ProductPort for ShardPort {
                 files: tree
                     .files
                     .into_iter()
-                    .map(|(path, bytes)| GitFile { path, bytes: B64Bytes::new(bytes.to_vec()) })
+                    .map(|(path, blob)| GitFile { path, blob })
                     .collect(),
             })
         })
@@ -495,8 +488,6 @@ fn git_refusal(error: DeviceGitError) -> PortFailure {
     let refusal = match error {
         DeviceGitError::NotFound => GitRefusal::NotFound,
         DeviceGitError::Offline => GitRefusal::Offline,
-        DeviceGitError::RepositoryTooLarge { limit } => GitRefusal::RepositoryTooLarge { limit: limit as u64 },
-        DeviceGitError::FilesTooLarge { limit } => GitRefusal::FilesTooLarge { limit: limit as u64 },
         DeviceGitError::Failed(message) => GitRefusal::Failed { message },
     };
     PortFailure::Refused(PortRefusal::Git { refusal })

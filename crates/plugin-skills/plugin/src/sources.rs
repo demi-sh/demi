@@ -13,7 +13,7 @@ use demi_plugin_interface::{
     StoredValue, Workspaces,
 };
 use demi_web_api_protocol::ids::{DeviceId, WorkspaceId};
-use demi_shared_types::{B64Bytes, BlobRef, Timestamp};
+use demi_shared_types::{BlobRef, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -273,7 +273,6 @@ pub(crate) fn fetched(
     sources: &Sources,
     id: &str,
     fetched: &Fetched,
-    blobs: &[Vec<BlobRef>],
     at: Timestamp,
 ) -> Source {
     let (source, _) = &sources[id];
@@ -285,7 +284,7 @@ pub(crate) fn fetched(
         .map(|skill| directory_name(&skill.name))
         .collect();
     let mut skills = Vec::with_capacity(fetched.skills.len());
-    for (skill, blobs) in fetched.skills.iter().zip(blobs) {
+    for skill in &fetched.skills {
         let name = &skill.parsed.name;
         let wanted = match source.skills.iter().find(|old| old.name == *name) {
             Some(old) => old.enabled,
@@ -295,11 +294,10 @@ pub(crate) fn fetched(
         let files = skill
             .files
             .iter()
-            .zip(blobs)
-            .map(|(file, blob)| DirectoryFile {
+            .map(|file| DirectoryFile {
                 path: file.path.clone(),
                 executable: file.executable,
-                blob: blob.clone(),
+                blob: file.blob.clone(),
             })
             .collect();
         skills.push(UserSkill {
@@ -323,22 +321,6 @@ pub(crate) fn fetched(
         workspace: source.workspace.clone(),
         fetcher: source.fetcher.clone(),
     }
-}
-
-/// Puts every file of `fetched`, and answers each skill's files' blobs.
-pub(crate) async fn put_files(
-    port: &PluginPort,
-    fetched: &Fetched,
-) -> Result<Vec<Vec<BlobRef>>, PortFailure> {
-    let mut blobs = Vec::with_capacity(fetched.skills.len());
-    for skill in &fetched.skills {
-        let mut files = Vec::with_capacity(skill.files.len());
-        for file in &skill.files {
-            files.push(port.put_blob(B64Bytes::new(file.bytes.clone())).await?);
-        }
-        blobs.push(files);
-    }
-    Ok(blobs)
 }
 
 /// The device directories of the user skills that are on: one per skill,

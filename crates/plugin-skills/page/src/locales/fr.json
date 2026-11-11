@@ -67,9 +67,7 @@
   },
   "problems": {
     "fetch": {
-      "repository_too_large": "Le dépôt dépasse {limit}.",
       "no_commit": "Le dépôt n’a aucun commit.",
-      "files_too_large": "Les fichiers des compétences dépassent {limit}.",
       "no_skill": "Le dépôt ne contient aucune compétence."
     },
     "skip": {

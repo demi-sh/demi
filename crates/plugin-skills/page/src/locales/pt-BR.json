@@ -67,9 +67,7 @@
   },
   "problems": {
     "fetch": {
-      "repository_too_large": "O repositório é maior que {limit}.",
       "no_commit": "O repositório não tem commits.",
-      "files_too_large": "Os arquivos das habilidades são maiores que {limit}.",
       "no_skill": "O repositório não tem habilidades."
     },
     "skip": {

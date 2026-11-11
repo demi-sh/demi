@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: proposed, superseded in part by 0321
 ---
 
 # A skill source may be fetched on one of the user's devices

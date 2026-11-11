@@ -142,8 +142,6 @@ pub trait ProductPort {
         device: &'a DeviceId,
         url: &'a str,
         marker: &'a str,
-        repository_max: u64,
-        files_max: u64,
     ) -> LocalBoxFuture<'a, Result<GitTree, PortFailure>>;
 
     /// Makes the image `ask` names for the conversation, through the entry
@@ -1800,10 +1798,8 @@ impl RequestPort {
             PortMessage::DeviceGitHead { device, url } => PortAnswer::GitHead {
                 commit: product.device_git_head(&device, &url).await?,
             },
-            PortMessage::DeviceGitFetch { device, url, marker, repository_max, files_max } => PortAnswer::GitTree {
-                tree: product
-                    .device_git_fetch(&device, &url, &marker, repository_max, files_max)
-                    .await?,
+            PortMessage::DeviceGitFetch { device, url, marker } => PortAnswer::GitTree {
+                tree: product.device_git_fetch(&device, &url, &marker).await?,
             },
             PortMessage::Workspaces => {
                 let workspaces = shared.store.workspaces(shared.user.clone()).await.map_err(storage)?;

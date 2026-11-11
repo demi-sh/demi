@@ -43,8 +43,9 @@
 //! # devices
 //!
 //! A Global skill that is on is installed on each device the user's jobs run
-//! on, and a workspace's on each device its conversations' jobs run on, so the
-//! bounds of a fetch bound what a device keeps.
+//! on, and a workspace's on each device its conversations' jobs run on, so a
+//! device keeps the files of every skill that is on, whatever their size; the
+//! user turns off what a device should not keep.
 //!
 //! A skill's path in the catalog is its directory on a device, the same on every
 //! device, so a target switch changes no path: the new device receives the
@@ -84,6 +85,7 @@ mod skill;
 mod sources;
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -122,18 +124,30 @@ pub struct Skills {
     manifest: Manifest,
     resolve: Arc<Resolve>,
     clock: Arc<dyn Clock>,
+    /// Where the server's fetches clone, each in a directory of its own.
+    scratch: PathBuf,
     /// Every source's head, which every user's instance shares.
     heads: Arc<Heads>,
 }
 
 impl Skills {
-    pub fn new() -> Self {
-        Self::resolving(Arc::new(str::to_owned), Arc::new(SystemClock))
+    /// A factory whose server fetches clone under `scratch`, a directory on
+    /// disk: a repository's snapshot may be any size, and the system's
+    /// temporary directory may be memory.
+    pub fn new(scratch: PathBuf) -> Self {
+        Self::resolving(Arc::new(str::to_owned), Arc::new(SystemClock), scratch)
     }
 
     /// A factory whose fetches read `resolve`'s URL for each source's, with
     /// `clock` telling when a fetch ended: a test's repositories and time.
-    pub fn resolving(resolve: Arc<Resolve>, clock: Arc<dyn Clock>) -> Self {
+    /// No fetch runs before the factory is made, so what `scratch` holds
+    /// was left by a backend that ended, and goes.
+    pub fn resolving(resolve: Arc<Resolve>, clock: Arc<dyn Clock>, scratch: PathBuf) -> Self {
+        if let Err(error) = std::fs::remove_dir_all(&scratch)
+            && error.kind() != std::io::ErrorKind::NotFound
+        {
+            tracing::warn!(event = "skill_source.scratch_cleanup_failed", path = %scratch.display(), %error, "earlier fetches' clones stayed");
+        }
         let mut manifest = Manifest::new(
             PluginId::try_from(SKILLS_SOURCE).expect("a valid plugin id"),
             "Skills",
@@ -147,14 +161,9 @@ impl Skills {
             manifest,
             resolve,
             clock,
+            scratch,
             heads: Arc::default(),
         }
-    }
-}
-
-impl Default for Skills {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -169,6 +178,7 @@ impl demi_plugin_interface::PluginFactory for Skills {
             plugin: self.manifest.id.clone(),
             resolve: self.resolve.clone(),
             clock: self.clock.clone(),
+            scratch: self.scratch.clone(),
             fetching: RefCell::default(),
             fetches: RefCell::default(),
             heads: self.heads.clone(),
@@ -258,10 +268,12 @@ struct State {
     plugin: PluginId,
     resolve: Arc<Resolve>,
     clock: Arc<dyn Clock>,
+    /// Where the server's fetches clone.
+    scratch: PathBuf,
     /// The sources being fetched, by id, each with its fetch's end.
     fetching: RefCell<BTreeMap<String, FetchEnd>>,
-    /// Each running fetch: its task and what stops its blocking part.
-    fetches: RefCell<Vec<(AbortHandle, Arc<AtomicBool>)>>,
+    /// Each running fetch.
+    fetches: RefCell<Vec<Running>>,
     /// What each source's default branch points to, by id, as every
     /// user's instance knows it: the sources the server fetches.
     heads: Arc<Heads>,
@@ -295,12 +307,31 @@ enum Fetched {
 /// until it ends, then how, or why its recording failed.
 type FetchEnd = watch::Receiver<Option<Result<Fetched, String>>>;
 
+/// A running fetch.
+struct Running {
+    /// The source it fetches.
+    source: String,
+    task: AbortHandle,
+    /// What stops the server's clone, which blocks.
+    stop: Arc<AtomicBool>,
+    /// What stops the rest, which awaits.
+    stopped: watch::Sender<bool>,
+}
+
+impl Running {
+    /// Stops the fetch: it saves nothing.
+    fn stop(&self) {
+        self.stop.store(true, Ordering::Relaxed);
+        self.stopped.send_replace(true);
+    }
+}
+
 /// The instance ends with its shard: every fetch stops and saves nothing.
 impl Drop for Instance {
     fn drop(&mut self) {
-        for (task, stop) in self.0.fetches.take() {
-            stop.store(true, Ordering::Relaxed);
-            task.abort();
+        for running in self.0.fetches.take() {
+            running.stop();
+            running.task.abort();
         }
         // A check's blocking part only reads the remote's refs; it ends on
         // its own, and its result goes nowhere.
@@ -597,6 +628,10 @@ impl State {
                 Err(failure) => return Err(failure.into()),
             }
         }
+        // Its fetch, whatever it would bring, goes nowhere now.
+        for running in self.fetches.borrow().iter().filter(|running| running.source == id) {
+            running.stop();
+        }
         self.directories_changed(port).await
     }
 
@@ -641,10 +676,12 @@ impl State {
         let (end, ended) = watch::channel(None);
         self.fetching.borrow_mut().insert(id.clone(), ended.clone());
         let stop = Arc::new(AtomicBool::new(false));
+        let (stopped, stopping) = watch::channel(false);
         let state = self.clone();
         let fetch_stop = stop.clone();
+        let source = id.clone();
         let task = tokio::task::spawn_local(async move {
-            let fetched = state.fetch_source(&port, &id, fetch_stop).await;
+            let fetched = state.fetch_source(&port, &id, fetch_stop, stopping).await;
             if let Err(error) = &fetched {
                 tracing::warn!(event = "skill_source.fetch_record_failed", source = %id, %error, "a skill source's fetch was not recorded");
             }
@@ -665,8 +702,13 @@ impl State {
             }
         });
         let mut fetches = self.fetches.borrow_mut();
-        fetches.retain(|(task, _)| !task.is_finished());
-        fetches.push((task.abort_handle(), stop));
+        fetches.retain(|running| !running.task.is_finished());
+        fetches.push(Running {
+            source,
+            task: task.abort_handle(),
+            stop,
+            stopped,
+        });
         ended
     }
 
@@ -675,6 +717,7 @@ impl State {
         port: &PluginPort,
         id: &str,
         stop: Arc<AtomicBool>,
+        mut stopping: watch::Receiver<bool>,
     ) -> Result<Fetched, PluginError> {
         port.changed(Scope::User).await?;
         let (source, _) = sources::read_one(port, id).await?;
@@ -683,21 +726,23 @@ impl State {
         // What fetches it now, which also decides whose heads learn the
         // commit: a device's commit never reaches the shared heads.
         let fetcher = source.fetcher.clone();
-        let fetched = match &fetcher {
-            None => {
-                let url = (self.resolve)(origin.url());
-                let repository = origin.repository().to_owned();
-                tokio::task::spawn_blocking(move || fetch::fetch(&url, &repository, &stop))
-                    .await
-                    .map_err(|error| PluginError::failed(format!("the fetch ended: {error}")))?
+        let reading = async {
+            let tree = match &fetcher {
+                None => fetch::on_server(port, (self.resolve)(origin.url()), self.scratch.clone(), stop).await,
+                Some(device) => fetch_on_device(port, device, &origin).await,
+            };
+            match tree {
+                Ok(tree) => fetch::skills(port, tree, origin.repository()).await,
+                Err(error) => Err(error),
             }
-            Some(device) => fetch_on_device(port, device, &origin).await,
+        };
+        // A stop drops the reading, and with it a device's `git`.
+        let fetched = tokio::select! {
+            fetched = reading => fetched,
+            _ = stopping.wait_for(|stopped| *stopped) => Err(FetchError::Stopped),
         };
         let outcome = match fetched {
-            Ok(fetched) => {
-                let blobs = sources::put_files(port, &fetched).await?;
-                Ok((fetched, blobs))
-            }
+            Ok(fetched) => Ok(fetched),
             Err(FetchError::Stopped) => return Ok(Fetched::Stopped),
             Err(FetchError::Failed { message, problem }) => Err((message, problem)),
         };
@@ -711,7 +756,7 @@ impl State {
             }
             let now = self.clock.now();
             let recorded = match &outcome {
-                Ok((fetched, blobs)) => sources::fetched(&all, id, fetched, blobs, now),
+                Ok(fetched) => sources::fetched(&all, id, fetched, now),
                 Err((message, problem)) => Source {
                     failure: Some(Failure {
                         at: now,
@@ -723,7 +768,7 @@ impl State {
             };
             match sources::write(port, id, &recorded, Some(*revision)).await {
                 Ok(_) => {
-                    if let Ok((fetched, _)) = &outcome {
+                    if let Ok(fetched) = &outcome {
                         let heads = if fetcher.is_some() { &self.device_heads } else { &*self.heads };
                         heads.fetched(id, now, fetched.commit.clone());
                     }
@@ -937,28 +982,14 @@ fn decode<T: DeserializeOwned>(params: Map<String, Value>) -> Result<T, PluginEr
     })
 }
 
-/// Fetches `origin` on `device` with its own `git`, as [`fetch::fetch`] does
-/// on the server.
-async fn fetch_on_device(port: &PluginPort, device: &DeviceId, origin: &Origin) -> Result<fetch::Fetched, FetchError> {
+/// Fetches `origin` on `device` with its own `git`, as [`fetch::on_server`]
+/// does on the server.
+async fn fetch_on_device(port: &PluginPort, device: &DeviceId, origin: &Origin) -> Result<fetch::Tree, FetchError> {
     let tree = port
-        .device_git_fetch(
-            device.clone(),
-            origin.url().to_owned(),
-            "SKILL.md".to_owned(),
-            fetch::FETCH_MAX_BYTES as u64,
-            fetch::FILES_MAX_BYTES as u64,
-        )
+        .device_git_fetch(device.clone(), origin.url().to_owned(), "SKILL.md".to_owned())
         .await
         .map_err(|failure| match failure {
             PortFailure::Refused(PortRefusal::Git { refusal }) => match refusal {
-                GitRefusal::RepositoryTooLarge { limit } => FetchError::Failed {
-                    message: format!("the repository is larger than {} MiB", limit / (1024 * 1024)),
-                    problem: fetch::FetchProblem::RepositoryTooLarge { limit_bytes: limit as u32 },
-                },
-                GitRefusal::FilesTooLarge { limit } => FetchError::Failed {
-                    message: format!("the skills' files hold more than {} MiB", limit / (1024 * 1024)),
-                    problem: fetch::FetchProblem::FilesTooLarge { limit_bytes: limit as u32 },
-                },
                 // The device went away: nothing is recorded, and the source
                 // waits for it as for an offline device.
                 GitRefusal::Offline => FetchError::Stopped,
@@ -966,11 +997,13 @@ async fn fetch_on_device(port: &PluginPort, device: &DeviceId, origin: &Origin) 
             },
             failure => FetchError::Failed { message: failure.to_string(), problem: fetch::FetchProblem::Failed },
         })?;
-    let files = tree
-        .entries
-        .into_iter()
-        .map(|entry| fetch::TreeFile { path: entry.path, executable: entry.executable })
-        .collect();
-    let bytes = tree.files.into_iter().map(|file| (file.path, file.bytes.into_bytes().to_vec())).collect();
-    fetch::from_device(tree.commit, files, bytes, origin.repository())
+    Ok(fetch::Tree {
+        commit: tree.commit,
+        entries: tree
+            .entries
+            .into_iter()
+            .map(|entry| fetch::TreeFile { path: entry.path, executable: entry.executable })
+            .collect(),
+        files: tree.files.into_iter().map(|file| (file.path, file.blob)).collect(),
+    })
 }

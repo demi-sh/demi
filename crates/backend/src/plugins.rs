@@ -3,6 +3,8 @@
 //! This is the list the composition root registers. A plugin leaves a
 //! deployment by leaving this list.
 
+use std::path::Path;
+
 use demi_plugin_audio::Audio;
 use demi_plugin_browser::Browser;
 use demi_plugin_changes::Changes;
@@ -16,13 +18,13 @@ use demi_plugin_skills::Skills;
 use demi_plugin_web::Web;
 use demi_plugin_widget::Widgets;
 
-/// The plugins built into the backend.
-pub fn builtin() -> Vec<Box<dyn PluginFactory>> {
+/// The plugins built into the backend whose data is under `data_dir`.
+pub fn builtin(data_dir: &Path) -> Vec<Box<dyn PluginFactory>> {
     vec![
         Box::new(File::new()),
         Box::new(Browser::new()),
         Box::new(Mobile::new()),
-        Box::new(Skills::new()),
+        Box::new(Skills::new(data_dir.join("tmp/skill-fetches"))),
         Box::new(Web::new()),
         Box::new(Image::new()),
         Box::new(Video::new()),

@@ -48,6 +48,7 @@ pub(crate) fn start(site: &CliSite, args: Vec<String>, session: &SessionFile) ->
         env: SpawnEnv::Overlay(environment(site)),
         descriptors: Vec::new(),
         retained: true,
+        process_group: false,
     };
     CliStart {
         spawn,
@@ -86,6 +87,7 @@ pub(crate) fn probe(site: &CliSite) -> CliStart {
         env: SpawnEnv::Overlay(env),
         descriptors: Vec::new(),
         retained: false,
+        process_group: false,
     };
     CliStart {
         spawn,
@@ -114,6 +116,7 @@ pub(crate) fn login_request(site: &CliSite) -> CliStart {
         ])),
         descriptors: Vec::new(),
         retained: false,
+        process_group: false,
     };
     CliStart {
         spawn,

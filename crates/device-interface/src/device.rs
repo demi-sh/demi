@@ -387,6 +387,9 @@ pub struct SpawnRequest {
     /// The process is kept between pieces of work and is not itself work: a
     /// device that counts activity leaves it out, and may stop with it running.
     pub retained: bool,
+    /// The process leads a process group of its own, which its kill and its
+    /// end take whole, so nothing it started outlives it.
+    pub process_group: bool,
 }
 
 /// A pipe a process inherits at descriptor `fd`, 3 or higher: it reads

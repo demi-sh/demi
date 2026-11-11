@@ -79,6 +79,7 @@ mod from_0_1_5960;
 mod from_0_1_5979;
 mod from_0_1_5979_reply_block_shares;
 mod from_0_1_65_dev_device_storage;
+mod from_0_1_65_dev_skill_size_failures;
 mod from_0_1_5979_devices;
 mod from_0_1_5979_subscription_devices;
 mod from_0_1_5979_archived_at;
@@ -424,5 +425,9 @@ pub(super) const HISTORY: &[Shipped] = &[
     Shipped {
         sql: include_str!("from_0_1_65_dev_device_storage.sql"),
         migration: from_0_1_65_dev_device_storage::MIGRATION,
+    },
+    Shipped {
+        sql: include_str!("from_0_1_65_dev_skill_size_failures.sql"),
+        migration: from_0_1_65_dev_skill_size_failures::MIGRATION,
     },
 ];

@@ -36,15 +36,12 @@ const plugin = page.plugin
 const state = plugin.state(skillsStateSchema)
 
 /**
- * Why the last fetch failed, in the page's words: one of Demi's limits or
- * finds, or git's or the system's own words, as they came.
+ * Why the last fetch failed, in the page's words: one of Demi's finds, or
+ * git's or the system's own words, as they came.
  */
 function fetchFailure(failure: Failure): string {
   const problem = failure.problem
   switch (problem?.code) {
-    case 'repository_too_large':
-    case 'files_too_large':
-      return t(`problems.fetch.${problem.code}`, { limit: formatBytes(problem.limitBytes) })
     case 'no_commit':
     case 'no_skill':
       return t(`problems.fetch.${problem.code}`)
