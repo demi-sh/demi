@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "Réinitialisation maintenant",
       "underMinute": "Réinitialisation dans <1 min",
       "in": "Réinitialisation dans {span}",
       "weekday": "Réinitialisation {weekday} {clock}",

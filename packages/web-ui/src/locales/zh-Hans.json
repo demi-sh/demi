@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "现在重置",
       "underMinute": "不到 1 分钟后重置",
       "in": "{span}后重置",
       "weekday": "{weekday} {clock} 重置",

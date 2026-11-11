@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "Se restablece ahora",
       "underMinute": "Se restablece en <1 min",
       "in": "Se restablece en {span}",
       "weekday": "Se restablece el {weekday} {clock}",

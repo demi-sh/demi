@@ -280,9 +280,9 @@ export function formatVerbAt(verb: 'Resets' | 'Resume' | 'resetting' | 'Removed'
 
 /**
  * When a usage window resets, as specifically as the user would say it, counted
- * from `now` in the user's time zone:
+ * from `now` in the user's time zone. The reset is still to come: a window whose
+ * reset has passed has reset, and names no reset (`QuotaWindowRow`).
  *
- * - Once the clock has passed it: "Resets now".
  * - Within a minute: "Resets in <1m".
  * - Within the hour: "Resets in 42m".
  * - Within a day: "Resets in 3h 42m", the minutes left out on the hour.
@@ -296,9 +296,6 @@ export function formatVerbAt(verb: 'Resets' | 'Resume' | 'resetting' | 'Removed'
  */
 export function formatReset(timestamp: string, now: Date): string {
   const left = new Date(timestamp).getTime() - now.getTime()
-  if (left <= 0) {
-    return t('dates.reset.now')
-  }
   if (left < MINUTE_MS) {
     return t('dates.reset.underMinute')
   }

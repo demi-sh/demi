@@ -101,6 +101,8 @@ import {
   type SettingsVendor,
 } from './types'
 import { formatTokens } from '../ui/token-count'
+import { useClock } from '../composables/useClock'
+import { hasReset } from './quota-window'
 import type { TitleText } from '../ui/ui-text'
 
 /**
@@ -198,6 +200,8 @@ const props = defineProps<{
    */
   shareService?: ProviderShareService
 }>()
+/** The page's clock, against which a usage window's reset passes (`hasReset`). */
+const clock = useClock()
 
 const emit = defineEmits<{
   retry: []
@@ -251,6 +255,24 @@ const shared = computed(() => props.providers.filter(borrowed))
 const selected = computed(
   () => props.providers.find((p) => p.id === selectedId.value) ?? null,
 )
+/**
+ * The selected entry's accounts with a full window that has not reset, which
+ * wear Limit reached. It answers the same set while that holds, so the
+ * clock's ticks update no row.
+ */
+const limitReached = computed<ReadonlySet<string>>((previous) => {
+  const ids = new Set(
+    (selected.value?.accounts ?? [])
+      .filter((account) =>
+        account.quota.some((window) => window.used >= window.max && !hasReset(window, clock.value)),
+      )
+      .map((account) => account.id),
+  )
+  if (previous && previous.size === ids.size && [...ids].every((id) => previous.has(id))) {
+    return previous
+  }
+  return ids
+})
 /** Whether every agent of the selected entry uses its active account, as without rotation. */
 const manual = computed(() => (selected.value?.rotation ?? 'manual') === 'manual')
 const phone = usePhone()
@@ -1291,11 +1313,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
                     <Tag v-if="manual && account.active" tone="accent">{{ t('providers.account.active') }}</Tag>
                     <Tag v-if="account.signedOut" tone="warning">{{ t('providers.state.signedOut') }}</Tag>
                     <Tag
-                      v-if="
-                        account.quota.some(
-                          (window) => window.used >= window.max,
-                        )
-                      "
+                      v-if="limitReached.has(account.id)"
                       tone="danger"
                       >{{ t('providers.account.limitReached') }}</Tag
                     >

@@ -6,10 +6,25 @@
 //!
 //! Whether an account can be used is what routes a request, so the pages are
 //! told when it changes: when a snapshot is written, when an account is marked
-//! used up, and at the moment either lets the account be used again.
+//! used up and when the mark ends.
+//!
+//! A window's reset makes its snapshot old, and nothing else may read the
+//! account again: nobody uses an idle one. So each account has a timer for
+//! the earliest reset that would change what it shows, and 30 seconds after
+//! it, the account is probed, and its new snapshot written and announced.
+//!
+//! - A reset changes what a window shows only when some of it was used and
+//!   its value was read before the reset; a window the vendor keeps rolling
+//!   while nothing is used is not waited for.
+//! - A reset is read for once: a vendor that still reports a passed reset,
+//!   or a probe that fails, leaves the snapshot until the account's next
+//!   use, Smart's choice or Refresh usage. The process forgets it as it
+//!   stops, so a failed read is tried once more after a restart.
 
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex, PoisonError};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, OnceLock, PoisonError, Weak};
+use std::time::Duration;
 
 use demi_provider_common::quota::QuotaSnapshotStore;
 use demi_shared_types::{Clock, QuotaSnapshot, SnapshotSource, Timestamp};
@@ -17,9 +32,51 @@ use demi_web_api_protocol::ids::{CredentialId, ProviderId};
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 
+use crate::registry::ProviderRegistry;
 use crate::store::{RegistryStore, StoredAccount};
 
 type Account = (ProviderId, CredentialId);
+
+/// How long after a window's reset its account is read again: a vendor
+/// whose clock runs a little behind the server's has rolled the window over
+/// by then, as CodexBar waits too.
+const READ_AFTER_RESET: Duration = Duration::from_secs(30);
+
+/// What reading an account again at a reset came to.
+pub(crate) enum ResetRead {
+    /// The probe wrote the account's new snapshot.
+    Read,
+    Failed,
+    /// The account was removed or signed out: it is not read again.
+    Gone,
+}
+
+/// The resets of `snapshot` that change what it shows: of windows with some
+/// use, whose value was read before the reset and that no read at a reset
+/// (`read`) has passed yet.
+fn unread_resets(snapshot: &QuotaSnapshot, read: Option<Timestamp>) -> impl Iterator<Item = Timestamp> + '_ {
+    snapshot
+        .windows
+        .iter()
+        .filter(|window| window.used_percent.is_some_and(|used| used > 0.0))
+        .filter_map(move |window| {
+            let reset = window.resets_at?;
+            let read_past = window.requested_at.is_some_and(|at| at >= reset)
+                || read.is_some_and(|read| read >= reset);
+            (!read_past).then_some(reset)
+        })
+}
+
+/// What an account's timer for its windows' resets knows.
+#[derive(Default)]
+struct ResetWatch {
+    /// When the account was last read for a reset: a reset at or before it
+    /// is read past.
+    read: Option<Timestamp>,
+    /// The reset the account's timer waits for, with the timer's number,
+    /// which an earlier timer set later replaces.
+    timer: Option<(Timestamp, u64)>,
+}
 
 /// The snapshots of every account this process uses.
 pub struct AccountQuotas {
@@ -34,9 +91,16 @@ pub struct AccountQuotas {
     /// account is held from its first use; `None` holds no snapshot yet.
     held: Mutex<HashMap<Account, Option<Arc<QuotaSnapshot>>>>,
     clock: Arc<dyn Clock>,
-    /// The moments an entry's accounts can be used again that a timer waits
-    /// for, each once.
+    /// The moments a mark lets an entry's accounts be used again that a
+    /// timer waits for, each once.
     awaited: Mutex<HashSet<(ProviderId, Timestamp)>>,
+    /// Each account's timer for its windows' resets.
+    resets: Mutex<HashMap<Account, ResetWatch>>,
+    /// The number of the next timer for a reset.
+    timers: AtomicU64,
+    /// The registry, which builds the account a timer probes; set once as
+    /// the registry is made, which holds this.
+    registry: OnceLock<Weak<ProviderRegistry>>,
     /// Ends the timers when the backend closes.
     stop: CancellationToken,
 }
@@ -50,8 +114,18 @@ impl AccountQuotas {
             held: Mutex::default(),
             clock,
             awaited: Mutex::default(),
+            resets: Mutex::default(),
+            timers: AtomicU64::new(0),
+            registry: OnceLock::new(),
             stop: CancellationToken::new(),
         })
+    }
+
+    /// Sets the registry the timers probe accounts through, once.
+    pub(crate) fn set_registry(&self, registry: Weak<ProviderRegistry>) {
+        if self.registry.set(registry).is_err() {
+            tracing::error!(event = "account_quotas.set_twice", what = "registry", "the registry of the quota timers was set twice; the first is kept");
+        }
     }
 
     /// Tells the pages of entry `provider`'s users that an account of it
@@ -92,6 +166,96 @@ impl AccountQuotas {
         self.held.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
+    fn resets(&self) -> std::sync::MutexGuard<'_, HashMap<Account, ResetWatch>> {
+        // A section only reads or replaces one entry, so a poisoned map is
+        // whole.
+        self.resets.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// Sets the account's timer for the earliest unread reset of `snapshot`,
+    /// unless it waits for one as early; a reset that passed is read at once.
+    fn watch(self: &Arc<Self>, account: &Account, snapshot: &QuotaSnapshot) {
+        let mut resets = self.resets();
+        let read = resets.get(account).and_then(|watch| watch.read);
+        let Some(due) = unread_resets(snapshot, read).min() else {
+            return;
+        };
+        let watch = resets.entry(account.clone()).or_default();
+        if watch.timer.is_some_and(|(waits_for, _)| waits_for <= due) {
+            return;
+        }
+        let number = self.timers.fetch_add(1, Ordering::Relaxed);
+        watch.timer = Some((due, number));
+        drop(resets);
+        // `READ_AFTER_RESET` is 30 seconds, well within i64 milliseconds.
+        let read_at = due.as_millisecond() + READ_AFTER_RESET.as_millis() as i64;
+        let wait = Duration::from_millis(u64::try_from(read_at - self.clock.now().as_millisecond()).unwrap_or(0));
+        let quotas = self.clone();
+        let account = account.clone();
+        self.writes.spawn_on(
+            async move {
+                let stop = quotas.stop.clone();
+                tokio::select! {
+                    () = stop.cancelled() => {}
+                    () = async {
+                        tokio::time::sleep(wait).await;
+                        quotas.reset_passed(account, number).await;
+                    } => {}
+                }
+            },
+            &self.edge,
+        );
+    }
+
+    /// Reads the account again as the timer `number` ends, unless a later
+    /// one replaced it, the account was forgotten, or a probe or a response
+    /// since, such as Refresh usage after the reset, read past it. A probe
+    /// that writes a snapshot sets the next timer as it writes; one that
+    /// fails tells the pages and sets it from the snapshot it left.
+    async fn reset_passed(self: &Arc<Self>, account: Account, number: u64) {
+        let read = {
+            let mut resets = self.resets();
+            let Some(watch) = resets.get_mut(&account) else {
+                return;
+            };
+            if watch.timer.map(|(_, timer)| timer) != Some(number) {
+                return;
+            }
+            watch.timer = None;
+            watch.read
+        };
+        let now = self.clock.now();
+        let held = self.lock().get(&account).cloned().flatten();
+        if let Some(snapshot) = &held
+            && !unread_resets(snapshot, read).any(|reset| reset <= now)
+        {
+            self.watch(&account, snapshot);
+            return;
+        }
+        match self.resets().get_mut(&account) {
+            Some(watch) => watch.read = Some(now),
+            None => return,
+        }
+        let registry = self.registry.get().and_then(Weak::upgrade);
+        let outcome = match registry {
+            Some(registry) => registry.probe_account(&account.0, &account.1).await,
+            None => ResetRead::Failed,
+        };
+        match outcome {
+            ResetRead::Read => {}
+            ResetRead::Gone => {
+                self.resets().remove(&account);
+            }
+            ResetRead::Failed => {
+                self.store.entry_changed(account.0.clone()).await;
+                let left = self.lock().get(&account).cloned().flatten();
+                if let Some(snapshot) = left {
+                    self.watch(&account, &snapshot);
+                }
+            }
+        }
+    }
+
     /// The store of the account `record`, which starts from the record's
     /// snapshot the first time this process uses the account.
     pub fn store(
@@ -100,21 +264,40 @@ impl AccountQuotas {
         record: &StoredAccount,
     ) -> Arc<dyn QuotaSnapshotStore> {
         let account = (provider.clone(), record.id.clone());
-        self.lock()
-            .entry(account.clone())
-            .or_insert_with(|| record.quota.clone().map(Arc::new));
+        let first = {
+            let mut held = self.lock();
+            let first = !held.contains_key(&account);
+            held.entry(account.clone())
+                .or_insert_with(|| record.quota.clone().map(Arc::new));
+            first
+        };
+        if first
+            && !record.signed_out
+            && let Some(snapshot) = &record.quota
+        {
+            self.watch(&account, snapshot);
+        }
         Arc::new(AccountQuota {
             quotas: self.clone(),
             account,
         })
     }
 
-    /// The account's snapshot now: this process's newest, else its record's.
-    pub fn latest(&self, provider: &ProviderId, record: &StoredAccount) -> Option<QuotaSnapshot> {
+    /// The account's snapshot now: this process's newest, else its record's,
+    /// whose resets a timer then waits for.
+    pub fn latest(self: &Arc<Self>, provider: &ProviderId, record: &StoredAccount) -> Option<QuotaSnapshot> {
         let account = (provider.clone(), record.id.clone());
-        match self.lock().get(&account) {
+        let held = self.lock().get(&account).cloned();
+        match held {
             Some(held) => held.as_deref().cloned(),
-            None => record.quota.clone(),
+            None => {
+                if !record.signed_out
+                    && let Some(snapshot) = &record.quota
+                {
+                    self.watch(&account, snapshot);
+                }
+                record.quota.clone()
+            }
         }
     }
 
@@ -124,14 +307,18 @@ impl AccountQuotas {
         &self.edge
     }
 
-    /// Forgets a removed account's snapshot.
+    /// Forgets a removed account's snapshot, and ends its timer.
     pub fn forget_account(&self, provider: &ProviderId, account: &CredentialId) {
-        self.lock().remove(&(provider.clone(), account.clone()));
+        let account = (provider.clone(), account.clone());
+        self.lock().remove(&account);
+        self.resets().remove(&account);
     }
 
-    /// Forgets the snapshots of a deleted entry's accounts.
+    /// Forgets the snapshots of a deleted entry's accounts, and ends their
+    /// timers.
     pub fn forget_entry(&self, provider: &ProviderId) {
         self.lock().retain(|(held, _), _| held != provider);
+        self.resets().retain(|(held, _), _| held != provider);
     }
 
     /// Ends the timers and waits for the record writes still running.
@@ -152,16 +339,7 @@ impl AccountQuotas {
                 let Some(snapshot) = newest else {
                     return;
                 };
-                // A window used up routes requests elsewhere until it
-                // resets, which the pages are told then.
-                let now = quotas.clock.now();
-                let resets = snapshot
-                    .windows
-                    .iter()
-                    .filter(|window| window.used_percent.is_some_and(|used| used >= 100.0))
-                    .filter_map(|window| window.resets_at)
-                    .filter(|reset| *reset > now)
-                    .max();
+                quotas.watch(&account, &snapshot);
                 let (provider, id) = account;
                 let id_for_log = id.clone();
                 let stored = quotas
@@ -178,10 +356,7 @@ impl AccountQuotas {
                     );
                     return;
                 }
-                quotas.store.entry_changed(provider.clone()).await;
-                if let Some(reset) = resets {
-                    quotas.announce_at(&provider, reset);
-                }
+                quotas.store.entry_changed(provider).await;
             },
             &self.edge,
         );

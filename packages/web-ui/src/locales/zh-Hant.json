@@ -112,7 +112,6 @@
       }
     },
     "reset": {
-      "now": "現在重設",
       "underMinute": "不到 1 分鐘後重設",
       "in": "{span}後重設",
       "weekday": "{weekday} {clock} 重設",

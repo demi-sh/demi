@@ -10,6 +10,7 @@ import type { ProviderLoginStage } from '@demicodes/web-ui/settings/types'
 import SettingsProvidersPage from '@demicodes/web-ui/settings/SettingsProvidersPage.vue'
 import {
   type SettingsModelDraft,
+  type SettingsProviderAccount,
   type SettingsProviderEntry,
   type SettingsProviderModel,
   type SettingsVendor,
@@ -34,7 +35,7 @@ import { DAY, HOUR, MINUTE, ahead } from '../fixtures/time'
 import { galleryDevices } from '../fixtures/devices'
 import type { MenuDevice } from '@demicodes/web-ui/targets/types'
 import type { SettingsDevice } from '@demicodes/web-ui/settings/types'
-import { HOUR_SECONDS, WEEK_SECONDS, windowNamed } from '../fixtures/usage-limits'
+import { HOUR_SECONDS, WEEK_SECONDS, reported, windowNamed } from '../fixtures/usage-limits'
 
 /**
  * The shared providers page over the mock state. Everything the page emits is
@@ -304,16 +305,55 @@ function refreshUsage(p: SettingsProviderEntry, accountId: string) {
       }
       delete usageFailures.value[p.id]?.[accountId]
       const account = p.accounts.find((candidate) => candidate.id === accountId)
-      for (const window of account?.quota ?? []) {
-        window.used = Math.min(window.max, window.used + 1)
-      }
       if (account) {
+        account.quota = account.quota.map((window) => reported(window, 1))
         account.quotaAt = new Date().toISOString()
+        readAtReset(p, account)
       }
     }, 1200),
   }
 }
+
+/** How long after a window's reset the backend reads its account again. */
+const READ_AFTER_RESET_MS = 30_000
+/** setTimeout's longest wait; a reset further off is not waited for. */
+const LONGEST_TIMEOUT_MS = 2 ** 31 - 1
+const resetReads = new Map<string, number>()
+/**
+ * The backend reads a signed-in account again 30 seconds after the earliest
+ * reset of its windows with some use, as the product's does, and the page
+ * shows the answer; here the answer is the vendor's next report.
+ */
+function readAtReset(p: SettingsProviderEntry, account: SettingsProviderAccount): void {
+  const key = `${p.id}/${account.id}`
+  window.clearTimeout(resetReads.get(key))
+  resetReads.delete(key)
+  const resets = account.quota
+    .flatMap((window) => (window.resetsAt === null || window.used <= 0 ? [] : [Date.parse(window.resetsAt)]))
+    .filter((at) => at > Date.now())
+  if (account.signedOut || !resets.length) {
+    return
+  }
+  const wait = Math.min(...resets) + READ_AFTER_RESET_MS - Date.now()
+  if (wait > LONGEST_TIMEOUT_MS) {
+    return
+  }
+  resetReads.set(key, window.setTimeout(() => {
+    resetReads.delete(key)
+    account.quota = account.quota.map((window) => reported(window, 1))
+    account.quotaAt = new Date().toISOString()
+    readAtReset(p, account)
+  }, wait))
+}
+for (const p of s.value.providers) {
+  for (const account of p.accounts) {
+    readAtReset(p, account)
+  }
+}
 onScopeDispose(() => {
+  for (const timer of resetReads.values()) {
+    window.clearTimeout(timer)
+  }
   for (const timer of cliInstalls) {
     window.clearTimeout(timer)
   }

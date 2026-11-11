@@ -432,7 +432,7 @@ impl Services {
             ClaudeReleases::new(&providers.claude_releases, edge.clone(), clock.clone())
                 .map_err(ServicesError::Http)?;
         let store: Arc<dyn RegistryStore> = Arc::new(vault.clone());
-        let provider_registry = Arc::new(ProviderRegistry::new(
+        let provider_registry = ProviderRegistry::new(
             store.clone(),
             providers.families,
             AccountQuotas::new(store.clone(), edge.clone(), providers.clock.clone()),
@@ -441,7 +441,7 @@ impl Services {
             http,
             providers.clock,
             media.clone(),
-        ));
+        );
         // A source's new model list changes the catalog of every user who
         // infers with its entry: their pages hear of it. The task ends with
         // the cache, whose last owner drops the sender.

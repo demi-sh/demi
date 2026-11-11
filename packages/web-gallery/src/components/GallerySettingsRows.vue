@@ -26,7 +26,7 @@ import Tooltip from '@demicodes/web-ui/ui/Tooltip.vue'
 import { DEFAULT_TRANSCRIPT_TEXT_SIZE } from '@demicodes/web-ui/theme/productAppearance'
 import { productWould } from '../product-would'
 import { DAY, HOUR, MINUTE, ago, ahead } from '../fixtures/time'
-import { HOUR_SECONDS, WEEK_SECONDS, windowNamed } from '../fixtures/usage-limits'
+import { HOUR_SECONDS, WEEK_SECONDS, reported, windowNamed } from '../fixtures/usage-limits'
 
 /**
  * One row of each kind of control a settings card holds, as the product's
@@ -94,7 +94,7 @@ function refreshUsage(): void {
     return
   }
   usageFailure.value = null
-  usage.value = usage.value.map((window) => ({ ...window, used: Math.min(window.max, window.used + 3) }))
+  usage.value = usage.value.map((window) => reported(window, 3))
   usageAt.value = new Date().toISOString()
 }
 </script>
