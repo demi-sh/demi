@@ -647,6 +647,12 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
   /** The reader acted on `target`, an act that `changes` its row when it says so. */
   function readerActsOn(target: Element | null, changes: boolean): void {
     const row = target?.closest<HTMLElement>('[data-index]') ?? null
+    // A click that can change no row holds nothing: one on a row with nothing
+    // to open or fold, and on no control of it, as a click on a reply's text
+    // is. The list goes on following through it, where a hold would leave
+    // the end out of view for its length while a reply streams.
+    if (!changes && !target?.closest('button, summary, a, [role="button"]') && !row?.querySelector('[aria-expanded], details'))
+      return
     if (row && !readerRows.has(row))
       readerRows.set(row, { height: row.getBoundingClientRect().height, disclosures: disclosures(row), controls: new Set(), changes })
     else if (row && changes)
