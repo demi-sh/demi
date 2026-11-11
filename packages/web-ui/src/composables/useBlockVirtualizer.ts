@@ -335,6 +335,17 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
       return
     el.scrollTop = from + by
     scrolledTo = el.scrollTop
+    // The scroller takes the view no further than its end, and a list
+    // shorter than the view nowhere: the rows the view was to follow stood
+    // still only by what it did scroll, and the virtualizer's place for the
+    // view is where the view is.
+    const short = from + by - el.scrollTop
+    if (Math.abs(short) >= 1) {
+      const share = (by - short) / by
+      keptRows = keptRows.map((row) => ({ ...row, by: row.by * share }))
+      virtualizer.value.scrollOffset = (virtualizer.value.scrollOffset ?? 0) - short
+      scrollOffset.value = virtualizer.value.scrollOffset
+    }
     // The list's own scroll is no move of any row, as `keptStill` says of the rows it kept.
     if (seen)
       seen = { ...seen, scrollTop: seen.scrollTop + el.scrollTop - from }
@@ -1192,6 +1203,20 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
         // as a video's box once the video tells its size, would pull it up.
         // Either is made up at once, as for a row above the view.
         if (shouldAutoScroll.value && shownPlaced && item.start + item.size > offset) {
+          // A row that grows with rows after it, as a reply over the
+          // messages that wait below its turn, would push them down at
+          // every line it grows by, for the glide to bring back: the view
+          // follows it at once instead, so they stand still, and the text
+          // above them goes up a line at a time. A row that gets shorter is
+          // not followed: that would bring the rows above it down. Nor is
+          // any row while the reader holds the list, when the view stands
+          // still for them, as it does for the glide.
+          if (_delta > 0 && item.index < blocks.value.length - 1 && !readerScrolls()) {
+            resizeCorrections += 1
+            resizeCorrectedPx += Math.round(_delta)
+            followRowsAbove(_delta, { key: String(item.key), index: item.index })
+            return false
+          }
           const row = currentInstance.elementsCache.get(item.key)
           const above = row ? tailDisplaced(row, settledTails.get(String(item.key))) : 0
           if ((above > RESIZED_PX && item.start < offset) || above < -RESIZED_PX) {
