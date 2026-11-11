@@ -7,7 +7,8 @@ import LiveDialog from './LiveDialog.vue'
 import { CanvasPictures, ClickCount, Menu, MenuDivider, MenuItem, Popover, RegionStatus, keyInput, pointerInput, usePage, wheelInput } from '@demicodes/plugin-sdk'
 import { reasonSentence } from './tabs'
 import { t } from '../locales/text'
-import type { LiveSession, LiveStream } from './session'
+import { stalled as waitsForDevice, type LiveSession, type LiveStream } from './session'
+import WaitingNote from './WaitingNote.vue'
 import type { KeptPicture } from './tabs'
 import { viewerClipboard } from './clipboard'
 import { clientPlatform, composingKey } from '@demicodes/utils'
@@ -79,10 +80,7 @@ const state = computed(() => props.session?.state ?? null)
  */
 const watching = computed(() => props.shown && state.value?.watched === props.tab.id)
 /** Nothing arrives, or the view is connecting again after it ended: the last picture stays under a quiet note. */
-const stalled = computed(() => {
-  const connection = state.value?.connection
-  return connection === 'stalled' || (connection === 'opening' && state.value?.ended !== null)
-})
+const stalled = computed(() => waitsForDevice(state.value))
 /** The pointer in the tab, while it is over the picture. */
 const pointer = shallowRef<{ x: number; y: number } | null>(null)
 /** The cursor the page shows under the pointer, resolved here from the page's cursor regions. */
@@ -472,14 +470,7 @@ onBeforeUnmount(() => {
       :controls="session.state.controls"
       :placement="placement"
     />
-    <div
-      v-if="stalled"
-      class="pointer-events-none absolute inset-x-0 top-0 flex justify-center p-2"
-    >
-      <span class="rounded-md bg-surface px-2 py-1 text-[12px] text-fg-subtle shadow">
-        {{ t('region.waiting') }}
-      </span>
-    </div>
+    <WaitingNote v-if="stalled" />
     <LiveDialog
       v-if="watching && session?.state.dialog"
       :dialog="session.state.dialog.dialog"

@@ -1,7 +1,6 @@
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { browserPage } from '@demicodes/plugin-browser'
 import { mobilePage } from '@demicodes/plugin-mobile'
-import { addedWorkTab } from '@demicodes/plugin-browser/live/tabs'
 import { WorkTabs, closeWorkTabs, updateWorkTab } from '@demicodes/web-ui/agent/work-changes'
 import {
   openIntent,
@@ -116,13 +115,10 @@ export function useGalleryWork(
   // The browser tells the plugin of every change of its tabs, as the browser package does
   // (`crates/command-protocol/src/messages.rs`).
   watch(browser.listed, () => void plugin.tabsChanged())
-  // The browser's tabs stand in the browser window in its order, as the product's would: the user's with the tab the
-  // user made for each, the agent's with the id the plugin gives them. A work without the browser's page has none.
+  // The browser's tabs stand in the browser window in its order, as the product's would, the plugin having
+  // mirrored its list. A work without the browser's page has none.
   if (shown.some((page) => page.plugin === 'browser')) {
-    for (const tab of browser.listed.value.tabs) {
-      const id = tab.createdBy.kind === 'user' ? `user-${tab.id}` : addedWorkTab(tab.id)
-      backend.apply({ type: 'create', tab: { id, kind: 'browser', data: { url: tab.url, tab: tab.id, title: tab.title } } })
-    }
+    plugin.mirror()
   }
   const tabs = new WorkTabs(backend, (error) => {
     productWould(`Report the Refused Work Change: ${error instanceof Error ? error.message : String(error)}`)
@@ -228,21 +224,6 @@ export function useGalleryWork(
     }
     return id
   }
-  /** The number of the next browser tab `lost` names, past any the gallery's browser gives. */
-  let lostTabs = 90
-  /**
-   * A browser tab on `url` whose browser tab the browser lost, as after a
-   * restart: the work the backend keeps has it already, as it had before,
-   * and the page selects it once it arrives, so its content asks the plugin
-   * to open it again, as a shown lost tab does.
-   */
-  function lost(url: string): string {
-    const id = crypto.randomUUID()
-    lostTabs += 1
-    backend.apply({ type: 'create', tab: { id, kind: 'browser', data: { url, tab: `t${lostTabs}`, closed: true } } })
-    select(id)
-    return id
-  }
   /** Moves the tab `id` to `index` among the others, where the user dragged it. */
   function move(id: string, index: number) {
     tabs.change({ type: 'move', id, index })
@@ -289,13 +270,21 @@ export function useGalleryWork(
         steps.step()
       }
     }
-    if (opened.created) {
-      tabs.change({ type: 'create', tab: opened.created })
+    const { created } = opened
+    // A kind whose plugin makes its tabs is asked for the tab, and its window waits for it, as the product's work
+    // store asks.
+    if (created && kinds.value.some((kind) => kind.kind === created.kind && kind.open)) {
+      requested += 1
+      request.value = { id: requested, tab: null, opens: { kind: created.kind, data: created.data }, fromAddress: false }
+      return
+    }
+    if (created) {
+      tabs.change({ type: 'create', tab: created })
     }
     select(opened.selection)
   }
 
-  const host = galleryPageHost({ browser: browserPlugin(browser, plugin), mobile: mobile.plugin, widget: galleryWidgets }, {
+  const host = galleryPageHost({ browser: browserPlugin(browser), mobile: mobile.plugin, widget: galleryWidgets }, {
     files,
     enabled,
     deviceStarting: () => browser.deviceStarting.value,
@@ -396,7 +385,6 @@ export function useGalleryWork(
     host,
     select,
     add,
-    lost,
     move,
     update,
     updatePinned,

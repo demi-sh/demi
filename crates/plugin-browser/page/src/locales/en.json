@@ -49,7 +49,8 @@
     "cloud_crash_loop": "The Cloud stopped starting after repeated failures.",
     "device_operation_failed": "The connection to the device broke.",
     "unknown_plugin_method": "This server can’t run a browser.",
-    "plugin_disabled": "The Browser plugin is off."
+    "plugin_disabled": "The Browser plugin is off.",
+    "work_full": "This conversation can’t hold more tabs."
   },
   "answers": {
     "none": "The server didn’t answer.",
@@ -77,7 +78,6 @@
     "deviceFilesUnreachable": "The device’s files can’t be reached."
   },
   "region": {
-    "couldntOpen": "Couldn’t open this page.",
     "couldntShow": "Couldn’t show this page.",
     "noH264": "This browser can’t decode H.264 video.",
     "waiting": "Waiting for the device…"

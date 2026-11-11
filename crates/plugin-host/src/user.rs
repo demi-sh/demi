@@ -28,7 +28,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::store::StoreError;
-use crate::store::WorkOutcome;
+use crate::store::{MirrorOutcome, WorkOutcome};
 use crate::store::{PluginChanges, PluginStore, ValueWrite, Written};
 use demi_command_declarations::NativeOperation;
 use demi_device_interface::{CommandSet, GroupBuilder, JobCaller, PortError, RpcPort};
@@ -43,7 +43,7 @@ use demi_shared_types::{B64Bytes, BlobRef, MediaKind, NodeId, Timestamp, TurnId}
 use demi_web_api_protocol::conversations::PluginRevision;
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
-use demi_web_api_protocol::work::{HeldState, WorkChange, WorkEffect, Work};
+use demi_web_api_protocol::work::{CreateWorkTab, HeldState, WorkChange, WorkEffect, Work};
 use demi_web_api_protocol::plugins::{PluginEntry, PluginStateAnswer};
 use demi_web_api_protocol::workflows::WatchSubject;
 use futures_util::StreamExt as _;
@@ -583,6 +583,30 @@ impl Shared {
             WorkOutcome::Full => Err(WorkError::Full),
             WorkOutcome::TooLarge => Err(WorkError::TooLarge),
             WorkOutcome::Missing => Err(WorkError::Missing),
+        }
+    }
+
+    /// Makes the tabs of `kind` the tabs `listed` a device has open
+    /// (`WorkDocument::mirror`), and answers the listed ids whose tabs the
+    /// user closed. A change of what the plugin owns tells no plugin.
+    async fn mirror_work(
+        &self,
+        conversation: &ConversationId,
+        kind: String,
+        listed: Vec<CreateWorkTab>,
+    ) -> Result<Vec<String>, WorkError> {
+        match self
+            .store
+            .mirror_work(conversation.clone(), kind, listed)
+            .await?
+        {
+            MirrorOutcome::Mirrored { changed, closed } => {
+                if changed {
+                    self.changes.conversation_changed(conversation.clone());
+                }
+                Ok(closed)
+            }
+            MirrorOutcome::Missing => Err(WorkError::Missing),
         }
     }
 
@@ -1838,6 +1862,20 @@ impl RequestPort {
             PortMessage::RemoveWorkTab { id } => {
                 self.own_tab(&id).await?;
                 self.work_change(WorkChange::Remove { id }).await?
+            }
+            PortMessage::MirrorWorkTabs { kind, tabs } => {
+                let registered = &shared.registry.plugins[self.plugin];
+                if let Some(other) = std::iter::once(&kind)
+                    .chain(tabs.iter().map(|tab| &tab.kind))
+                    .find(|kind| !registered.owns_kind(kind))
+                {
+                    return Err(WorkError::UnknownKind(other.clone()).refusal());
+                }
+                let closed = shared
+                    .mirror_work(self.conversation()?, kind, tabs)
+                    .await
+                    .map_err(|error| error.refusal())?;
+                PortAnswer::Mirrored { closed }
             }
             PortMessage::ReadSecret { name } => PortAnswer::Secret {
                 secret: shared.read_secret(self.plugin, name.as_str()).await?,

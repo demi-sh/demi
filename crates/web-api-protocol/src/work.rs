@@ -206,6 +206,16 @@ pub enum Refused {
     TooLarge,
 }
 
+/// What making a kind's tabs a device's list came to
+/// ([`WorkDocument::mirror`]).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Mirrored {
+    pub effects: Vec<WorkEffect>,
+    /// The listed ids whose tabs the user closed: the device did not hear
+    /// of it, and closes them now.
+    pub closed: Vec<String>,
+}
+
 /// Why a change was not applied, before the tabs' size is known.
 enum Unapplied {
     Nothing,
@@ -230,6 +240,73 @@ impl WorkDocument {
         }
         *self = next;
         Ok(effects)
+    }
+
+    /// Makes the tabs of `kind` the tabs `listed`, the tabs a device has
+    /// open, as one change: creates each listed tab the document never had,
+    /// at its index; sets the data of each it has to the listed data; and
+    /// removes each tab of the kind the list does not name. A listed id the
+    /// document had and retired is a tab its user closed, answered in
+    /// [`Mirrored::closed`].
+    ///
+    /// A tab that does not fit, past the most tabs or the most data, is left
+    /// out, or keeps the data it had, while every other changes: one tab too
+    /// many never holds the others back. A later list places it once there
+    /// is room.
+    pub fn mirror(&mut self, kind: &str, listed: Vec<CreateWorkTab>) -> Mirrored {
+        let named: std::collections::HashSet<String> = listed.iter().map(|tab| tab.id.clone()).collect();
+        let mut changes = Vec::new();
+        let mut closed = Vec::new();
+        // Created and set first: a listed tab's index counts the tabs as
+        // they stand before the unlisted ones go.
+        for create in listed {
+            if self.retired.contains(&create.id) {
+                closed.push(create.id);
+                continue;
+            }
+            let Some(tab) = self.tabs.iter().find(|tab| tab.id == create.id) else {
+                changes.push(WorkChange::Create(create));
+                continue;
+            };
+            let mut data: Map<String, Value> = create
+                .data
+                .iter()
+                .filter(|(field, value)| tab.data.get(*field) != Some(*value))
+                .map(|(field, value)| (field.clone(), value.clone()))
+                .collect();
+            data.extend(
+                tab.data
+                    .keys()
+                    .filter(|field| !create.data.contains_key(*field))
+                    .map(|field| (field.clone(), Value::Null)),
+            );
+            if !data.is_empty() {
+                changes.push(WorkChange::Update { id: create.id, data });
+            }
+        }
+        let removals: Vec<WorkChange> = self
+            .tabs
+            .iter()
+            .filter(|tab| tab.kind == kind && !named.contains(&tab.id))
+            .map(|tab| WorkChange::Remove { id: tab.id.clone() })
+            .collect();
+        let mut effects = Vec::new();
+        // A change that does not fit beside the tabs that go may fit once
+        // they went.
+        let mut waiting = Vec::new();
+        for change in changes {
+            match self.apply(change.clone()) {
+                Applied::Effect(effect) => effects.push(effect),
+                Applied::Full | Applied::TooLarge => waiting.push(change),
+                Applied::Nothing => {}
+            }
+        }
+        for change in removals.into_iter().chain(waiting) {
+            if let Applied::Effect(effect) = self.apply(change) {
+                effects.push(effect);
+            }
+        }
+        Mirrored { effects, closed }
     }
 
     /// Applies `change`, or leaves the document as it was when the change

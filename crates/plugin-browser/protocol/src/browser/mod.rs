@@ -751,12 +751,7 @@ pub struct BrowserMessage {
 #[serde(rename_all = "snake_case")]
 pub enum TabsChange {
     /// Every tab the conversation's browser has, at the package's own count
-    /// of changes, and the latest tabs closed on purpose, by a command or by
-    /// their own page, which the work removes and tells from the tabs
-    /// lost with the browser. An ended browser reports no tabs.
-    Tabs {
-        revision: u64,
-        tabs: Vec<BrowserTab>,
-        closed: Vec<TabId>,
-    },
+    /// of changes: the work shows exactly these. An ended browser reports no
+    /// tabs.
+    Tabs { revision: u64, tabs: Vec<BrowserTab> },
 }

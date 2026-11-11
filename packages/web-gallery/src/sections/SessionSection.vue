@@ -929,7 +929,7 @@ const browserWork = useWorkTabs('change', { path: '' })
 const shownBrowserTab = computed(() => {
   const tab = browserWork.tabsState.value.tabs.find((candidate) => candidate.id === browserWork.front.value)
   const parsed = tab?.kind === 'browser' ? browserTabDataSchema.safeParse(tab.data) : null
-  return parsed?.success ? (parsed.data.tab ?? null) : null
+  return parsed?.success ? parsed.data.tab : null
 })
 /** The browser tab the window does not show that the agent shows next, as `demi browser show` would. */
 const toShow = computed(() => browserWork.browser.listed.value.tabs.find((tab) => tab.id !== shownBrowserTab.value) ?? null)
@@ -949,9 +949,14 @@ function closeOnDevice() {
     browserWork.browser.closeOnDevice(tab)
   }
 }
-/** Ends the conversation's browser, as a release or a stopped Cloud does: the shown tab opens again at once. */
+/** Ends the conversation's browser, as a release or a crash of the browser does: its tabs leave the strip. */
 function endBrowser() {
   browserWork.browser.end()
+}
+/** Restarts the runner on the device, as an update does: the next browser opens the same tabs, which stay in the strip. */
+function restartRunner() {
+  browserWork.browser.restart()
+  productWould('The Runner Restarts; Its Browser Opens the Tabs Again')
 }
 /** Turns the browser plugin off or on, as Settings does, while the work stays open. */
 function switchBrowserPlugin() {
@@ -959,25 +964,24 @@ function switchBrowserPlugin() {
   browserWork.setEnabled('browser', on)
   productWould(on ? 'Turn On the Browser Plugin' : 'Turn Off the Browser Plugin')
 }
-/** Stops the Cloud, as an idle Cloud stops: the shown tab opens again at once, starting the Cloud first. */
+/** Stops the Cloud, as an idle Cloud stops: its tabs stay, and the next tab the user opens starts it again. */
 function stopCloud() {
   browserWork.browser.stopCloud()
   productWould('The Cloud Stops; Its Browser Ends')
 }
-/**
- * A tab opened while the browser does not have it yet, held in one phase:
- * the page connecting, the Cloud starting, Chrome downloading to a device
- * without it, the browser starting on a device
- * whose browser has no tabs, or the browser opening the tab, until the
- * specimen lets it finish.
- */
-/** A tab whose browser tab the browser lost, shown, so it reopens on its address at once, as after a restart. */
-function addLostTab(work: GalleryWork) {
-  work.lost('https://github.com/login')
+/** The user opens a page in a new tab, as a link's Open in Browser Window does. */
+function openPage(work: GalleryWork) {
+  work.openIn({ intent: 'web', payload: { url: 'https://example.test/login' } })
 }
+/**
+ * A tab the user opens while the browser cannot open it yet, held in one
+ * phase: the page connecting, the Cloud starting, Chrome downloading to a
+ * device without it, the browser starting on a device whose browser has no
+ * tabs, or the browser opening the tab, until the specimen lets it finish.
+ */
 function heldWork(phase: StartingPhase) {
   const work = useWorkTabs('change', { path: '', browser: galleryBrowser(phase === 'page' || phase === 'connecting' ? undefined : [], { held: phase }) })
-  addLostTab(work)
+  openPage(work)
   return work
 }
 const STARTING_PHASES: readonly StartingPhase[] = ['connecting', 'cloud', 'download', 'browser', 'page']
@@ -993,12 +997,12 @@ function finishStarting(phase: StartingPhase) {
   heldWorks[phase].browser.finish()
   productWould('The Device Goes On; the Tab Opens')
 }
-/** Another lost tab that waits in the same phase as it reopens, as the specimen started. */
+/** Another page the user opens that waits in the same phase, as the specimen started. */
 function holdAgain(phase: StartingPhase) {
   heldWorks[phase].browser.hold(phase)
-  addLostTab(heldWorks[phase])
+  openPage(heldWorks[phase])
 }
-/** The device refuses the next tab it would open, as an offline device does: a reopening shows Retry. */
+/** The device refuses the next tab it would open, as an offline device does: a toast says so. */
 function failNextOpen() {
   browserWork.browser.failNextOpen(BrowserTabsError.of('device_offline'))
   productWould('The Device Refuses the Next Tab It Opens')
@@ -4051,7 +4055,7 @@ onBeforeUnmount(() => {
       </GallerySection>
       <GallerySection
         title="Work Windows"
-        note="Each specimen shows the conversation’s work in its windows over the gallery project, a window filling the box as it opens; Restore floats it, and the taskbar under it shows, hides and picks a window’s tab. Files and Changes are windows of one pinned tab each, the `file` and `change` kinds of the file-browser and changes plugins: never created, closed or saved, their window closes and the taskbar’s + menu opens it again. The browser’s window holds the user’s tabs, content-sized, capped at 160px and an equal share of the strip, narrowing to 88px before it scrolls; its New Tab opens a blank page, and a tab appears too when the agent opens one, or when a page in a tab opens one, as the first specimen’s Open and Show a Page as the Agent does. Before the browser has a tab, as while it reopens a tab it lost, the content says what Demi does from the frame the tab starts opening, centred with a spinner: Starting Cloud…, Downloading the browser… with a bar and how much has come, on a device without Chrome, Starting the browser… or Opening the page…, as the specimens held in each phase show, each a tab the browser lost that reopens; Stop the Cloud shows them in turn. Until the page has the browser’s tab list, which comes with the conversation’s opening, the area under the address stays empty, as the specimen held at Connecting shows. A pane changes whole: a click on a tab, or on another file, makes the strip, the address and the selected tab the new view’s in the same frame, and the area under the address, the file with its tree, the changes with their list, the browser’s page, stays empty at its size while the view reads what it first needs, a file’s text, its folder and the folders above it, a change list, its branch, its newest commits and the file it selects; it draws once, whole, when the last is in. The first view a window shows, as the page loads or the window opens, says Reading and the tab’s name under a spinner in the middle of it from its start, with the window’s frame and tabs already drawn, as the specimen held before the conversation’s directory is known shows; a view that a switch brings says it only past 300 ms. A view read before shows at once when it is switched back to. An address typed before then shows at once with a thin loading line, and the tab opens there. Reload, Back, Forward and an address show the loading line on the click, before anything left the page: the gallery’s browser answers about a second later and starts loading a moment after its answer, as a far host does. The host numbers its tab lists and the answer names the last one before the request, so only a list numbered higher ends the line, whichever reaches the page first; a page that loads keeps the picture it had under the line until the browser says it stopped loading. Back and Forward are unavailable while the tab’s history has no page that way; go to another address to make Back available. A request the browser refuses ends the line at once and is reported in a toast, never in the tab; a tab the plugin could not open shows a region status with Retry. What the device’s view cannot do for the viewer while the picture still shows, such as delivering its input, is a toast once; a device that cannot capture its tabs shows a region status in place of the picture, as the specimen of one does. A closed tab leaves at once and never comes back, fading out as an unselected tab while the selection passes on. While a tab loads, it shows so in three places at once, as a web browser does: Reload turns into Stop, the tab’s mark in the strip turns into a spinner, and the line runs; Stop asks the browser to stop the page, and the three end once the browser says it stopped and, for a tab that shows no picture yet, such as one opening or reopening, once its first picture arrives. Stop is never unavailable while a tab loads: pressed before the browser has the tab, it gives up the address, and the tab opens blank. The gallery’s pages take five seconds to load, so Stop can be tried. A page the agent closed leaves the strip, as a closed tab does. A tab the browser lost when it ended, as a release or a stopped Cloud ends it, keeps its title and address, and opens its page again as soon as it is shown, loading as any page does; a reopening the host refuses shows its message with Retry, which returns the tab to loading at once. A view that reconnects keeps its last picture under a quiet note. A viewer’s browser that cannot decode the host’s H.264, such as a Chromium built without proprietary codecs, opens no view: its browser tab says so in place of the picture, as the last specimen’s does in any browser. A page holds no view while it is hidden, behind another browser tab or in a minimized window, and opens a new one when it is shown again: switch away from the gallery and back, and the picture connects again, its moving mark starting over. A Web picture stands at its own size from the window’s top-left corner and is never scaled: while the window grows, the part it does not cover yet is white until a picture at the new size arrives, and while it shrinks, the window cuts it; a phone’s picture is scaled to fit and centred. The cursor over the page is the page’s own, resolved here from where the page says each cursor applies, so moving across the button shows its pointer at once; no caret or local control shows over the picture. A tab selected again after another tab, or after File, shows its picture, address and title at once, with no loading line for a page that had loaded, and the File view’s tree shows as it was, with no slide. The agent shows a tab with demi browser show, or opens one with --show: once its job ends, its window comes in front on that tab, once per showing, and the user’s own selection after it stands; a tab the agent opens only to check its own work joins the strip without taking the view (the app frame’s controls show both). The viewport control is a square icon button, a computer or a phone, as far from the address as the navigation group is; its menu rows carry the same icons. Change groups its added/removed counts with a 2px gap and shows uncommitted totals, none while nothing changed; picked again, it shows the view as it was left, its mode and file included; file pills still open retained edits there. A browser tab wears its page’s icon, as a web browser’s tab does, and the globe only for a page without one, such as the Docs tab’s site. Its menu offers Reload before the Close commands. File uses a Lucide outline icon until a file is selected, then its file-type icon. Every tab content puts its address row immediately below the strip; the same divider as File and Change separates it from the page. Browser and File navigation buttons have no extra gap between them; both address bars leave 12px after the navigation group. A click into an address selects it whole, a second click places the caret, and Enter submits it and lets the field go, so keys reach the page again. The address bar reads what is typed as a browser’s does: localhost:3000 opens over http, example.com over https, words are a Google search, and Escape gives back the page’s address. With the focus in the tab, ⌘L focuses the address, ⌘[ and ⌘] go Back and Forward and ⌘R reloads the page, never Demi. The drawn page’s link opens the invoice in a new tab, which joins the strip at once and is selected, as a click’s new tab is. A right click on the page opens the browser’s menu: Back, Forward and Reload, a link’s Copy Link Address, Cut, Copy and Paste in the field; Escape closes it, as it closes every menu. A tab the page’s link opens goes right after its page’s tab, behind the tabs that tab opened before, as Chrome places them, and keeps that order after a reload. Ship order asks in a dialog titled with the page’s host, which Enter and Escape answer. Download guide.pdf shows the download in a bubble under the address bar’s download button: its size as it comes, then Save, which saves it to this computer, and Show in Files, which opens it in File. While the conversation’s device is offline, each window keeps its tabs and puts a page in place of every tab’s contents, with the device’s name and that its files, changes and browser appear again when it reconnects, and no spinner; the contents stay behind it and show again as they were when the device is back. Beside a new conversation, before its first message, Files and Changes bind no plugin and say that files and changes appear after the first message."
+        note="Each specimen shows the conversation’s work in its windows over the gallery project, a window filling the box as it opens; Restore floats it, and the taskbar under it shows, hides and picks a window’s tab. Files and Changes are windows of one pinned tab each, the `file` and `change` kinds of the file-browser and changes plugins: never created, closed or saved, their window closes and the taskbar’s + menu opens it again. The browser’s window holds the user’s tabs, content-sized, capped at 160px and an equal share of the strip, narrowing to 88px before it scrolls. Its tabs are exactly the tabs the device’s browser has: its New Tab has the device open a blank page, and a tab appears once the device has it, as when the agent opens one, or a page in a tab opens one, as the first specimen’s Open and Show a Page as the Agent does. While a tab the user opens comes, the window shows it as it will look from the click: the address bar on what it opens, and under it what Demi does, centred with a spinner: Connecting…, Starting Cloud…, Downloading the browser… with a bar and how much has come, on a device without Chrome, Starting the browser… or Opening the page…, as the specimens held in each phase show, each a page the user opens; a blank tab the running browser opens shows a blank page. An address typed meanwhile is where the tab goes once it opens; an opening the device refuses is a toast, and the window shows what it showed. The tab comes selected. While a browser that starts again, as after Restart the Runner, opens the tabs the one before had, they stay in the strip, the shown one says Starting the browser… in the same place, and each page loads again; Stop the Cloud keeps them too, and a tab opened with + starts the Cloud, then the browser, which opens them again. Until the page has the browser’s tab list, which comes with the conversation’s opening, the area under the address stays empty, as the specimen held at Connecting shows. A pane changes whole: a click on a tab, or on another file, makes the strip, the address and the selected tab the new view’s in the same frame, and the area under the address, the file with its tree, the changes with their list, the browser’s page, stays empty at its size while the view reads what it first needs, a file’s text, its folder and the folders above it, a change list, its branch, its newest commits and the file it selects; it draws once, whole, when the last is in. The first view a window shows, as the page loads or the window opens, says Reading and the tab’s name under a spinner in the middle of it from its start, with the window’s frame and tabs already drawn, as the specimen held before the conversation’s directory is known shows; a view that a switch brings says it only past 300 ms. A view read before shows at once when it is switched back to. An address typed before then shows at once with a thin loading line, and the tab opens there. Reload, Back, Forward and an address show the loading line on the click, before anything left the page: the gallery’s browser answers about a second later and starts loading a moment after its answer, as a far host does. The host numbers its tab lists and the answer names the last one before the request, so only a list numbered higher ends the line, whichever reaches the page first; a page that loads keeps the picture it had under the line until the browser says it stopped loading. Back and Forward are unavailable while the tab’s history has no page that way; go to another address to make Back available. A request the browser refuses ends the line at once and is reported in a toast, never in the tab. What the device’s view cannot do for the viewer while the picture still shows, such as delivering its input, is a toast once; a device that cannot capture its tabs shows a region status in place of the picture, as the specimen of one does. A closed tab leaves at once and never comes back, fading out as an unselected tab while the selection passes on. While a tab loads, it shows so in three places at once, as a web browser does: Reload turns into Stop, the tab’s mark in the strip turns into a spinner, and the line runs; Stop asks the browser to stop the page, and the three end once the browser says it stopped and, for a tab that shows no picture yet, such as one opening or reopening, once its first picture arrives. Stop is never unavailable while a tab loads. The gallery’s pages take five seconds to load, so Stop can be tried. A page the agent closed leaves the strip, as a closed tab does, and so does every tab when the browser ends, as a release or a crash of the browser ends it. A view that reconnects keeps its last picture under a quiet note. A viewer’s browser that cannot decode the host’s H.264, such as a Chromium built without proprietary codecs, opens no view: its browser tab says so in place of the picture, as the last specimen’s does in any browser. A page holds no view while it is hidden, behind another browser tab or in a minimized window, and opens a new one when it is shown again: switch away from the gallery and back, and the picture connects again, its moving mark starting over. A Web picture stands at its own size from the window’s top-left corner and is never scaled: while the window grows, the part it does not cover yet is white until a picture at the new size arrives, and while it shrinks, the window cuts it; a phone’s picture is scaled to fit and centred. The cursor over the page is the page’s own, resolved here from where the page says each cursor applies, so moving across the button shows its pointer at once; no caret or local control shows over the picture. A tab selected again after another tab, or after File, shows its picture, address and title at once, with no loading line for a page that had loaded, and the File view’s tree shows as it was, with no slide. The agent shows a tab with demi browser show, or opens one with --show: once its job ends, its window comes in front on that tab, once per showing, and the user’s own selection after it stands; a tab the agent opens only to check its own work joins the strip without taking the view (the app frame’s controls show both). The viewport control is a square icon button, a computer or a phone, as far from the address as the navigation group is; its menu rows carry the same icons. Change groups its added/removed counts with a 2px gap and shows uncommitted totals, none while nothing changed; picked again, it shows the view as it was left, its mode and file included; file pills still open retained edits there. A browser tab wears its page’s icon, as a web browser’s tab does, and the globe only for a page without one, such as the Docs tab’s site. Its menu offers Reload before the Close commands. File uses a Lucide outline icon until a file is selected, then its file-type icon. Every tab content puts its address row immediately below the strip; the same divider as File and Change separates it from the page. Browser and File navigation buttons have no extra gap between them; both address bars leave 12px after the navigation group. A click into an address selects it whole, a second click places the caret, and Enter submits it and lets the field go, so keys reach the page again. The address bar reads what is typed as a browser’s does: localhost:3000 opens over http, example.com over https, words are a Google search, and Escape gives back the page’s address. With the focus in the tab, ⌘L focuses the address, ⌘[ and ⌘] go Back and Forward and ⌘R reloads the page, never Demi. The drawn page’s link opens the invoice in a new tab, which joins the strip at once and is selected, as a click’s new tab is. A right click on the page opens the browser’s menu: Back, Forward and Reload, a link’s Copy Link Address, Cut, Copy and Paste in the field; Escape closes it, as it closes every menu. A tab the page’s link opens goes right after its page’s tab, behind the tabs that tab opened before, as Chrome places them, and keeps that order after a reload. Ship order asks in a dialog titled with the page’s host, which Enter and Escape answer. Download guide.pdf shows the download in a bubble under the address bar’s download button: its size as it comes, then Save, which saves it to this computer, and Show in Files, which opens it in File. While the conversation’s device is offline, each window keeps its tabs and puts a page in place of every tab’s contents, with the device’s name and that its files, changes and browser appear again when it reconnects, and no spinner; the contents stay behind it and show again as they were when the device is back. Beside a new conversation, before its first message, Files and Changes bind no plugin and say that files and changes appear after the first message."
       >
         <div class="grid gap-6 md:grid-cols-2">
           <GallerySpecimen variant="tabs" wide>
@@ -4074,7 +4078,11 @@ onBeforeUnmount(() => {
             </div>
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" @click="endBrowser">End the Browser on the device</Button>
-              <span>The shown tab opens its page again at once; the others when shown.</span>
+              <span>Its tabs leave the strip, as when the browser is released or crashes.</span>
+            </div>
+            <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
+              <Button size="sm" @click="restartRunner">Restart the Runner</Button>
+              <span>The tabs stay; the shown one says the browser starts, then each page loads again.</span>
             </div>
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" @click="switchBrowserPlugin">
@@ -4084,19 +4092,19 @@ onBeforeUnmount(() => {
             </div>
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" @click="stopCloud">Stop the Cloud</Button>
-              <span>The shown tab opens again, saying what starts: the Cloud, then the browser.</span>
+              <span>The tabs stay; a tab opened with + says what starts, the Cloud, then the browser, which opens them again.</span>
             </div>
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" @click="failNextOpen">Refuse the Next Opening on the device</Button>
-              <span>Then end the browser: the reopening fails, and Retry loads again.</span>
+              <span>Then open a tab with +: a toast says the device is offline.</span>
             </div>
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" @click="failNextStart">Fail to Start the Browser</Button>
-              <span>Then end the browser: the reopening says so.</span>
+              <span>Then open a tab with +: a toast says so.</span>
             </div>
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" @click="failNextOnServer">Fail on the Server</Button>
-              <span>Then end the browser: the reopening says so.</span>
+              <span>Then open a tab with +: a toast says so.</span>
             </div>
             <!-- What the agent's `demi browser show` does once its job ends. -->
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
@@ -4116,7 +4124,7 @@ onBeforeUnmount(() => {
           <GallerySpecimen
             v-for="phase in STARTING_PHASES"
             :key="phase"
-            :variant="`tabs · before the browser has the tab · ${startingLabel(phase)}`"
+            :variant="`tabs · a tab the user opens · ${startingLabel(phase)}`"
             wide
           >
             <div class="gallery-frame flex h-[24rem] overflow-hidden">
@@ -4124,7 +4132,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="mt-2 flex items-center gap-2 text-[12px] text-fg-muted">
               <Button size="sm" :disabled="heldWorks[phase].browser.held.value === null" @click="finishStarting(phase)">Let the Device Go On</Button>
-              <Button size="sm" @click="holdAgain(phase)">Show Another Lost Tab That Waits Here</Button>
+              <Button size="sm" @click="holdAgain(phase)">Open Another Page That Waits Here</Button>
             </div>
           </GallerySpecimen>
           <GallerySpecimen variant="tabs · the device is offline" wide>

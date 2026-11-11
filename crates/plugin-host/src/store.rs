@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 use demi_plugin_interface::{DeviceDirectory, WorkspaceName};
 use demi_shared_types::{BlobRef, Timestamp};
 use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, WorkspaceId};
-use demi_web_api_protocol::work::{WorkChange, WorkEffect, Work};
+use demi_web_api_protocol::work::{CreateWorkTab, WorkChange, WorkEffect, Work};
 use futures_util::future::LocalBoxFuture;
 use serde_json::Value;
 
@@ -98,6 +98,17 @@ pub struct PluginReport {
     pub revision: u64,
     pub value: Value,
     pub reported_at: Timestamp,
+}
+
+/// What making a kind's tabs a device's list came to.
+#[derive(Debug, Clone, PartialEq)]
+pub enum MirrorOutcome {
+    /// The work holds the list, as far as it fits; `changed` says whether
+    /// that changed it, and `closed` names the listed ids whose tabs the user
+    /// closed.
+    Mirrored { changed: bool, closed: Vec<String> },
+    /// No conversation has that id.
+    Missing,
 }
 
 /// What a request of changes came to.
@@ -190,6 +201,15 @@ pub trait PluginStore {
     fn work(&self, conversation: ConversationId) -> Stored<'_, Work>;
 
     fn change_work(&self, conversation: ConversationId, changes: Vec<WorkChange>) -> Stored<'_, WorkOutcome>;
+
+    /// Makes the tabs of `kind` the tabs `listed` a device has open, as one
+    /// change of the work (`WorkDocument::mirror`).
+    fn mirror_work(
+        &self,
+        conversation: ConversationId,
+        kind: String,
+        listed: Vec<CreateWorkTab>,
+    ) -> Stored<'_, MirrorOutcome>;
 
     /// Removes the tabs of `kinds` from the work of `owner`'s
     /// conversations, and answers the conversations whose work changed.

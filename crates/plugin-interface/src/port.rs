@@ -136,6 +136,12 @@ pub enum PortMessage {
     RemoveWorkTab {
         id: String,
     },
+    /// Makes the tabs of the plugin's tab kind `kind` the tabs a device has
+    /// open, as one change of the work.
+    MirrorWorkTabs {
+        kind: String,
+        tabs: Vec<CreateWorkTab>,
+    },
     /// The plugin's secret `name` for the user.
     ReadSecret {
         name: SecretName,
@@ -282,6 +288,11 @@ pub enum PortAnswer {
     WorkRevision {
         revision: u64,
     },
+    /// The listed ids whose tabs the user closed, once a mirroring is in
+    /// the work.
+    Mirrored {
+        closed: Vec<String>,
+    },
     /// A secret; none for one the plugin does not have.
     Secret {
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -341,6 +352,7 @@ impl PortAnswer {
             Self::GitHead { .. } => "git_head",
             Self::GitTree { .. } => "git_tree",
             Self::WorkRevision { .. } => "work_revision",
+            Self::Mirrored { .. } => "mirrored",
             Self::Secret { .. } => "secret",
             Self::Response { .. } => "response",
             Self::AuthorizationUrl { .. } => "authorization_url",
@@ -912,6 +924,27 @@ impl PluginPort {
     pub async fn remove_tab(&self, id: impl Into<String>) -> Result<u64, PortFailure> {
         let message = PortMessage::RemoveWorkTab { id: id.into() };
         self.work_change("remove_tab", message).await
+    }
+
+    /// Makes the work's tabs of `kind`, one of the plugin's tab kinds, the
+    /// tabs a device has open, `listed`, in the list's order, as one change:
+    /// each listed tab is created as given or has its data set to the given
+    /// data, and each tab of the kind the list does not name is removed.
+    /// Answers the listed ids whose tabs the user closed, which the plugin
+    /// closes on the device: the device did not hear of it.
+    pub async fn mirror_tabs(
+        &self,
+        kind: impl Into<String>,
+        listed: Vec<CreateWorkTab>,
+    ) -> Result<Vec<String>, PortFailure> {
+        let message = PortMessage::MirrorWorkTabs {
+            kind: kind.into(),
+            tabs: listed,
+        };
+        match self.ask(message).await? {
+            PortAnswer::Mirrored { closed } => Ok(closed),
+            answer => Err(unexpected("mirror_tabs", &answer)),
+        }
     }
 
     /// The plugin's secret `name` for the user, if it has one.

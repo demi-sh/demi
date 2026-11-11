@@ -72,7 +72,6 @@ const contents = computed(() => kept.value.flatMap((id) => props.window.tabs.fil
   <div class="flex h-full min-h-0 flex-col overflow-hidden">
     <DeviceOfflinePage v-if="deviceOffline !== null" :name="deviceOffline" />
     <div v-show="deviceOffline === null" class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <component :is="window.offers.opening" v-if="window.offers?.opening" @failed="emit('openingFailed')" />
       <PaneScope
         v-for="tab in contents"
         v-show="tab.id === window.selected"
@@ -91,6 +90,8 @@ const contents = computed(() => kept.value.flatMap((id) => props.window.tabs.fil
           @close="tab.pinned || emit('closeTab', tab.id)"
         />
       </PaneScope>
+      <!-- After the panes, so what opens stands over a pane that says it reads. -->
+      <component :is="window.offers.opening" v-if="window.offers?.opening" @failed="emit('openingFailed')" />
     </div>
   </div>
 </template>

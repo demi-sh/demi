@@ -731,8 +731,21 @@ export const useWork = defineStore('work', () => {
     if (!opened) {
       return
     }
-    if (opened.created) {
-      tabsOf(conversationId).change({ type: 'create', tab: opened.created })
+    const { created } = opened
+    // A kind whose plugin makes its tabs is asked for the tab, and its window
+    // waits for it (`TabKind.open`).
+    if (created && kinds().some((kind) => kind.kind === created.kind && kind.open)) {
+      requested += 1
+      requests.set(conversationId, {
+        id: requested,
+        tab: null,
+        opens: { kind: created.kind, data: created.data },
+        fromAddress: false,
+      })
+      return
+    }
+    if (created) {
+      tabsOf(conversationId).change({ type: 'create', tab: created })
     }
     if (opened.pinned !== state.pinned) {
       keptPinned.set(conversationId, opened.pinned)

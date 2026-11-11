@@ -146,6 +146,27 @@ impl Scratch {
         Ok(names)
     }
 
+    /// Removes the record of `conversation`'s open browser tabs: it was
+    /// released, which ends them, and a release reaches only the residents
+    /// that run (`demi_command_protocol::browser_tab_record`).
+    pub async fn forget_released(&self, conversation: &str) {
+        let record = demi_command_protocol::browser_tab_record(Some(&self.root), conversation);
+        match tokio::fs::remove_file(&record).await {
+            Ok(()) => tracing::info!(
+                event = "released_tabs.removed",
+                conversation,
+                "the browser tabs of a released conversation were forgotten"
+            ),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) => tracing::warn!(
+                event = "released_tabs.remove_failed",
+                conversation,
+                %error,
+                "the browser tabs of a released conversation could not be forgotten"
+            ),
+        }
+    }
+
     /// Removes `conversation`'s scratch directory: it was archived or
     /// deleted. One that cannot be removed stays until the next time the
     /// runner connects.

@@ -27,44 +27,59 @@ use demi_command_package_browser_protocol::PACKAGE;
 use demi_command_package_browser_protocol::browser::{
     BackInput, BrowserCreatedBy, BrowserErrorCode, BrowserOperation, BrowserTab,
     FailureDocument, ForwardInput, NavigationResult, OpenInput, PREFIX, ReloadInput, StopInput,
-    TabCloseInput, TabId, TabMoved, TabNewInput, TabNewResult, TabPruneInput, TabPruneResult,
+    TabCloseInput, TabId, TabListInput, TabMoved, TabNewInput, TabNewResult, TabPruneInput,
+    TabPruneResult,
 };
 use demi_plugin_interface::{
     CallKind, Method, Page, PluginError, PluginPort, PortFailure, PortRefusal, Scope, State,
 };
-use demi_web_api_protocol::error::ErrorCode;
+use demi_shared_types::MAX_SAFE_INTEGER;
 use demi_web_api_protocol::ids::{ConversationId, DeviceId};
 use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::tabs::{KIND, Work};
+use crate::tabs::KIND;
 use crate::reason::ControlReason;
 
 /// The conversation state: the conversation browser's tabs, none while it
 /// does not run.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct BrowserTabs {
+    /// The number of the device's tab list they are; 0 before it reported.
+    #[schemars(range(max = MAX_SAFE_INTEGER))]
+    pub list: u64,
     pub tabs: Vec<BrowserTab>,
 }
 
-/// `bind { workTab }`: a browser tab for the work tab, which Retry and
-/// Reload ask for.
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct BindTab {
-    pub work_tab: String,
+/// What the backend keeps of a report: its tabs, whose list number the
+/// report keeps beside them.
+#[derive(Serialize, Deserialize)]
+struct KeptTabs {
+    tabs: Vec<BrowserTab>,
 }
 
-/// What `bind` answers: the browser tab the work tab shows now, so the page
-/// knows its data is up to date once it names that tab; none when the work
-/// no longer has the tab or no browser tab could be opened for it, which its
-/// data says.
+/// `open { url }`: a new tab of the conversation's browser, loading `url`,
+/// or blank without one: the window's + and a link's Open in Browser
+/// Window. It comes into the work once the device lists it, selected.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct TabBound {
-    pub tab: Option<String>,
+pub struct OpenTab {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(length(min = 1))]
+    pub url: Option<String>,
+}
+
+/// What `open` answers, once the work holds it: the browser's new tab.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct TabOpened {
+    pub tab: String,
+    /// The number of a tab list that names the tab: one numbered as high or
+    /// higher that does not name it comes after the tab closed.
+    #[schemars(range(max = MAX_SAFE_INTEGER))]
+    pub list: u64,
 }
 
 /// `navigate { tab, url }`.
@@ -116,10 +131,8 @@ pub(crate) fn page() -> Page {
         .conversation_state(State::new::<BrowserTabs>().calls(operation("tab.list")).held())
         .tab_kind(KIND)
         .method(
-            Method::new::<BindTab, TabBound>("bind", Scope::Conversation)
-                .calls(operation("tab.new"))
-                .calls(operation("open"))
-                .calls(operation("tab.close")),
+            Method::new::<OpenTab, TabOpened>("open", Scope::Conversation)
+                .calls(operation("tab.new")),
         )
         .method(
             Method::new::<NavigateTab, TabMoved>("navigate", Scope::Conversation)
@@ -142,7 +155,10 @@ pub(crate) fn page() -> Page {
 /// them, which the backend keeps; none while it never reported or its browser
 /// does not run. It asks no device.
 pub(crate) async fn tabs(port: &PluginPort) -> Result<Value, PluginError> {
-    to_value(reported(port).await?.unwrap_or(BrowserTabs { tabs: Vec::new() }))
+    to_value(reported(port).await?.unwrap_or(BrowserTabs {
+        list: 0,
+        tabs: Vec::new(),
+    }))
 }
 
 /// The conversation state as the package last reported it, and none while
@@ -151,13 +167,18 @@ pub(crate) async fn held_tabs(port: &PluginPort) -> Result<Option<Value>, Plugin
     reported(port).await?.map(to_value).transpose()
 }
 
-async fn reported(port: &PluginPort) -> Result<Option<BrowserTabs>, PluginError> {
+/// The tabs the primary device last reported; none before it did.
+pub(crate) async fn reported(port: &PluginPort) -> Result<Option<BrowserTabs>, PluginError> {
     let Some(report) = port.report().await? else {
         return Ok(None);
     };
-    serde_json::from_value(report.value).map(Some).map_err(|error| {
+    let kept: KeptTabs = serde_json::from_value(report.value).map_err(|error| {
         PluginError::failed(format!("the browser's kept tabs do not decode: {error}"))
-    })
+    })?;
+    Ok(Some(BrowserTabs {
+        list: report.revision,
+        tabs: kept.tabs,
+    }))
 }
 
 /// Keeps `tabs` as what the package on `device` reported, at `revision`;
@@ -169,7 +190,7 @@ pub(crate) async fn keep(
     revision: u64,
     tabs: Vec<BrowserTab>,
 ) -> Result<bool, PluginError> {
-    let value = serde_json::to_value(BrowserTabs { tabs }).map_err(|error| {
+    let value = serde_json::to_value(KeptTabs { tabs }).map_err(|error| {
         PluginError::failed(format!("the browser's tabs do not encode: {error}"))
     })?;
     Ok(port.keep_report(device.as_str(), revision, value).await?)
@@ -187,8 +208,24 @@ pub(crate) async fn new_tab(
         .map_err(refused)
 }
 
-/// Closes the browser's tab `tab`. A tab the browser does not have, or a
-/// stopped Cloud's, is closed already.
+/// Lists the browser's tabs on the device, as a look that wakes no stopped
+/// Cloud: it brings the conversation to the device's resident, which opens
+/// again the tabs an earlier resident left and reports them. The answer
+/// itself is not kept: the report that follows it is.
+pub(crate) async fn look(port: &PluginPort) -> Result<(), PortFailure> {
+    let input = TabListInput {
+        offset: None,
+        limit: Some(1),
+        timeout: None,
+    };
+    run::<Value, _>(port, BrowserOperation::TabList, input, CallKind::Looks)
+        .await
+        .map(|_| ())
+}
+
+/// Closes the browser's tab `tab`. A tab the browser does not have is closed
+/// already; one a device cannot close now, a stopped Cloud's included, fails,
+/// and its next browser lists it again.
 pub(crate) async fn close(port: &PluginPort, tab: &str) -> Result<(), PluginError> {
     let Ok(tab) = TabId::try_from(tab.to_owned()) else {
         return Ok(());
@@ -196,7 +233,7 @@ pub(crate) async fn close(port: &PluginPort, tab: &str) -> Result<(), PluginErro
     let input = TabCloseInput { tab, timeout: None };
     match run::<Value, _>(port, BrowserOperation::TabClose, input, CallKind::Operates).await {
         Ok(_) => Ok(()),
-        Err(failure) if stopped(&failure) || tab_missing(&failure) => Ok(()),
+        Err(failure) if tab_missing(&failure) => Ok(()),
         Err(failure) => Err(refused(failure)),
     }
 }
@@ -238,31 +275,21 @@ pub(crate) async fn navigate(
 }
 
 /// Answers the page call `method` with `params`, which its schema checked,
-/// for `conversation`. A method that opens, closes or moves a tab changes
-/// the list the device tells the plugin of: the held list and the pages' copies
-/// follow that notice (`Work::sync`), never the call.
+/// for the request's `conversation`, whose tabs `work` follows. A method
+/// that opens, closes or moves a tab changes the list the device tells the
+/// plugin of: the held list and the work follow that notice
+/// (`Work::sync`), never the call.
 pub(crate) async fn call(
     method: &str,
     params: Map<String, Value>,
-    port: &PluginPort,
-    work: &Work,
     conversation: &ConversationId,
-) -> Result<Value, PluginError> {
-    run_method(method, params, port, work, conversation).await
-}
-
-async fn run_method(
-    method: &str,
-    params: Map<String, Value>,
     port: &PluginPort,
-    work: &Work,
-    conversation: &ConversationId,
+    work: &crate::tabs::Work,
 ) -> Result<Value, PluginError> {
     match method {
-        "bind" => {
-            let BindTab { work_tab } = decode(params)?;
-            let tab = work.bind(conversation, port, &work_tab).await?;
-            to_value(TabBound { tab })
+        "open" => {
+            let OpenTab { url } = decode(params)?;
+            to_value(work.open(conversation, port, url).await?)
         }
         "navigate" => {
             let NavigateTab { tab, url } = decode(params)?;
@@ -354,18 +381,8 @@ fn tab_id(tab: String) -> Result<TabId, PluginError> {
 }
 
 /// A refusal the page says in its words for `reason`.
-fn refusal(reason: ControlReason, message: String) -> PluginError {
+pub(crate) fn refusal(reason: ControlReason, message: String) -> PluginError {
     PluginError::refused(reason.to_string(), message)
-}
-
-fn stopped(failure: &PortFailure) -> bool {
-    matches!(
-        failure,
-        PortFailure::Refused(PortRefusal::Device {
-            code: ErrorCode::DeviceStopped,
-            ..
-        })
-    )
 }
 
 fn tab_missing(failure: &PortFailure) -> bool {

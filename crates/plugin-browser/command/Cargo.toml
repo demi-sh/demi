@@ -28,6 +28,7 @@ demi-shared-recording = { path = "../../shared-recording" }
 demi-shared-recording-protocol = { path = "../../shared-recording-protocol" }
 futures-util.workspace = true
 png = "0.18"
+serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true

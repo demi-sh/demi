@@ -74,6 +74,15 @@ export interface LiveState {
   ended: string | null
 }
 
+/**
+ * Whether a view in `state` waits for the device: nothing arrives, or it
+ * connects again after it ended, as while a stopped Cloud refuses it.
+ */
+export function stalled(state: LiveState | null | undefined): boolean {
+  const connection = state?.connection
+  return connection === 'stalled' || (connection === 'opening' && state?.ended != null)
+}
+
 /** The panel the viewer shows the watched tab in, and its screen, as the page last measured them. */
 export interface PanelReport {
   panel: PanelSize

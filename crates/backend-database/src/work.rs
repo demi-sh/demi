@@ -7,9 +7,9 @@
 
 use std::collections::HashMap;
 
-use demi_plugin_host::store::WorkOutcome;
+use demi_plugin_host::store::{MirrorOutcome, WorkOutcome};
 use demi_web_api_protocol::ids::{ConversationId, UserId};
-use demi_web_api_protocol::work::{WorkChange, WorkDocument, Refused, Work};
+use demi_web_api_protocol::work::{CreateWorkTab, WorkChange, WorkDocument, Refused, Work};
 use rusqlite::{Connection, OptionalExtension, params};
 
 use super::StorageError;
@@ -88,6 +88,39 @@ impl ControlService {
                 works.insert(id, work);
             }
             Ok(works)
+        })
+        .await
+    }
+
+    /// Makes the tabs of `kind` in `conversation`'s work the tabs `listed`,
+    /// as one change (`WorkDocument::mirror`), and answers the listed ids
+    /// whose tabs the user closed.
+    pub async fn mirror_work(
+        &self,
+        conversation: ConversationId,
+        kind: String,
+        listed: Vec<CreateWorkTab>,
+    ) -> Result<MirrorOutcome, StorageError> {
+        self.call(move |connection, now| {
+            let transaction = connection.transaction()?;
+            let exists: Option<i64> = transaction
+                .query_row(
+                    "SELECT 1 FROM conversations WHERE id = ?1",
+                    [conversation.as_str()],
+                    |row| row.get(0),
+                )
+                .optional()?;
+            if exists.is_none() {
+                return Ok(MirrorOutcome::Missing);
+            }
+            let (revision, mut document) = stored(&transaction, &conversation)?;
+            let mirrored = document.mirror(&kind, listed);
+            let changed = !mirrored.effects.is_empty();
+            if changed {
+                store(&transaction, &conversation, revision + 1, &document, now.as_millisecond())?;
+                transaction.commit()?;
+            }
+            Ok(MirrorOutcome::Mirrored { changed, closed: mirrored.closed })
         })
         .await
     }

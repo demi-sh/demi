@@ -20,7 +20,7 @@
 //!
 //! The runner forwards it to each resident on the device, which ends
 //! whatever it holds for the conversation (the browser closes its Chrome and
-//! removes its profile).
+//! its tabs).
 //!
 //! It says whether the conversation is over: an archive and a deletion say so,
 //! the idle clock, a target switch and a detach do not. The runner removes the

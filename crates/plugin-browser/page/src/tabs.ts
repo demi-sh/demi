@@ -5,10 +5,10 @@ import { PluginCallError, type ConversationPlugin } from '@demicodes/plugin-sdk'
 import {
   browserTabsSchema,
   controlReasonSchema,
-  tabBoundSchema,
   tabMovedSchema,
-  type BindTab,
+  tabOpenedSchema,
   type NavigateTab,
+  type OpenTab,
   type StopTab,
   type TabHistory,
 } from './generated/plugin'
@@ -19,7 +19,7 @@ import {
  * call waits a little longer than that, so the operation's own answer is what
  * ends the wait.
  */
-const BIND_TIMEOUT_MS = 310_000
+const OPEN_TIMEOUT_MS = 310_000
 
 /**
  * A refused call in the words the page shows for it, never the device's own error
@@ -78,9 +78,9 @@ export function browserTabsApi(plugin: ConversationPlugin, select: (workTab: str
         return error ? tabsError(error) : null
       }),
     },
-    bind: async (workTab) => {
-      const bound = await call('bind', { workTab } satisfies BindTab, tabBoundSchema, BIND_TIMEOUT_MS)
-      return bound.tab
+    open: (url) => {
+      const params: OpenTab = url === null ? {} : { url }
+      return call('open', params, tabOpenedSchema, OPEN_TIMEOUT_MS)
     },
     select,
     navigate: (tab, url) => move('navigate', { tab, url } satisfies NavigateTab),

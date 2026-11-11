@@ -239,16 +239,6 @@ pub struct TabListResult {
     pub list: Option<u64>,
     pub tabs: Vec<BrowserTab>,
     pub truncated: bool,
-    /// The latest tabs closed on purpose, by a command or by their own page,
-    /// for a `user` caller only: the work removes their tabs, and keeps
-    /// the tabs lost with the browser. The model has no use for it.
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        with = "unwrap_or_skip"
-    )]
-    #[schemars(skip)]
-    pub closed: Option<Vec<TabId>>,
 }
 
 input! {

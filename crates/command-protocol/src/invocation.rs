@@ -114,6 +114,16 @@ pub fn browser_profile_directory(scratch_root: Option<&std::path::Path>, convers
     scratch_directory(scratch_root, conversation).join(".browser")
 }
 
+/// Where the record of a conversation's open browser tabs is on a device, in
+/// its browser profile: the next browser resident opens them again
+/// (`crates/plugin-browser/command/src/tab_record.rs`). A release ends them,
+/// so the runner removes it once the residents released the conversation,
+/// also when no browser resident ran to hear the release
+/// (`crates/runner-jobs/src/scratch.rs`).
+pub fn browser_tab_record(scratch_root: Option<&std::path::Path>, conversation: &str) -> std::path::PathBuf {
+    browser_profile_directory(scratch_root, conversation).join("tabs.json")
+}
+
 /// How many characters of a conversation's id name its scratch directory.
 const SCRATCH_NAME_CHARS: usize = 12;
 

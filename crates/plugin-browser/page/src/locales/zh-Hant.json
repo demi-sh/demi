@@ -49,7 +49,8 @@
     "cloud_crash_loop": "雲端多次啟動失敗，已停止嘗試。",
     "device_operation_failed": "與裝置的連線已中斷。",
     "unknown_plugin_method": "此伺服器無法執行瀏覽器。",
-    "plugin_disabled": "瀏覽器外掛程式已關閉。"
+    "plugin_disabled": "瀏覽器外掛程式已關閉。",
+    "work_full": "此對話無法容納更多分頁。"
   },
   "answers": {
     "none": "伺服器沒有回應。",
@@ -77,7 +78,6 @@
     "deviceFilesUnreachable": "無法存取裝置的檔案。"
   },
   "region": {
-    "couldntOpen": "無法開啟此頁面。",
     "couldntShow": "無法顯示此頁面。",
     "noH264": "此瀏覽器無法解碼 H.264 影片。",
     "waiting": "正在等待裝置…"
