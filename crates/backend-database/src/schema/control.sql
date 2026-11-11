@@ -333,7 +333,8 @@ CREATE TABLE user_plugin_features (
 
 -- Each plugin's values for a user (`plugins.md` § The contract): a JSON
 -- document its plugin decodes, the revision a conditional write names, and
--- the blobs the value names, a JSON array of their SHA-256s.
+-- the blobs the value names, a JSON array of their SHA-256s. A step that
+-- changes the shape of a plugin's value rewrites its documents here.
 CREATE TABLE plugin_values (
   user_id  TEXT NOT NULL REFERENCES users (id),
   plugin   TEXT NOT NULL,

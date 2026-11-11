@@ -1,34 +1,28 @@
 //! A source's fetch and the check of its commit.
 //!
 //! - The fetch is a shallow fetch of the repository's default branch into a
-//!   temporary directory. It stops as soon as it has received 64 MiB, and
-//!   returns the skills of the commit it pins.
+//!   temporary directory, the server's or a device's. Either answers a
+//!   [`Tree`]: the commit it pins, every file's path, and the files of each
+//!   directory a `SKILL.md` marks, stored as the user's blobs as they are
+//!   read, so the fetch holds one file at a time however large the source.
+//!   [`skills`] reads the skills of a tree by the same rules for both.
 //! - The check finds the commit that branch points to now.
 //!
 //! The server's fetch and check run here, with gix, and block, so they run on
-//! the blocking pool. A device's run there, with its own `git`, and answer a
-//! tree whose skills [`from_device`] reads by the same rules.
+//! the blocking pool. A device's run there, with its own `git`
+//! (`crates/backend-device-access/src/device_git.rs`).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::num::NonZeroU32;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 
+use demi_plugin_interface::PluginPort;
+use demi_shared_types::{B64Bytes, BlobRef};
 use gix::bstr::ByteSlice;
-use gix::progress::{Count, Id, MessageLevel, NestedProgress, Progress, Step, StepShared, Unit};
 
 use crate::skill::{self, Parsed, SkipProblem};
-
-/// The most bytes a fetch receives: they are held in memory while they are
-/// unpacked, and a repository has no size of its own.
-pub(crate) const FETCH_MAX_BYTES: usize = 64 * 1024 * 1024;
-
-/// The most bytes the files of one source's skills hold together: they are held
-/// in memory and written to the device's disk.
-pub(crate) const FILES_MAX_BYTES: usize = 16 * 1024 * 1024;
-
-/// What gix-pack names the progress of the pack bytes it reads.
-const READ_PACK_BYTES: Id = *b"BWRB";
 
 /// The skills of a fetched commit.
 #[derive(Debug)]
@@ -38,7 +32,7 @@ pub(crate) struct Fetched {
     pub(crate) skipped: Vec<Skipped>,
 }
 
-/// A skill of the commit with its files' bytes.
+/// A skill of the commit, with its files as the user's blobs.
 #[derive(Debug)]
 pub(crate) struct FetchedSkill {
     pub(crate) parsed: Parsed,
@@ -52,7 +46,8 @@ pub(crate) struct FetchedFile {
     /// Relative to the skill's directory.
     pub(crate) path: String,
     pub(crate) executable: bool,
-    pub(crate) bytes: Vec<u8>,
+    /// The user's blob that holds its bytes.
+    pub(crate) blob: BlobRef,
 }
 
 /// A `SKILL.md` that is not a skill.
@@ -71,19 +66,15 @@ pub struct Skipped {
     pub problem: Option<SkipProblem>,
 }
 
-/// Why a fetch gave no skills, as the page words it: one of Demi's limits or
-/// finds, or a failure in git's or the system's words, which the failure's
-/// message keeps.
+/// Why a fetch gave no skills, as the page words it: one of Demi's finds, or
+/// a failure in git's or the system's words, which the failure's message
+/// keeps.
 #[derive(
     Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema,
 )]
-#[serde(tag = "code", rename_all = "snake_case", rename_all_fields = "camelCase")]
+#[serde(tag = "code", rename_all = "snake_case")]
 pub enum FetchProblem {
-    /// The repository is larger than `limit_bytes`.
-    RepositoryTooLarge { limit_bytes: u32 },
     NoCommit,
-    /// Its skills' files hold more than `limit_bytes`.
-    FilesTooLarge { limit_bytes: u32 },
     NoSkill,
     Failed,
 }
@@ -116,27 +107,79 @@ impl FetchError {
     }
 }
 
-/// Fetches `url` and reads the skills of its default branch's newest
-/// commit; `stop` ends the fetch, as the instance's end does. `repository`
-/// names a skill at the root whose front matter names none.
-pub(crate) fn fetch(
+/// A commit's tree as a fetch read it.
+pub(crate) struct Tree {
+    pub(crate) commit: String,
+    /// Every file of the tree.
+    pub(crate) entries: Vec<TreeFile>,
+    /// The files of the directories a `SKILL.md` marks, by path, each as the
+    /// user's blob that holds its bytes.
+    pub(crate) files: BTreeMap<String, BlobRef>,
+}
+
+/// Fetches `url` on the server, in a directory of its own under `scratch`,
+/// and stores the files of the directories a `SKILL.md` marks as the
+/// user's blobs as they are read; `stop` ends the fetch, as the instance's
+/// end does.
+pub(crate) async fn on_server(
+    port: &PluginPort,
+    url: String,
+    scratch: PathBuf,
+    stop: Arc<AtomicBool>,
+) -> Result<Tree, FetchError> {
+    // The clone's repository cannot move between threads, so one blocking
+    // task clones and reads it, and hands the objects over one at a time.
+    let (sender, mut objects) = tokio::sync::mpsc::channel(1);
+    let reading = tokio::task::spawn_blocking(move || clone_and_read(&url, &scratch, &stop, &sender));
+    let mut stored: HashMap<gix::ObjectId, BlobRef> = HashMap::new();
+    while let Some((object, bytes)) = objects.recv().await {
+        let blob = port
+            .put_blob(B64Bytes::new(bytes))
+            .await
+            .map_err(|error| FetchError::failed(format!("the files could not be stored: {error}")))?;
+        stored.insert(object, blob);
+    }
+    let read = reading
+        .await
+        .map_err(|error| FetchError::failed(format!("the fetch ended: {error}")))??;
+    let mut files = BTreeMap::new();
+    for (path, object) in read.wanted {
+        let blob = stored
+            .get(&object)
+            .ok_or_else(|| FetchError::failed(format!("the fetch read no {path}")))?;
+        files.insert(path, blob.clone());
+    }
+    Ok(Tree {
+        commit: read.commit,
+        entries: read.entries,
+        files,
+    })
+}
+
+/// What [`clone_and_read`] read of a commit.
+struct Read {
+    commit: String,
+    entries: Vec<TreeFile>,
+    /// The files of the directories a `SKILL.md` marks, each with its object.
+    wanted: Vec<(String, gix::ObjectId)>,
+}
+
+/// Clones `url`'s default branch's newest commit, bare, into a temporary
+/// directory under `scratch`, lists its tree, and sends `objects` the bytes
+/// of each file of a directory a `SKILL.md` marks, each object once; `stop`
+/// ends it. It blocks, so it runs on the blocking pool.
+fn clone_and_read(
     url: &str,
-    repository: &str,
+    scratch: &Path,
     stop: &Arc<AtomicBool>,
-) -> Result<Fetched, FetchError> {
-    let directory = tempfile::tempdir()
+    objects: &tokio::sync::mpsc::Sender<(gix::ObjectId, Vec<u8>)>,
+) -> Result<Read, FetchError> {
+    std::fs::create_dir_all(scratch)
         .map_err(|error| FetchError::failed(format!("no temporary directory: {error}")))?;
-    let progress = Bounded::new(stop.clone());
-    let exceeded = progress.exceeded.clone();
+    let directory = tempfile::tempdir_in(scratch)
+        .map_err(|error| FetchError::failed(format!("no temporary directory: {error}")))?;
     let failed = |error: &dyn std::fmt::Display| {
-        if exceeded.load(Ordering::Relaxed) {
-            FetchError::problem(
-                FetchProblem::RepositoryTooLarge {
-                    limit_bytes: FETCH_MAX_BYTES as u32,
-                },
-                "the repository is larger than 64 MiB",
-            )
-        } else if stop.load(Ordering::Relaxed) {
+        if stop.load(Ordering::Relaxed) {
             FetchError::Stopped
         } else {
             FetchError::failed(error)
@@ -154,8 +197,9 @@ pub(crate) fn fetch(
     .with_shallow(gix::remote::fetch::Shallow::DepthAtRemote(
         NonZeroU32::new(1).expect("one is not zero"),
     ));
+    // gix writes the pack it receives to a file in the clone as it arrives.
     let (repository_on_disk, _) = prepare
-        .fetch_only(progress, stop)
+        .fetch_only(gix::progress::Discard, stop)
         .map_err(|error| failed(&error))?;
     let commit = repository_on_disk
         .head_commit()
@@ -166,37 +210,48 @@ pub(crate) fn fetch(
         .breadthfirst(&mut recorder)
         .map_err(|error| failed(&error))?;
     // Each file by its path as the skills read it, which a name that is
-    // not UTF-8 reaches in its lossy form: the same form `read` looks up.
-    let objects: std::collections::HashMap<String, gix::ObjectId> = recorder
+    // not UTF-8 reaches in its lossy form.
+    let (entries, objects_of): (Vec<TreeFile>, Vec<gix::ObjectId>) = recorder
         .records
         .iter()
         .filter(|entry| entry.mode.is_blob())
-        .map(|entry| (entry.filepath.to_str_lossy().into_owned(), entry.oid))
-        .collect();
-    let files: Vec<TreeFile> = recorder
-        .records
-        .iter()
-        .filter(|entry| entry.mode.is_blob())
-        .map(|entry| TreeFile {
-            path: entry.filepath.to_str_lossy().into_owned(),
-            executable: entry.mode.is_executable(),
+        .map(|entry| {
+            let file = TreeFile {
+                path: entry.filepath.to_str_lossy().into_owned(),
+                executable: entry.mode.is_executable(),
+            };
+            (file, entry.oid)
         })
+        .unzip();
+    let directories = skill_directories(&entries);
+    let wanted: Vec<(String, gix::ObjectId)> = entries
+        .iter()
+        .zip(objects_of)
+        .filter(|(file, _)| directories.iter().any(|directory| within(directory, &file.path).is_some()))
+        .map(|(file, object)| (file.path.clone(), object))
         .collect();
-    let mut read = |path: &str| -> Result<Vec<u8>, FetchError> {
-        let object = objects
-            .get(path)
-            .ok_or_else(|| FetchError::failed(format!("the tree lists no {path}")))?;
-        Ok(repository_on_disk
+    let mut sent = HashSet::new();
+    for (_, object) in &wanted {
+        if !sent.insert(*object) {
+            continue;
+        }
+        if stop.load(Ordering::Relaxed) {
+            return Err(FetchError::Stopped);
+        }
+        let bytes = repository_on_disk
             .find_object(*object)
             .map_err(FetchError::failed)?
             .detach()
-            .data)
-    };
-    let fetched = skills_of(&files, &mut read, repository)?;
-    Ok(Fetched {
+            .data;
+        // A receiver that is gone gave up on the fetch, and says why.
+        if objects.blocking_send((*object, bytes)).is_err() {
+            return Err(FetchError::Stopped);
+        }
+    }
+    Ok(Read {
         commit: commit.id.to_string(),
-        skills: fetched.0,
-        skipped: fetched.1,
+        entries,
+        wanted,
     })
 }
 
@@ -250,92 +305,97 @@ pub(crate) struct TreeFile {
     pub(crate) executable: bool,
 }
 
-/// The skills of the commit `commit` that a device's `git` read, `files`
-/// every file of its tree and `bytes` those of the skills' directories;
-/// `repository` names a skill at the root whose front matter names none.
-pub(crate) fn from_device(
-    commit: String,
-    files: Vec<TreeFile>,
-    bytes: std::collections::BTreeMap<String, Vec<u8>>,
-    repository: &str,
-) -> Result<Fetched, FetchError> {
-    let mut read = |path: &str| {
-        bytes
-            .get(path)
-            .cloned()
-            .ok_or_else(|| FetchError::failed(format!("the device read no {path}")))
-    };
-    let (skills, skipped) = skills_of(&files, &mut read, repository)?;
-    Ok(Fetched { commit, skills, skipped })
+/// The skills of `tree`, read by the same rules whichever fetcher read it,
+/// and the `SKILL.md` files that are not skills; `repository` names a skill
+/// at the root whose front matter names none.
+pub(crate) async fn skills(port: &PluginPort, tree: Tree, repository: &str) -> Result<Fetched, FetchError> {
+    // Each SKILL.md is read and parsed before the next, so one at a time
+    // is held.
+    let mut manifests = Vec::new();
+    for directory in skill_directories(&tree.entries) {
+        let path = manifest(&directory);
+        let blob = stored(&tree.files, &path)?;
+        let bytes = port
+            .blob(blob.clone())
+            .await
+            .map_err(FetchError::failed)?
+            .ok_or_else(|| FetchError::failed(format!("{path} is not stored")))?;
+        let name = directory.rsplit('/').next().filter(|name| !name.is_empty());
+        let parsed = skill::parse(name.unwrap_or(repository), &bytes.into_bytes());
+        manifests.push((directory, parsed));
+    }
+    // Every file of the tree against every skill: the blocking pool's, as a
+    // tree may hold any number of either.
+    tokio::task::spawn_blocking(move || skills_of(tree, manifests))
+        .await
+        .map_err(|error| FetchError::failed(format!("the fetch ended: {error}")))?
 }
 
-/// The skills among `files`, the commit's whole tree, whose bytes `read`
-/// gives, and the `SKILL.md` files that are not skills.
-fn skills_of(
-    files: &[TreeFile],
-    read: &mut dyn FnMut(&str) -> Result<Vec<u8>, FetchError>,
-    root_name: &str,
-) -> Result<(Vec<FetchedSkill>, Vec<Skipped>), FetchError> {
-    let directories: BTreeSet<String> = files
+/// The directories of `files`, a commit's whole tree, that hold a
+/// `SKILL.md`, the root as the empty one.
+fn skill_directories(files: &[TreeFile]) -> BTreeSet<String> {
+    files
         .iter()
-        .map(|file| file.path.clone())
-        .filter_map(|path| match path.rsplit_once('/') {
+        .filter_map(|file| match file.path.rsplit_once('/') {
             Some((directory, "SKILL.md")) => Some(directory.to_owned()),
-            None if path == "SKILL.md" => Some(String::new()),
+            None if file.path == "SKILL.md" => Some(String::new()),
             _ => None,
         })
-        .collect();
+        .collect()
+}
+
+/// The path of the `SKILL.md` of `directory`.
+fn manifest(directory: &str) -> String {
+    if directory.is_empty() {
+        "SKILL.md".to_owned()
+    } else {
+        format!("{directory}/SKILL.md")
+    }
+}
+
+/// The blob that holds the file at `path`, which the fetch read.
+fn stored<'a>(blobs: &'a BTreeMap<String, BlobRef>, path: &str) -> Result<&'a BlobRef, FetchError> {
+    blobs
+        .get(path)
+        .ok_or_else(|| FetchError::failed(format!("the fetch read no {path}")))
+}
+
+/// The skills of `tree`, each directory of `manifests` with what its
+/// `SKILL.md` parsed as, and the `SKILL.md` files that are not skills. It
+/// blocks.
+fn skills_of(tree: Tree, manifests: Vec<(String, Result<Parsed, skill::NotASkill>)>) -> Result<Fetched, FetchError> {
+    let directories: BTreeSet<&str> = manifests.iter().map(|(directory, _)| directory.as_str()).collect();
     let mut skills = Vec::new();
     let mut skipped = Vec::new();
-    let mut bytes = 0;
-    for directory in &directories {
-        let manifest = if directory.is_empty() {
-            "SKILL.md".to_owned()
-        } else {
-            format!("{directory}/SKILL.md")
-        };
-        let name = directory.rsplit('/').next().filter(|name| !name.is_empty());
-        let text = read(&manifest)?;
-        let parsed = match skill::parse(name.unwrap_or(root_name), &text) {
-            Ok(parsed) => parsed,
+    for (directory, parsed) in &manifests {
+        let parsed = match parsed {
+            Ok(parsed) => parsed.clone(),
             Err(not) => {
                 skipped.push(Skipped {
-                    path: manifest,
-                    reason: not.reason,
-                    problem: Some(not.problem),
+                    path: manifest(directory),
+                    reason: not.reason.clone(),
+                    problem: Some(not.problem.clone()),
                 });
                 continue;
             }
         };
         let mut skill_files = Vec::new();
-        for file in files {
+        for file in &tree.entries {
             let path = &file.path;
             let Some(relative) = within(directory, path) else {
                 continue;
             };
             // A directory below that is a skill of its own keeps its files.
             let nested = directories.iter().any(|other| {
-                other != directory
-                    && within(directory, other).is_some()
-                    && within(other, path).is_some()
+                other != directory && within(directory, other).is_some() && within(other, path).is_some()
             });
             if nested {
                 continue;
             }
-            let content = read(path)?;
-            bytes += content.len();
-            if bytes > FILES_MAX_BYTES {
-                return Err(FetchError::problem(
-                    FetchProblem::FilesTooLarge {
-                        limit_bytes: FILES_MAX_BYTES as u32,
-                    },
-                    "the skills' files hold more than 16 MiB",
-                ));
-            }
             skill_files.push(FetchedFile {
                 path: relative.to_owned(),
                 executable: file.executable,
-                bytes: content,
+                blob: stored(&tree.files, path)?.clone(),
             });
         }
         skills.push(FetchedSkill {
@@ -347,7 +407,11 @@ fn skills_of(
     if skills.is_empty() {
         return Err(FetchError::problem(FetchProblem::NoSkill, "the repository holds no skill"));
     }
-    Ok((skills, skipped))
+    Ok(Fetched {
+        commit: tree.commit,
+        skills,
+        skipped,
+    })
 }
 
 /// `path` relative to `directory`, if it is below it; every path is below
@@ -357,82 +421,4 @@ fn within<'a>(directory: &str, path: &'a str) -> Option<&'a str> {
         return Some(path);
     }
     path.strip_prefix(directory)?.strip_prefix('/')
-}
-
-/// The fetch's progress, which counts the pack bytes it reads and stops the
-/// fetch once they pass [`FETCH_MAX_BYTES`]; it shows nothing.
-#[derive(Clone)]
-struct Bounded {
-    id: Id,
-    received: Arc<AtomicUsize>,
-    stop: Arc<AtomicBool>,
-    exceeded: Arc<AtomicBool>,
-}
-
-impl Bounded {
-    fn new(stop: Arc<AtomicBool>) -> Self {
-        Self {
-            id: gix::progress::UNKNOWN,
-            received: Arc::default(),
-            stop,
-            exceeded: Arc::default(),
-        }
-    }
-
-    fn child(&self, id: Id) -> Self {
-        Self { id, ..self.clone() }
-    }
-}
-
-impl Count for Bounded {
-    fn set(&self, _: Step) {}
-
-    fn step(&self) -> Step {
-        0
-    }
-
-    fn inc_by(&self, step: Step) {
-        if self.id != READ_PACK_BYTES {
-            return;
-        }
-        let received = self.received.fetch_add(step, Ordering::Relaxed) + step;
-        if received > FETCH_MAX_BYTES {
-            self.exceeded.store(true, Ordering::Relaxed);
-            self.stop.store(true, Ordering::Relaxed);
-        }
-    }
-
-    fn counter(&self) -> StepShared {
-        // gix-pack counts the pack's bytes through `inc_by`; this counter
-        // shows nothing.
-        StepShared::default()
-    }
-}
-
-impl Progress for Bounded {
-    fn init(&mut self, _: Option<Step>, _: Option<Unit>) {}
-
-    fn set_name(&mut self, _: String) {}
-
-    fn name(&self) -> Option<String> {
-        None
-    }
-
-    fn id(&self) -> Id {
-        self.id
-    }
-
-    fn message(&self, _: MessageLevel, _: String) {}
-}
-
-impl NestedProgress for Bounded {
-    type SubProgress = Bounded;
-
-    fn add_child(&mut self, _: impl Into<String>) -> Self::SubProgress {
-        self.child(gix::progress::UNKNOWN)
-    }
-
-    fn add_child_with_id(&mut self, _: impl Into<String>, id: Id) -> Self::SubProgress {
-        self.child(id)
-    }
 }

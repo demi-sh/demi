@@ -117,15 +117,12 @@ pub enum PortMessage {
     },
     /// The newest commit of `url`'s default branch as the user's paired
     /// device `device` clones it with its own `git`: every file's path, and
-    /// the bytes of those of each directory a file named `marker` marks.
-    /// The repository's objects may hold at most `repository_max` bytes, and
-    /// those files at most `files_max`.
+    /// those of each directory a file named `marker` marks stored as the
+    /// user's blobs.
     DeviceGitFetch {
         device: DeviceId,
         url: String,
         marker: String,
-        repository_max: u64,
-        files_max: u64,
     },
     /// Creates a tab of one of the plugin's tab kinds.
     CreateWorkTab {
@@ -419,7 +416,7 @@ pub struct GitTree {
     pub commit: String,
     /// Every file of the tree.
     pub entries: Vec<GitEntry>,
-    /// The bytes of the files that were asked for, by path.
+    /// The files that were asked for, by path.
     pub files: Vec<GitFile>,
 }
 
@@ -435,7 +432,8 @@ pub struct GitEntry {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct GitFile {
     pub path: String,
-    pub bytes: B64Bytes,
+    /// The user's blob that holds its bytes.
+    pub blob: BlobRef,
 }
 
 /// Why a device's `git` answered nothing.
@@ -453,10 +451,6 @@ pub enum GitRefusal {
     /// Its runner is not connected.
     #[error("the device is offline")]
     Offline,
-    #[error("the repository is larger than {limit} bytes")]
-    RepositoryTooLarge { limit: u64 },
-    #[error("the files are larger than {limit} bytes")]
-    FilesTooLarge { limit: u64 },
     /// `git` or the device failed, in their words.
     #[error("{message}")]
     Failed { message: String },
@@ -868,10 +862,8 @@ impl PluginPort {
         device: DeviceId,
         url: String,
         marker: String,
-        repository_max: u64,
-        files_max: u64,
     ) -> Result<GitTree, PortFailure> {
-        let message = PortMessage::DeviceGitFetch { device, url, marker, repository_max, files_max };
+        let message = PortMessage::DeviceGitFetch { device, url, marker };
         match self.ask(message).await? {
             PortAnswer::GitTree { tree } => Ok(tree),
             answer => Err(unexpected("device_git_fetch", &answer)),

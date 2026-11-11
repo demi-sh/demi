@@ -67,9 +67,7 @@
   },
   "problems": {
     "fetch": {
-      "repository_too_large": "リポジトリが {limit} を超えています。",
       "no_commit": "リポジトリにコミットがありません。",
-      "files_too_large": "スキルのファイルが {limit} を超えています。",
       "no_skill": "リポジトリにスキルがありません。"
     },
     "skip": {

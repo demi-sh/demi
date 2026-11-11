@@ -533,6 +533,7 @@ impl BackendConfig {
         machines_socket: PathBuf,
     ) -> Self {
         let claude_machine = MachineSlot::default();
+        let plugins = crate::plugins::builtin(&data_dir);
         Self {
             log: ServerLog::detached(&data_dir),
             data_dir,
@@ -554,7 +555,7 @@ impl BackendConfig {
             shards: ShardPlacement::Threads(NonZeroUsize::MIN),
             families: crate::families::builtin(claude_machine.clone()),
             claude_machine,
-            plugins: crate::plugins::builtin(),
+            plugins,
             models_dev_url: ModelsDevClient::DEFAULT_URL
                 .parse()
                 .expect("the models.dev address parses"),

@@ -67,9 +67,7 @@
   },
   "problems": {
     "fetch": {
-      "repository_too_large": "存储库大于 {limit}。",
       "no_commit": "存储库没有提交。",
-      "files_too_large": "技能的文件大于 {limit}。",
       "no_skill": "存储库中没有技能。"
     },
     "skip": {
