@@ -857,15 +857,37 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
         if (e.deltaY > 0)
           pendingIntent = 'down'
       }
+      // A touch's later events go to the element it began on, and to that
+      // element alone once the page has removed it, as a reply that streams
+      // draws its text anew under the finger: an element out of the document
+      // passes its events to no listener of the scroller or the window. So
+      // the list listens on that element too, until the fingers have lifted.
+      const touched = new Set<EventTarget>()
+      const forgetTouched = () => {
+        for (const target of touched) {
+          target.removeEventListener('touchmove', onTouchMove as EventListener)
+          target.removeEventListener('touchend', onTouchEnd as EventListener)
+          target.removeEventListener('touchcancel', onTouchEnd as EventListener)
+        }
+        touched.clear()
+      }
       const onTouchStart = (e: TouchEvent) => {
         touchStartY = e.touches[0]?.clientY ?? 0
         touching = true
         readerTakes()
+        // The scroller hears its own touches already.
+        if (e.target && e.target !== el && !touched.has(e.target)) {
+          touched.add(e.target)
+          e.target.addEventListener('touchmove', onTouchMove as EventListener, { passive: true })
+          e.target.addEventListener('touchend', onTouchEnd as EventListener, { passive: true })
+          e.target.addEventListener('touchcancel', onTouchEnd as EventListener, { passive: true })
+        }
       }
       const onTouchEnd = (e: TouchEvent) => {
         if (!touching || e.touches.length > 0)
           return
         touching = false
+        forgetTouched()
         // A touch that scrolled nothing sends no scroll event to settle the shift.
         endMomentumLater()
       }
@@ -907,8 +929,9 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
       el.addEventListener('wheel', onWheel, { passive: true })
       el.addEventListener('touchstart', onTouchStart, { passive: true })
       el.addEventListener('touchmove', onTouchMove, { passive: true })
-      // The finger lifts where the window hears it: the row it touched can
-      // leave the list as the list scrolls, and its touch's end with it.
+      // The window hears the lift of every touch whose element is in the
+      // document; one whose element left it is heard on that element
+      // (`touched`).
       window.addEventListener('touchend', onTouchEnd, { passive: true, capture: true })
       window.addEventListener('touchcancel', onTouchEnd, { passive: true, capture: true })
       onCleanup(() => {
@@ -917,6 +940,7 @@ export function useBlockVirtualizer<Block extends VirtualizedBlock>(
         window.removeEventListener('pointercancel', onPointerUp, { capture: true })
         window.removeEventListener('touchend', onTouchEnd, { capture: true })
         window.removeEventListener('touchcancel', onTouchEnd, { capture: true })
+        forgetTouched()
         el.removeEventListener('click', readerChangesLayout, { capture: true })
         el.removeEventListener('keydown', onKeydown, { capture: true })
         el.removeEventListener('wheel', onWheel)
