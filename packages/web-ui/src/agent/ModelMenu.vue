@@ -156,7 +156,8 @@ function selectStandIn() {
       </template>
     </MenuItem>
     <MenuDivider v-if="fast || rows.reasoning || context" />
-    <MenuItem :icon="Cpu" :label="t('models.model')" :value="rows.model.value">
+    <!-- data-model-menu-models, data-model: the product checks choose a model by them (`demi.model`). -->
+    <MenuItem :icon="Cpu" :label="t('models.model')" :value="rows.model.value" data-model-menu-models>
       <template #submenu>
         <Menu>
           <MenuGroup
@@ -172,6 +173,7 @@ function selectStandIn() {
               :is-selected="item.selected"
               :disabled="group.unchoosable !== null"
               :disabled-reason="group.unchoosable ?? undefined"
+              :data-model="`${group.provider.id}:${item.model.id}`"
               @select="selectModel(group.provider.id, item.model, item.selected)"
             />
           </MenuGroup>

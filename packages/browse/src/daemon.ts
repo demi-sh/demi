@@ -19,6 +19,7 @@ import { createInterface } from 'node:readline'
 import { Browser } from './browser'
 import { runCall } from './call'
 import { restoreKeep, saveKeep } from './keep'
+import { ScriptedModel } from './model'
 import { Network } from './network'
 import { requestSchema, type Reply } from './protocol'
 import { currentSlot, slotPaths } from './slot'
@@ -51,6 +52,9 @@ const code = [
   import.meta.dir,
   webApi,
   Bun.resolveSync('@demicodes/protocol', dirname(webApi)),
+  // What the transcript's rules read of the product: where a reader is at the end, and how long a fold takes.
+  Bun.resolveSync('@demicodes/web-ui/composables/scroll-bottom', import.meta.dir),
+  Bun.resolveSync('@demicodes/web-ui/ui/fold', import.meta.dir),
 ]
 
 /** When the tool's code last changed as this server started; a later change ends it. */
@@ -61,6 +65,8 @@ const browser = new Browser(slot, (line) => progress(line))
 /** What the scripts keep between calls, as the last server left it. */
 const keep = restoreKeep(paths.keep)
 let network: Promise<Network> | null = null
+/** The scripted model, listening from the start, as the network does. */
+let model: ScriptedModel | null = null
 let running = 0
 let idle: ReturnType<typeof setTimeout> | null = null
 let ending = false
@@ -71,6 +77,13 @@ waitIdle()
 // The network listens from the start: a page the browser still shows
 // reaches the web app through it again before any call asks for it.
 openNetwork().catch((error) => console.error(`the network does not listen: ${error}`))
+// The model listens from the start too: the backend may ask it for a turn a
+// call before this server's first started.
+try {
+  openModel()
+} catch (error) {
+  console.error(`the scripted model does not listen: ${error}`)
+}
 // A browser the last server left is attached to at once, so that its page's
 // logs go on from where that server left them.
 browser.attachRunning().catch((error) => console.error(`the browser could not be attached to: ${error}`))
@@ -155,7 +168,7 @@ async function serve(socket: net.Socket): Promise<void> {
     if (request.headed) {
       browser.showWindow()
     }
-    const outcome = await runCall({ slot, browser, network: openNetwork, keep }, request, print)
+    const outcome = await runCall({ slot, browser, network: openNetwork, model: openModel, keep }, request, print)
     exit = outcome.exit
     after = outcome.after
   } catch (error) {
@@ -208,6 +221,11 @@ function openNetwork(): Promise<Network> {
   return network
 }
 
+function openModel(): ScriptedModel {
+  model ??= ScriptedModel.listen(slot.ports.model)
+  return model
+}
+
 /** Takes no more calls: the next caller starts a new server. */
 function stopListening(): void {
   if (!server.listening) {
@@ -251,6 +269,10 @@ async function end(how: 'with the browser' | 'leaving the browser'): Promise<voi
 }
 
 async function closeNetwork(): Promise<void> {
+  // The model's port goes with the network's: the next server listens on both.
+  const scripted = model
+  model = null
+  await scripted?.shutdown()
   const open = network
   network = null
   if (open) {

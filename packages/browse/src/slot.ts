@@ -15,6 +15,8 @@ export interface SlotPorts {
    * `demi.net` sets.
    */
   network: number
+  /** Where the slot's backend reaches the scripted model (`model.ts`). */
+  model: number
 }
 
 export interface Slot {
@@ -41,10 +43,10 @@ export function slotNumber(root: string): number {
   return Number(name)
 }
 
-/** Slot n's ports: 33n0 the backend, 33n1 the web app, 33n2 the gallery. */
+/** Slot n's ports: 33n0 the backend, 33n1 the web app, 33n2 the gallery, 33n3 the network, 33n4 the scripted model. */
 export function slotPorts(number: number): SlotPorts {
   const base = 3300 + number * 10
-  return { backend: base, web: base + 1, gallery: base + 2, network: base + 3 }
+  return { backend: base, web: base + 1, gallery: base + 2, network: base + 3, model: base + 4 }
 }
 
 /** The slot of the checkout this tool belongs to. */

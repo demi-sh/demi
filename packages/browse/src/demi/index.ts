@@ -14,17 +14,20 @@ import { hide, show, type VisibilityOptions } from './hide'
 import { ime } from './ime'
 import { log } from './log'
 import { message } from './message'
+import { model } from './model'
 import { net } from './net'
 import { pixel } from './pixel'
 import { runner } from './runner'
 import { shot } from './shot'
 import { stop } from './stop'
 import { timeline } from './timeline'
+import { transcript } from './transcript'
 import { turn } from './turn'
 import { up, type UpOptions } from './up'
 import { webkitPage } from './webkit'
 
-export function createDemi(tool: Tool) {
+/** Every helper but `demi.transcript`, whose scenes use them. */
+export function helpers(tool: Tool) {
   return {
     up: (...args: (string | UpOptions)[]) => up(tool, args),
     down: (...args: DownArgument[]) => down(tool, args),
@@ -48,10 +51,16 @@ export function createDemi(tool: Tool) {
     gallery: (path?: string) => gallery(tool, path),
     message: (text: string, options?: Parameters<typeof message>[2]) => message(tool, text, options),
     turn: (options?: { timeout?: number }) => turn(tool, options),
+    model: model(tool),
     device: (name: string) => device(tool, name),
     runner: runner(tool),
     log: log(tool),
   }
+}
+
+export function createDemi(tool: Tool) {
+  const others = helpers(tool)
+  return { ...others, transcript: transcript(tool, others) }
 }
 
 export type Demi = ReturnType<typeof createDemi>

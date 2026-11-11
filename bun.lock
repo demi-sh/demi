@@ -127,6 +127,7 @@
       "dependencies": {
         "@demicodes/protocol": "workspace:^",
         "@demicodes/web": "workspace:^",
+        "@demicodes/web-ui": "workspace:^",
         "playwright": "1.63.0",
         "zod": "^4.0.0",
       },

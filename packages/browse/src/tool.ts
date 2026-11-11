@@ -1,6 +1,7 @@
 // What every `demi` helper gets from the tool's server for the call it runs
 // in (browse.md § What `demi` adds), and how a helper fails.
 import type { Browser } from './browser'
+import type { ScriptedModel } from './model'
 import type { Network } from './network'
 import { local, type Slot } from './slot'
 
@@ -18,6 +19,8 @@ export interface Tool {
   browser: Browser
   /** The slot's network, which the browser reaches the web app through. */
   network(): Promise<Network>
+  /** The slot's scripted model. */
+  model(): ScriptedModel
   /** Prints a line of the call's output on the caller's terminal. */
   print(line: string): void
   /** The caller's `DEMI_*` variables, which the processes the tool starts get. */

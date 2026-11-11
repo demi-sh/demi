@@ -15,6 +15,7 @@ import { createDemi } from './demi'
 import { describeFailure } from './failure'
 import { composeFooter, readPageState, type PageState } from './footer'
 import type { Keep } from './keep'
+import type { ScriptedModel } from './model'
 import type { Network } from './network'
 import type { Request } from './protocol'
 import { Script, type ScriptScope } from './script'
@@ -29,6 +30,7 @@ export interface Server {
   slot: Slot
   browser: Browser
   network(): Promise<Network>
+  model(): ScriptedModel
   keep: Keep
 }
 
@@ -75,6 +77,7 @@ export async function runCall(
     slot,
     browser,
     network: server.network,
+    model: server.model,
     print,
     env: request.env,
     wrote: (shot) => shots.push(shot),
