@@ -35,7 +35,7 @@ pub enum InputRelease {
     Key(DispatchKeyEventParams),
 }
 
-type Opening = Option<Arc<EventJavascriptDialogOpening>>;
+pub(crate) type Opening = Option<Arc<EventJavascriptDialogOpening>>;
 
 enum Request {
     Defer(Vec<InputRelease>),
