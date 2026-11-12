@@ -1,5 +1,5 @@
 //! The routes of a runner's pipes. The mount finds the device a request is
-//! from: the server by the device token it bears, a program's process by the
+//! from: by the device token it bears, or, in a program's process, by the
 //! channel the runner came on.
 //!
 //! - `WS /api/runner/pipes` is the runner's pipe connection, whose lanes

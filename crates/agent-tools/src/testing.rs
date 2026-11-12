@@ -37,6 +37,16 @@ impl Device for NoDevice {
     }
 }
 
+/// The context sources of a product that has none.
+#[derive(Debug, Default)]
+pub struct NoContext;
+
+impl crate::ContextSources for NoContext {
+    fn sources(&self) -> Rc<[Rc<dyn crate::ContextSource>]> {
+        Rc::new([])
+    }
+}
+
 /// The shell environment factory of a product whose device is [`NoDevice`].
 #[derive(Debug, Default)]
 pub struct NoShells;

@@ -50,7 +50,7 @@ pub(crate) async fn file(
     Path((plugin, name)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Response {
-    let Some(file) = state.services.plugins.file(&plugin, &name) else {
+    let Some(file) = state.services.plugins.current().file(&plugin, &name) else {
         let mut refusal = ApiError::new(StatusCode::NOT_FOUND, ErrorCode::NotFound, "No such file").into_response();
         refusal
             .headers_mut()

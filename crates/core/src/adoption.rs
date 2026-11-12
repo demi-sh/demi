@@ -66,7 +66,7 @@ impl Core {
         let name = crate::provider_settings::free_label(DEVICE_NAME.to_owned(), |name| {
             names.iter().any(|taken| taken == name)
         });
-        let record = self.store().create_device(new_device_id(), name, RunnerPlatform::Linux).await?;
+        let record = self.store().create_device(new_device_id(), name, RunnerPlatform::Linux, None).await?;
         self.mark(Part::Devices);
         Ok(self.devices().dto(record, self.services().public_url.get()))
     }

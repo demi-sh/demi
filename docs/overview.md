@@ -100,7 +100,9 @@ dependencies of every crate and package.
 The server runs one core for each user (`crates/core/src/lib.rs`). A program
 runs the same cores in a process of its own, `demi-core`, which the
 TypeScript SDK starts and speaks to over HTTP/2 on its standard input and
-output:
+output. The process can also run on its own, `demi-core serve`, as a server
+does: programs connect to it over TCP, several at once and across their
+restarts, and runners dial it as they dial a server.
 
 ```text
 +--------------------+  HTTP/2 on stdio   +--------------------+

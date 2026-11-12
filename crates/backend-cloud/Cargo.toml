@@ -18,7 +18,6 @@ demi-core-devices = { path = "../core-devices" }
 demi-core-idle-watch = { path = "../core-idle-watch" }
 demi-core-providers = { path = "../core-providers" }
 demi-provider-registry = { path = "../provider-registry" }
-demi-backend-runners = { path = "../backend-runners" }
 demi-backend-database = { path = "../backend-database" }
 demi-core-store = { path = "../core-store" }
 demi-core-sync = { path = "../core-sync" }

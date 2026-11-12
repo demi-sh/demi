@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: proposed, superseded in part by 0327
 ---
 
 # A program opens cores in a process of its own and drives them with the web API, over HTTP/2 on stdio

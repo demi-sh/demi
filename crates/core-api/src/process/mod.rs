@@ -1,39 +1,51 @@
-//! A program's process, `demi-core`: it runs the cores a program opens, and
-//! serves the program the core's routes as HTTP/2 over the stream the program
-//! gives it, its standard input and output.
+//! A program's process, `demi-core`: it runs the cores its programs open,
+//! and serves each program the cores' routes.
+//!
+//! A program reaches it in one of two ways, which serve the same routes:
+//!
+//! - It starts the process and speaks HTTP/2 over the process's standard
+//!   input and output ([`run`]). The process ends with that connection,
+//!   and every core closes.
+//! - The process runs on its own, `demi-core serve`, until it is stopped
+//!   ([`serve`]). Programs connect to it with its token, several at once,
+//!   and a connection's end closes nothing; runners dial it as they dial a
+//!   server.
 //!
 //! ```text
-//! program --- HTTP/2 ---> PUT /plugins {plugins}    the program's plugins
-//!                         POST /cores {dir}         opens a core, 201 {id}
-//!                         DELETE /cores/{id}        closes it
-//!                         /cores/{id}/api/...       the core's routes, as a
-//!                                                   page has them under /api
-//!                         /hooks/{id}               a schedule's URL
+//! program --- HTTP/2 ---> PUT /plugins/{id} {manifest}  declares a plugin
+//!                         DELETE /plugins/{id}          removes it
+//!                         POST /cores {dir}             opens a core: 201
+//!                                                       {id}, or 200 for
+//!                                                       one open already
+//!                         DELETE /cores/{id}            closes it
+//!                         /cores/{id}/api/...           the core's routes,
+//!                                                       as a page has them
+//!                                                       under /api
+//!                         /hooks/{id}                   a schedule's URL
 //! ```
 //!
 //! The process is an isolated instance with one set of services for its
-//! cores, as the server has for its users'. They start as the first core
-//! opens, with the plugins the program declared until then, as the server's
-//! registry is fixed at its start. The program is the caller of each core's
-//! routes, and its starter: the core's notifications go on the starter lane
-//! the program opens on its page connection to the core.
-//!
-//! The program's connection is the process's life: as it ends, every core
-//! closes, as the server's stop closes its users' cores.
+//! cores, as the server has for its users'. A program is the caller of each
+//! core's routes, and a starter: the core's notifications go on the newest
+//! starter lane a program opened on its page connection to the core.
 
 mod cores;
 mod devices;
+mod listener;
 mod packages;
 mod plugins;
 mod program;
+mod runners;
 mod stream;
 
 use std::net::SocketAddr;
 use std::num::NonZeroUsize;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, OnceLock, PoisonError};
+use std::sync::{Arc, Mutex, PoisonError};
+use std::time::Duration;
 
-use axum::extract::{OriginalUri, Path, Request, State};
+use axum::extract::{FromRequestParts, OriginalUri, Path, Request, State};
+use axum::http::request::Parts;
 use axum::http::{StatusCode, Uri};
 use axum::middleware;
 use axum::response::{IntoResponse, Response};
@@ -45,11 +57,11 @@ use demi_core::pool::{ShardPlacement, ShardPool};
 use demi_core::services::{CoreServices, CoreServicesError, CoreSettings};
 use demi_core::tuning::{ConversationTuning, LifecycleTuning, MediaTuning, RunnerTuning};
 use demi_core_blobs::blobs::BlobStores;
+use demi_core_devices::claims::{PendingClaims, RecordedTokens};
 use demi_core_devices::packages::ReleaseError;
 use demi_core_devices::public_url::PublicUrl;
 use demi_core_providers::vault::logins::LoginTiming;
-use demi_plugin_host::Registry;
-use demi_plugin_interface::{Manifest, PluginFactory};
+use demi_plugin_interface::Manifest;
 use demi_provider_claude_code::releases::DEFAULT_RELEASES_URL;
 use demi_provider_common::media_catalog;
 use demi_provider_common::models_dev::ModelsDevClient;
@@ -66,6 +78,8 @@ use tokio_util::sync::CancellationToken;
 use tower::ServiceExt as _;
 use tower_http::trace::TraceLayer;
 use url::Url;
+
+pub use self::listener::serve;
 
 use self::cores::{OpenCores, ProcessOpener, not_open};
 use self::packages::{ReleaseFiles, ServedPackages};
@@ -88,40 +102,49 @@ pub enum ProcessError {
     Release(#[from] ReleaseError),
 }
 
-/// What the routes of the process reach.
-#[derive(Clone)]
-struct ProcessState {
+/// The process's cores and services, which its routes reach.
+struct Process {
     cores: Arc<OpenCores>,
-    services: Arc<ProcessServices>,
-}
-
-/// The process's services, which start as the program's first core opens.
-struct ProcessServices {
-    public_url: Option<Url>,
+    api: Api,
     release: Arc<ReleaseFiles>,
+    /// The core's routes, for a program's calls of a serving core.
+    core_routes: Router,
+    /// The core's routes anyone calls, a program or not: a plugin's sign-in
+    /// callback, which the vendor sends the browser back to, and the files a
+    /// page's frames load.
+    open_routes: Router,
+    /// How long a request of a program's plugin waits for a lane of it.
+    returning: Duration,
     closing: CancellationToken,
-    /// The plugins the program declared; the services start with them.
-    declared: tokio::sync::Mutex<Vec<Manifest>>,
-    started: OnceLock<Started>,
     /// The cores' threads, until the process ends.
     pool: Mutex<Option<ShardPool>>,
 }
 
-/// The started services, as the core's routes reach them.
-struct Started {
-    api: Api,
-    /// The core's routes, for the program's calls of a serving core.
-    core_routes: Router,
+/// A request a program made, over the connection it gave the process or
+/// with the process's token.
+#[derive(Clone)]
+struct Authorized;
+
+impl<S: Send + Sync> FromRequestParts<S> for Authorized {
+    type Rejection = ApiError;
+
+    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, ApiError> {
+        parts.extensions.get::<Authorized>().cloned().ok_or_else(unauthorized)
+    }
 }
 
-/// `PUT /plugins`: the program's plugins, which its cores' agents use
-/// besides the release's.
-#[derive(Debug, serde::Deserialize, garde::Validate)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct DeclaredPlugins {
-    #[garde(skip)]
-    plugins: Vec<Manifest>,
+fn unauthorized() -> ApiError {
+    ApiError::new(
+        StatusCode::UNAUTHORIZED,
+        ErrorCode::Unauthenticated,
+        "The call carries no valid token for this process",
+    )
 }
+
+/// `PUT /plugins/{id}`: a plugin of a program's, its manifest.
+#[derive(Debug, serde::Deserialize, garde::Validate)]
+#[serde(transparent)]
+struct DeclaredPlugin(#[garde(skip)] Manifest);
 
 /// Runs the process over `io`, the program's connection, until it ends,
 /// then closes every core. `public_url` is where the program's server
@@ -133,20 +156,9 @@ pub async fn run<IO>(io: IO, public_url: Option<Url>, release: Vec<PathBuf>) -> 
 where
     IO: AsyncRead + AsyncWrite + Send + Unpin + 'static,
 {
-    let release = Arc::new(ReleaseFiles::read(release).await?);
-    let cores = Arc::new(OpenCores::new(public_url.clone()));
-    let services = Arc::new(ProcessServices {
-        public_url,
-        release,
-        closing: CancellationToken::new(),
-        declared: tokio::sync::Mutex::default(),
-        started: OnceLock::new(),
-        pool: Mutex::default(),
-    });
-    let app = routes(ProcessState {
-        cores: cores.clone(),
-        services: services.clone(),
-    });
+    let process = Process::start(public_url, release, false).await?;
+    // Whatever comes over the connection is the program's.
+    let app = routes(process.clone()).layer(Extension(Authorized));
     tracing::info!(event = "process.serving", "the process serves its program");
     let served = hyper::server::conn::http2::Builder::new(TokioExecutor::new())
         .enable_connect_protocol()
@@ -155,69 +167,38 @@ where
     if let Err(error) = served {
         tracing::warn!(event = "process.connection_failed", %error, "the program's connection failed");
     }
-    services.closing.cancel();
-    // The started services are no route's to start any more: the lock is
-    // the start's.
-    let _declared = services.declared.lock().await;
-    if let Some(started) = services.started.get() {
-        cores.close_all(&started.api.services, &started.api.shards).await;
-        let pool = services.pool.lock().unwrap_or_else(PoisonError::into_inner).take();
-        if let Some(pool) = pool {
-            pool.close().await;
-        }
-        started.api.services.close_providers().await;
-    }
+    process.close().await;
     tracing::info!(event = "process.ended", "the process ended with its program's connection");
     Ok(())
 }
 
-impl ProcessServices {
-    /// The started services, which the first call starts with the
-    /// program's plugins.
-    async fn start(&self, cores: &Arc<OpenCores>) -> Result<&Started, ProcessError> {
-        if let Some(started) = self.started.get() {
-            return Ok(started);
-        }
-        let declared = self.declared.lock().await;
-        if let Some(started) = self.started.get() {
-            return Ok(started);
-        }
-        let (started, pool) = self.start_with(cores, &declared).await?;
-        *self.pool.lock().unwrap_or_else(PoisonError::into_inner) = Some(pool);
-        cores.fix_plugins(declared.iter().map(|manifest| manifest.id.clone()).collect());
-        Ok(self.started.get_or_init(|| started))
-    }
-
-    /// The process's plugins: the release's, then the program's.
-    fn plugins(&self, cores: &Arc<OpenCores>, declared: &[Manifest]) -> Vec<Box<dyn PluginFactory>> {
-        // The process keeps no directory of its own, and several may run on
-        // one machine: each takes a directory of its own for its plugins.
-        let mut plugins = builtins::plugins(&std::env::temp_dir().join(format!("demi-core-{}", std::process::id())));
-        plugins.extend(declared.iter().map(|manifest| {
-            Box::new(ProgramPlugin::new(manifest.clone(), cores.clone())) as Box<dyn PluginFactory>
-        }));
-        plugins
-    }
-
-    async fn start_with(
-        &self,
-        cores: &Arc<OpenCores>,
-        declared: &[Manifest],
-    ) -> Result<(Started, ShardPool), ProcessError> {
+impl Process {
+    /// Starts the process's services, with the release's plugins, which
+    /// each program's declarations add to; `listens` for one on its own,
+    /// which runners dial.
+    async fn start(public_url: Option<Url>, release: Vec<PathBuf>, listens: bool) -> Result<Arc<Self>, ProcessError> {
+        let release = Arc::new(ReleaseFiles::read(release).await?);
+        let cores = Arc::new(OpenCores::new(public_url.clone()));
         let public = PublicUrl::default();
-        if let Some(url) = &self.public_url {
+        if let Some(url) = &public_url {
             // A URL given is the one taken; the address goes unused.
             public.listening(Some(url), SocketAddr::from(([127, 0, 0, 1], 0)));
         }
         let clock: Arc<dyn Clock> = Arc::new(SystemClock);
         let claude_machine = MachineSlot::default();
+        let runners = RunnerTuning::default();
+        let returning = runners.returning;
+        let claims = Arc::new(PendingClaims::new(RecordedTokens, runners.claims_per_minute));
+        // The process keeps no directory of its own, and several may run on
+        // one machine: each takes a directory of its own for its plugins.
+        let plugins = builtins::plugins(&std::env::temp_dir().join(format!("demi-core-{}", std::process::id())));
         let settings = CoreSettings {
             families: builtins::families(claude_machine.clone())
                 .with(demi_provider_relay::borrow::FAMILY, RelayFamily(public.clone())),
             public_url: public,
             clock: clock.clone(),
-            plugins: self.plugins(cores, declared),
-            packages: Arc::new(ServedPackages(self.release.clone())),
+            plugins,
+            packages: Arc::new(ServedPackages(release.clone())),
             models_dev_url: ModelsDevClient::DEFAULT_URL
                 .parse()
                 .expect("the models.dev address parses"),
@@ -231,7 +212,7 @@ impl ProcessServices {
                 .expect("the Claude Code distribution's address parses"),
             claude_machine,
             logins: LoginTiming::default(),
-            runners: RunnerTuning::default(),
+            runners,
             conversations: ConversationTuning::default(),
             media: MediaTuning::default(),
             lifecycle: LifecycleTuning::default(),
@@ -246,10 +227,14 @@ impl ProcessServices {
         )
         .await?;
         let services = Arc::new(services);
+        let opener = ProcessOpener {
+            cores: cores.clone(),
+            claims: listens.then(|| claims.clone()),
+        };
         let pool = match ShardPool::start(
             ShardPlacement::Threads(NonZeroUsize::MIN),
             services.clone(),
-            Arc::new(ProcessOpener(cores.clone())),
+            Arc::new(opener),
         )
         .await
         {
@@ -265,14 +250,53 @@ impl ProcessServices {
             html: Arc::default(),
             pages: PageTuning::default(),
             schedule_owners: cores.clone(),
+            claims,
         };
-        let core_routes = core_routes(api.clone(), self.release.clone(), self.closing.clone());
-        tracing::info!(event = "process.started", plugins = declared.len(), "the process's services started");
-        Ok((Started { api, core_routes }, pool))
+        let closing = CancellationToken::new();
+        let core_routes = core_routes(api.clone(), release.clone(), closing.clone());
+        let open_routes = open_routes(api.clone());
+        tracing::info!(event = "process.started", "the process's services started");
+        Ok(Arc::new(Self {
+            cores,
+            api,
+            release,
+            core_routes,
+            open_routes,
+            returning,
+            closing,
+            pool: Mutex::new(Some(pool)),
+        }))
+    }
+
+    /// Closes every core, then the services; the runners waiting to be
+    /// paired go.
+    async fn close(&self) {
+        self.closing.cancel();
+        self.api.claims.close();
+        self.cores.close_all(&self.api.services, &self.api.shards).await;
+        let pool = self.pool.lock().unwrap_or_else(PoisonError::into_inner).take();
+        if let Some(pool) = pool {
+            pool.close().await;
+        }
+        self.api.services.close_providers().await;
+    }
+
+    /// Has every core take the programs' plugins as they are now, which a
+    /// core that took them already does at once.
+    async fn adopt_plugins(&self) {
+        for id in self.cores.all_held() {
+            // A core that closes meanwhile takes nothing more.
+            let _ = self
+                .api
+                .shards
+                .of(&id)
+                .call(|core, _| async move { core.adopt_plugins().await })
+                .await;
+        }
     }
 }
 
-/// The core's routes, as the program calls them of a serving core.
+/// The core's routes, as a program calls them of a serving core.
 fn core_routes(api: Api, release: Arc<ReleaseFiles>, closing: CancellationToken) -> Router {
     crate::routes()
         .route("/state", get(crate::state::read))
@@ -292,16 +316,27 @@ fn core_routes(api: Api, release: Arc<ReleaseFiles>, closing: CancellationToken)
         .layer(middleware::from_fn(stream::stream_peer))
 }
 
-/// The process's routes.
-fn routes(state: ProcessState) -> Router {
+/// The core's routes anyone calls.
+fn open_routes(api: Api) -> Router {
     Router::new()
-        .route("/plugins", put(declare))
+        .route("/plugins/{plugin}/oauth/callback", get(crate::oauth::callback))
+        .merge(crate::public_routes())
+        .fallback(|| async { unauthorized() })
+        .with_state(api)
+        .layer(middleware::from_fn(stream::stream_peer))
+}
+
+/// The process's routes.
+fn routes(process: Arc<Process>) -> Router {
+    Router::new()
+        .route("/plugins/{id}", put(declare).delete(remove))
         .route("/cores", post(open))
         .route("/cores/{id}", delete(close))
-        .route("/hooks/{id}", any(hook))
+        // The limit on unknown addresses takes the caller's address.
+        .route("/hooks/{id}", any(hook).layer(middleware::from_fn(stream::stream_peer)))
         // A route with parameters would give them to the core's routes too.
         .fallback(core_call)
-        .with_state(state)
+        .with_state(process)
         .layer(axum::extract::DefaultBodyLimit::max(crate::body::JSON_BODY_LIMIT))
         .layer(middleware::from_fn(crate::request_id::watch_abandon))
         // The request's line is `request_id::answered`'s alone.
@@ -315,60 +350,98 @@ fn routes(state: ProcessState) -> Router {
         .layer(middleware::from_fn(crate::request_id::assign))
 }
 
-/// `PUT /plugins`: the program's plugins, 204, until the first core opens;
-/// then 409, as the services started with the plugins declared before.
-async fn declare(
-    State(state): State<ProcessState>,
-    JsonBody(declared): JsonBody<DeclaredPlugins>,
-) -> Result<StatusCode, ApiError> {
-    let services = &state.services;
-    let mut held = services.declared.lock().await;
-    if services.started.get().is_some() {
-        return Err(ApiError::new(
-            StatusCode::CONFLICT,
-            ErrorCode::PluginsFixed,
-            "The process's plugins are fixed: a core has opened",
-        ));
+/// Runs `work`, a change a program asked of the process, to its end in a
+/// task of its own, whether or not the program stays for the answer: a
+/// program that goes away mid-way leaves no core half opened or half
+/// closed, and no core behind the plugins the others took.
+async fn to_the_end<T: Send + 'static>(work: impl Future<Output = T> + Send + 'static) -> T {
+    match tokio::spawn(work).await {
+        Ok(done) => done,
+        Err(error) => std::panic::resume_unwind(error.into_panic()),
     }
-    // The registry the services would start with, so that a manifest that
-    // breaks a rule is refused here rather than by the first open.
-    let packages = ServedPackages(services.release.clone());
-    Registry::new(services.plugins(&state.cores, &declared.plugins), |operation| {
-        demi_core_devices::packages::Packages::serves(&packages, &operation.package, &[operation.operation.as_str()])
-    })
-    .map_err(|error| ApiError::invalid_body(error.to_string()))?;
-    *held = declared.plugins;
+}
+
+/// `PUT /plugins/{id}`: declares the program's plugin `id`, in place of the
+/// one declared before, 204; every open core takes it before the answer.
+/// A manifest that breaks a rule, or takes the id of a plugin of the
+/// release, is refused, 400.
+async fn declare(
+    State(process): State<Arc<Process>>,
+    _: Authorized,
+    Path(id): Path<String>,
+    JsonBody(DeclaredPlugin(manifest)): JsonBody<DeclaredPlugin>,
+) -> Result<StatusCode, ApiError> {
+    if manifest.id.as_str() != id {
+        return Err(ApiError::invalid_body(format!(
+            "The manifest's id is \"{}\", not the plugin's in the path",
+            manifest.id
+        )));
+    }
+    let plugin = ProgramPlugin::new(manifest, process.cores.clone(), process.returning);
+    process
+        .api
+        .services
+        .plugins
+        .declare(Arc::new(plugin))
+        .map_err(|error| ApiError::invalid_body(error.to_string()))?;
+    to_the_end(async move { process.adopt_plugins().await }).await;
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// `POST /cores`: opens the core in `dir`, 201 with its id. The first open
-/// starts the process's services.
+/// `DELETE /plugins/{id}`: removes the program's plugin `id`, 204, whose
+/// commands leave every open core before the answer, and whose lanes
+/// close; 404 for a plugin no program declared.
+async fn remove(State(process): State<Arc<Process>>, _: Authorized, Path(id): Path<String>) -> Result<StatusCode, ApiError> {
+    let Some(plugin) = process.api.services.plugins.remove(&id) else {
+        return Err(ApiError::new(
+            StatusCode::NOT_FOUND,
+            ErrorCode::UnknownPlugin,
+            format!("No program declared the plugin \"{id}\""),
+        ));
+    };
+    to_the_end(async move {
+        process.adopt_plugins().await;
+        for core in process.cores.all_held() {
+            if let Some(lanes) = process.cores.plugin_lanes(&core) {
+                lanes.remove(&plugin);
+            }
+        }
+    })
+    .await;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// `POST /cores`: opens the core in `dir`, 201 with its id; 200 with it for
+/// a core the process has open already.
 async fn open(
-    State(state): State<ProcessState>,
+    State(process): State<Arc<Process>>,
+    _: Authorized,
     JsonBody(open): JsonBody<OpenCore>,
 ) -> Result<(StatusCode, Json<OpenedCore>), ApiError> {
-    let started = state.services.start(&state.cores).await.map_err(|error| {
-        tracing::error!(event = "process.start_failed", %error, "the process's services did not start");
-        ApiError::internal(&error)
-    })?;
-    let id = state
-        .cores
-        .open(&PathBuf::from(open.dir), &started.api.services, &started.api.shards)
-        .await?;
-    Ok((StatusCode::CREATED, Json(OpenedCore { id })))
+    let (id, opened) = to_the_end(async move {
+        let api = &process.api;
+        process.cores.open(&PathBuf::from(open.dir), &api.services, &api.shards).await
+    })
+    .await?;
+    let status = if opened { StatusCode::CREATED } else { StatusCode::OK };
+    Ok((status, Json(OpenedCore { id })))
 }
 
-/// `DELETE /cores/{id}`: closes the core, 204.
-async fn close(State(state): State<ProcessState>, Path(id): Path<String>) -> Result<StatusCode, ApiError> {
+/// `DELETE /cores/{id}`: closes the core for every program, 204.
+async fn close(State(process): State<Arc<Process>>, _: Authorized, Path(id): Path<String>) -> Result<StatusCode, ApiError> {
     let id = UserId::try_from(id).map_err(|_| not_open())?;
-    let started = state.services.started.get().ok_or_else(not_open)?;
-    state.cores.close(&id, &started.api.services, &started.api.shards).await?;
+    to_the_end(async move {
+        let api = &process.api;
+        process.cores.close(&id, &api.services, &api.shards).await
+    })
+    .await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// `/cores/{id}/api/...`: the program's call of the serving core `id`, which
-/// the core's routes answer as the server's answer a page's under `/api`.
-async fn core_call(State(state): State<ProcessState>, mut request: Request) -> Result<Response, ApiError> {
+/// `/cores/{id}/api/...`: a call of the serving core `id`, which the core's
+/// routes answer as the server's answer a page's under `/api`; without the
+/// process's token, only those anyone calls.
+async fn core_call(State(process): State<Arc<Process>>, mut request: Request) -> Result<Response, ApiError> {
     let Some((id, place)) = request
         .uri()
         .path()
@@ -378,32 +451,26 @@ async fn core_call(State(state): State<ProcessState>, mut request: Request) -> R
         return Ok(no_route(request).await);
     };
     let id = UserId::try_from(id.to_owned()).map_err(|_| not_open())?;
-    let core = state.cores.serving(&id).ok_or_else(not_open)?;
-    // A serving core opened after the start.
-    let started = state.services.started.get().ok_or_else(not_open)?;
+    let core = process.cores.serving(&id).ok_or_else(not_open)?;
     let path = match request.uri().query() {
         Some(query) => format!("/{place}?{query}"),
         None => format!("/{place}"),
     };
     *request.uri_mut() = path.parse::<Uri>().map_err(|_| not_open())?;
-    let caller = ProgramCaller::new(id, core, state.cores.clone());
+    let routes = match request.extensions().get::<Authorized>() {
+        Some(_) => &process.core_routes,
+        None => &process.open_routes,
+    };
+    let caller = ProgramCaller::new(id, core, process.cores.clone());
     request.extensions_mut().insert(CallerOf(Arc::new(caller)));
     // The router answers every request.
-    Ok(started
-        .core_routes
-        .clone()
-        .oneshot(request)
-        .await
-        .unwrap_or_else(|never| match never {}))
+    Ok(routes.clone().oneshot(request).await.unwrap_or_else(|never| match never {}))
 }
 
 /// `/hooks/{id}`: a call of a schedule's URL, which reaches the serving core
-/// that holds the schedule; before the start, none does.
-async fn hook(State(state): State<ProcessState>, id: Path<String>, request: Request) -> Result<Response, ApiError> {
-    let Some(started) = state.services.started.get() else {
-        return Err(crate::schedules::unauthorized());
-    };
-    crate::schedules::hook(State(started.api.clone()), id, request).await
+/// that holds the schedule.
+async fn hook(State(process): State<Arc<Process>>, id: Path<String>, request: Request) -> Result<Response, ApiError> {
+    crate::schedules::hook(State(process.api.clone()), id, request).await
 }
 
 pub(super) async fn no_route(request: Request) -> Response {

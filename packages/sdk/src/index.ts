@@ -1,14 +1,14 @@
 // `@demicodes/sdk`: Demi's agents in a program. It starts `demi-core`, the
-// process a program's cores run in, speaks HTTP/2 to it on its standard input
-// and output, and gives the program its cores, their conversations,
-// providers, devices and product state, and the program's own plugins, with
-// the clients the web app uses.
+// process a program's cores run in, and speaks HTTP/2 to it on its standard
+// input and output, or connects to one that runs on its own; it gives the
+// program its cores, their conversations, providers, devices and product
+// state, and the program's own plugins, with the clients the web app uses.
 //
 // ```text
 // public API    Demi, Core, Conversation, definePlugin        this package
 // clients       PageConnection, ConversationClient,           shared with
 //               the product state's withPart, the schemas     the web app
-// wire          HTTP/2 on the process's stdio                 process.ts
+// wire          HTTP/2 on the process's stdio, or over TCP    process.ts
 // ```
 //
 // ```ts
@@ -27,7 +27,7 @@
 // The SDK writes no client of its own: what a page and a program both need
 // is in `@demicodes/protocol` and `@demicodes/conversation-client`.
 
-export { Demi, type DemiOptions } from './demi'
+export { Demi, type DemiConnection, type DemiOptions } from './demi'
 export {
   Core,
   Conversations,

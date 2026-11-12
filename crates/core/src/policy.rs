@@ -302,7 +302,7 @@ impl LinkPolicy for CorePolicy {
             let lease = watches(&core, &conversation).await;
             let services = core.services();
             let package = services
-                .user_streams
+                .user_streams()
                 .get(&name)
                 .map(|binding| binding.package.clone());
             Ok(DirectAdmission {

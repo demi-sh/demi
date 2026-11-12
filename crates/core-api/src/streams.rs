@@ -30,7 +30,7 @@ pub(crate) async fn open(state: &Api, user: &UserId, id: &str, name: String) -> 
             "No stream has that name",
         )
     };
-    let Some(binding) = state.services.user_streams.get(&name).cloned() else {
+    let Some(binding) = state.services.user_streams().get(&name).cloned() else {
         return Err(unknown());
     };
     let record = owned(&state.services, user, id).await?;

@@ -3,6 +3,7 @@
 //! bodies, not the program's connection that every other stream shares, and
 //! bytes move on it as its bodies move them.
 
+use std::net::IpAddr;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -15,14 +16,21 @@ use tokio_util::sync::{CancellationToken, WaitForCancellationFutureOwned};
 
 use crate::peer::{ConnectionControl, Peer};
 
-/// Gives `request` a connection of its own stream, which its bodies follow.
+/// The address a TCP connection to the process came from, which the
+/// listener gives each of its requests.
+#[derive(Clone, Copy)]
+pub(super) struct Remote(pub(super) IpAddr);
+
+/// Gives `request` a connection of its own stream, which its bodies follow,
+/// from the address its TCP connection came from; none over stdio.
 pub(crate) async fn stream_peer(request: Request, next: Next) -> Response {
     let closed = CancellationToken::new();
     let control = ConnectionControl::new(closed.clone());
+    let address = request.extensions().get::<Remote>().map(|Remote(address)| *address);
     let mut request = request.map(|body| Body::new(Noted::new(body, &control, &closed)));
     request.extensions_mut().insert(ConnectInfo(Peer {
         control: control.clone(),
-        address: None,
+        address,
     }));
     let response = next.run(request).await;
     response.map(|body| Body::new(Noted::new(body, &control, &closed)))

@@ -554,6 +554,7 @@ impl Backend {
                 html: Arc::default(),
                 pages: config.pages,
                 schedule_owners: services.clone(),
+                claims: services.claims.clone(),
             },
             services: services.clone(),
             site: Arc::new(Site {

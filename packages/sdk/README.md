@@ -71,6 +71,51 @@ takes it up again when the core opens again.
 `demi-core` and the runners the SDK starts write their logs to your
 program's standard error.
 
+## A process of its own
+
+`Demi.start()` ties the process to your program: when your program stops,
+for example to deploy a new version, every core closes, and a running turn
+stops until the core opens again. To keep the cores running while your
+program restarts, or to share them between several services, run
+`demi-core` on its own, as a server:
+
+```sh
+export DEMI_CORE_TOKEN=7f3c9e2a51d84b06
+export DEMI_RELEASE=node_modules/@demicodes/sdk/release:node_modules/@demicodes/sdk-linux-x64/release
+node_modules/@demicodes/sdk-linux-x64/bin/demi-core serve --listen 127.0.0.1:4100
+```
+
+`demi-core` is in your platform's package. `DEMI_RELEASE` lists the
+`release` directories of the SDK and of each platform package, as `PATH`
+does, so the cores' devices run Demi's commands. Each of your services
+connects with the same token:
+
+```ts
+const demi = await Demi.connect({ url: 'http://127.0.0.1:4100', token, plugins: [chat] })
+const core = await demi.open('/srv/bot/data/team-a')
+```
+
+- Opening a directory the process holds already answers the same core, with
+  its conversations and turns as they went on while your program was away.
+- `demi.close()` disconnects and closes nothing; `core.close()` closes the
+  core for every service.
+- Each connection declares its plugins again, and the last declaration of a
+  plugin's id stands: a new version of your program changes the commands
+  of every conversation at once.
+- `SIGTERM` or Ctrl-C stops the process, which closes every core. Your
+  program connects again by itself once the process is back, declares its
+  plugins and opens its cores again, and goes on.
+
+Set `DEMI_PUBLIC_URL` to where the process is reached from outside, such as
+`https://bot.example.com/demi`, for schedules' URLs and plugins' sign-ins,
+which the process then answers itself.
+
+A runner reaches a process of its own as it reaches a Demi server: start it
+anywhere with `demi-runner run --backend http://bot.example.com:4100`. It
+prints a pairing code and waits; pair it to a core with
+`core.devices.claim(code)`. The runner keeps its token, and connects again
+by itself after it or the process restarts.
+
 ## Providers
 
 A provider entry is what a core's agents call models with. Create one with
@@ -321,6 +366,18 @@ A plugin can also add a context block before each request (`context`),
 search a conversation's project (`projectSearch`), and follow conversations
 being deleted or forked.
 
+A command your program runs outlives your program's restart. If your
+program stops while `run` is under way, the command waits, and once your
+program serves the plugin again, `run` is called again for the same call,
+with `call.resent` true. `call.request` is the call's number, which no other
+call ever takes: use it to do the work once, for example when the command
+posts a message. What the command already wrote stays in its output, and
+what `run` writes now follows it; input the earlier call read is not read
+again. While no program serves the plugin, a new command waits 10 seconds
+for one, and then fails, telling the agent that the plugin's program is
+unreachable. A `context` call does not wait: when your program stops
+during one, the agent goes on without its block.
+
 ## Product state and notifications
 
 `core.state` is the core's product state: its workspaces, projects, provider
@@ -330,9 +387,10 @@ and answers a function that stops it.
 
 `core.on('notify', listener)` receives what the app would notify the user
 of: a turn that finished or failed, a permission request, or a notification
-the agent sent with `demi notify send`. A core has one such listener, and a
-new one replaces it. Answer how you delivered it; the agent's
-`demi notify send` reports it:
+the agent sent with `demi notify send`. A program has one such listener for
+each core, and a new one replaces it; when several services listen to one
+core, the one that listened last receives them. Answer how you delivered
+it; the agent's `demi notify send` reports it:
 
 ```ts
 core.on('notify', async (message) => {

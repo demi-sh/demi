@@ -6,6 +6,7 @@ use std::sync::Arc;
 use axum::extract::FromRef;
 use demi_core::pool::Shards;
 use demi_core::services::CoreServices;
+use demi_core_devices::claims::PendingClaims;
 use demi_core_store::StorageError;
 use demi_core_store::store::CoreStore;
 use demi_web_api_protocol::ids::UserId;
@@ -25,6 +26,8 @@ pub struct Api {
     pub pages: PageTuning,
     /// Which core holds a schedule whose URL is called.
     pub schedule_owners: Arc<dyn ScheduleOwners>,
+    /// The runners waiting to be paired.
+    pub claims: Arc<PendingClaims>,
 }
 
 impl Api {

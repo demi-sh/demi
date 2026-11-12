@@ -1,7 +1,7 @@
 //! Who calls a core's routes, as whoever mounts them resolved the request.
 //!
 //! The server resolves the session its cookie names; a program's process,
-//! the program that opened the core. The mount puts the caller in each
+//! the program that drives the core. The mount puts the caller in each
 //! request's extensions before a route of this crate sees it, and a route
 //! reaches only the core of the caller's principal.
 //!
@@ -54,13 +54,12 @@ pub trait Caller: Send + Sync + 'static {
     /// caller's core.
     fn page(&self, core: &Core) -> Box<dyn CallerPage>;
 
-    /// The starter lane of the caller's core, for the program that opened
-    /// the core; none for any other caller, who may not open it.
+    /// The starter lanes of the caller's core, for a program; none for any
+    /// other caller, who may not open one.
     fn starter_lane(&self) -> Option<Arc<StarterLane>>;
 
-    /// The lanes of the program's plugins in the caller's core, for the
-    /// program that opened the core; none for any other caller, who may not
-    /// open them.
+    /// The lanes of the programs' plugins in the caller's core, for a
+    /// program; none for any other caller, who may not open one.
     fn plugin_lanes(&self) -> Option<Arc<PluginLanes>>;
 }
 

@@ -5,8 +5,8 @@
 //!
 //! ```text
 //! the server: /api, behind its session gate, beside its own routes
-//!   (accounts, sessions, users, upgrades, shares, lending, pairing)
-//! a program's process: /cores/{id}/api, for the program that opened it
+//!   (accounts, sessions, users, upgrades, shares, lending)
+//! a program's process: /cores/{id}/api, for the programs that drive it
 //! ```
 //!
 //! A route takes its caller from the request, as the mount resolved it
@@ -203,6 +203,7 @@ pub fn routes() -> Router<Api> {
         .route("/workspaces/{id}", patch(workspaces::change).delete(workspaces::delete))
         .route("/workspaces/{id}/moves", post(workspaces::moves))
         .route("/devices", get(devices::list))
+        .route("/devices/claim", post(devices::claim))
         .route("/devices/{id}", delete(devices::revoke).patch(devices::change))
         .route("/devices/{id}/fs", get(devices::browse).post(devices::make_directory))
         .route("/devices/{id}/workflows", get(devices::workflows))

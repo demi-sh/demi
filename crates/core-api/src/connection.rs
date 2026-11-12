@@ -76,7 +76,6 @@ use tracing::Instrument as _;
 
 use crate::api::Api;
 use crate::caller::{Caller, CallerOf, Gone};
-use crate::plugin_lanes::Unclaimed;
 use crate::error::ApiError;
 use crate::page_client::PageClient;
 use crate::request_id;
@@ -768,32 +767,23 @@ async fn check_open(state: &Api, caller: &Arc<dyn Caller>, target: LaneTarget) -
         LaneTarget::Starter => {
             let lane = caller
                 .starter_lane()
-                .ok_or_else(|| ApiError::forbidden("Only the program that opened the core opens its starter lane"))?;
-            let claim = lane.claim().ok_or_else(|| {
-                ApiError::new(
-                    StatusCode::CONFLICT,
-                    ErrorCode::StarterLaneOpen,
-                    "The core's starter lane is open already",
-                )
-            })?;
+                .ok_or_else(|| ApiError::forbidden("Only a program opens a core's starter lane"))?;
+            let claim = lane.claim();
             Ok(Opened::new(move |lane, reader| claim.serve(lane, reader)))
         }
         LaneTarget::Plugin { plugin } => {
             let lanes = caller
                 .plugin_lanes()
-                .ok_or_else(|| ApiError::forbidden("Only the program that opened the core opens its plugins' lanes"))?;
-            let claim = lanes.claim(&plugin).map_err(|unclaimed| match unclaimed {
-                Unclaimed::Unknown => ApiError::new(
+                .ok_or_else(|| ApiError::forbidden("Only a program opens its plugins' lanes"))?;
+            let declared = state.services.plugins.current().declared(&plugin);
+            let Some(plugin) = declared else {
+                return Err(ApiError::new(
                     StatusCode::NOT_FOUND,
                     ErrorCode::UnknownPlugin,
-                    format!("The program declared no plugin \"{plugin}\""),
-                ),
-                Unclaimed::Open => ApiError::new(
-                    StatusCode::CONFLICT,
-                    ErrorCode::PluginLaneOpen,
-                    format!("The lane of the plugin \"{plugin}\" is open already"),
-                ),
-            })?;
+                    format!("No program declared the plugin \"{plugin}\""),
+                ));
+            };
+            let claim = lanes.claim(plugin);
             Ok(Opened::new(move |lane, reader| claim.serve(lane, reader)))
         }
     }

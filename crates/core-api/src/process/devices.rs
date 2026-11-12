@@ -91,7 +91,7 @@ pub(crate) async fn channel(
             // The channel is the runner's connection, as its TCP connection
             // is the server's: its link counts it lost once its writes stall.
             let (io, writes) = Watched::new(TokioIo::new(io));
-            let routes = runner_routes(state, device, release, ChannelWrites(writes), RunnerArrived(arrived.clone()));
+            let routes = runner_routes(state, device, release, ConnectionWrites(writes), RunnerArrived(arrived.clone()));
             let serving = hyper::server::conn::http2::Builder::new(TokioExecutor::new())
                 .enable_connect_protocol()
                 .serve_connection(TokioIo::new(io), TowerToHyperService::new(routes));
@@ -127,9 +127,10 @@ pub(crate) async fn channel(
 /// the channel carries.
 const CHANNEL_PROTOCOL: &str = "h2c";
 
-/// The writes of a device's channel.
+/// Whether the writes of a runner's connection move: a device's channel, or
+/// the TCP connection a runner dialed the process on.
 #[derive(Clone)]
-struct ChannelWrites(Arc<WriteProgress>);
+pub(super) struct ConnectionWrites(pub(super) Arc<WriteProgress>);
 
 /// Cancelled once a runner opened its socket on the channel.
 #[derive(Clone)]
@@ -149,7 +150,7 @@ fn runner_routes(
     api: Api,
     device: RunnerDevice,
     release: Arc<ReleaseFiles>,
-    writes: ChannelWrites,
+    writes: ConnectionWrites,
     arrived: RunnerArrived,
 ) -> Router {
     crate::runners::routes()
@@ -170,7 +171,7 @@ fn runner_routes(
 async fn socket(
     State(state): State<Api>,
     RunnerOf(device): RunnerOf,
-    Extension(ChannelWrites(writes)): Extension<ChannelWrites>,
+    Extension(ConnectionWrites(writes)): Extension<ConnectionWrites>,
     Extension(RunnerArrived(arrived)): Extension<RunnerArrived>,
     upgrade: WebSocketUpgrade,
 ) -> Response {

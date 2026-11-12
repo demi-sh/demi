@@ -38,7 +38,7 @@ use demi_agent_store::{
 };
 use demi_agent_tools::{
     DeviceResolver, ProfileModel, SubagentSettings, Toolset, Unavailable,
-    testing::{NoDevice, NoShells},
+    testing::{NoContext, NoDevice, NoShells},
 };
 use demi_agent_transcript::RandomIds;
 use demi_conversation_lane_protocol::{ClientFrame, ServerFrame};
@@ -520,7 +520,7 @@ impl Conversation {
             instructions: Rc::from(SYSTEM_PROMPT),
             guide: Rc::from(""),
             devices: Rc::new(NoDevices),
-            context: Rc::new([]),
+            context: Rc::new(NoContext),
             providers: deepseek,
             shells: Rc::new(NoShells),
             stores: Rc::new(move |_: &NodeId| store.clone() as Rc<dyn AgentTreeStore>),

@@ -52,7 +52,7 @@ export interface CoreOpening {
   dir: string
   plugins: readonly Plugin[]
   /** The package's own runner, which `device.spawn()` starts with no command. */
-  runner: string
+  runner: () => string
 }
 
 export class Core {
@@ -174,15 +174,20 @@ export class Core {
     })
   }
 
-  /** Closes the core: its lanes end, and the process closes it. */
+  /** Closes the core, for every program: its lanes end, and the process closes it. */
   async close(): Promise<void> {
     if (this.closed) {
       return
     }
+    this.disconnect()
+    await this.closing()
+  }
+
+  /** Ends the program's lanes to the core, which stays open. */
+  disconnect(): void {
     this.closed = true
     this.conversations.closeAll()
     this.connection.end()
-    await this.closing()
   }
 
   private openSync(): void {
@@ -449,13 +454,13 @@ export class Providers {
   }
 }
 
-/** A device of the core, which a runner serves over a channel the program gives it. */
+/** A device of the core, which a runner serves: one that dialed the process, or over a channel the program gives it. */
 export class Device {
   constructor(
     private readonly listed: DeviceDto,
     private readonly routes: CoreRoutes,
     private readonly process: Process,
-    private readonly runner: string,
+    private readonly runner: () => string,
     private readonly dir: string,
     private readonly online: (id: string, ended: Promise<void>) => Promise<void>,
   ) {}
@@ -500,7 +505,7 @@ export class Device {
    * `connect` does; a command that exits before is stopped and fails it.
    */
   async spawn(command?: readonly string[]): Promise<ChildProcess> {
-    const [executable, ...args] = command ?? [this.runner, 'run', '--stdio', '--home', join(this.dir, 'devices', this.id)]
+    const [executable, ...args] = command ?? [this.runner(), 'run', '--stdio', '--home', join(this.dir, 'devices', this.id)]
     if (executable === undefined) {
       throw new Error('The command is empty')
     }
@@ -531,7 +536,7 @@ export class Devices {
   constructor(
     private readonly routes: CoreRoutes,
     private readonly process: Process,
-    private readonly runner: string,
+    private readonly runner: () => string,
     private readonly dir: string,
     private readonly online: (id: string, ended: Promise<void>) => Promise<void>,
   ) {}
@@ -539,6 +544,16 @@ export class Devices {
   /** Creates a device, which serves the core once a runner connects to it. */
   async create(): Promise<Device> {
     const { device } = await this.routes.json('POST', '/devices', deviceAnswerSchema)
+    return this.of(device)
+  }
+
+  /**
+   * Pairs the runner that dialed a process on its own and waits under
+   * `code`, the pairing code it printed: the device is made in this core,
+   * and the runner keeps its token.
+   */
+  async claim(code: string): Promise<Device> {
+    const { device } = await this.routes.json('POST', '/devices/claim', deviceAnswerSchema, { code })
     return this.of(device)
   }
 

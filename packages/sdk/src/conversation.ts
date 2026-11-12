@@ -15,6 +15,7 @@ import {
   createConversationClient,
   EMPTY_TRANSCRIPT,
   heldBlocks,
+  reconnectWait,
   resetTranscript,
   type ClientSessionEvent,
   type HeldTranscript,
@@ -74,6 +75,10 @@ export class Conversation {
   private readonly listeners = new Set<(event: ConversationEvent) => void>()
   /** What waits for a change of the transcript or the metadata, and fails once the conversation closes. */
   private readonly changes = new Set<{ changed: () => void; closed: () => void }>()
+  /** Whether the lane is being opened again after it dropped. */
+  private reopening = false
+  /** Whether the lane dropped again while it was being opened again. */
+  private droppedAgain = false
 
   constructor(readonly id: string, private readonly routes: CoreRoutes) {}
 
@@ -104,6 +109,10 @@ export class Conversation {
           return { ...page, version: page.version }
         },
       },
+      // The program follows the root and its agents as a page that shows
+      // the conversation does: a read again after a stale version starts
+      // at once.
+      shows: (node) => node === null || node === this.id,
       conversationFrame: (frame) => {
         const parsed = conversationFrameSchema.safeParse(frame)
         if (!parsed.success) {
@@ -132,6 +141,13 @@ export class Conversation {
 
   private receive(event: ClientSessionEvent): void {
     switch (event.type) {
+      // The lane dropped, as when the program's connection to the process
+      // was made again, or another client closed the tree: it opens again,
+      // as a page's view does, and the agents ran on meanwhile.
+      case 'closed':
+      case 'disconnected':
+        this.reopen()
+        break
       case 'queue':
         this.queued = new Set(event.queue.map((message) => message.id))
         break
@@ -156,6 +172,45 @@ export class Conversation {
     }
     this.emit(event)
     this.changed()
+  }
+
+  /** Opens the lane of the client again until it opens, unless the program closes the conversation first. */
+  private reopen(): void {
+    const client = this.client
+    if (client === null) {
+      return
+    }
+    if (this.reopening) {
+      // The lane dropped again while it opened: the opening goes round once
+      // more, since what it read meanwhile settles without failing.
+      this.droppedAgain = true
+      return
+    }
+    this.reopening = true
+    const opening = (async () => {
+      try {
+        for (let failures = 0; ; failures++) {
+          try {
+            this.droppedAgain = false
+            await client.open({ root: this.id })
+            // What the core restored since is read before the next action.
+            await client.reopened()
+            if (!this.droppedAgain) {
+              return client
+            }
+          } catch (error) {
+            if (this.client !== client) {
+              throw error
+            }
+            await new Promise((resolve) => setTimeout(resolve, reconnectWait(failures)))
+          }
+        }
+      } finally {
+        this.reopening = false
+      }
+    })()
+    this.opening = opening
+    opening.catch(() => {})
   }
 
   private takeMetadata(metadata: ConversationMetadata): void {

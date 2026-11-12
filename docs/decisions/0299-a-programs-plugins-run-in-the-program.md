@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: proposed, superseded in part by 0327
 ---
 
 # A program's plugins run in the program, over a lane of each core's connection

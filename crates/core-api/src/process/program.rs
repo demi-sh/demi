@@ -1,12 +1,13 @@
-//! The program that opened a core, as the core's routes see their caller
+//! The programs that drive a core, as the core's routes see their caller
 //! and as the core sees its starter.
 
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::sync::Arc;
 
 use demi_core::Core;
 use demi_core::starter::{Notified, Reach, Starter};
 use demi_core_device_access::cloud::CloudDevice;
+use demi_core_devices::claims::PendingClaims;
 use demi_core_store::StorageError;
 use demi_core_store::devices::DeviceRecord;
 use demi_core_sync::Part;
@@ -120,22 +121,18 @@ impl CallerPage for ProgramPage {
     fn used(&self) {}
 }
 
-/// What the program gives one of its cores: its notifications go on the
-/// core's starter lane; a program's core runs no Cloud, pairs no runner and
+/// What the programs give one of their cores: its notifications go on the
+/// core's newest starter lane, and an agent pairs the runner waiting under
+/// a code, in a process runners dial; a program's core runs no Cloud and
 /// keeps no record of its own of what the core holds.
 pub(crate) struct ProgramStarter {
-    starter_lane: Arc<StarterLane>,
-    /// Where the program's server forwards the core's routes, under `/api`.
-    public_url: Option<Url>,
-}
-
-impl ProgramStarter {
-    pub(crate) fn new(starter_lane: Arc<StarterLane>, public_url: Option<Url>) -> Self {
-        Self {
-            starter_lane,
-            public_url,
-        }
-    }
+    pub(crate) user: UserId,
+    pub(crate) core: Weak<Core>,
+    pub(crate) starter_lane: Arc<StarterLane>,
+    /// Where the core's routes are reached from outside, under `/api`.
+    pub(crate) public_url: Option<Url>,
+    /// None for a process over stdio, which no runner dials.
+    pub(crate) claims: Option<Arc<PendingClaims>>,
 }
 
 impl Starter for ProgramStarter {
@@ -147,9 +144,13 @@ impl Starter for ProgramStarter {
         false
     }
 
-    fn pair<'a>(&'a self, _: &'a str) -> LocalBoxFuture<'a, Result<DeviceDto, String>> {
-        Box::pin(async {
-            Err("This core pairs no runner: its devices reach it over channels the program gives.".to_owned())
+    fn pair<'a>(&'a self, code: &'a str) -> LocalBoxFuture<'a, Result<DeviceDto, String>> {
+        Box::pin(async move {
+            let Some(claims) = &self.claims else {
+                return Err("This core pairs no runner: its devices reach it over channels the program gives.".to_owned());
+            };
+            let core = self.core.upgrade().ok_or("the core is closing")?;
+            claims.pair(core.store(), &self.user, code).await
         })
     }
 
@@ -190,7 +191,7 @@ impl Starter for ProgramStarter {
         Box::pin(async move { Ok(self.starter_lane.notify(message).await) })
     }
 
-    /// The program is one receiver while its starter lane is open.
+    /// The programs are one receiver while a starter lane is open.
     fn reach(&self) -> LocalBoxFuture<'_, Result<Reach, StorageError>> {
         let open = usize::from(self.starter_lane.is_open());
         Box::pin(async move {

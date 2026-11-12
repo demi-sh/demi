@@ -55,13 +55,15 @@ mime = "0.3"
 percent-encoding = "2"
 serde.workspace = true
 serde_json.workspace = true
+subtle = "2"
 thiserror.workspace = true
-# The program's connection: HTTP/2 over the process's standard input and
-# output, WebSockets by extended CONNECT.
+# A program's connection: HTTP/2 over the process's standard input and
+# output, or over TCP, where runners dial in too with HTTP/1.1; WebSockets by
+# extended CONNECT.
 http-body = "1"
-hyper = { version = "1", features = ["http2", "server"] }
-hyper-util = { version = "0.1", features = ["tokio", "service"] }
-tokio = { workspace = true, features = ["io-std"] }
+hyper = { version = "1", features = ["http1", "http2", "server"] }
+hyper-util = { version = "0.1", features = ["tokio", "service", "server-auto"] }
+tokio = { workspace = true, features = ["io-std", "net", "signal"] }
 tokio-util.workspace = true
 tower = { version = "0.5", features = ["util"] }
 tower-http = { version = "0.6", features = ["trace"] }

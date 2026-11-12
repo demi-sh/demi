@@ -1,8 +1,10 @@
-//! The cores a program's process holds, each in the directory the program
-//! named: the opens and closes the program asks, and the lookups the
-//! process's services and pool make of them.
+//! The cores a process holds, each in the directory a program named: the
+//! opens and closes its programs ask, and the lookups the process's services
+//! and pool make of them.
 //!
-//! A core's slot goes through these phases:
+//! A program that opens a core the process holds already, as one does that
+//! connects again, is answered its id once an open or a close of it under
+//! way ended. A core's slot goes through these phases:
 //!
 //! ```text
 //! Opening -> TakingUp -> Serving -> Closing -> (gone)
@@ -17,9 +19,10 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::ErrorKind;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::{Rc, Weak};
-use std::sync::{Arc, Mutex, MutexGuard, OnceLock, PoisonError};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use axum::http::StatusCode;
 use demi_core::Core;
@@ -29,17 +32,20 @@ use demi_core::services::{CoreServices, MigrationBlobs};
 use demi_core::start_passes::take_up;
 use demi_core::starter::Starter;
 use demi_core_blobs::store::Storage;
+use demi_core_devices::claims::PendingClaims;
 use demi_core_providers::vault::entries::VaultStores;
 use demi_core_store::StorageError;
 use demi_core_store::seal::CoreSecret;
+use demi_core_store::devices::DeviceRecord;
 use demi_core_store::store::{CORE_DATABASE, CoreStore};
+use demi_core_store::tokens::TokenHash;
 use demi_shared_artifacts::{Mode, Permissions, Publication};
 use demi_shared_types::ScheduleId;
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::ids::UserId;
-use demi_plugin_interface::PluginId;
 use demi_web_api_protocol::settings::InstanceMode;
 use futures_util::future::BoxFuture;
+use tokio::sync::Notify;
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -60,18 +66,33 @@ const SECRET: &str = "core-secret";
 /// The cores the process holds, by id.
 pub(crate) struct OpenCores {
     slots: Mutex<HashMap<UserId, Slot>>,
-    /// Where the program's server forwards the process's routes; a core's
-    /// are under `/cores/{id}` of it.
+    /// Held by an open from its look at the slots until it has a slot of
+    /// its own, so two opens of one directory never both make a core.
+    opening: tokio::sync::Mutex<()>,
+    /// Notified as a slot serves or goes, which an open waiting for one
+    /// under way hears, and the process's stop.
+    changed: Notify,
+    /// Set as the process stops, which opens no core any more.
+    stopping: AtomicBool,
+    /// Where the process is reached from outside; a core's routes are
+    /// under `/cores/{id}` of it.
     public_url: Option<Url>,
-    /// The program's plugins, once the services started with them.
-    plugins: OnceLock<Arc<[PluginId]>>,
 }
 
 enum Slot {
     /// Its directory is being opened.
-    Opening,
+    Opening { directory: PathBuf },
     /// Its store is open.
     Held { core: Held, phase: Phase },
+}
+
+impl Slot {
+    fn directory(&self) -> &Path {
+        match self {
+            Self::Opening { directory } => directory,
+            Self::Held { core, .. } => &core.directory,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -86,15 +107,16 @@ enum Phase {
 
 /// What the process holds of an open core.
 struct Held {
+    directory: PathBuf,
     store: CoreStore,
     /// Locked while the core is open; dropping it unlocks the directory.
     _lock: File,
     /// Cancelled as the core closes, which ends the program's page
     /// connections to it.
     closed: CancellationToken,
-    /// What the core asks of the program.
+    /// What the core asks of its programs.
     starter_lane: Arc<StarterLane>,
-    /// The program's plugins' lanes.
+    /// The lanes of the programs' plugins.
     plugin_lanes: Arc<PluginLanes>,
 }
 
@@ -110,15 +132,11 @@ impl OpenCores {
     pub(crate) fn new(public_url: Option<Url>) -> Self {
         Self {
             slots: Mutex::default(),
+            opening: tokio::sync::Mutex::default(),
+            changed: Notify::new(),
+            stopping: AtomicBool::new(false),
             public_url,
-            plugins: OnceLock::new(),
         }
-    }
-
-    /// Fixes the program's plugins, as the services start with them.
-    pub(crate) fn fix_plugins(&self, plugins: Arc<[PluginId]>) {
-        // The services start once.
-        let _ = self.plugins.set(plugins);
     }
 
     fn slots(&self) -> MutexGuard<'_, HashMap<UserId, Slot>> {
@@ -149,7 +167,38 @@ impl OpenCores {
         }
     }
 
-    /// The cores that take the program's calls.
+    /// The plugin lanes of the core `id`, from its take-up to its close.
+    pub(crate) fn plugin_lanes(&self, id: &UserId) -> Option<Arc<PluginLanes>> {
+        match self.slots().get(id) {
+            Some(Slot::Held { core, .. }) => Some(core.plugin_lanes.clone()),
+            _ => None,
+        }
+    }
+
+    /// The cores whose store is open.
+    pub(crate) fn all_held(&self) -> Vec<UserId> {
+        self.slots()
+            .iter()
+            .filter(|(_, slot)| matches!(slot, Slot::Held { .. }))
+            .map(|(id, _)| id.clone())
+            .collect()
+    }
+
+    /// The serving core that holds the device whose runner's token is
+    /// `token`, and the device.
+    pub(crate) async fn device_by_token(&self, token: TokenHash) -> Result<Option<(UserId, DeviceRecord)>, StorageError> {
+        for core in self.all_serving() {
+            let Some(store) = self.store(&core) else {
+                continue;
+            };
+            if let Some(device) = store.device_by_token(token.clone()).await? {
+                return Ok(Some((core, device)));
+            }
+        }
+        Ok(None)
+    }
+
+    /// The cores that take the programs' calls.
     pub(crate) fn all_serving(&self) -> Vec<UserId> {
         self.slots()
             .iter()
@@ -159,10 +208,38 @@ impl OpenCores {
     }
 
     /// Opens the core in `directory`, creating it when the directory is
-    /// absent or empty, and answers its id once it serves.
-    pub(crate) async fn open(&self, directory: &Path, services: &CoreServices, shards: &Shards) -> Result<UserId, ApiError> {
+    /// absent or empty, and answers its id once it serves, with whether this
+    /// open opened it: a core the process holds already is answered once an
+    /// open or a close of it under way ended.
+    pub(crate) async fn open(
+        &self,
+        directory: &Path,
+        services: &CoreServices,
+        shards: &Shards,
+    ) -> Result<(UserId, bool), ApiError> {
         let directory = std::path::absolute(directory).map_err(|error| ApiError::invalid_body(error.to_string()))?;
         tokio::fs::create_dir_all(&directory).await.map_err(internal)?;
+        // One directory under two names is one core.
+        let directory = tokio::fs::canonicalize(&directory).await.map_err(internal)?;
+        let opening = loop {
+            let opening = self.opening.lock().await;
+            if self.stopping.load(Ordering::Acquire) {
+                return Err(ApiError::backend_closing());
+            }
+            let changed = self.changed.notified();
+            let held = self.slots().iter().find(|(_, slot)| slot.directory() == directory).map(|(id, slot)| {
+                let serving = matches!(slot, Slot::Held { phase: Phase::Serving, .. });
+                (id.clone(), serving)
+            });
+            match held {
+                Some((id, true)) => return Ok((id, false)),
+                Some((_, false)) => {
+                    drop(opening);
+                    changed.await;
+                }
+                None => break opening,
+            }
+        };
         let principal = directory.join(PRINCIPAL);
         if !tokio::fs::try_exists(&principal).await.map_err(internal)? {
             refuse_unless_empty(&directory).await?;
@@ -177,14 +254,19 @@ impl OpenCores {
         };
         {
             let mut slots = self.slots();
+            // A copy of a directory the process holds names the same core.
             if slots.contains_key(&id) {
                 return Err(already_open());
             }
-            slots.insert(id.clone(), Slot::Opening);
+            slots.insert(id.clone(), Slot::Opening { directory: directory.clone() });
         }
+        drop(opening);
         let opened = self.take_up(&id, &directory, lock, services, shards).await;
         match opened {
-            Ok(()) => Ok(id),
+            Ok(()) => {
+                self.changed.notify_waiters();
+                Ok((id, true))
+            }
             Err(error) => {
                 self.discard(&id, services, shards).await;
                 Err(error)
@@ -221,11 +303,12 @@ impl OpenCores {
             id.clone(),
             Slot::Held {
                 core: Held {
+                    directory: directory.to_owned(),
                     store: store.clone(),
                     _lock: lock,
                     closed: CancellationToken::new(),
                     starter_lane: Arc::default(),
-                    plugin_lanes: Arc::new(PluginLanes::new(self.plugins.get().cloned().unwrap_or_default())),
+                    plugin_lanes: Arc::default(),
                 },
                 phase: Phase::TakingUp,
             },
@@ -240,7 +323,7 @@ impl OpenCores {
         Ok(())
     }
 
-    /// Closes the serving core `id`: ends the program's connections to it,
+    /// Closes the serving core `id`: ends the programs' connections to it,
     /// closes it as the server's stop closes each core, then its store, and
     /// unlocks its directory.
     pub(crate) async fn close(&self, id: &UserId, services: &CoreServices, shards: &Shards) -> Result<(), ApiError> {
@@ -260,11 +343,24 @@ impl OpenCores {
         Ok(())
     }
 
-    /// Closes every serving core, as the program's connection ends.
+    /// Closes every core, as the process ends: an open under way serves
+    /// first, and a close under way ends, and no core opens afterwards.
     pub(crate) async fn close_all(&self, services: &CoreServices, shards: &Shards) {
-        for id in self.all_serving() {
-            // A core another close took meanwhile is that close's.
-            let _ = self.close(&id, services, shards).await;
+        {
+            // An open past this look sees the stop.
+            let _opening = self.opening.lock().await;
+            self.stopping.store(true, Ordering::Release);
+        }
+        loop {
+            let changed = self.changed.notified();
+            for id in self.all_serving() {
+                // A core another close took meanwhile is that close's.
+                let _ = self.close(&id, services, shards).await;
+            }
+            if self.slots().is_empty() {
+                return;
+            }
+            changed.await;
         }
     }
 
@@ -289,6 +385,7 @@ impl OpenCores {
         }
         // Dropping the slot unlocks the directory.
         self.slots().remove(id);
+        self.changed.notify_waiters();
     }
 }
 
@@ -360,7 +457,7 @@ fn already_open() -> ApiError {
     ApiError::new(
         StatusCode::CONFLICT,
         ErrorCode::CoreOpen,
-        "A process has this core open already",
+        "Another process has this core open",
     )
 }
 
@@ -414,24 +511,35 @@ impl ScheduleOwners for OpenCores {
 }
 
 /// What the process gives its pool: the store of each core it holds, and
-/// the program's starter.
-pub(crate) struct ProcessOpener(pub(crate) Arc<OpenCores>);
+/// the programs' starter.
+pub(crate) struct ProcessOpener {
+    pub(crate) cores: Arc<OpenCores>,
+    /// The runners waiting to be paired, which an agent's `demi device pair`
+    /// claims; none for a process over stdio, which no runner dials.
+    pub(crate) claims: Option<Arc<PendingClaims>>,
+}
 
 impl Opener for ProcessOpener {
     fn store<'a>(&'a self, user: &'a UserId) -> BoxFuture<'a, Result<Option<CoreStore>, StorageError>> {
-        Box::pin(async move { Ok(self.0.store(user)) })
+        Box::pin(async move { Ok(self.cores.store(user)) })
     }
 
-    fn starter(&self, user: &UserId, _: Weak<Core>) -> Rc<dyn Starter> {
-        let starter_lane = match self.0.slots().get(user) {
+    fn starter(&self, user: &UserId, core: Weak<Core>) -> Rc<dyn Starter> {
+        let starter_lane = match self.cores.slots().get(user) {
             Some(Slot::Held { core, .. }) => core.starter_lane.clone(),
             // The pool starts only a core whose store it found.
             _ => Arc::default(),
         };
-        let public_url = self.0.public_url.as_ref().and_then(|url| {
+        let public_url = self.cores.public_url.as_ref().and_then(|url| {
             format!("{}/cores/{user}", url.as_str().trim_end_matches('/')).parse().ok()
         });
-        Rc::new(ProgramStarter::new(starter_lane, public_url))
+        Rc::new(ProgramStarter {
+            user: user.clone(),
+            core,
+            starter_lane,
+            public_url,
+            claims: self.claims.clone(),
+        })
     }
 
     fn extensions(&self, _: &UserId) -> Extensions {

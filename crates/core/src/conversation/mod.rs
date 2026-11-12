@@ -54,7 +54,9 @@ use std::sync::Arc;
 
 use demi_agent_server::{AgentServer, ServerConfig, ServerDeps, TreeStores};
 use demi_agent_store::AgentTreeStore;
-use demi_agent_tools::ContextSource;
+use demi_agent_tools::{ContextSource, ContextSources};
+use demi_plugin_host::{Plugins, Registry};
+use std::cell::RefCell;
 use instructions::Instructions;
 use demi_agent_transcript::RandomIds;
 use demi_agent_store::media::BlobStore;
@@ -217,24 +219,47 @@ pub(crate) fn conversation_parts(
     ConversationParts { agent, titles, suggested_replies }
 }
 
-/// The context sources a node asks before each provider request, in order:
-/// the product's execution context, the instructions, the side questions,
-/// then each plugin that is one, in registration order.
-fn context_sources(core: &Weak<Core>, services: &CoreServices) -> Rc<[Rc<dyn ContextSource>]> {
-    let execution = Rc::new(ExecutionContext {
+/// The context sources a node asks before each provider request.
+fn context_sources(core: &Weak<Core>, services: &CoreServices) -> Rc<dyn ContextSources> {
+    Rc::new(CoreContexts {
         core: core.clone(),
-    }) as Rc<dyn ContextSource>;
-    let instructions = Rc::new(Instructions::new(core.clone())) as Rc<dyn ContextSource>;
-    let side_questions = Rc::new(side_questions::Told::new(core.clone())) as Rc<dyn ContextSource>;
-    let plugins = services
-        .plugins
-        .context_sources()
-        .into_iter()
-        .map(|plugin| {
+        product: [
+            Rc::new(ExecutionContext { core: core.clone() }),
+            Rc::new(Instructions::new(core.clone())),
+            Rc::new(side_questions::Told::new(core.clone())),
+        ],
+        plugins: services.plugins.clone(),
+        made: RefCell::new(None),
+    })
+}
+
+/// The context sources, in order: the product's execution context, the
+/// instructions, the side questions, then each plugin that is one, in
+/// registration order, as the program's plugins are now.
+struct CoreContexts {
+    core: Weak<Core>,
+    product: [Rc<dyn ContextSource>; 3],
+    plugins: Arc<Plugins>,
+    /// The sources of the registry they were made of last.
+    made: RefCell<Option<(Arc<Registry>, Rc<[Rc<dyn ContextSource>]>)>>,
+}
+
+impl ContextSources for CoreContexts {
+    fn sources(&self) -> Rc<[Rc<dyn ContextSource>]> {
+        let registry = self.plugins.current();
+        if let Some((of, sources)) = &*self.made.borrow()
+            && Arc::ptr_eq(of, &registry)
+        {
+            return sources.clone();
+        }
+        let plugins = registry.context_sources().into_iter().map(|plugin| {
             Rc::new(PluginContext {
-                core: core.clone(),
+                core: self.core.clone(),
                 plugin,
             }) as Rc<dyn ContextSource>
         });
-    [execution, instructions, side_questions].into_iter().chain(plugins).collect()
+        let sources: Rc<[Rc<dyn ContextSource>]> = self.product.iter().cloned().chain(plugins).collect();
+        self.made.replace(Some((registry, sources.clone())));
+        sources
+    }
 }

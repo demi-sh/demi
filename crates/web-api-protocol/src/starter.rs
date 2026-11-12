@@ -1,4 +1,4 @@
-//! The starter lane: what a program's core asks of the program that opened
+//! The starter lane: what a program's core asks of a program that drives
 //! it, on the program's page connection to the core, and the program's
 //! answers.
 //!
@@ -8,8 +8,8 @@
 //!                                   <------- {"type":"shown","id":1}
 //! ```
 //!
-//! One starter lane is open for a core at a time. While none is, the core's
-//! notifications reach no one.
+//! Several programs may each open one: a notification goes on the newest.
+//! While none is open, the core's notifications reach no one.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

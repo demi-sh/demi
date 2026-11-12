@@ -18,6 +18,7 @@ use std::collections::HashMap;
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::StorageError;
+use super::tokens::TokenHash;
 use super::columns::{decode, instant, json, to_json};
 use super::store::CoreStore;
 use super::conversation_index::{TargetColumns, raise_devices_revision};
@@ -239,23 +240,27 @@ impl CoreStore {
         .await
     }
 
-    /// Stores a device the user paired, as `id`.
+    /// Stores a device the user paired, as `id`; `token` is its runner's
+    /// token when the core finds its device by it
+    /// ([`CoreStore::device_by_token`]).
     pub async fn create_device(
         &self,
         id: DeviceId,
         name: String,
         platform: RunnerPlatform,
+        token: Option<TokenHash>,
     ) -> Result<DeviceRecord, StorageError> {
         self.call(move |connection, now| {
             connection.execute(
-                "INSERT INTO devices (id, kind, name, platform, claimed_at, last_seen_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, NULL)",
+                "INSERT INTO devices (id, kind, name, platform, claimed_at, last_seen_at, token_hash)
+                 VALUES (?1, ?2, ?3, ?4, ?5, NULL, ?6)",
                 params![
                     id.as_str(),
                     DeviceKind::User.to_string(),
                     name,
                     platform.to_string(),
-                    now.as_millisecond()
+                    now.as_millisecond(),
+                    token.as_ref().map(TokenHash::as_str)
                 ],
             )?;
             Ok(DeviceRecord {
@@ -283,6 +288,12 @@ impl CoreStore {
 
     pub async fn device(&self, id: DeviceId) -> Result<Option<DeviceRecord>, StorageError> {
         self.call(move |connection, _| one(connection, "id = ?1", id.as_str()))
+            .await
+    }
+
+    /// The device whose runner's token is `token`, as its creation kept it.
+    pub async fn device_by_token(&self, token: TokenHash) -> Result<Option<DeviceRecord>, StorageError> {
+        self.call(move |connection, _| one(connection, "token_hash = ?1", token.as_str()))
             .await
     }
 

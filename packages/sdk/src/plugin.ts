@@ -7,6 +7,7 @@
  * ```text
  * core                                       program
  *   { request: 7, call: { type: "command", invocation } } ---->  run(input, call)
+ *     (or, on a lane opened later, the same with resent: true)
  *        <---- { request: 7, port: 1, message: { type: "rpc", request: stdout } }
  *   { request: 7, port: 1, answer: { type: "rpc", ... } } ---->
  *        <---- { request: 7, reply: { type: "exit", code: 0 } }
@@ -214,6 +215,17 @@ export class PortFailure extends Error {
 
 /** What a request asks of Demi through its port: any port message, answered. */
 export interface PluginPort {
+  /**
+   * The request's number, which no other request of the process ever
+   * takes: the plugin makes its work idempotent by it.
+   */
+  readonly request: number
+  /**
+   * The request went to a lane of the plugin before, which closed, as when
+   * the program restarted: the same request, whose work the plugin may
+   * have done or begun under its number.
+   */
+  readonly resent: boolean
   /** Asks `message` of Demi, as `PluginPort` in Rust does, and answers its answer. */
   ask(message: PortMessage): Promise<PortAnswer>
   /** Aborted once the request is stopped. */
@@ -278,7 +290,7 @@ export function servePlugin(plugin: Plugin, lane: PluginLane, failed: (error: Er
       const request: Pending = { answers: new Map(), nextPort: 1, stop: new AbortController(), over: false }
       pending.set(message.request, request)
       const number = message.request
-      void answer(plugin.definition, message.call, portOf(number, request, send)).then(
+      void answer(plugin.definition, message.call, portOf(number, message.resent ?? false, request, send)).then(
         (reply) => {
           // A reply the core cannot read, as an exit status of 256, would
           // end the lane, and every request on it with it.
@@ -322,8 +334,10 @@ export function servePlugin(plugin: Plugin, lane: PluginLane, failed: (error: Er
 }
 
 /** The port of the request `number`. */
-function portOf(number: number, request: Pending, send: (message: PluginMessage) => void): PluginPort {
+function portOf(number: number, resent: boolean, request: Pending, send: (message: PluginMessage) => void): PluginPort {
   return {
+    request: number,
+    resent,
     signal: request.stop.signal,
     ask: (message) => new Promise<PortAnswer>((resolve, reject) => {
       if (request.over) {

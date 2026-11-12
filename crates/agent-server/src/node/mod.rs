@@ -62,7 +62,7 @@ use demi_agent_store::{
     media::store_result,
 };
 use demi_agent_tools::{
-    CallError, ContextSource, EndOf, Environments, DeviceResolver, ModelIdentity, NodeContext, OwnPlacement,
+    CallError, ContextSources, EndOf, Environments, DeviceResolver, ModelIdentity, NodeContext, OwnPlacement,
     ShellAccess, ShellEnvironmentFactory, Stopper, StoreNumbers, definitions, end_report,
     fill_output, interrupted_look, progress_report, report_media, runs_together, stored_running_commands,
     system_prompt, whole_status,
@@ -534,7 +534,7 @@ pub(crate) struct NodeRuntime<H: DeviceResolver> {
     /// A child's identity, the text before each of its user turns.
     preamble: Option<String>,
     /// The product's context sources, in their order.
-    context: Rc<[Rc<dyn ContextSource>]>,
+    context: Rc<dyn ContextSources>,
     inherited: RefCell<Rc<CommandSet>>,
     commands: RefCell<Rc<CommandSet>>,
     admission: ActivityGate,
@@ -884,7 +884,8 @@ impl<H: DeviceResolver> SessionRuntime for NodeRuntime<H> {
             let placement = self.record.borrow().placement.clone();
             let device = self.device_elsewhere().await;
             let node = self.context_in(placement.as_ref());
-            let asked = self.context.iter().map(|source| async move {
+            let sources = self.context.sources();
+            let asked = sources.iter().map(|source| async move {
                 let name = source.name();
                 let own: Vec<&str> = seen
                     .iter()
@@ -1259,7 +1260,7 @@ pub(crate) struct NodeSpec<H: DeviceResolver> {
     pub(crate) guide: Rc<str>,
     /// A child's identity, the text before each of its user turns.
     pub(crate) preamble: Option<String>,
-    pub(crate) context: Rc<[Rc<dyn ContextSource>]>,
+    pub(crate) context: Rc<dyn ContextSources>,
     /// The product's commands before the `demi agent` graft: what the
     /// node's own children inherit.
     pub(crate) inherited: Rc<CommandSet>,

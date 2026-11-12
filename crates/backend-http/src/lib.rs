@@ -33,7 +33,6 @@ mod install;
 mod lending;
 mod listener;
 mod manage;
-mod pairing;
 mod passkeys;
 mod push;
 mod runner_socket;
@@ -455,7 +454,6 @@ fn router(state: AppState, closing: CancellationToken, web_directory: Option<Pat
         )
         .route("/cloud", get(cloud::status))
         .route("/cloud/reset", post(cloud::reset))
-        .route("/devices/claim", post(pairing::claim))
         .merge(demi_core_api::routes().with_state(state.api.clone()))
         // The reads' caching (`revalidate.rs`): the routes' answers only.
         .layer(middleware::from_fn(demi_core_api::revalidate::reads))

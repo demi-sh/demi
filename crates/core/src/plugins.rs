@@ -404,6 +404,36 @@ impl Core {
         Ok(())
     }
 
+    /// Takes the program's plugins as they are now, after it declared or
+    /// removed one of its own (`UserPlugins::adopt`): every live tree takes
+    /// the commands of the plugins now on, and its summary is marked, as
+    /// [`Self::switch_plugin`] does; a removed plugin's packages stop as a
+    /// plugin turned off does.
+    pub async fn adopt_plugins(&self) {
+        let adopted = match self.plugins().adopt().await {
+            Ok(Some(adopted)) => adopted,
+            Ok(None) => return,
+            Err(error) => {
+                tracing::error!(event = "plugins.adopt_failed", error = &error as &dyn std::error::Error, "the core could not take the program's plugins");
+                return;
+            }
+        };
+        if let Err(error) = self.agent().adopt_toolset().await {
+            tracing::error!(event = "plugin_commands.adopt_failed", %error, "the open conversations could not take the plugins' commands");
+        }
+        if !adopted.released.is_empty() {
+            self.device_core().release_packages(&adopted.released).await;
+        }
+        // A plugin declared anew searches anew.
+        self.project_files()
+            .plugins
+            .forget(|(kept, _)| adopted.changed.contains(kept));
+        let marks = self.services().sync.of(self.user());
+        for root in self.agent().live_roots() {
+            marks.mark(Part::Metadata(demi_core_device_access::conversation_of(&root)));
+        }
+    }
+
     /// Turns `plugin`'s `feature` on or off for the user: every live tree
     /// takes the narrowed commands, and its summary is marked, as
     /// [`Self::switch_plugin`] does.

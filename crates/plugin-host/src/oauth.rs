@@ -56,22 +56,21 @@ const VENDOR_DEADLINE: std::time::Duration = std::time::Duration::from_secs(30);
 const VENDOR_BODY_BYTES: u64 = 1024 * 1024;
 
 /// The sign-ins the user started and the turns of each plugin's renewals.
+#[derive(Default)]
 pub(crate) struct SignIns {
     /// The sign-ins waiting for their callback, by `state`.
     pending: std::cell::RefCell<HashMap<String, Pending>>,
-    /// Each plugin's turn, by its index: its renewals, sign-outs and stores
-    /// of new tokens take turns within the core, so two token calls spend
-    /// a refresh token once. A renewal holds its turn to its end, apart
-    /// from the call that started it.
-    turns: Vec<Arc<tokio::sync::Mutex<()>>>,
+    /// Each plugin's turn, by its index, once it took one: its renewals,
+    /// sign-outs and stores of new tokens take turns within the core, so
+    /// two token calls spend a refresh token once. A renewal holds its turn
+    /// to its end, apart from the call that started it.
+    turns: std::cell::RefCell<HashMap<usize, Arc<tokio::sync::Mutex<()>>>>,
 }
 
 impl SignIns {
-    pub(crate) fn new(plugins: usize) -> Self {
-        Self {
-            pending: std::cell::RefCell::default(),
-            turns: (0..plugins).map(|_| Arc::default()).collect(),
-        }
+    /// Plugin `plugin`'s turn.
+    fn turn(&self, plugin: usize) -> Arc<tokio::sync::Mutex<()>> {
+        self.turns.borrow_mut().entry(plugin).or_default().clone()
     }
 }
 
@@ -175,12 +174,12 @@ fn unknown_client(refusal: &TokenRefusal) -> bool {
 }
 
 impl Shared {
-    fn oauth(&self, plugin: usize) -> Result<&OAuth, PortFailure> {
-        self.registry.plugins[plugin]
+    fn oauth(&self, plugin: usize) -> Result<OAuth, PortFailure> {
+        self.registry().plugins[plugin]
             .factory
             .manifest()
             .oauth
-            .as_ref()
+            .clone()
             .ok_or_else(|| PortError::Failed("the plugin declares no OAuth sign-in".into()).into())
     }
 
@@ -191,7 +190,8 @@ impl Shared {
         request: WebRequest,
         cancel: &CancellationToken,
     ) -> Result<WebResponse, PortFailure> {
-        let id = self.registry.plugins[plugin].id();
+        let registry = self.registry();
+        let id = registry.plugins[plugin].id();
         web::send(&self.product.web_client(), id, request, cancel).await
     }
 
@@ -326,7 +326,7 @@ impl Shared {
         plugin: usize,
         cancel: &CancellationToken,
     ) -> Result<String, PortFailure> {
-        let oauth = self.oauth(plugin)?;
+        let oauth = &self.oauth(plugin)?;
         let metadata = self.metadata(plugin, oauth, cancel).await?;
         let redirect_uri = self.redirect_uri(plugin)?;
         let client_id = self
@@ -376,7 +376,7 @@ impl Shared {
         cancel: &CancellationToken,
     ) -> Result<String, CallbackError> {
         let id = self.plugin_id(plugin);
-        let oauth = self
+        let oauth = &self
             .oauth(plugin)
             .map_err(|_| CallbackError::UnknownPlugin(id.clone()))?;
         let name = oauth.vendor.clone();
@@ -425,7 +425,8 @@ impl Shared {
             }
         };
         let tokens = self.tokens(pending.client_id, issued, None);
-        let _turn = self.sign_ins.turns[plugin].lock().await;
+        let turn = self.sign_ins.turn(plugin);
+        let _turn = turn.lock().await;
         // A new sign-in replaces whatever the user had.
         loop {
             let revision = self
@@ -462,7 +463,7 @@ impl Shared {
         cancel: &CancellationToken,
     ) -> Result<String, PortFailure> {
         self.oauth(plugin)?;
-        let turn = self.sign_ins.turns[plugin].clone().lock_owned().await;
+        let turn = self.sign_ins.turn(plugin).lock_owned().await;
         let Some((tokens, revision)) = self.stored_tokens(plugin).await? else {
             return Err(PortFailure::Refused(PortRefusal::SignedOut));
         };
@@ -522,7 +523,7 @@ impl Shared {
         revision: u64,
         by: &'static str,
     ) -> Result<String, PortFailure> {
-        let oauth = self.oauth(plugin)?;
+        let oauth = &self.oauth(plugin)?;
         // Nothing cancels a renewal: each call to the vendor ends by its
         // deadline.
         let cancel = CancellationToken::new();
@@ -635,8 +636,9 @@ impl Shared {
         plugin: usize,
         cancel: &CancellationToken,
     ) -> Result<(), PortFailure> {
-        let oauth = self.oauth(plugin)?;
-        let _turn = self.sign_ins.turns[plugin].lock().await;
+        let oauth = &self.oauth(plugin)?;
+        let turn = self.sign_ins.turn(plugin);
+        let _turn = turn.lock().await;
         let tokens = loop {
             let Some((tokens, revision)) = self.stored_tokens(plugin).await? else {
                 return Ok(());

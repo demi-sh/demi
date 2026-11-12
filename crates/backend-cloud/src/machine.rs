@@ -39,7 +39,7 @@ use demi_core_store::devices::{DeviceRecord, ManagedMachine};
 use demi_backend_database::managed::ManagedOperation;
 use demi_core_sync::{Part, UserMarks};
 use demi_runner_client::Admission;
-use demi_backend_runners::codes::new_device_token;
+use demi_core_devices::codes::new_device_token;
 use demi_device_interface::{DeviceError, DeviceErrorKind};
 use demi_backend_database::control::ControlService;
 use demi_machine_manager_protocol::{

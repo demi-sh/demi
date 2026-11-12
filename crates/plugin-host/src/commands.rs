@@ -55,7 +55,7 @@ pub(crate) fn compose(
         set.register(root)
             .expect("the product's groups are a valid `demi` root");
     }
-    for (index, registered) in registry.plugins.iter().enumerate() {
+    for (index, registered) in registry.present() {
         if !include(index) {
             continue;
         }

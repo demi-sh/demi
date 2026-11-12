@@ -12,7 +12,6 @@ use demi_core_store::store::CoreStore;
 use demi_core_device_access::cloud::CloudDevice;
 use demi_core_store::StorageError;
 use demi_core_store::devices::DeviceRecord;
-use demi_backend_runners::claims::ClaimRefusal;
 use demi_backend_runners::install::install_commands;
 use demi_provider_registry::entry::ProviderEntry;
 use demi_runner_client::DeviceLog;
@@ -121,16 +120,7 @@ impl Starter for ServerStarter {
     fn pair<'a>(&'a self, code: &'a str) -> LocalBoxFuture<'a, Result<DeviceDto, String>> {
         Box::pin(async move {
             let core = self.core.upgrade().ok_or("the core is closing")?;
-            match self.services.claims.claim(core.store(), &self.user, code).await {
-                Ok(device) => Ok(device),
-                Err(ClaimRefusal::UnknownCode) => Err(format!(
-                    "{code}: no computer waits under this pairing code; it expired or was never issued. The installer shows a new code when one expires: read the newest one it shows and pass that."
-                )),
-                Err(ClaimRefusal::TooManyAttempts) => Err(
-                    "Too many pairing codes were tried in the last minute; wait a minute, then pass the newest code the installer shows.".into(),
-                ),
-                Err(ClaimRefusal::Storage(error)) => Err(error.to_string()),
-            }
+            self.services.claims.pair(core.store(), &self.user, code).await
         })
     }
 

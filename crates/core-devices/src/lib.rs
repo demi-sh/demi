@@ -9,6 +9,7 @@
 //! - The command context work carries.
 //! - The file listings and text the product reads from a device.
 //! - The address runners reach the core at.
+//! - Pairing, with its pending claims and codes.
 //!
 //! A device handle a conversation owns is given out only against that
 //! conversation's file-gate lease: `Devices::conversation_device` takes a
@@ -19,10 +20,11 @@
 //!
 //! The file gate is a `shared-gates` gate, which is why the crate depends on
 //! `shared-gates`. The crate reaches a conversation's device only through device
-//! access and knows no conversations or Cloud. How a runner is paired, the
-//! installers and the releases its runner downloads are the server's
-//! (`backend-runners`).
+//! access and knows no conversations or Cloud. The installers and the
+//! releases a runner downloads are the server's (`backend-runners`).
 
+pub mod claims;
+pub mod codes;
 pub mod command_context;
 pub mod devices;
 pub mod file_gate;

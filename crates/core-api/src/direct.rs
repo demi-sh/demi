@@ -336,7 +336,7 @@ impl Signaling {
         let device = self.device.clone();
         let peer = self.id(which).to_owned();
         let live = which == DirectPeer::Live;
-        let streams = self.state.services.user_streams.clone();
+        let streams = self.state.services.user_streams();
         let stun = self.state.services.stun.clone();
         let Reported {
             locale,

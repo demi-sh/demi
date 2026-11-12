@@ -52,9 +52,9 @@ mod web;
 pub use oauth::{Callback, CallbackError};
 pub use web::client as web_client;
 pub use features::FeatureError;
-pub use registry::{Registry, RegistryError};
+pub use registry::{Plugins, Registry, RegistryError};
 pub use user::{
-    ReadOn,
+    Adopted, ReadOn,
     ContextAsk, Lost, MediaCall, PageCall, PageCallError, WorkError, PluginToolset, ProductPort,
     SwitchError, Switched, UserPlugins, VideoJob,
 };

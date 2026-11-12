@@ -23,6 +23,10 @@ demi-web-api-protocol = { path = "../web-api-protocol" }
 # A runner's connection is the WebSocket the edge upgraded.
 axum = { version = "0.8", features = ["ws"] }
 bytes.workspace = true
+# Pairing codes, in Crockford's base32, and device tokens.
+data-encoding = "2"
+hex = "0.4"
+rand = "0.9"
 futures-util.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

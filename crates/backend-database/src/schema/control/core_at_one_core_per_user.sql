@@ -86,10 +86,17 @@ CREATE TABLE devices (
   hardware TEXT,
   -- What Demi keeps on it, as its runner last measured, JSON, the web
   -- contract's `DeviceStorageReport`; none before its runner first measured.
-  storage TEXT
+  storage TEXT,
+  -- The SHA-256 of its runner's token, in lowercase hexadecimal, when the
+  -- core finds the device of a runner that dials it, as a program's process
+  -- does; none when a server's control database finds it, or a channel
+  -- names it.
+  token_hash TEXT
 ) STRICT;
 
 CREATE UNIQUE INDEX devices_one_machine ON devices (machine) WHERE kind = 'managed';
+
+CREATE UNIQUE INDEX devices_token_hash ON devices (token_hash) WHERE token_hash IS NOT NULL;
 
 CREATE TABLE workspaces (
   id         TEXT PRIMARY KEY,

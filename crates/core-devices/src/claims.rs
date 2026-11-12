@@ -1,9 +1,15 @@
-//! Runners waiting to be paired (`crates/backend-http/src/runner_socket.rs`).
+//! Runners waiting to be paired (`crates/core-api/src/runner_socket.rs`), as
+//! a server and a program's process pair them.
 //!
 //! An unpaired runner has no user yet, so it waits at the edge, under the code
-//! it printed, until a signed-in user claims that code. The claim creates the
-//! device and hands the waiting runner its token, and the runner's socket moves
-//! into the user's core. Each user may try ten codes a minute.
+//! it printed, until a signed-in user or a program claims that code for a
+//! core. The claim creates the device and hands the waiting runner its token,
+//! and the runner's socket moves into the core. Each principal may try ten
+//! codes a minute.
+//!
+//! Where the token is kept, which finds the device when its runner connects
+//! again, is the pairing's owner's ([`DeviceTokens`]): a server's control
+//! database, or the device's record in a process's core.
 //!
 //! An agent pairs a computer it reaches without the user typing the code (`demi
 //! device pair`): the code is proof enough, since it reaches only the runner's
@@ -15,27 +21,67 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use demi_core_store::StorageError;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_database::control::ControlService;
-use demi_core_store::store::CoreStore;
 use demi_core_store::devices::{DeviceRecord, new_device_id};
+use demi_core_store::store::CoreStore;
+use demi_core_store::tokens::TokenHash;
 use demi_runner_protocol::values::DeviceToken;
 use demi_runner_protocol::wire::RunnerInfo;
 use demi_web_api_protocol::devices::DeviceDto;
-use demi_web_api_protocol::ids::UserId;
+use demi_web_api_protocol::ids::{DeviceId, UserId};
+use futures_util::future::BoxFuture;
 use tokio::sync::oneshot;
 
 use demi_shared_gates::RateWindow;
 
 use crate::codes::{ClaimCode, new_device_token};
 
+/// Where a paired device's token is kept, which finds the device when its
+/// runner connects again.
+pub trait DeviceTokens: Send + Sync {
+    /// Makes `runner`'s device `id` in `owner`'s core, `store`, which the
+    /// token whose hash is `token` finds from then on.
+    fn create<'a>(
+        &'a self,
+        store: &'a CoreStore,
+        owner: &'a UserId,
+        id: DeviceId,
+        runner: &'a RunnerInfo,
+        token: TokenHash,
+    ) -> BoxFuture<'a, Result<DeviceRecord, StorageError>>;
+
+    /// Unmakes the device `id` that [`Self::create`] made, whose runner went
+    /// away before it held its token.
+    fn delete<'a>(&'a self, store: &'a CoreStore, id: DeviceId) -> BoxFuture<'a, Result<(), StorageError>>;
+}
+
+/// The tokens a program's process keeps: each in its device's record, which
+/// the process finds among its open cores.
+pub struct RecordedTokens;
+
+impl DeviceTokens for RecordedTokens {
+    fn create<'a>(
+        &'a self,
+        store: &'a CoreStore,
+        _: &'a UserId,
+        id: DeviceId,
+        runner: &'a RunnerInfo,
+        token: TokenHash,
+    ) -> BoxFuture<'a, Result<DeviceRecord, StorageError>> {
+        Box::pin(store.create_device(id, runner.name.clone(), runner.platform, Some(token)))
+    }
+
+    fn delete<'a>(&'a self, store: &'a CoreStore, id: DeviceId) -> BoxFuture<'a, Result<(), StorageError>> {
+        Box::pin(async move { store.delete_device(id).await.map(|_| ()) })
+    }
+}
+
 /// The window claim attempts are counted in. Attempts are limited because a
 /// pairing code is short, and unlimited tries would let a user guess one.
 const ATTEMPT_WINDOW: Duration = Duration::from_secs(60);
 
-/// The runners waiting to be paired, and each user's recent claims.
+/// The runners waiting to be paired, and each principal's recent claims.
 pub struct PendingClaims {
-    control: ControlService,
+    tokens: Box<dyn DeviceTokens>,
     /// A `std` mutex: the edge's threads share the waiting runners, and no
     /// section awaits.
     state: Mutex<State>,
@@ -85,9 +131,9 @@ pub struct ClaimGrant {
 }
 
 impl PendingClaims {
-    pub fn new(control: ControlService, attempts_per_minute: usize) -> Self {
+    pub fn new(tokens: impl DeviceTokens + 'static, attempts_per_minute: usize) -> Self {
         Self {
-            control,
+            tokens: Box::new(tokens),
             state: Mutex::default(),
             attempts: RateWindow::new(attempts_per_minute, ATTEMPT_WINDOW),
         }
@@ -118,30 +164,33 @@ impl PendingClaims {
             .ok_or(ClaimRefusal::UnknownCode)?;
         let token = new_device_token();
         let id = new_device_id();
-        // The routing row comes first: a device is never one no request
-        // reaches.
-        self.control
-            .record_device_owner(id.clone(), user.clone(), Some(TokenHash::of(token.expose())))
+        let device = self
+            .tokens
+            .create(store, user, id.clone(), &pending.runner, TokenHash::of(token.expose()))
             .await?;
-        let device = match store
-            .create_device(id.clone(), pending.runner.name.clone(), pending.runner.platform)
-            .await
-        {
-            Ok(device) => device,
-            Err(error) => {
-                self.control.forget_device_owner(id).await?;
-                return Err(error.into());
-            }
-        };
         match pending.grant(user.clone(), device, token).await {
             Ok(device) => Ok(device),
             Err(_) => {
                 // The runner went away before it held its token: the device
                 // it would have been goes too.
-                store.delete_device(id.clone()).await?;
-                self.control.forget_device_owner(id).await?;
+                self.tokens.delete(store, id).await?;
                 Err(ClaimRefusal::UnknownCode)
             }
+        }
+    }
+
+    /// [`Self::claim`] for an agent's `demi device pair`, whose refusal tells
+    /// the agent what to do next.
+    pub async fn pair(&self, store: &CoreStore, user: &UserId, code: &str) -> Result<DeviceDto, String> {
+        match self.claim(store, user, code).await {
+            Ok(device) => Ok(device),
+            Err(ClaimRefusal::UnknownCode) => Err(format!(
+                "{code}: no computer waits under this pairing code; it expired or was never issued. The installer shows a new code when one expires: read the newest one it shows and pass that."
+            )),
+            Err(ClaimRefusal::TooManyAttempts) => Err(
+                "Too many pairing codes were tried in the last minute; wait a minute, then pass the newest code the installer shows.".into(),
+            ),
+            Err(ClaimRefusal::Storage(error)) => Err(error.to_string()),
         }
     }
 
@@ -155,8 +204,8 @@ impl PendingClaims {
         })
     }
 
-    /// Puts `runner` up for claiming under `code`; none once the backend is
-    /// shutting down.
+    /// Puts `runner` up for claiming under `code`; none once the server or
+    /// the process stops.
     pub fn wait(
         &self,
         code: ClaimCode,

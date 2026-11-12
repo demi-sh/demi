@@ -1,7 +1,8 @@
 /**
  * The process a program runs Demi's cores in, `demi-core`, and the HTTP/2
- * connection the SDK speaks to it on its standard input and output
- * (`crates/core-api/src/process/mod.rs`).
+ * connection the SDK speaks to it: on the standard input and output of one
+ * the program started, or over TCP to one that runs on its own, `demi-core
+ * serve`, with its token (`crates/core-api/src/process/mod.rs`).
  *
  * ```text
  * program                          demi-core
@@ -12,10 +13,16 @@
  *           d/runner, h2c) -----------> a runner's channel
  * ```
  *
- * The process logs to its standard error, which goes to the program's. Its
- * connection's end closes every core, and the process exits.
+ * A process the program started logs to its standard error, which goes to
+ * the program's; its connection's end closes every core, and the process
+ * exits. A connection to a process on its own that drops is made again at
+ * the next request, and closes nothing.
+ *
+ * Each connection begins with the program's greeting, which the requests
+ * on it wait for: a process on its own that restarted meanwhile knows the
+ * program's plugins and cores again before anything else reaches it.
  */
-import { spawn, type ChildProcess } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import http2 from 'node:http2'
 import { Duplex, Readable } from 'node:stream'
 import { refusal } from './routes'
@@ -30,41 +37,44 @@ export interface ProcessStart {
   publicUrl?: string
 }
 
+/** A process on its own, as a program connects to it. */
+export interface ProcessAddress {
+  /** Where it listens, such as `http://127.0.0.1:4100`. */
+  url: string
+  /** The token it was started with, `DEMI_CORE_TOKEN`. */
+  token: string
+}
+
 /** The headers a stream of HTTP/2 does not carry, which a forwarded request drops. */
 const CONNECTION_HEADERS = new Set(['connection', 'host', 'keep-alive', 'proxy-connection', 'transfer-encoding', 'upgrade', 'http2-settings'])
 
-/** A running `demi-core`, and its connection. */
-export class Process {
-  private readonly session: http2.ClientHttp2Session
+/** An HTTP/2 connection to the process. */
+interface Session {
+  session: http2.ClientHttp2Session
   /** Resolves once the process's settings came, which say it takes an extended CONNECT. */
-  private readonly settled: Promise<void>
-  /** Resolves with the process's exit status once it exited. */
-  readonly exited: Promise<number | null>
+  settled: Promise<void>
+}
 
-  private constructor(private readonly child: ChildProcess) {
-    // Node takes a pair of its own streams, which its types do not say.
-    const stdio = Duplex.from({ readable: child.stdout!, writable: child.stdin! } as unknown as Parameters<typeof Duplex.from>[0])
-    this.session = http2.connect('http://demi-core', { createConnection: () => stdio })
-    this.settled = new Promise((resolve, reject) => {
-      this.session.once('remoteSettings', () => resolve())
-      // An executable that cannot start, as one that is missing, says why
-      // here, and never exits.
-      child.once('error', reject)
-      this.session.once('close', () => reject(new Error('The process ended before it answered')))
-    })
-    // Its failure is each request's to report.
-    this.settled.catch(() => {})
-    // A failed session ends every request on it, which says why.
-    this.session.on('error', () => {})
-    this.exited = new Promise((resolve) => {
-      child.once('exit', (code) => resolve(code))
-      child.once('error', () => resolve(null))
-    })
-    // Node keeps a session whose socket ended open until its streams close,
-    // and a runner's channel on it would stay open with its runner: the
-    // process's exit ends them all.
-    void this.exited.then(() => this.session.destroy())
-  }
+/** What a connection begins with, its requests made on it with `fetch`. */
+export type Greeting = (fetch: (request: Request) => Promise<Response>) => Promise<void>
+
+/** A `demi-core`, and the program's connection to it. */
+export class Process {
+  private session: Session | null = null
+  /** Resolves once the connection's greeting is done; fails as it does. */
+  private greeted: Promise<void> = Promise.resolve()
+  private greeting: Greeting = async () => {}
+  /** The streams a CONNECT opened that are still open: the connection's end ends them. */
+  private readonly lasting = new Set<http2.ClientHttp2Stream>()
+
+  private constructor(
+    private readonly dial: () => Session,
+    /** What every request carries besides its own headers: the token. */
+    private readonly credentials: http2.OutgoingHttpHeaders,
+    /** Whether a connection that ended is made again: one to a process on its own is; one to a child ended with it. */
+    private readonly redials: boolean,
+    private readonly ending: (session: http2.ClientHttp2Session | null) => Promise<void>,
+  ) {}
 
   /** Starts the process. */
   static start(start: ProcessStart): Process {
@@ -73,7 +83,72 @@ export class Process {
       env.DEMI_PUBLIC_URL = start.publicUrl
     }
     const child = spawn(start.executable, [], { stdio: ['pipe', 'pipe', 'inherit'], env })
-    return new Process(child)
+    const exited = new Promise<number | null>((resolve) => {
+      child.once('exit', (code) => resolve(code))
+      child.once('error', () => resolve(null))
+    })
+    const dial = (): Session => {
+      // Node takes a pair of its own streams, which its types do not say.
+      const stdio = Duplex.from({ readable: child.stdout!, writable: child.stdin! } as unknown as Parameters<typeof Duplex.from>[0])
+      const session = http2.connect('http://demi-core', { createConnection: () => stdio })
+      // Node keeps a session whose socket ended open until its streams
+      // close, and a runner's channel on it would stay open with its
+      // runner: the process's exit ends them all.
+      void exited.then(() => session.destroy())
+      // An executable that cannot start, as one that is missing, says why
+      // here, and never exits.
+      return { session, settled: settled(session, new Promise((_, reject) => child.once('error', reject))) }
+    }
+    const opened = new Process(dial, {}, false, async (session) => {
+      if (session !== null && !session.closed) {
+        session.close()
+      }
+      child.stdin?.end()
+      await exited
+    })
+    return opened
+  }
+
+  /** Connects to a process on its own. */
+  static connect(address: ProcessAddress): Process {
+    const url = new URL(address.url)
+    const dial = (): Session => {
+      const session = http2.connect(url)
+      return { session, settled: settled(session, new Promise(() => {})) }
+    }
+    return new Process(dial, { authorization: `Bearer ${address.token}` }, true, async (session) => {
+      if (session !== null && !session.closed) {
+        await new Promise<void>((resolve) => session.close(resolve))
+      }
+    })
+  }
+
+  /**
+   * Has every connection begin with `greeting`, from the first, which this
+   * makes and answers once it is greeted.
+   */
+  greet(greeting: Greeting): Promise<void> {
+    this.greeting = greeting
+    return this.ready()
+  }
+
+  /** Resolves once the connection was made and greeted; fails as either does. */
+  async ready(): Promise<void> {
+    this.current()
+    await this.greeted
+  }
+
+  /** The connection, made again when one to a process on its own ended. */
+  private current(): Session {
+    const ended = this.session !== null && (this.session.session.closed || this.session.session.destroyed)
+    if (this.session === null || (ended && this.redials)) {
+      const made = this.dial()
+      this.session = made
+      this.greeted = made.settled.then(() => this.greeting((request) => this.send(made, request)))
+      // Its failure is each request's to report.
+      this.greeted.catch(() => {})
+    }
+    return this.session
   }
 
   /**
@@ -81,7 +156,15 @@ export class Process {
    * as `fetch` answers one: the response's body streams as it comes.
    */
   async fetch(request: Request): Promise<Response> {
-    await this.settled
+    const made = this.current()
+    await this.greeted
+    return this.send(made, request)
+  }
+
+  /** Answers `request` on the connection `made`. */
+  private async send(made: Session, request: Request): Promise<Response> {
+    const { session, settled } = made
+    await settled
     const url = new URL(request.url)
     const headers: http2.OutgoingHttpHeaders = {
       ':method': request.method,
@@ -92,7 +175,8 @@ export class Process {
         headers[name] = value
       }
     })
-    const stream = this.session.request(headers, { endStream: request.body === null })
+    Object.assign(headers, this.credentials)
+    const stream = session.request(headers, { endStream: request.body === null })
     // A stream that fails closes, which its reader sees; Bun also reports
     // each stream an ended session cancels as an error.
     stream.on('error', () => {})
@@ -139,9 +223,11 @@ export class Process {
    * `websocket` or `h2c`, and answers the stream once the process took it.
    */
   async connect(path: string, protocol: string, headers: http2.OutgoingHttpHeaders = {}): Promise<http2.ClientHttp2Stream> {
-    await this.settled
-    const stream = this.session.request({
+    const { session } = this.current()
+    await this.greeted
+    const stream = session.request({
       ...headers,
+      ...this.credentials,
       ':method': 'CONNECT',
       ':protocol': protocol,
       ':scheme': 'http',
@@ -169,17 +255,42 @@ export class Process {
       }
       throw await refusal(new Response(Buffer.concat(body), { status }), `CONNECT ${path}`)
     }
+    this.lasting.add(stream)
+    stream.once('close', () => this.lasting.delete(stream))
     return stream
   }
 
-  /** Ends the connection, which closes every core, and waits for the process to exit. */
+  /**
+   * Ends the connection, and the sockets and channels on it: a process the
+   * program started closes every core and exits, which this waits for; one
+   * on its own closes nothing.
+   */
   async close(): Promise<void> {
-    if (!this.session.closed) {
-      this.session.close()
+    for (const stream of this.lasting) {
+      stream.close(http2.constants.NGHTTP2_CANCEL)
     }
-    this.child.stdin?.end()
-    await this.exited
+    await this.ending(this.session?.session ?? null)
   }
+}
+
+/**
+ * Resolves once `session`'s settings came; fails once it closes or fails
+ * first, or `failed` does.
+ */
+function settled(session: http2.ClientHttp2Session, failed: Promise<never>): Promise<void> {
+  const settling = Promise.race([
+    new Promise<void>((resolve, reject) => {
+      session.once('remoteSettings', () => resolve())
+      session.once('error', reject)
+      session.once('close', () => reject(new Error('The process ended the connection before it answered')))
+    }),
+    failed,
+  ])
+  // Its failure is each request's to report.
+  settling.catch(() => {})
+  // A failed session ends every request on it, which says why.
+  session.on('error', () => {})
+  return settling
 }
 
 /** The headers `stream` is answered with; throws when it closes unanswered. */

@@ -1,10 +1,11 @@
-//! The starter lane of a program's core
-//! (`crates/web-api-protocol/src/starter.rs`): the program that opened the
-//! core opens it on its page connection, and the core's starter sends its
+//! The starter lanes of a program's core
+//! (`crates/web-api-protocol/src/starter.rs`): a program opens one on its
+//! page connection to the core, and the core's starter sends its
 //! notifications on it and waits for the program's answers.
 //!
-//! One lane is open at a time. A notification sent while none is, or whose
-//! lane ends before the program answers, reached no one.
+//! Several lanes may be open, as several programs drive the core: a
+//! notification goes on the newest. One sent while none is, or whose lane
+//! ends before the program answers, reached no one.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError};
@@ -16,7 +17,7 @@ use demi_web_api_protocol::push::PushMessage;
 use demi_web_api_protocol::starter::{StarterAnswer, StarterRequest};
 use tokio::sync::{mpsc, oneshot};
 
-/// One core's starter lane, open or not.
+/// One core's starter lanes.
 #[derive(Default)]
 pub struct StarterLane(Mutex<Opens>);
 
@@ -24,9 +25,9 @@ pub struct StarterLane(Mutex<Opens>);
 struct Opens {
     /// How many lanes were opened for the core.
     count: u64,
-    /// The open lane's notifications to send, with the lane's number among
-    /// them; none while no lane is open.
-    open: Option<(u64, mpsc::UnboundedSender<Notification>)>,
+    /// Each open lane's notifications to send, with the lane's number
+    /// among them, oldest first.
+    open: Vec<(u64, mpsc::UnboundedSender<Notification>)>,
 }
 
 /// A notification to send, and where its answer goes.
@@ -43,14 +44,14 @@ impl StarterLane {
 
     /// Whether a lane is open.
     pub fn is_open(&self) -> bool {
-        self.opens().open.is_some()
+        !self.opens().open.is_empty()
     }
 
-    /// Sends `message` on the open lane and answers how the program says
+    /// Sends `message` on the newest lane and answers how the program says
     /// it went; nowhere while no lane is open, or when the lane ends first.
     pub async fn notify(&self, message: PushMessage) -> Notified {
         let (answer, answered) = oneshot::channel();
-        let sent = match &self.opens().open {
+        let sent = match self.opens().open.last() {
             Some((_, notifications)) => notifications.send(Notification { message, answer }).is_ok(),
             None => false,
         };
@@ -60,25 +61,23 @@ impl StarterLane {
         answered.await.unwrap_or(Notified::Nowhere)
     }
 
-    /// Ends the open lane, as the core closes.
+    /// Ends the open lanes, as the core closes.
     pub fn end(&self) {
-        self.opens().open.take();
+        self.opens().open.clear();
     }
 
-    /// Takes the lane for an open; none while one is open.
-    pub(crate) fn claim(self: &Arc<Self>) -> Option<Claim> {
+    /// Opens a lane, which takes the notifications until a newer one opens.
+    pub(crate) fn claim(self: &Arc<Self>) -> Claim {
         let mut opens = self.opens();
-        if opens.open.is_some() {
-            return None;
-        }
         opens.count += 1;
         let (notifications, received) = mpsc::unbounded_channel();
-        opens.open = Some((opens.count, notifications));
-        Some(Claim {
+        let number = opens.count;
+        opens.open.push((number, notifications));
+        Claim {
             lane: self.clone(),
-            number: opens.count,
+            number,
             notifications: received,
-        })
+        }
     }
 }
 
@@ -143,10 +142,6 @@ impl Claim {
 
 impl Drop for Claim {
     fn drop(&mut self) {
-        let mut opens = self.lane.opens();
-        // A lane opened since this one ended is the next one's.
-        if opens.open.as_ref().is_some_and(|(number, _)| *number == self.number) {
-            opens.open = None;
-        }
+        self.lane.opens().open.retain(|(number, _)| *number != self.number);
     }
 }

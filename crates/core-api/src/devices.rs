@@ -2,6 +2,7 @@
 //!
 //! The routes:
 //!
+//! - pairing the runner waiting under the code it printed;
 //! - renaming and routes, and revocation;
 //! - browsing a paired device's directories to choose a target.
 //!
@@ -15,8 +16,9 @@ use demi_core_store::devices::{DeviceChange, DeviceRecord};
 use demi_web_api_protocol::text::Trimmed;
 use demi_core_devices::files::browse_directory;
 use demi_device_interface::{DeviceError, DeviceErrorKind, MkdirOptions};
+use demi_core_devices::claims::ClaimRefusal;
 use demi_web_api_protocol::devices::{
-    ChangeDevice, DeviceAnswer, DeviceKind,
+    ChangeDevice, Claim, DeviceAnswer, DeviceKind,
     Devices, RevokedDevice,
 };
 use demi_web_api_protocol::error::ErrorCode;
@@ -32,6 +34,30 @@ use crate::body::JsonBody;
 use crate::error::ApiError;
 use crate::caller::Principal;
 use crate::query::QueryParams;
+
+/// `POST /devices/claim`: pairs the runner waiting under the code with the
+/// caller: the device is made, its token goes to that runner alone, and the
+/// runner's socket moves into the caller's core.
+pub(crate) async fn claim(
+    State(state): State<Api>,
+    Principal(user): Principal,
+    JsonBody(Claim { code }): JsonBody<Claim>,
+) -> Result<(StatusCode, Json<DeviceAnswer>), ApiError> {
+    match state.claims.claim(&state.store(&user).await?, &user, &code).await {
+        Ok(device) => Ok((StatusCode::CREATED, Json(DeviceAnswer { device }))),
+        Err(ClaimRefusal::TooManyAttempts) => Err(ApiError::new(
+            StatusCode::TOO_MANY_REQUESTS,
+            ErrorCode::RateLimited,
+            "Too many claim attempts",
+        )),
+        Err(ClaimRefusal::UnknownCode) => Err(ApiError::new(
+            StatusCode::NOT_FOUND,
+            ErrorCode::InvalidCode,
+            "Unknown or expired pairing code",
+        )),
+        Err(ClaimRefusal::Storage(error)) => Err(error.into()),
+    }
+}
 
 pub(crate) async fn list(
     State(state): State<Api>,

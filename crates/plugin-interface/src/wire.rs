@@ -4,7 +4,8 @@
 //! answer name the port message too.
 //!
 //! ```text
-//! host -> plugin   { request: 7, call: Request }
+//! host -> plugin   { request: 7, call: Request }  or, sent again on
+//!                  another lane, { request: 7, call, resent: true }
 //! plugin -> host   { request: 7, port: 1, message: PortMessage }
 //! host -> plugin   { request: 7, port: 1, answer: PortAnswer }
 //!                  { request: 7, port: 1, error: "..." }  or no answer
@@ -31,6 +32,10 @@ pub enum HostMessage {
         #[schemars(range(max = MAX_SAFE_INTEGER))]
         request: u64,
         call: Request,
+        /// It went to a lane before, which closed: the same request, whose
+        /// work the plugin may have done or begun.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        resent: bool,
     },
     /// The answer to the request's port message `port`.
     Answer {

@@ -240,7 +240,10 @@ fn copy_rows(from: &Connection, to: &Connection, user: &str, table: &str, condit
     let held: Vec<String> = from
         .prepare(&format!("SELECT name FROM pragma_table_info('{table}')"))?
         .query_map([], |row| row.get(0))?
-        .collect::<rusqlite::Result<_>>()?;
+        .collect::<rusqlite::Result<Vec<String>>>()?
+        .into_iter()
+        .filter(|column| !KEPT_IN_CONTROL.contains(&(table, column.as_str())))
+        .collect();
     let columns: Vec<String> = to
         .prepare(&format!("SELECT name FROM pragma_table_info('{table}')"))?
         .query_map([], |row| row.get(0))?
@@ -263,6 +266,10 @@ fn copy_rows(from: &Connection, to: &Connection, user: &str, table: &str, condit
     }
     Ok(())
 }
+
+/// The columns of a server's rows that stay in the control database alone:
+/// a device's token hash, which `device_owners` finds a runner's device by.
+const KEPT_IN_CONTROL: &[(&str, &str)] = &[("devices", "token_hash")];
 
 /// Moves the conversation databases of `user`, those of its conversations, of
 /// its deletions not finished and of its Forks under way.

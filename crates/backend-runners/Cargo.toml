@@ -15,10 +15,8 @@ bench = false
 demi-core-devices = { path = "../core-devices" }
 demi-shared-artifacts = { path = "../shared-artifacts" }
 demi-core-blobs = { path = "../core-blobs" }
-demi-backend-database = { path = "../backend-database" }
 demi-core-store = { path = "../core-store" }
 demi-command-protocol = { path = "../command-protocol" }
-demi-shared-gates = { path = "../shared-gates" }
 demi-runner-client = { path = "../runner-client", features = ["edge"] }
 demi-runner-protocol = { path = "../runner-protocol" }
 demi-device-interface = { path = "../device-interface" }
@@ -26,13 +24,10 @@ demi-web-api-protocol = { path = "../web-api-protocol" }
 # A runner's connection is the WebSocket the edge upgraded.
 axum = { version = "0.8", features = ["ws"] }
 bytes.workspace = true
-data-encoding = "2"
 futures-util.workspace = true
-hex = "0.4"
 jiff.workspace = true
 object_store = { workspace = true, features = ["aws", "fs"] }
 percent-encoding = "2"
-rand = "0.9"
 semver.workspace = true
 serde.workspace = true
 serde_json.workspace = true
