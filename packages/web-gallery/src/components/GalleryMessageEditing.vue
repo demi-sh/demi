@@ -148,7 +148,7 @@ function reset(): void {
   write(userBlock(`user-${run}-1`, [{ type: 'text', text: 'Add a test.' }]), `reply-${run}-0`)
   write(replyBlock(`reply-${run}-1`, 'The test checks the request received by the model.'), `user-${run}-1`)
   // The message an edit opens: its file a capsule where it was put, and its
-  // comments the pill by the paperclip.
+  // comments the pill at the start of its line.
   write(userBlock(`user-${run}-2`, [
     { type: 'text', text: 'Review the result against ' },
     { type: 'image', source: { type: 'url', url: demoImageUrl } },

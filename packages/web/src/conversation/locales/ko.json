@@ -20,6 +20,7 @@
     "reorderConversations": "대화를 다시 정렬할 수 없습니다",
     "updateReadStatus": "읽음 상태를 업데이트할 수 없습니다",
     "reloadConversation": "대화를 다시 불러올 수 없습니다",
+    "unpin": "문서 고정을 해제할 수 없습니다",
     "detachDevice": "기기를 연결 해제할 수 없습니다",
     "changeModel": "모델을 변경할 수 없습니다",
     "changeWorkflow": "워크플로를 변경할 수 없습니다",

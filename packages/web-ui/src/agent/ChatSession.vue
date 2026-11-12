@@ -28,6 +28,7 @@ import SideQuestionWindow from './comments/SideQuestionWindow.vue'
 import SessionSurface from '@demicodes/web-ui/agent/SessionSurface.vue'
 import SessionDock from '@demicodes/web-ui/agent/SessionDock.vue'
 import SessionDockChip from '@demicodes/web-ui/agent/SessionDockChip.vue'
+import PinnedDocumentChip, { type PinnedDocumentView } from '@demicodes/web-ui/agent/PinnedDocumentChip.vue'
 import SubagentPanel from '@demicodes/web-ui/agent/SubagentPanel.vue'
 import SubagentHistoryMenu from './SubagentHistoryMenu.vue'
 import TerminalPanel from '@demicodes/web-ui/agent/TerminalPanel.vue'
@@ -95,6 +96,8 @@ import type { CredentialAnswer, PermissionDecision, RequestView } from '../permi
 
 const props = withDefaults(defineProps<{
   conversation: ChatSessionState
+  /** The documents the main agent pinned, which the chips row shows first. */
+  pins?: readonly PinnedDocumentView[]
   hasProvider: boolean
   /**
    * Whether the page does not hold what the conversation's session says now
@@ -279,6 +282,8 @@ function agentOutput(id: string) {
 const shareConversation = { kind: 'conversation' } as const
 
 const emit = defineEmits<{
+  /** Unpin a pinned document, by its id. */
+  unpin: [id: number]
   /** Find in Conversation: the search window, searching the conversation. */
   find: []
   /** Turn a schedule that wakes the conversation off, or with `false` on, from the Schedules menu. */
@@ -1154,6 +1159,14 @@ watch(
                   The transcript says what happened; the recovery controls are
                   here, over the input.
                 -->
+                <PinnedDocumentChip
+                  v-for="pin in pins ?? []"
+                  :key="pin.id"
+                  :pin="pin"
+                  :opens="!!files?.open && pin.deviceId === files.device"
+                  @open="files?.open?.({ path: pin.path, line: null })"
+                  @unpin="emit('unpin', pin.id)"
+                />
                 <SessionDockChip v-if="recovery" @click="recover">
                   <Play :size="ICON_PX.in28" />
                   {{ recovery === 'resume' ? t('dock.resume') : t('dock.continue') }}

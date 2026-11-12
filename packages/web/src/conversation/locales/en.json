@@ -20,6 +20,7 @@
     "reorderConversations": "Could Not Reorder Conversations",
     "updateReadStatus": "Could Not Update Read Status",
     "reloadConversation": "Could Not Reload the Conversation",
+    "unpin": "Could Not Unpin the Document",
     "detachDevice": "Could Not Detach the Device",
     "changeModel": "Could Not Change the Model",
     "changeWorkflow": "Could Not Change the Workflow",

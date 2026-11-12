@@ -271,6 +271,7 @@
     "resume": "恢复",
     "continue": "继续",
     "continueWith": "改用 {label} 继续",
+    "unpin": "取消固定",
     "openProviders": "打开供应商",
     "outputTokens": "{tokens} token",
     "tokenRate": "{rate} token/秒",

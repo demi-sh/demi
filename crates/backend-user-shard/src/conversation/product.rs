@@ -24,6 +24,7 @@ use demi_backend_device_access::attachment_commands::attachment_group;
 use demi_backend_device_access::device_commands::device_group;
 
 use super::organize::conversation_group;
+use super::pins::pin_group;
 use crate::shard::provider_commands::providers_group;
 use demi_backend_device_access::{DeviceShard, conversation_of};
 use demi_plugin_host::ContextAsk;
@@ -90,6 +91,7 @@ impl ToolsetSource for ShardToolsets {
                     device_group(devices.clone()),
                     attachment_group(devices),
                     conversation_group(self.shard.clone()),
+                    pin_group(self.shard.clone()),
                     credentials_group(self.shard.clone()),
                     schedule_group(self.shard.clone()),
                     providers_group(self.shard.clone()),

@@ -23,9 +23,9 @@ import { transferCopiedMessage } from './message-input/copied-message'
  * - The `below-start` slot is the tools' left end, such as the workflow and the
  *   messages saved for later.
  * - The `list` slot is a panel under the box.
- * - The `carried` slot stands by the attach control, for what the message
- *   carries besides its text, such as a batch of comments: on the one line,
- *   and in the open shell's lower row.
+ * - The `carried` slot stands at the start of the message's first line, for
+ *   what the message carries besides its text, such as a batch of comments;
+ *   the text runs beside it.
  * - The `caption` slot is a row at the top of the box, one line of text that
  *   captions the message, such as what an edit edits. The owner opens the
  *   shell while it shows, and the row stands right over the message's first
@@ -38,7 +38,7 @@ import { transferCopiedMessage } from './message-input/copied-message'
  * glide around from where it is drawn. Reduced motion shows the change at once.
  *
  * The editor slot hears what one line offers its text (`line`), which a ruler
- * in the editor's cell measures.
+ * in the editor's cell measures, less the room the carried slot takes.
  */
 
 const props = defineProps<{
@@ -52,7 +52,10 @@ const emit = defineEmits<{
 }>()
 
 const ruler = ref<HTMLElement | null>(null)
-const { width: line } = useElementSize(ruler)
+const { width: rulerWidth } = useElementSize(ruler)
+const carried = ref<HTMLElement | null>(null)
+const { width: carriedWidth } = useElementSize(carried, undefined, { box: 'border-box' })
+const line = computed(() => rulerWidth.value - carriedWidth.value)
 
 const shell = ref<HTMLElement | null>(null)
 const { over: dragOver } = useFileDrop(shell, {
@@ -154,11 +157,13 @@ onBeforeUnmount(() => {
       <div class="composer-attach">
         <slot name="attach" />
       </div>
-      <div v-if="$slots.carried" class="composer-carried flex items-center">
-        <slot name="carried" />
-      </div>
       <div class="composer-editor">
-        <slot name="editor" :line="line" />
+        <div v-if="$slots.carried" ref="carried" class="composer-carried flex items-center">
+          <slot name="carried" />
+        </div>
+        <div class="composer-editor-text">
+          <slot name="editor" :line="line" />
+        </div>
       </div>
       <div
         ref="ruler"

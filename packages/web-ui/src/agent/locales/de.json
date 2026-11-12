@@ -271,6 +271,7 @@
     "resume": "Fortsetzen",
     "continue": "Fortfahren",
     "continueWith": "Mit {label} fortfahren",
+    "unpin": "Lösen",
     "openProviders": "Anbieter öffnen",
     "outputTokens": "{tokens} Token | {tokens} Tokens",
     "tokenRate": "{rate} Tok./s",

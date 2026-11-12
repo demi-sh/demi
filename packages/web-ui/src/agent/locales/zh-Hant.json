@@ -271,6 +271,7 @@
     "resume": "恢復",
     "continue": "繼續",
     "continueWith": "改用 {label} 繼續",
+    "unpin": "取消釘選",
     "openProviders": "打開供應商",
     "outputTokens": "{tokens} token",
     "tokenRate": "{rate} token/秒",

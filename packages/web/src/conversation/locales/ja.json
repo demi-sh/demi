@@ -20,6 +20,7 @@
     "reorderConversations": "チャットを並べ替えられませんでした",
     "updateReadStatus": "既読の状態を更新できませんでした",
     "reloadConversation": "チャットを再読み込みできませんでした",
+    "unpin": "書類のピン留めを解除できませんでした",
     "detachDevice": "デバイスをデタッチできませんでした",
     "changeModel": "モデルを変更できませんでした",
     "changeWorkflow": "ワークフローを変更できませんでした",

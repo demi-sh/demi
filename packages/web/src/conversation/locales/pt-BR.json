@@ -20,6 +20,7 @@
     "reorderConversations": "Não foi possível reordenar as conversas",
     "updateReadStatus": "Não foi possível atualizar o status de leitura",
     "reloadConversation": "Não foi possível recarregar a conversa",
+    "unpin": "Não foi possível desafixar o documento",
     "detachDevice": "Não foi possível desanexar o dispositivo",
     "changeModel": "Não foi possível alterar o modelo",
     "changeWorkflow": "Não foi possível alterar o fluxo de trabalho",

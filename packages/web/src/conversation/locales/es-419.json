@@ -20,6 +20,7 @@
     "reorderConversations": "No se pudieron reordenar los chats",
     "updateReadStatus": "No se pudo actualizar el estado de lectura",
     "reloadConversation": "No se pudo volver a cargar el chat",
+    "unpin": "No se pudo dejar de fijar el documento",
     "detachDevice": "No se pudo desconectar el dispositivo",
     "changeModel": "No se pudo cambiar el modelo",
     "changeWorkflow": "No se pudo cambiar el flujo de trabajo",

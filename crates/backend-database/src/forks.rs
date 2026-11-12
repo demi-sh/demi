@@ -17,6 +17,7 @@ use super::StorageError;
 use super::columns::{decode, json, to_json};
 use super::control::ControlService;
 use super::selection::{Selected, Selection, select};
+use super::pins::{PinCopy, copy_pins};
 use super::projects::ProjectRecord;
 use super::conversation_index::{
     AttachedDeviceRecord, ConversationRecord, NewConversation, conversation_by_id,
@@ -64,6 +65,11 @@ pub struct ForkMetadata {
     /// than any it is announced.
     #[garde(skip)]
     pub context_version: u64,
+    /// The source's pinned documents, unpinned ones included, whose ids its
+    /// copied transcript names.
+    #[serde(default)]
+    #[garde(skip)]
+    pub pins: Vec<PinCopy>,
 }
 
 impl ForkOperation {
@@ -218,6 +224,7 @@ impl ControlService {
                         )?;
                     }
                 }
+                copy_pins(&transaction, &operation.id, &metadata.pins)?;
             }
             let record = conversation_by_id(&transaction, &operation.id)?
                 .filter(|record| record.owner == operation.owner)

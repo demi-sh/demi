@@ -646,6 +646,31 @@ CREATE TABLE conversation_suggested_replies (
 ) STRICT;
 CREATE INDEX conversation_suggested_replies_latest ON conversation_suggested_replies (conversation_id, id);
 
+-- The documents a conversation's main agent pinned
+-- (crates/backend-user-shard/src/conversation/pins.rs): each a file of a device,
+-- by its absolute path, with its text as last read. A pin's id counts within
+-- its conversation, so a Fork's copies keep the ids its copied transcript
+-- names. A row stays once unpinned: its id is not taken again, and
+-- told_at records that the agent was told of an unpin by the user.
+CREATE TABLE conversation_pins (
+  conversation_id TEXT NOT NULL COLLATE NOCASE REFERENCES conversations (id) ON DELETE CASCADE,
+  id              INTEGER NOT NULL CHECK (id >= 1),
+  device_id       TEXT NOT NULL,
+  path            TEXT NOT NULL,
+  pinned_at       INTEGER NOT NULL,
+  text            TEXT NOT NULL,
+  read_at         INTEGER NOT NULL,
+  -- Set together once the document is unpinned, by the agent or the user.
+  unpinned_at     INTEGER,
+  unpinned_by     TEXT CHECK (unpinned_by IN ('agent', 'user')),
+  told_at         INTEGER CHECK (told_at IS NULL OR unpinned_by = 'user'),
+  CHECK ((unpinned_at IS NULL) = (unpinned_by IS NULL)),
+  PRIMARY KEY (conversation_id, id)
+) STRICT;
+-- A file is pinned once at a time.
+CREATE UNIQUE INDEX conversation_pins_pinned ON conversation_pins (conversation_id, device_id, path)
+  WHERE unpinned_at IS NULL;
+
 -- The messages saved for later, each in one list: a conversation's own, or
 -- its project's, which the project's conversations share while the project
 -- keeps them per project. Each one's text and files are one JSON document,

@@ -57,6 +57,8 @@ import ActivitySlot from '@demicodes/web-ui/agent/blocks/ActivitySlot.vue'
 import type { ActivityKind } from '@demicodes/web-ui/agent/activity-slot'
 import { provideEditSelection } from '@demicodes/web-ui/agent/edit-selection'
 import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
+import type { PinnedDocumentView } from '@demicodes/web-ui/agent/PinnedDocumentChip.vue'
+import { GALLERY_DEVICE } from '../fixtures/attachments'
 import GalleryWorkWindows from '../components/GalleryWorkWindows.vue'
 import { gallerySessionWork } from '../fixtures/session-work'
 import { galleryFiles, useGalleryWork, type GalleryWork } from '../fixtures/work'
@@ -787,6 +789,10 @@ function agentOpens(show: boolean) {
  * only while it is.
  */
 const deviceOnline = ref(true)
+/** The documents the session's agent pinned: × unpins one, a click opens it. */
+const sessionPins = ref<PinnedDocumentView[]>([
+  { id: 1, path: `${PROJECT_ROOT}/docs/guides/deploying.md`, device: 'MacBook Pro', deviceId: GALLERY_DEVICE },
+])
 /** The session's messages reach the gallery project: images from its fixtures, files opened in the frame's windows. */
 const sessionFiles = {
   ...galleryConversationFiles(project.source, ({ path, line }) => {
@@ -3683,7 +3689,7 @@ onBeforeUnmount(() => {
       <GallerySection title="Transcript Entrance" note="Restored history appears without motion. Only blocks appended after restoration enter; switching or scrolling back to existing blocks does not replay their entrance.">
         <GalleryTranscriptEntrance />
       </GallerySection>
-      <GallerySection title="Edit and Resend" note="Shared editor, durable confirmation and recovery states. Regenerate in the last answer’s footer sends the last message again unchanged, without opening the editor: its answer dims until the outcome, which the buttons choose as for a save; a lost confirmation opens the editor with Retry, a conflict opens it with the message. Up Arrow in the empty composer opens the editor on the last message, whose first line says Editing message, right above the message. An edited message shows its versions under it, and a regenerated answer in its footer: the arrows show the version before and after, and wait while an edit is sent. The last message carries two comments: its editor counts them in the pill by the paperclip, whose click steps through their boxes in the reply, marked Sent, each with Delete while the edit is open, and the new version holds the ones left when it is sent.">
+      <GallerySection title="Edit and Resend" note="Shared editor, durable confirmation and recovery states. Regenerate in the last answer’s footer sends the last message again unchanged, without opening the editor: its answer dims until the outcome, which the buttons choose as for a save; a lost confirmation opens the editor with Retry, a conflict opens it with the message. Up Arrow in the empty composer opens the editor on the last message, whose first line says Editing message, right above the message. An edited message shows its versions under it, and a regenerated answer in its footer: the arrows show the version before and after, and wait while an edit is sent. The last message carries two comments: its editor counts them in the pill at the start of the message's line, whose click steps through their boxes in the reply, marked Sent, each with Delete while the edit is open, and the new version holds the ones left when it is sent.">
         <GalleryMessageEditing />
       </GallerySection>
       <GallerySection title="Edit a Message Sent Mid-Turn" note="The last message joined the turn as a steer, sent just as the answer ended, and Stop ended the turn after it. It is the user's last message, so it has Edit and Up Arrow opens it, as for a message that started a turn; Stop left no answer after it, so no footer offers Regenerate, as after a message that started one. Save writes the new version as a message that starts a turn after the answer before it, which stays; the steer and what followed it are version 1/2, shown under whichever of the two is on the path.">
@@ -3697,7 +3703,7 @@ onBeforeUnmount(() => {
       <GallerySection title="Suggested Replies: States" note="The row in each of its states. Every pill shows its words whole: one that does not fit beside the others goes to the next line, and one wider than the row wraps its words, its corners as round as a one-line pill’s ends.">
         <GallerySuggestedReplyStates />
       </GallerySection>
-      <GallerySection title="Comments" note="Two comments waiting in the draft: each marks its words yellow, and its box stands under the line they end on, the rest of the paragraph going on under it: the comment's yellow mark, its message as a sent message shows it, its files as capsules, and Delete and Edit; Edit edits it in place, in the composer's editor. The composer stays on one line, with 2 Comments by the paperclip. Select other words of the reply, write a comment in the field under them, paste or drop files as in the composer, and press Return to add it, and the composer takes the focus, so the next Return sends it; while a reply is still being written, its buttons say to wait. Make the frame narrower or wider: the lines wrap again and each box moves under its new line. A click on the pill brings the next comment's box into view and marks it, from the first again after the last, and × removes them all. Send sends them with the typed text, or alone.">
+      <GallerySection title="Comments" note="Two comments waiting in the draft: each marks its words yellow, and its box stands under the line they end on, the rest of the paragraph going on under it: the comment's yellow mark, its message as a sent message shows it, its files as capsules, and Delete and Edit; Edit edits it in place, in the composer's editor. The composer shows 2 Comments at the start of the message's line. Select other words of the reply, write a comment in the field under them, paste or drop files as in the composer, and press Return to add it, and the composer takes the focus, so the next Return sends it; while a reply is still being written, its buttons say to wait. Make the frame narrower or wider: the lines wrap again and each box moves under its new line. A click on the pill brings the next comment's box into view and marks it, from the first again after the last, and × removes them all. Send sends them with the typed text, or alone.">
         <div class="h-[36rem] overflow-hidden rounded-xl border border-line">
           <GalleryComments seed="waiting" />
         </div>
@@ -4394,6 +4400,8 @@ onBeforeUnmount(() => {
     <template v-if="view === 'session'">
       <ChatSession @show-subagent="() => {}"
         :conversation="session"
+        :pins="sessionPins"
+        @unpin="(id) => (sessionPins = sessionPins.filter((pin) => pin.id !== id))"
         has-provider
         :share="shareService"
         :select-edit="(selection) => { frameWork.selectEdit(selection); view = 'frame' }"

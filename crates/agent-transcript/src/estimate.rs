@@ -7,8 +7,8 @@ use std::borrow::Cow;
 use demi_provider_common::{MediaBytes, Medium, ToolDefinition};
 use demi_shared_types::{
     MessageComment,
-    B64Bytes, Block, DocumentSource, KeptMessage, INSTRUCTIONS_SOURCE, Model, ModelMediaKind, ResponseBlock,
-    ToolResultContentBlock, UserContentBlock, comments_content,
+    B64Bytes, Block, DocumentSource, KeptMessage, Model, ModelMediaKind, ResponseBlock,
+    ToolResultContentBlock, UserContentBlock, comments_content, sent_whole,
 };
 
 use super::{
@@ -241,8 +241,7 @@ fn block_estimate(block: &Block, request: &RequestView) -> (String, u64) {
             }
             return (lines.join("\n"), media);
         }
-        // The instructions are sent whole.
-        Block::Context(context) if context.source == INSTRUCTIONS_SOURCE => context.text.clone(),
+        Block::Context(context) if sent_whole(&context.source) => context.text.clone(),
         Block::Context(context) => bound_text(&context.text).into_owned(),
         Block::AgentMessage(receipt) => {
             serde_json::to_string(&receipt.message).expect("an agent message serializes to JSON")

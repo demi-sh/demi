@@ -151,6 +151,7 @@ impl Shard {
         let first_call_at = services.control.conversation_first_call(record.id.clone()).await?;
         let schedules = self.conversation_schedules(&record.id).await?;
         let notifications_card = services.control.notifications_card(record.id.clone()).await?;
+        let pins = self.conversation_pins(&record.id).await?;
         Ok(ConversationMetadata {
             model: record.model.as_ref().map(settings).transpose()?,
             workflow: record.workflow,
@@ -167,6 +168,7 @@ impl Shard {
                 revision: record.devices_revision,
                 devices,
             },
+            pins,
             last_attachment: facts.last_attachment,
             plugin_revisions: self.plugins().plugin_revisions(&record.id),
             permissions,

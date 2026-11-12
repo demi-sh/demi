@@ -3058,6 +3058,25 @@ export const useConversations = defineStore('conversations', () => {
   }
 
   /**
+   * Unpins a document the conversation's main agent pinned, which the agent
+   * learns before its next request; the chip leaves with the metadata the
+   * socket sends.
+   */
+  async function unpin(conversation: Conversation, pin: number): Promise<void> {
+    try {
+      await apiRequest(
+        `/conversations/${encodeURIComponent(conversation.id)}/pins/${pin}`,
+        { method: 'DELETE', signal: lifetime.signal },
+      )
+    } catch (error) {
+      // A conversation another page deleted meanwhile has nothing to unpin.
+      if (errorCode(error) !== 'conversation_not_found') {
+        report('failures.unpin', t('failures.unpin'), error)
+      }
+    }
+  }
+
+  /**
    * Detaches a device the conversation's agents attached; a draft has none.
    * It ends the device's access, so the device menu shows it in progress until
    * the backend answers.
@@ -4682,6 +4701,7 @@ export const useConversations = defineStore('conversations', () => {
         () => reloadPlugins(conversation),
         undefined,
       ),
+    unpin,
     changeModel,
     changeWorkflow,
     pauseSchedule,

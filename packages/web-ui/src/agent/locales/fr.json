@@ -271,6 +271,7 @@
     "resume": "Reprendre",
     "continue": "Continuer",
     "continueWith": "Continuer avec {label}",
+    "unpin": "Désépingler",
     "openProviders": "Ouvrir Fournisseurs",
     "outputTokens": "{tokens} token | {tokens} tokens",
     "tokenRate": "{rate} tok/s",
