@@ -1235,25 +1235,21 @@ html[data-theme="light"] .file-pill {
 }
 
 /* What the message carries besides its text, such as the comments' pill,
-   stands by the attach control, on the one line and under the open box. */
+   stands at the start of the message's first line, its left edge on the
+   text's, and the text runs beside it. Its end padding is the gap to the
+   text, so its box is all the room it takes from the line. */
+.composer-shell-carried .composer-editor {
+  display: flex;
+  align-items: flex-start;
+}
 .composer-carried {
-  grid-area: carried;
+  flex-shrink: 0;
+  height: var(--composer-line);
+  padding-inline-end: 8px;
 }
-
-.composer-shell-carried {
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    "editor editor editor editor"
-    "attach carried tools actions";
-}
-
-/* An edit that carries comments: its caption over the text, its pill by the
-   attach control. */
-.composer-shell-caption.composer-shell-carried {
-  grid-template-areas:
-    "caption caption caption caption"
-    "editor editor editor editor"
-    "attach carried tools actions";
+.composer-editor-text {
+  flex: 1;
+  min-width: 0;
 }
 
 /* The caption stands right over the message's first line, as a line of the
