@@ -1,14 +1,20 @@
-import { onBeforeUnmount, ref, type Ref } from 'vue'
-import { DRAG_START_PX, dragShift, dragTarget, moved } from './drag-order'
+import { nextTick, onBeforeUnmount, ref, type Ref } from 'vue'
+import { tabMotion } from '../agent/tab-strip'
+import { createLanding, DRAG_START_PX, dragShift, dragTarget, moved, swallowDropClick } from './drag-order'
+import { prefersReducedMotion } from './stream-reveal'
 
 /**
  * Drag to reorder the rows of a list, as a macOS list's rows are, down a
  * vertical list (`axis` y) or along a row of buttons, as a taskbar's (x).
  *
  * - A row pressed on its handle follows the pointer once it moves a few pixels.
- * - The other rows step aside to show where it will land, and letting go puts it
- *   there. The click that letting go makes is not the row's.
- * - Escape, or the window losing focus, puts it back.
+ * - The other rows slide aside to show where it will land, and letting go
+ *   glides it from where it was let go to its place. The click that letting go
+ *   makes is not the row's.
+ * - Escape, or the window losing focus, glides it back.
+ * - Every slide keeps the window tab strip's motion (`tabMotion`), so a
+ *   taskbar button moves as a window's tab does; none moves where the user
+ *   asks for reduced motion.
  * - The handle also moves its row one place with the Up and Down arrow keys, or
  *   Left and Right along a row.
  *
@@ -39,19 +45,42 @@ export function useListReorder(
     return Array.from(container.value?.querySelectorAll<HTMLElement>('[data-reorder-id]') ?? [])
   }
 
-  function settle() {
-    for (const row of held?.rows ?? []) {
-      row.style.transform = ''
-      row.style.zIndex = ''
-      row.style.position = ''
-    }
+  function unstyle(row: HTMLElement) {
+    row.style.transition = ''
+    row.style.transform = ''
+    row.style.zIndex = ''
+    row.style.position = ''
+  }
+
+  const landing = createLanding(axis, (_, value) => value, unstyle)
+
+  /** Ends the press: the listeners go, and the rows stay where they show. */
+  function release() {
     held = null
     dragging.value = null
     window.removeEventListener('pointermove', move)
     window.removeEventListener('pointerup', finish)
-    window.removeEventListener('pointercancel', settle)
+    window.removeEventListener('pointercancel', putBack)
     window.removeEventListener('keydown', escape, true)
-    window.removeEventListener('blur', settle)
+    window.removeEventListener('blur', putBack)
+  }
+
+  /** Glides a dragged row back where it was, and the others with it. */
+  function putBack() {
+    const listed = held?.rows ?? []
+    const dragged = dragging.value !== null
+    release()
+    if (dragged) {
+      landing.land(listed, landing.shownAt(listed))
+    }
+  }
+
+  /** Puts every row in its place at once and ends the press, as the list goes. */
+  function settle() {
+    const listed = held?.rows ?? []
+    release()
+    landing.settle()
+    listed.forEach(unstyle)
   }
 
   function move(event: PointerEvent) {
@@ -67,12 +96,15 @@ export function useListReorder(
     }
     event.preventDefault()
     held.to = dragTarget(held.centers, held.from, held.centers[held.from]! + offset)
+    const still = prefersReducedMotion()
     held.rows.forEach((row, index) => {
       if (index === held!.from) {
+        row.style.transition = 'none'
         row.style.position = 'relative'
         row.style.zIndex = '1'
         row.style.transform = `${across ? 'translateX' : 'translateY'}(${offset}px)`
       } else {
+        row.style.transition = still ? '' : tabMotion('transform')
         row.style.transform = `${across ? 'translateX' : 'translateY'}(${dragShift(index, held!.from, held!.to) * held!.step}px)`
       }
     })
@@ -82,26 +114,20 @@ export function useListReorder(
     if (!held || event.pointerId !== held.pointerId) {
       return
     }
-    const { from, to } = held
+    const { from, to, rows: listed } = held
     const dragged = dragging.value !== null
-    settle()
-    if (dragged) {
-      swallowClick()
+    release()
+    if (!dragged) {
+      return
     }
-    if (dragged && from !== to) {
+    swallowDropClick()
+    const shown = landing.shownAt(listed)
+    if (from !== to) {
       commit(moved(ids(), from, to))
     }
-  }
-
-  /** Takes the click that letting go of a dragged row makes, before the row sees it. */
-  function swallowClick() {
-    const swallow = (event: MouseEvent) => {
-      event.stopPropagation()
-      event.preventDefault()
-    }
-    window.addEventListener('click', swallow, { capture: true, once: true })
-    // A release off the row makes no click; the next one is the user's.
-    setTimeout(() => window.removeEventListener('click', swallow, { capture: true }))
+    // The host's order lands with the next render; until then the rows hold
+    // where the drag left them, and then glide from there.
+    void nextTick(() => landing.land(rows(), shown))
   }
 
   function escape(event: KeyboardEvent) {
@@ -110,7 +136,7 @@ export function useListReorder(
     }
     event.preventDefault()
     event.stopPropagation()
-    settle()
+    putBack()
   }
 
   /** The handle of row `id` was pressed. */
@@ -118,6 +144,8 @@ export function useListReorder(
     if (event.button !== 0) {
       return
     }
+    // A row still landing from the last drag is put in its place, which this
+    // drag starts from.
     settle()
     const listed = rows()
     const from = listed.findIndex((row) => row.dataset['reorderId'] === id)
@@ -141,9 +169,9 @@ export function useListReorder(
     event.preventDefault()
     window.addEventListener('pointermove', move, { passive: false })
     window.addEventListener('pointerup', finish)
-    window.addEventListener('pointercancel', settle)
+    window.addEventListener('pointercancel', putBack)
     window.addEventListener('keydown', escape, true)
-    window.addEventListener('blur', settle)
+    window.addEventListener('blur', putBack)
   }
 
   /** A key on the handle of row `id`: Up and Down, or Left and Right along a row, move it one place. */

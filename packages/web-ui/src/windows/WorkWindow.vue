@@ -24,7 +24,7 @@ import { t as agentText } from '../agent/locales/text'
  *
  * The title bar, from its start:
  *
- * - The tabs (`TabStrip`), as a web browser's title bar holds them. A press
+ * - The tabs (`TabStrip`), as a web browser's title bar holds them. A click
  *   selects one; a drag reorders them. A window that only ever shows one view
  *   (`single`), such as Files, has no tab: its title bar says what it shows,
  *   the view's own icon and name, as a document window's does.

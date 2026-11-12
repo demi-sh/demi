@@ -44,8 +44,8 @@ import { iconTabsKey } from './tab-strip'
  *
  * The tab acts as a web browser's tab does:
  *
- * - The primary button selects it as it goes down, so a drag the strip starts
- *   there carries the selected tab.
+ * - A click selects it, as Safari's tab does: pressing alone does not, so a
+ *   drag the strip starts there carries the tab without selecting it.
  * - A middle click closes it.
  * - It takes the keyboard's focus, where Enter and Space select it and the
  *   strip's arrows move between tabs (`TabStrip`).
@@ -92,7 +92,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-function onPointerdown(event: PointerEvent): void {
+function onClick(event: MouseEvent): void {
   if (event.button === 0) {
     emit('select')
   }
@@ -116,8 +116,8 @@ function onAuxclick(event: MouseEvent): void {
     class="group relative flex h-(--tab-h) [--surface-current:var(--fill-color)] [--tab-h:var(--spacing-tab)] min-w-[min(var(--tab-min),var(--tab-room))] max-w-max shrink grow basis-0 phone:shrink-0 phone:grow-0 phone:basis-auto cursor-default items-center rounded-md text-chrome select-none transition-[background-color,color] duration-50 ease-out after:absolute after:-right-[1.5px] after:top-1/2 after:h-3.5 after:w-px after:-translate-y-1/2 after:bg-line after:transition-opacity after:duration-50 last:after:hidden has-[+[data-strip-end]]:after:hidden hover:after:opacity-0 has-[+:hover]:after:opacity-0 has-[+[aria-selected=true]]:after:opacity-0"
     :class="[iconOnly ? 'phone:w-11 phone:min-w-11' : '', isActive
       ? 'bg-(--tab-active) text-fg-emphasis after:opacity-0 [--fill-color:var(--tab-active)]'
-      : 'text-fg-subtle hover:bg-(--tab-hover) hover:text-fg-body hover:[--fill-color:var(--tab-hover)]']"
-    @pointerdown="onPointerdown"
+      : 'text-fg-subtle hover:bg-(--tab-hover) hover:text-fg-body hover:[--fill-color:var(--tab-hover)] data-dragged:bg-(--tab-hover) data-dragged:text-fg-body data-dragged:[--fill-color:var(--tab-hover)]']"
+    @click="onClick"
     @mousedown.middle.prevent
     @auxclick="onAuxclick"
     @keydown.enter.self="emit('select')"
