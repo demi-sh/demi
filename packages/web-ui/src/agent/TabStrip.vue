@@ -32,9 +32,8 @@ import {
   thawWidths,
   widthsFrozen,
 } from './tab-strip'
-import { DRAG_START_PX, dragShift } from '../ui/drag-order'
+import { createLanding, DRAG_START_PX, dragShift, swallowDropClick } from '../ui/drag-order'
 import { usePhone } from '../ui/phone'
-import { prefersReducedMotion } from '../ui/stream-reveal'
 
 /** The edge fades' width; a revealed tab is scrolled clear of them. */
 const FADE_PX = 24
@@ -586,7 +585,7 @@ function endClosingMode(): void {
     window.clearTimeout(touchClosing)
     touchClosing = null
   }
-  if (drag?.moving || landing.size > 0) {
+  if (drag?.moving || landing.busy()) {
     thawPending = true
     return
   }
@@ -598,7 +597,7 @@ function endClosingMode(): void {
 
 /** Ends tab closing mode where it waited for a drag and its landing. */
 function thawIfPending(): void {
-  if (thawPending && !drag?.moving && landing.size === 0) {
+  if (thawPending && !drag?.moving && !landing.busy()) {
     endClosingMode()
   }
 }
@@ -701,7 +700,7 @@ function onPointerdown(event: PointerEvent): void {
   }
   // A tab still landing from the last drag is put in its place, which this
   // drag starts from, as Chrome stops the strip's motion when a drag begins.
-  settleLanding()
+  landing.settle()
   const tabs = tabElements()
   const from = tabs.indexOf(tab)
   if (from < 0) {
@@ -762,8 +761,11 @@ function placeDragged(held: Drag): void {
   held.tabs.forEach((tab, index) => {
     if (index === held.from) {
       tab.style.transition = keepingCloseMotion(tab, 'none')
-      // Over the others and the end control it passes.
+      // Over the others and the end control it passes, with a fill of its own:
+      // a tab that was not selected has none but under the pointer, which the
+      // strip holds while it drags.
       tab.style.zIndex = '3'
+      tab.dataset['dragged'] = ''
       tab.style.transform = `translateX(${offset}px)`
       return
     }
@@ -829,70 +831,30 @@ function onPointermove(event: PointerEvent): void {
 }
 
 /**
- * The tabs gliding to their places after a drag ends, each with what ends
- * its glide.
+ * The tabs gliding to their places after a drag ends or is put back, as
+ * Chrome's tabs animate to theirs.
  */
-const landing = new Map<HTMLElement, () => void>()
-
-/** Where each of `tabs` shows now, its motion included. */
-function shownLefts(tabs: HTMLElement[]): Map<HTMLElement, number> {
-  return new Map(tabs.map((tab) => [tab, tab.getBoundingClientRect().left]))
-}
+const landing = createLanding(
+  'x',
+  keepingCloseMotion,
+  (tab) => {
+    tab.style.transition = keepingCloseMotion(tab, '')
+    tab.style.zIndex = ''
+    delete tab.dataset['dragged']
+  },
+  thawIfPending,
+)
 
 /**
- * Takes the drag's offsets off `tabs`, now in the order they land in, and
- * glides each from where it showed (`shown`) to its place, as Chrome's tabs
- * animate to their places when a drag ends or is put back.
+ * Glides `tabs` to their places from where they showed (`shown`). A selected
+ * tab that was dragged, which the drag may have scrolled away from, shows
+ * whole again where it lands; another one leaves the strip where the user
+ * scrolled it.
  */
-function land(tabs: HTMLElement[], shown: Map<HTMLElement, number>): void {
-  for (const tab of tabs) {
-    tab.style.transition = keepingCloseMotion(tab, 'none')
-    tab.style.transform = ''
-  }
-  const gliding = tabs.filter((tab) => {
-    const was = shown.get(tab)
-    const from = was === undefined ? 0 : was - tab.getBoundingClientRect().left
-    if (!tab.isConnected || Math.abs(from) < 0.5 || prefersReducedMotion()) {
-      tab.style.transition = keepingCloseMotion(tab, '')
-      tab.style.zIndex = ''
-      return false
-    }
-    tab.style.transform = `translateX(${from}px)`
-    return true
-  })
-  void el.value?.offsetWidth
-  for (const tab of gliding) {
-    tab.style.transition = keepingCloseMotion(tab, tabMotion('transform'))
-    tab.style.transform = ''
-    const ended = (event: TransitionEvent): void => {
-      if (event.target === tab && event.propertyName === 'transform') {
-        landed()
-      }
-    }
-    const landed = (): void => {
-      tab.removeEventListener('transitionend', ended)
-      tab.removeEventListener('transitioncancel', ended)
-      landing.delete(tab)
-      tab.style.transition = keepingCloseMotion(tab, '')
-      tab.style.zIndex = ''
-      thawIfPending()
-    }
-    tab.addEventListener('transitionend', ended)
-    tab.addEventListener('transitioncancel', ended)
-    landing.set(tab, landed)
-  }
-  // The selected tab, which the drag may have scrolled away from, shows whole
-  // again where it lands.
-  revealActive()
-  thawIfPending()
-}
-
-/** Ends every glide at once, each tab in its place. */
-function settleLanding(): void {
-  for (const [tab, landed] of [...landing]) {
-    tab.style.transition = keepingCloseMotion(tab, 'none')
-    tab.style.transform = ''
-    landed()
+function land(held: Drag, tabs: HTMLElement[], shown: Map<HTMLElement, number>): void {
+  landing.land(tabs, shown)
+  if (held.tabs[held.from]?.getAttribute('aria-selected') === 'true') {
+    revealActive()
   }
 }
 
@@ -906,13 +868,15 @@ function onPointerup(event: PointerEvent): void {
   if (!ended.moving) {
     return
   }
-  const shown = shownLefts(ended.tabs)
+  // The tab carried is not selected by letting it go.
+  swallowDropClick()
+  const shown = landing.shownAt(ended.tabs)
   if (ended.to !== ended.from) {
     props.onReorder?.(ended.from, ended.to)
   }
   // The host's order lands with the next render; until then the tabs hold where
   // the drag left them, and then glide from there.
-  void nextTick(() => land(tabElements(), shown))
+  void nextTick(() => land(ended, tabElements(), shown))
 }
 
 /** Puts a dragged tab back where it was, gliding, as Escape does. */
@@ -924,7 +888,7 @@ function cancelDrag(): void {
   }
   stopDragScroll(ended)
   if (ended.moving) {
-    land(ended.tabs, shownLefts(ended.tabs))
+    land(ended, ended.tabs, landing.shownAt(ended.tabs))
   }
 }
 
@@ -1004,7 +968,7 @@ watch(phone, () => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onDragKeydown, true)
   cancelDrag()
-  settleLanding()
+  landing.settle()
   endClosingMode()
   resizeObserver?.disconnect()
   watchedTab = null

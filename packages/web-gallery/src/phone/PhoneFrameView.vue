@@ -199,11 +199,11 @@ async function openWindow(name: RegExp, tries = 120): Promise<void> {
   }
 }
 
-/** Taps the tab whose name matches once the window shows it, as a finger would: a tab selects as the press goes down. */
+/** Taps the tab whose name matches once the window shows it, as a finger would: a tab selects on the tap's click. */
 async function selectTab(name: RegExp, tries = 120): Promise<void> {
   const tab = [...document.querySelectorAll<HTMLElement>('[role=tab]')].find((element) => name.test(element.textContent ?? ''))
   if (tab) {
-    tab.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'touch' }))
+    tab.click()
     await nextTick()
   } else if (tries > 0) {
     await new Promise((resolve) => requestAnimationFrame(resolve))
