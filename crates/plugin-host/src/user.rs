@@ -1045,10 +1045,11 @@ impl UserPlugins {
     }
 
     /// The toolset of the plugins the user has on: their commands, with the
-    /// product's `product` groups under `demi`.
-    pub async fn toolset(&self, product: Vec<GroupBuilder>) -> Result<PluginToolset, StoreError> {
+    /// product's `product` groups under `demi`. `named` is the program's
+    /// plugins a conversation has, by id; none has them all.
+    pub async fn toolset(&self, product: Vec<GroupBuilder>, named: Option<&[String]>) -> Result<PluginToolset, StoreError> {
         let registry = self.0.registry();
-        let enabled = self.enabled(&registry).await?;
+        let enabled = Self::named(&registry, self.enabled(&registry).await?, named);
         let features = self.0.features(&registry).await?;
         let on = |index: usize, feature: &Feature| {
             let declared = &registry.plugins[index].factory.manifest().features;
@@ -1065,12 +1066,28 @@ impl UserPlugins {
         })
     }
 
-    /// The revision of the toolset the user's plugins give now.
-    pub async fn revision(&self) -> Result<String, StoreError> {
+    /// The revision of the toolset the user's plugins give now, with the
+    /// program's plugins `named` ([`toolset`](Self::toolset)).
+    pub async fn revision(&self, named: Option<&[String]>) -> Result<String, StoreError> {
         let registry = self.0.registry();
-        let enabled = self.enabled(&registry).await?;
+        let enabled = Self::named(&registry, self.enabled(&registry).await?, named);
         let features = self.0.features(&registry).await?;
         Ok(Self::revision_of(&registry, &enabled, &features))
+    }
+
+    /// `enabled`, the plugins the user has on, less the program's plugins
+    /// that `named` leaves out; the release's own follow the user's
+    /// switches alone.
+    fn named(registry: &Registry, mut enabled: Vec<bool>, named: Option<&[String]>) -> Vec<bool> {
+        let Some(named) = named else {
+            return enabled;
+        };
+        for (on, registered) in enabled.iter_mut().zip(&registry.plugins) {
+            if registered.declaration.is_some() && !named.iter().any(|id| id == registered.id().as_str()) {
+                *on = false;
+            }
+        }
+        enabled
     }
 
     /// The plugins on that have commands, each with the number of its
@@ -1102,10 +1119,12 @@ impl UserPlugins {
     }
 
     /// Asks the context source `plugin` for a node's new context block;
-    /// nothing while the user has it off.
+    /// nothing while the user has it off, nor for a program's plugin the
+    /// conversation's list `named` leaves out.
     pub async fn context(
         &self,
         plugin: &PluginId,
+        named: Option<&[String]>,
         asked: ContextAsk,
         cancel: CancellationToken,
     ) -> Result<Option<String>, PluginError> {
@@ -1113,7 +1132,7 @@ impl UserPlugins {
         let Some((index, _)) = registry.plugin(plugin.as_str()) else {
             return Ok(None);
         };
-        let enabled = self.enabled(&registry).await.map_err(PluginError::failed)?;
+        let enabled = Self::named(&registry, self.enabled(&registry).await.map_err(PluginError::failed)?, named);
         if !enabled[index] {
             return Ok(None);
         }
@@ -1139,13 +1158,15 @@ impl UserPlugins {
         }
     }
 
-    /// Whether `plugin` declares a project search and the user has it on.
-    pub async fn searches_projects(&self, plugin: &PluginId) -> Result<bool, StoreError> {
+    /// Whether `plugin` declares a project search and is on for a
+    /// conversation: the user has it on, and it is not a program's plugin
+    /// the conversation's list `named` leaves out.
+    pub async fn searches_projects(&self, plugin: &PluginId, named: Option<&[String]>) -> Result<bool, StoreError> {
         let registry = self.0.registry();
         let Some((index, registered)) = registry.plugin(plugin.as_str()) else {
             return Ok(false);
         };
-        Ok(registered.factory.manifest().project_search && self.enabled(&registry).await?[index])
+        Ok(registered.factory.manifest().project_search && Self::named(&registry, self.enabled(&registry).await?, named)[index])
     }
 
     /// Asks `plugin`, which declares a project search, to search

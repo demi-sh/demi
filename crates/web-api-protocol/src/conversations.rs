@@ -145,6 +145,27 @@ pub struct CreateConversation {
     #[schemars(with = "BrowserProfileName")]
     #[garde(skip)]
     pub browser_profile: Option<BrowserProfileName>,
+    /// The sentences that open its agents' system prompts in place of
+    /// Demi's, such as "You are the help desk's assistant."; Demi's when
+    /// absent.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "unwrap_or_skip"
+    )]
+    #[schemars(with = "String")]
+    #[garde(inner(custom(crate::not_blank)))]
+    pub identity: Option<String>,
+    /// The program's plugins its agents have, by id; all of them when
+    /// absent.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "unwrap_or_skip"
+    )]
+    #[schemars(with = "Vec<String>")]
+    #[garde(inner(inner(length(chars, min = 1))))]
+    pub plugins: Option<Vec<String>>,
     /// The message the conversation starts with, as the socket's `send`
     /// frame carries it.
     #[serde(
@@ -275,6 +296,14 @@ pub struct ConversationMetadata {
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<BrowserProfileName>")]
     pub browser_profile: Option<BrowserProfileName>,
+    /// The sentences that open its agents' system prompts; null for Demi's.
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[schemars(with = "Nullable<String>")]
+    pub identity: Option<String>,
+    /// The program's plugins its agents have, by id; null for all of them.
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[schemars(with = "Nullable<Vec<String>>")]
+    pub plugins: Option<Vec<String>>,
     /// The directory the conversation's work runs in, resolved by the backend
     /// for every kind of target, so the web app never derives it.
     pub cwd: String,
@@ -797,6 +826,26 @@ pub struct ConversationPatch {
     #[schemars(with = "Option<BrowserProfileName>")]
     #[garde(skip)]
     pub browser_profile: Option<Option<BrowserProfileName>>,
+    /// The sentences that open its agents' system prompts in place of
+    /// Demi's, from each agent's next request; null for Demi's.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "double_option"
+    )]
+    #[schemars(with = "Option<String>")]
+    #[garde(inner(inner(custom(crate::not_blank))))]
+    pub identity: Option<Option<String>>,
+    /// The program's plugins its agents have, by id, from each agent's next
+    /// command; null for all of them.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "double_option"
+    )]
+    #[schemars(with = "Option<Vec<String>>")]
+    #[garde(inner(inner(inner(length(chars, min = 1)))))]
+    pub plugins: Option<Option<Vec<String>>>,
     /// A switch of the conversation's execution target.
     #[serde(
         default,
@@ -830,6 +879,8 @@ pub enum PatchField {
     ServiceTierId,
     Workflow,
     BrowserProfile,
+    Identity,
+    Plugins,
     Target,
 }
 

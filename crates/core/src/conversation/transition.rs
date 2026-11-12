@@ -154,21 +154,44 @@ impl Core {
                 return Ok(None);
             }
             ConversationChange::Record(change) if !change_is_transition(&change) => {
-                // A field update waits while a transition holds the
-                // conversation, and applies as if it arrived afterwards.
-                let _admitted = self
-                    .conversations()
-                    .slot(&record.id)
-                    .file_gate()
-                    .enter(Purpose::Demand)
-                    .await;
-                if let RecordChange::Attach(attached) = &change {
-                    let target = access.resolve_target(&record).await?;
-                    if target.device() == Some(&attached.device) {
-                        return Err(ChangeRefusal::DeviceIsPrimary);
+                let prompt = matches!(change, RecordChange::Identity(_));
+                let commands = matches!(change, RecordChange::Plugins(_));
+                {
+                    // A field update waits while a transition holds the
+                    // conversation, and applies as if it arrived afterwards.
+                    let _admitted = self
+                        .conversations()
+                        .slot(&record.id)
+                        .file_gate()
+                        .enter(Purpose::Demand)
+                        .await;
+                    if let RecordChange::Attach(attached) = &change {
+                        let target = access.resolve_target(&record).await?;
+                        if target.device() == Some(&attached.device) {
+                            return Err(ChangeRefusal::DeviceIsPrimary);
+                        }
                     }
+                    access.commit(&record.id, change).await?;
                 }
-                return access.commit(&record.id, change).await.map(|()| None);
+                // The record holds the change, which a tree that opens later
+                // reads; a live tree takes it from its agents' next requests.
+                let root = root_of(&record.id);
+                let adopted = if prompt {
+                    self.agent().adopt_prompt(&root).await
+                } else if commands {
+                    self.agent().adopt_commands_of(&root).await
+                } else {
+                    Ok(())
+                };
+                if let Err(error) = adopted {
+                    tracing::error!(
+                        event = "conversation_change.not_adopted",
+                        conversation = %record.id,
+                        error,
+                        "the live conversation keeps its earlier prompt or commands until it opens again"
+                    );
+                }
+                return Ok(None);
             }
             change => change,
         };
@@ -565,6 +588,18 @@ impl Core {
             changes.push((
                 vec![PatchField::BrowserProfile],
                 RecordChange::BrowserProfile(profile).into(),
+            ));
+        }
+        if let Some(identity) = patch.identity {
+            changes.push((
+                vec![PatchField::Identity],
+                RecordChange::Identity(identity).into(),
+            ));
+        }
+        if let Some(plugins) = patch.plugins {
+            changes.push((
+                vec![PatchField::Plugins],
+                RecordChange::Plugins(plugins).into(),
             ));
         }
         if let Some(target) = patch.target {

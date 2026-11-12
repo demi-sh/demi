@@ -103,7 +103,9 @@ impl Core {
     pub async fn conversation_metadata(&self, record: ConversationRecord) -> Result<ConversationMetadata, StorageError> {
         let tree = self.agent().tree(&root_of(&record.id));
         let plugins_changed = match &tree {
-            Some(tree) => tree.toolset() != self.plugins().revision().await.map_err(StorageError::from)?,
+            Some(tree) => {
+                *tree.toolset() != *self.plugins().revision(record.plugins.as_deref()).await.map_err(StorageError::from)?
+            }
             None => false,
         };
         let facts = self.summary_facts(&record.id).await;
@@ -137,6 +139,8 @@ impl Core {
             model: record.model.as_ref().map(settings).transpose()?,
             workflow: record.workflow,
             browser_profile: record.browser_profile,
+            identity: record.identity,
+            plugins: record.plugins,
             cwd: resolved.path().to_owned(),
             last_turn: facts.last_turn.as_ref().map(last_turn),
             turn_speed: facts.turn_speed,

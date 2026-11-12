@@ -59,6 +59,15 @@ pub struct ForkMetadata {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[garde(skip)]
     pub browser_profile: Option<BrowserProfileName>,
+    /// The source's identity and the program's plugins it names, which the
+    /// destination keeps as it keeps the model; absent for Demi's and for
+    /// all of them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(skip)]
+    pub identity: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(skip)]
+    pub plugins: Option<Vec<String>>,
     #[garde(skip)]
     pub created_at: Timestamp,
     #[garde(dive)]
@@ -200,6 +209,8 @@ impl CoreStore {
                     model: metadata.model.as_ref(),
                     workflow: &metadata.workflow,
                     browser_profile: metadata.browser_profile.as_ref(),
+                    identity: metadata.identity.as_deref(),
+                    plugins: metadata.plugins.as_deref(),
                     context_version: metadata.context_version,
                     at: metadata.created_at,
                 },

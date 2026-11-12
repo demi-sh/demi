@@ -45,6 +45,7 @@ pub use content::{ContentError, ContentResolver, FileReference, ResolvedFiles, r
 pub use tree::{AskError, KeptAgents, SideCard, Tree, side_instruction};
 
 use tree::OpenError;
+use crate::node::PromptCommands;
 
 use crate::Node;
 
@@ -202,12 +203,9 @@ pub struct ServerDeps<H: DeviceResolver> {
     /// The user's Subagents switch, limits and profiles, read at each spawn
     /// and each `demi agent profiles`.
     pub subagents: Rc<dyn SubagentSource>,
-    /// The instructions of every node's system prompt, its identity, which a
-    /// profile's replace.
-    pub instructions: Rc<str>,
-    /// The harness guide every node's system prompt carries after its
-    /// identity, which no profile replaces.
-    pub guide: Rc<str>,
+    /// The identity and the harness guide that open every node's system
+    /// prompt, by the conversation ([`PromptSource`]).
+    pub prompts: Rc<dyn PromptSource>,
     /// Where a node's shell tools run.
     pub devices: Rc<H>,
     /// What the model must learn before each request, in this order.
@@ -234,6 +232,33 @@ pub struct ServerDeps<H: DeviceResolver> {
     /// Which paths a complete text's code spans name are files on the
     /// conversation's device (`crates/agent-server/src/node/reply_files.rs`).
     pub reply_files: Rc<dyn crate::node::ReplyFiles>,
+}
+
+/// The product's layers of a conversation's system prompts.
+#[derive(Debug, Clone)]
+pub struct ProductPrompt {
+    /// What the agent is, which opens every node's prompt; a profile's
+    /// instructions follow it, never replace it.
+    pub identity: Rc<str>,
+    /// The harness guide after it.
+    pub guide: Rc<str>,
+}
+
+/// Where the product's layers of a conversation's system prompts come from,
+/// which may differ by conversation, as a program's conversation speaks as
+/// its product. A tree reads them as it opens, and its children and side
+/// questions carry the root's; the product's change of them reaches every
+/// node from its next request ([`AgentServer::adopt_prompt`]).
+pub trait PromptSource {
+    fn prompt<'a>(&'a self, root: &'a NodeId) -> LocalBoxFuture<'a, Result<ProductPrompt, String>>;
+}
+
+/// One prompt for every conversation.
+impl PromptSource for ProductPrompt {
+    fn prompt<'a>(&'a self, _root: &'a NodeId) -> LocalBoxFuture<'a, Result<ProductPrompt, String>> {
+        let prompt = self.clone();
+        Box::pin(async move { Ok(prompt) })
+    }
 }
 
 /// What the product keeps of a conversation's agents: what each has cost and
@@ -306,40 +331,87 @@ impl<H: DeviceResolver> AgentServer<H> {
         Connection::new(self.clone(), id, root, resolver)
     }
 
-    /// The commands a root node that opens now starts from.
+    /// The commands the user's root node would start from now, with every
+    /// plugin the user has on.
     ///
     /// They are the product's current ones with the server's `demi agent` and
     /// `demi shell` groups grafted, whose declarations, such as their
     /// permission categories, the product reads beside its own.
     pub async fn node_commands(self: &Rc<Self>) -> Result<Rc<CommandSet>, String> {
-        let toolset = self.toolset().await?;
+        let toolset = self.toolset(None).await?;
         self.runtime_commands(&toolset.commands, true)
             .map_err(|error| error.to_string())
     }
 
-    /// Gives every live tree the product's toolset now, as the user's switch
-    /// of a plugin asks (`crates/plugin-host/src/lib.rs`): each node's
-    /// commands change, and its system prompt keeps the commands it opened
-    /// with.
+    /// Gives every live tree the product's toolset now for its
+    /// conversation, as the user's switch of a plugin or a program's
+    /// declaration of one asks (`crates/plugin-host/src/lib.rs`): each
+    /// node's commands change, and its system prompt keeps the commands it
+    /// opened with, so one switch does not miss every conversation's cache.
     pub async fn adopt_toolset(self: &Rc<Self>) -> Result<(), String> {
-        let toolset = self.toolset().await?;
-        let trees: Vec<_> = self.trees.borrow().values().cloned().collect();
-        for tree in trees {
-            tree.adopt_commands(self, &toolset.commands)
-                .map_err(|error| error.to_string())?;
+        let roots: Vec<NodeId> = self.trees.borrow().keys().cloned().collect();
+        let mut failed = None;
+        for root in roots {
+            // Under the root's order, as a change of the conversation's own
+            // plugins adopts: the later of the two reads what the record
+            // holds last, and never puts back what the other replaced.
+            let _turn = self.opening.acquire(root.clone()).await;
+            let Some(tree) = self.tree(&root) else {
+                continue;
+            };
+            let adopted = match self.toolset(Some(&root)).await {
+                Ok(toolset) => tree
+                    .adopt_commands(self, &toolset, PromptCommands::Kept)
+                    .map_err(|error| error.to_string()),
+                Err(error) => Err(error),
+            };
+            // One conversation that cannot take its toolset leaves the
+            // others to take theirs.
+            if let Err(error) = adopted {
+                failed.get_or_insert(error);
+            }
+        }
+        failed.map_or(Ok(()), Err)
+    }
+
+    /// Gives the live tree of the conversation `root`, if it has one, the
+    /// toolset the product now has for it alone, as a change of the plugins
+    /// it names asks: each node runs them from its next command and lists
+    /// them in its system prompt from its next request.
+    pub async fn adopt_commands_of(self: &Rc<Self>, root: &NodeId) -> Result<(), String> {
+        // A tree that is opening read the commands before the change; it is
+        // live once the order is ours.
+        let _turn = self.opening.acquire(root.clone()).await;
+        let Some(tree) = self.tree(root) else {
+            return Ok(());
+        };
+        let toolset = self.toolset(Some(root)).await?;
+        tree.adopt_commands(self, &toolset, PromptCommands::Renewed)
+            .map_err(|error| error.to_string())
+    }
+
+    /// Gives the live tree of the conversation `root`, if it has one, the
+    /// product's prompt of it now, from each node's next request.
+    pub async fn adopt_prompt(&self, root: &NodeId) -> Result<(), String> {
+        // A tree that is opening read the prompt before the change; it is
+        // live once the order is ours.
+        let _turn = self.opening.acquire(root.clone()).await;
+        if let Some(tree) = self.tree(root) {
+            tree.adopt_prompt(self.deps.prompts.prompt(root).await?);
         }
         Ok(())
     }
 
-    /// The product's toolset now: the one a node holds of the product's
-    /// current revision, else the product's, composed once and kept while
-    /// a node holds it. Trees that opened with another keep theirs.
-    async fn toolset(&self) -> Result<Toolset, String> {
-        let revision = self.deps.toolsets.revision().await?;
+    /// The product's toolset now for the conversation `root`, or for its
+    /// user with none: the one a node holds of the product's current
+    /// revision, else the product's, composed once and kept while a node
+    /// holds it. Trees that opened with another keep theirs.
+    async fn toolset(&self, root: Option<&NodeId>) -> Result<Toolset, String> {
+        let revision = self.deps.toolsets.revision(root).await?;
         if let Some(held) = self.command_sets.toolset(&revision) {
             return Ok(held);
         }
-        let composed = self.deps.toolsets.current().await?;
+        let composed = self.deps.toolsets.current(root).await?;
         Ok(self.command_sets.hold_toolset(composed))
     }
 

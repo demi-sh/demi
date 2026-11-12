@@ -13,9 +13,11 @@
 //! - the role that sets the lifecycle policy.
 //!
 //! The role is never a depth, and every child has its parent's commands. A
-//! node's commands change while it lives when the product's do, as a plugin
-//! turned on or off changes them, but its capability index, part of its system
-//! prompt, stays as it was rendered.
+//! node's commands change while it lives when the product's do. A change of
+//! every conversation's, as a plugin turned on or off makes, leaves its
+//! capability index, part of its system prompt, as it was rendered, so one
+//! switch does not miss every conversation's prompt cache; a change of its
+//! own conversation's renders the index again for its next request.
 //!
 //! A child starts with an empty transcript: isolation is the point, so Demi
 //! never rewrites or summarizes the parent's conversation into it. Its context
@@ -80,7 +82,7 @@ use demi_shared_types::{
 };
 use futures_util::{FutureExt, future::LocalBoxFuture};
 
-use crate::server::{AgentServer, ProviderResolver};
+use crate::server::{AgentServer, ProductPrompt, ProviderResolver};
 
 /// What made Demi resume a child's turn the process interrupted, as its
 /// model reads it.
@@ -201,8 +203,11 @@ impl<H: DeviceResolver> Node<H> {
     /// The node's commands are `commands`, `inherited` with the node's
     /// `demi agent` group grafted, from now on: its shells' jobs offer them
     /// as they start, and its jobs' calls run in them. Its capability index
-    /// stays.
-    pub(crate) fn replace_commands(&self, inherited: Rc<CommandSet>, commands: Rc<CommandSet>) {
+    /// follows as `list` says.
+    pub(crate) fn replace_commands(&self, inherited: Rc<CommandSet>, commands: Rc<CommandSet>, list: PromptCommands) {
+        if list == PromptCommands::Renewed {
+            self.runtime.index.replace(commands.render_index());
+        }
         self.runtime.inherited.replace(inherited);
         self.runtime.commands.replace(commands.clone());
         if let Err(error) = self.runtime.environments.replace_commands(&commands) {
@@ -527,10 +532,8 @@ pub(crate) struct NodeRuntime<H: DeviceResolver> {
     devices: Rc<H>,
     /// The instructions of its system prompt.
     instructions: Instructions,
-    /// The product's harness guide.
-    guide: Rc<str>,
-    /// The capability index of its commands, rendered once.
-    index: CapabilityIndex,
+    /// The capability index of its commands, which its system prompt lists.
+    index: RefCell<CapabilityIndex>,
     /// A child's identity, the text before each of its user turns.
     preamble: Option<String>,
     /// The product's context sources, in their order.
@@ -827,8 +830,9 @@ impl<H: DeviceResolver> SessionRuntime for NodeRuntime<H> {
         })
     }
 
-    /// The layers rendered at assembly, and the line naming `model` with
-    /// the family of the entry that serves it.
+    /// The tree's product prompt and the node's capability index as they
+    /// are now, its profile's instructions, and the line naming `model`
+    /// with the family of the entry that serves it.
     fn system_prompt<'a>(
         &'a self,
         model: &'a ModelSelection,
@@ -844,10 +848,11 @@ impl<H: DeviceResolver> SessionRuntime for NodeRuntime<H> {
                 family: &family,
                 id: &model.model.id,
             };
+            let product = self.instructions.product.get();
             Ok(system_prompt(
-                &self.instructions.identity,
-                &self.guide,
-                &self.index,
+                &product.identity,
+                &product.guide,
+                &self.index.borrow(),
                 identity,
                 self.instructions.added.as_deref(),
             ))
@@ -1235,13 +1240,44 @@ impl Origin {
     }
 }
 
-/// The instructions of a node's system prompt: the product's, its
-/// identity, which every node has, and the text its subagent profile added
-/// after the model identity, if any.
+/// Whether a change of a node's commands reaches the list of them in its
+/// system prompt.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum PromptCommands {
+    /// The list stays as the node opened with it.
+    Kept,
+    /// The node's next request lists the new commands.
+    Renewed,
+}
+
+/// The instructions of a node's system prompt: the product's identity and
+/// harness guide, which every node of its tree has, and the text its
+/// subagent profile added after the model identity, if any.
 #[derive(Debug, Clone)]
 pub(crate) struct Instructions {
-    pub(crate) identity: Rc<str>,
+    pub(crate) product: TreePrompt,
     pub(crate) added: Option<Rc<str>>,
+}
+
+/// The product's layers that open the system prompt of every node of a
+/// tree: one per tree, which its children and side questions share with its
+/// root, so a change the product makes reaches each node from its next
+/// request.
+#[derive(Debug, Clone)]
+pub(crate) struct TreePrompt(Rc<RefCell<ProductPrompt>>);
+
+impl TreePrompt {
+    pub(crate) fn new(prompt: ProductPrompt) -> Self {
+        Self(Rc::new(RefCell::new(prompt)))
+    }
+
+    pub(crate) fn get(&self) -> ProductPrompt {
+        self.0.borrow().clone()
+    }
+
+    pub(crate) fn replace(&self, prompt: ProductPrompt) {
+        *self.0.borrow_mut() = prompt;
+    }
 }
 
 /// What makes a node itself, and what it is built with.
@@ -1256,8 +1292,6 @@ pub(crate) struct NodeSpec<H: DeviceResolver> {
     pub(crate) providers: Rc<dyn ProviderResolver>,
     pub(crate) devices: Rc<H>,
     pub(crate) instructions: Instructions,
-    /// The product's harness guide, which every node carries.
-    pub(crate) guide: Rc<str>,
     /// A child's identity, the text before each of its user turns.
     pub(crate) preamble: Option<String>,
     pub(crate) context: Rc<dyn ContextSources>,
@@ -1316,7 +1350,6 @@ pub(crate) async fn assemble<H: DeviceResolver>(
         providers,
         devices,
         instructions,
-        guide,
         preamble,
         context,
         inherited,
@@ -1342,8 +1375,7 @@ pub(crate) async fn assemble<H: DeviceResolver>(
         record: RefCell::new(record.clone()),
         devices,
         instructions,
-        guide,
-        index,
+        index: RefCell::new(index),
         preamble,
         context,
         inherited: RefCell::new(inherited),

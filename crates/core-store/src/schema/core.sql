@@ -353,6 +353,12 @@ CREATE TABLE conversations (
   -- earlier one from a later one's.
   browser_profile TEXT,
   browser_profile_revision INTEGER NOT NULL DEFAULT 0 CHECK (browser_profile_revision >= 0),
+  -- The sentences that open its agents' system prompts in place of Demi's;
+  -- null for Demi's.
+  identity TEXT,
+  -- The program's plugins its agents have, a JSON array of their ids; null
+  -- for all of them.
+  plugins TEXT,
   CHECK (
     (target_kind = 'cloud'
       AND target_device_id IS NULL AND target_project_id IS NULL)

@@ -53,6 +53,8 @@ export interface Asked {
   tools: string[]
   /** The text of the request's last user message, or what its last tool result says. */
   last: string
+  /** The text of the request's system prompt, its blocks joined. */
+  system: string
   /** The answer it took; null for the fixed lines. */
   answer: Answer | null
 }
@@ -72,6 +74,7 @@ interface OfferedTool {
 
 /** The parts of a Messages request the endpoint reads. */
 interface MessagesRequest {
+  system?: string | { type: string, text?: string }[]
   tools?: OfferedTool[]
   messages?: { role: string, content: string | { type: string, text?: string, content?: unknown }[] }[]
 }
@@ -144,7 +147,10 @@ export class ScriptedModel {
       return Response.json({ type: 'error', error: { type: 'invalid_request_error', message } }, { status: 400 })
     }
     const taken = turn ? this.queue.shift() ?? null : null
-    this.asked.push({ at: Date.now(), tools: tools.map((tool) => tool.name), last: lastSaid(request), answer: taken })
+    const system = typeof request.system === 'string'
+      ? request.system
+      : (request.system ?? []).map((block) => block.text ?? '').join('\n')
+    this.asked.push({ at: Date.now(), tools: tools.map((tool) => tool.name), last: lastSaid(request), system, answer: taken })
     const steps: Answer = taken ?? [{ say: turn ? NOTHING_QUEUED : NO_TURN }]
     const encoder = new TextEncoder()
     const events = this.events(steps, shell, gone)

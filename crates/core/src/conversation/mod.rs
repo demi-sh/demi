@@ -76,7 +76,7 @@ pub(crate) use self::lane::TreeRefusal;
 pub(crate) use self::product::CoreDevices;
 pub use self::providers::{lent_limits, lent_runtime};
 use self::product::{
-    ExecutionContext, HARNESS_GUIDE, INSTRUCTIONS, PluginContext, CoreAgents, CoreReplyFiles, CoreSubagents, CoreToolsets,
+    ExecutionContext, PluginContext, CoreAgents, CorePrompts, CoreReplyFiles, CoreSubagents, CoreToolsets,
 };
 use self::providers::ConversationProviders;
 use self::small_requests::SmallRequests;
@@ -169,8 +169,9 @@ pub(crate) fn conversation_parts(
         subagents: Rc::new(CoreSubagents {
             core: core.clone(),
         }),
-        instructions: Rc::from(INSTRUCTIONS),
-        guide: Rc::from(HARNESS_GUIDE),
+        prompts: Rc::new(CorePrompts {
+            core: core.clone(),
+        }),
         devices: Rc::new(CoreDevices {
             core: core.clone(),
         }),

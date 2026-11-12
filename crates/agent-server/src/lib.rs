@@ -18,8 +18,8 @@
 //!
 //! A product supplies:
 //!
-//! - the commands, instructions, harness guide and context sources every node
-//!   is assembled with;
+//! - the commands, the identity and the harness guide of each conversation,
+//!   and the context sources every node is assembled with;
 //! - the user's subagent settings each spawn reads;
 //! - the device its shell tools reach
 //!   ([`DeviceResolver`](demi_agent_tools::DeviceResolver));
@@ -32,11 +32,15 @@
 //! When a change reaches a conversation:
 //!
 //! - The command set may change while the server runs: a tree takes it when it
-//!   opens, records its revision and keeps it until it closes, so a change
-//!   reaches a conversation when its tree opens again.
+//!   opens and records its revision. A change of every conversation's reaches
+//!   each live node's commands at once and leaves the list in its system
+//!   prompt; a change of one conversation's reaches the list too.
 //! - The profiles and the Subagents switch are asked at each spawn instead, so
 //!   a change reaches the next spawn.
-//! - A node's system prompt is rendered once, when the node is assembled.
+//! - A node's system prompt is rendered for each request from what it was
+//!   assembled with; of that, the identity and the guide the product gives
+//!   may change, for every node of the tree at once, and so may the list of
+//!   commands, as above.
 //!
 //! Everything here runs on the user's core, a single-threaded runtime: nothing
 //! is `Send`, and shared state sits in `Rc` and `RefCell` behind synchronous
@@ -75,7 +79,7 @@ pub use server::{
     AgentServer, AgentsSource, AskError, Connection, ContentError, ContentResolver, FileReference, FrameRx, KeptAgents,
     resolve_content,
     Outgoing, SideCard, side_instruction, Follows,
-    ProviderResolver, ResolveError, ResolvedFiles, RestoreError, ServerConfig, SubagentMessageError,
-    ServerDeps, Tree,
+    ProductPrompt, PromptSource, ProviderResolver, ResolveError, ResolvedFiles, RestoreError, ServerConfig,
+    SubagentMessageError, ServerDeps, Tree,
     TreeStores, Working,
 };

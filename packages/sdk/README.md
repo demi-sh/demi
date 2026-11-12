@@ -236,6 +236,24 @@ const refunds = await core.conversations.create({ title: 'Refunds', model, targe
 await refunds.update({ browserProfile: null })
 ```
 
+An agent introduces itself as Demi unless its conversation names an
+`identity`, the sentences that open its system prompt instead. Demi's rules
+for running commands and replying still follow them. `plugins` lists which
+of your program's plugins the conversation's agents have, by id; without it
+they have all of them. Demi's own plugins follow the user's switches either
+way. A change made with `update` reaches each agent from its next request.
+
+```ts
+const desk = await core.conversations.create({
+  model,
+  target,
+  identity: "You are the help desk's assistant. You answer the team's questions about their accounts.",
+  plugins: ['tickets'],
+})
+// Try the next version of the commands in this conversation alone:
+await desk.update({ plugins: ['tickets-next'] })
+```
+
 `conversation.run(input)` sends a message and resolves once the turn it
 starts ended. It fails when the message leaves the queue without running, as
 an abort that clears the queue makes it, or when the conversation closes

@@ -1,8 +1,9 @@
 //! What the backend's conversations are assembled from.
 //!
-//! - The product's instructions.
-//! - The toolset of the plugins the user has on, with the product's `demi device`
-//!   and `demi attachment` groups.
+//! - The product's instructions, or the identity a conversation names.
+//! - The toolset of the plugins the user has on, less the program's plugins
+//!   the conversation does not name, with the product's `demi device` and
+//!   `demi attachment` groups.
 //! - The user's subagent settings, which each spawn reads.
 //! - The device each node reaches, and the conversation's current primary device.
 //! - The execution context source, which tells a node that the conversation's
@@ -11,6 +12,7 @@
 
 use std::rc::{Rc, Weak};
 
+use demi_agent_server::{ProductPrompt, PromptSource};
 use demi_agent_tools::{
     ContextAnswer, ContextSource, ConversationProfiles, DeviceResolver, NewProfileDraft, NodeContext, Profile, WorkflowListing,
     ProfileEdit, ProfileModel, SubagentSettings, SubagentSource, Toolset, ToolsetSource,
@@ -45,12 +47,64 @@ use crate::credential_commands::credentials_group;
 use crate::notify_commands::notify_group;
 
 /// The product's instructions, the identity that opens every node's system
-/// prompt, which a subagent profile's replace.
-pub(crate) const INSTRUCTIONS: &str = "You are Demi, an agent that works for the user on their computers: a Demi Cloud machine or the devices they paired. You write and run software, research, operate websites, and work with files and data, across turns.";
+/// prompt unless its conversation names another.
+const INSTRUCTIONS: &str = "You are Demi, an agent that works for the user on their computers: a Demi Cloud machine or the devices they paired. You write and run software, research, operate websites, and work with files and data, across turns.";
 
 /// The harness guide every node's system prompt carries after its identity,
-/// a profile's node too.
-pub(crate) const HARNESS_GUIDE: &str = "Guidelines:\n- Commands run on the conversation's primary device, in its working directory; a context block names both. The directory stays between turns, and Files shows it; to work in another directory, move there with `demi device move` first.\n- To wait for a command or a subagent, end your turn: its end or its message wakes you, and you continue then. Never wait with sleep or a loop.\n- The user reads only your replies, rendered as Markdown. Be concise.\n- Deliver a file as an attachment: `demi attachment upload`, then `<attachment id=\"a3\" />` on its own line; a medium a tool result showed you has its `attachment_id` already.\n- Link what the user can open: a device file `[runner.md](docs/runner.md#L438)`, a subagent `[File icons](agent:4)`, a commit `[Fix the cart total](commit:3f2a9c1)`, or `commit:src/v8@86229da` in another repository, a conversation `[Login test](conversation:<id>)`.";
+/// a profile's node too, around the words of the web app's Files view, which
+/// a conversation with an identity of its own goes without.
+const GUIDE_START: &str = "Guidelines:\n- Commands run on the conversation's primary device, in its working directory; a context block names both. The directory stays between turns";
+const GUIDE_FILES: &str = ", and Files shows it";
+const GUIDE_END: &str = "; to work in another directory, move there with `demi device move` first.\n- To wait for a command or a subagent, end your turn: its end or its message wakes you, and you continue then. Never wait with sleep or a loop.\n- The user reads only your replies, rendered as Markdown. Be concise.\n- Deliver a file as an attachment: `demi attachment upload`, then `<attachment id=\"a3\" />` on its own line; a medium a tool result showed you has its `attachment_id` already.\n- Link what the user can open: a device file `[runner.md](docs/runner.md#L438)`, a subagent `[File icons](agent:4)`, a commit `[Fix the cart total](commit:3f2a9c1)`, or `commit:src/v8@86229da` in another repository, a conversation `[Login test](conversation:<id>)`.";
+
+/// The product's layers of a conversation's system prompts: Demi's
+/// identity and the whole guide, or the identity it names and the guide
+/// without the Files view.
+pub(crate) struct CorePrompts {
+    /// Weak: the core owns the agent server that holds the source.
+    pub(crate) core: Weak<Core>,
+}
+
+impl PromptSource for CorePrompts {
+    fn prompt<'a>(&'a self, root: &'a NodeId) -> LocalBoxFuture<'a, Result<ProductPrompt, String>> {
+        Box::pin(async move {
+            let core = self
+                .core
+                .upgrade()
+                .ok_or_else(|| "the backend is shutting down".to_owned())?;
+            let record = core
+                .store()
+                .conversation(conversation_of(root))
+                .await
+                .map_err(|error| error.to_string())?;
+            Ok(match record.and_then(|record| record.identity) {
+                Some(identity) => ProductPrompt {
+                    identity: Rc::from(identity),
+                    guide: Rc::from(format!("{GUIDE_START}{GUIDE_END}")),
+                },
+                None => ProductPrompt {
+                    identity: Rc::from(INSTRUCTIONS),
+                    guide: Rc::from(format!("{GUIDE_START}{GUIDE_FILES}{GUIDE_END}")),
+                },
+            })
+        })
+    }
+}
+
+impl Core {
+    /// The program's plugins the conversation of `root` names, none for all
+    /// of them, as is the user's with no root.
+    async fn named_plugins(&self, root: Option<&NodeId>) -> Result<Option<Vec<String>>, StorageError> {
+        let Some(root) = root else {
+            return Ok(None);
+        };
+        Ok(self
+            .store()
+            .conversation(conversation_of(root))
+            .await?
+            .and_then(|record| record.plugins))
+    }
+}
 
 /// What a conversation's tree opens with: the commands of the plugins the
 /// user has on, with the product's `demi device`, `demi attachment`, `demi
@@ -62,27 +116,29 @@ pub(crate) struct CoreToolsets {
 }
 
 impl ToolsetSource for CoreToolsets {
-    fn revision(&self) -> LocalBoxFuture<'_, Result<Rc<str>, String>> {
+    fn revision<'a>(&'a self, root: Option<&'a NodeId>) -> LocalBoxFuture<'a, Result<Rc<str>, String>> {
         Box::pin(async move {
             let core = self
                 .core
                 .upgrade()
                 .ok_or_else(|| "the backend is shutting down".to_owned())?;
+            let named = core.named_plugins(root).await.map_err(|error| error.to_string())?;
             let revision = core
                 .plugins()
-                .revision()
+                .revision(named.as_deref())
                 .await
                 .map_err(|error| error.to_string())?;
             Ok(Rc::from(revision))
         })
     }
 
-    fn current(&self) -> LocalBoxFuture<'_, Result<Toolset, String>> {
+    fn current<'a>(&'a self, root: Option<&'a NodeId>) -> LocalBoxFuture<'a, Result<Toolset, String>> {
         Box::pin(async move {
             let core = self
                 .core
                 .upgrade()
                 .ok_or_else(|| "the backend is shutting down".to_owned())?;
+            let named = core.named_plugins(root).await.map_err(|error| error.to_string())?;
             let devices: Weak<dyn DeviceCore> = self.core.clone();
             let toolset = core
                 .plugins()
@@ -94,7 +150,7 @@ impl ToolsetSource for CoreToolsets {
                     schedule_group(self.core.clone()),
                     providers_group(self.core.clone()),
                     notify_group(self.core.clone()),
-                ])
+                ], named.as_deref())
                 .await
                 .map_err(|error| error.to_string())?;
             Ok(Toolset {
@@ -375,6 +431,12 @@ impl ContextSource for PluginContext {
             let Some(core) = self.core.upgrade() else {
                 return Ok(None);
             };
+            // A program's plugin the conversation does not name is neither
+            // searched nor asked, as it gives the conversation no commands.
+            let named = core
+                .named_plugins(Some(node.root))
+                .await
+                .map_err(|error| format!("the plugin {} was not asked: {error}", self.plugin))?;
             let conversation = conversation_of(node.root);
             let paths = core
                 .primary_device_paths(&conversation)
@@ -388,7 +450,7 @@ impl ContextSource for PluginContext {
             // A plugin the user has off keeps nothing, and is not asked.
             let searches = core
                 .plugins()
-                .searches_projects(&self.plugin)
+                .searches_projects(&self.plugin, named.as_deref())
                 .await
                 .map_err(|error| format!("the plugin {} was not asked: {error}", self.plugin))?;
             let project = if searches {
@@ -409,7 +471,7 @@ impl ContextSource for PluginContext {
             // drops this future.
             core
                 .plugins()
-                .context(&self.plugin, asked, CancellationToken::new())
+                .context(&self.plugin, named.as_deref(), asked, CancellationToken::new())
                 .await
                 .map(|text| text.map(ContextAnswer::from))
                 .map_err(|error| format!("the plugin {} gave no context: {error}", self.plugin))
