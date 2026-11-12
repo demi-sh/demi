@@ -76,7 +76,7 @@ pub mod title;
 
 pub use node::{CODE_PATHS_MAX, Node, ReplyFiles, code_path};
 pub use server::{
-    AgentServer, AgentsSource, AskError, Connection, ContentError, ContentResolver, FileReference, FrameRx, KeptAgents,
+    AgentServer, AgentsSource, AskError, Connection, ContentError, ContentResolver, FileReference, FrameRx, KeptAgents, Taken,
     resolve_content,
     Outgoing, SideCard, side_instruction, Follows,
     ProductPrompt, PromptSource, ProviderResolver, ResolveError, ResolvedFiles, RestoreError, ServerConfig,

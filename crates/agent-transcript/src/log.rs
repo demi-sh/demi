@@ -618,17 +618,13 @@ impl TranscriptLog {
         self.earlier.holds_call(id) || self.position(id).is_some()
     }
 
-    /// Whether the path holds a steer written under `id`, or any other
-    /// block of that id.
+    /// Whether the path holds a steer written under `id`.
     pub fn holds_steer(&self, id: &BlockId) -> bool {
-        self.earlier.holds_steer(id) || self.position(id).is_some()
-    }
-
-    /// Whether a message sent under `id` was written: a steer's block, or
-    /// the `user` block of the turn it opened.
-    pub fn holds_input(&self, id: &BlockId) -> bool {
-        let turn = TurnId::try_from(id.as_str().to_owned()).expect("a block id is not empty");
-        self.holds_steer(id) || self.has_user_turn(&turn)
+        self.earlier.holds_steer(id)
+            || self
+                .blocks
+                .iter()
+                .any(|block| matches!(block, Block::Steer(steer) if &steer.id == id))
     }
 
     /// Whether the last block already says why its turn is unfinished.

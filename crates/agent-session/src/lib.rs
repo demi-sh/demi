@@ -305,6 +305,9 @@ impl AdmissionError {
 pub enum SteerError {
     #[error("The session is closed")]
     Closed,
+    /// Its id names another block of the conversation, as a tool call's.
+    #[error("The steer's id belongs to another block of the conversation")]
+    Conflict,
 }
 
 impl SteerError {
@@ -312,6 +315,7 @@ impl SteerError {
     pub fn refusal(&self) -> Refusal {
         let code = match self {
             Self::Closed => AgentCode::SessionClosed,
+            Self::Conflict => AgentCode::FrameFailed,
         };
         Refusal::new(code, self.to_string())
     }
@@ -1363,11 +1367,10 @@ impl AgentSession {
         }
     }
 
-    /// Whether the message `id` is the running turn, a queued message or the
-    /// turn of a `user` block, which a message sent again under it does not
-    /// run twice.
-    pub fn knows_turn(&self, id: &TurnId) -> bool {
-        self.shared.read(|core| core.knows_turn(id))
+    /// Whether the session took a message or a steer under `id` already,
+    /// which input sent again under it does not repeat.
+    pub fn took(&self, id: &BlockId) -> bool {
+        self.shared.read(|core| core.took(id))
     }
 
     /// Whether the tool call `id` is on the transcript's current path.

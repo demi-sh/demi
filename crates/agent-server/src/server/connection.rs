@@ -206,6 +206,26 @@ impl FrameRx {
     }
 }
 
+/// What the session took of a frame a lane handled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Taken {
+    /// Nothing: a refusal, or a frame that asks the session to take nothing.
+    No,
+    /// What the frame asks, now: a `send` it admitted, a `steer` it
+    /// accepted, a stop it carried out, an edit or a retry it began.
+    Now,
+    /// Input the session took already under the frame's id, as a `send` or
+    /// a `steer` sent again after its answer was lost: acknowledged, and
+    /// taken no second time.
+    Already,
+}
+
+impl From<bool> for Taken {
+    fn from(taken: bool) -> Self {
+        if taken { Self::Now } else { Self::No }
+    }
+}
+
 /// One conversation lane's handling. It belongs to one conversation: the
 /// backend names the conversation, and the client never sends it. Dropping
 /// it detaches it; the tree's turns keep running.
@@ -246,12 +266,10 @@ impl<H: DeviceResolver> Connection<H> {
     /// delays the frames behind it. A failure is answered as a frame, never
     /// returned.
     ///
-    /// Answers whether the session took what the frame asks of it: a `send`
-    /// it admitted, a `steer` it accepted, a stop it carried out, an edit or a
-    /// retry it began. The backend needs to know it of a message saved for
-    /// later and of an action that denies the requests of the agent's calls
-    /// that wait for the user.
-    pub async fn handle(&self, frame: ClientFrame) -> bool {
+    /// Answers what the session took of the frame ([`Taken`]). The backend
+    /// needs to know it of a message saved for later and of an action that
+    /// denies the requests of the agent's calls that wait for the user.
+    pub async fn handle(&self, frame: ClientFrame) -> Taken {
         let command = frame.kind();
         self.handle_as(frame, command).await
     }
@@ -261,29 +279,29 @@ impl<H: DeviceResolver> Connection<H> {
     ///
     /// The backend hands the session a message saved for later as the `send` it
     /// becomes, and the page waits for the answer of the `send_saved` it sent.
-    pub async fn handle_as(&self, frame: ClientFrame, command: ClientFrameKind) -> bool {
+    pub async fn handle_as(&self, frame: ClientFrame, command: ClientFrameKind) -> Taken {
         match frame {
             ClientFrame::Open { follows, .. } => {
                 self.open(follows).await;
-                false
+                Taken::No
             }
             ClientFrame::Close {} => {
                 self.close().await;
-                false
+                Taken::No
             }
             ClientFrame::Follow(Follow { value, holds }) => {
                 self.follow(value, &holds).await;
-                false
+                Taken::No
             }
             ClientFrame::Unfollow { value } => {
                 self.follows.unregister(&value);
-                false
+                Taken::No
             }
             frame => match self.attached() {
                 Some(tree) => self.dispatch(&tree, frame, command).await,
                 None => {
                     self.refuse(frame, command);
-                    false
+                    Taken::No
                 }
             },
         }
@@ -574,7 +592,7 @@ impl<H: DeviceResolver> Connection<H> {
 
     /// Handles a frame of an attached connection; answers whether the
     /// session took what it asks ([`handle`](Self::handle)).
-    async fn dispatch(&self, tree: &Rc<Tree<H>>, frame: ClientFrame, kind: ClientFrameKind) -> bool {
+    async fn dispatch(&self, tree: &Rc<Tree<H>>, frame: ClientFrame, kind: ClientFrameKind) -> Taken {
         let session = tree.root().session();
         match frame {
             ClientFrame::Send(SendMessage {
@@ -582,21 +600,29 @@ impl<H: DeviceResolver> Connection<H> {
                 content,
                 comments,
             }) => {
-                // A message the session holds already is acknowledged before
-                // its files are resolved, so a request sent again, after its
-                // answer was lost, writes nothing a second time.
-                if session.knows_turn(&message_id) {
+                // Input the session took already under the id is acknowledged
+                // before its files are resolved, so a request sent again,
+                // after its answer was lost, writes nothing a second time.
+                let id = BlockId::try_from(message_id.as_str().to_owned()).expect("a turn id is not empty");
+                if session.took(&id) {
                     let at = Self::shown_at(tree, &session).await;
                     self.send(ServerFrame::SendResult { message_id, at });
-                    return true;
+                    return Taken::Already;
                 }
                 let (content, comments, media) = match resolve_message(&*self.resolver, content, comments).await {
                     Ok(resolved) => resolved,
                     Err(error) => {
                         self.reject(kind, error.refusal());
-                        return false;
+                        return Taken::No;
                     }
                 };
+                // And again with no wait before the admission: the same
+                // request on another lane may have been taken meanwhile.
+                if session.took(&id) {
+                    let at = Self::shown_at(tree, &session).await;
+                    self.send(ServerFrame::SendResult { message_id, at });
+                    return Taken::Already;
+                }
                 session.hold_media(media);
                 // The session reports the action's course as events; the
                 // handle is not needed.
@@ -608,14 +634,26 @@ impl<H: DeviceResolver> Connection<H> {
                 };
                 if let Err(error) = session.send_message(message) {
                     self.reject(kind, error.refusal());
-                    return false;
+                    return Taken::No;
                 }
                 let at = Self::shown_at(tree, &session).await;
                 self.send(ServerFrame::SendResult { message_id, at });
-                return true;
+                return Taken::Now;
             }
             ClientFrame::Steer { steer_id, content, comments } => {
+                // As a message's: input taken already under the id reads no
+                // file, before and after the resolution.
+                if session.took(&steer_id) {
+                    let at = Self::shown_at(tree, &session).await;
+                    self.steer_result(steer_id, Ok(at));
+                    return Taken::Already;
+                }
                 let outcome = match resolve_message(&*self.resolver, content, comments).await {
+                    Ok(_) if session.took(&steer_id) => {
+                        let at = Self::shown_at(tree, &session).await;
+                        self.steer_result(steer_id, Ok(at));
+                        return Taken::Already;
+                    }
                     Ok((content, comments, media)) => {
                         session.hold_media(media);
                         session
@@ -630,14 +668,14 @@ impl<H: DeviceResolver> Connection<H> {
                     Err(refusal) => Err(refusal),
                 };
                 self.steer_result(steer_id, outcome);
-                return accepted;
+                return accepted.into();
             }
             ClientFrame::CancelPendingSteer { steer_id } => {
                 let removed = session.cancel_pending_steer(&steer_id);
                 let at = Self::shown_at(tree, &session).await;
                 self.remove_result(steer_id.into_string(), removed, at);
             }
-            ClientFrame::SteerNow { steer_id } => return session.steer_now(&steer_id),
+            ClientFrame::SteerNow { steer_id } => return session.steer_now(&steer_id).into(),
             // The backend keeps the saved messages and hands the session
             // the `send` or `steer` a saved message becomes.
             ClientFrame::SendSaved { .. } => {
@@ -655,7 +693,7 @@ impl<H: DeviceResolver> Connection<H> {
                 self.remove_result(message_id.into_string(), removed, at);
             }
             ClientFrame::SendQueuedMessage { message_id } => {
-                return session.send_queued_message(&message_id);
+                return session.send_queued_message(&message_id).into();
             }
             ClientFrame::ClearMessageQueue {} => {
                 session.clear_message_queue();
@@ -667,21 +705,21 @@ impl<H: DeviceResolver> Connection<H> {
                 // though started commands run on (`crates/core-device-access/src/access.rs`).
                 tree.stop_waiting().await;
                 self.send(ServerFrame::AbortResult { result });
-                return true;
+                return Taken::Now;
             }
             // The agents' entries show what these stopped.
             ClientFrame::AbortSubagents {} => {
                 tree.abort_children_of(tree.root().id(), Stop::User).await;
-                return true;
+                return Taken::Now;
             }
             ClientFrame::AbortSubagent { subagent_id } => {
                 if tree.is_child_of(&subagent_id, tree.root().id()) {
                     tree.abort_child(&subagent_id, Stop::User).await;
-                    return true;
+                    return Taken::Now;
                 }
             }
             ClientFrame::Retry {} | ClientFrame::Resume {} => {
-                return self.recover(session, kind).await;
+                return self.recover(session, kind).await.into();
             }
             // A subagent's context card compacts that child, the root's the root.
             ClientFrame::Compact { node } => match node {
@@ -706,7 +744,7 @@ impl<H: DeviceResolver> Connection<H> {
                     operation_id,
                     outcome,
                 });
-                return accepted;
+                return accepted.into();
             }
             ClientFrame::Regenerate { request } => {
                 let operation_id = request.operation_id.clone();
@@ -719,7 +757,7 @@ impl<H: DeviceResolver> Connection<H> {
                     operation_id,
                     outcome,
                 });
-                return accepted;
+                return accepted.into();
             }
             // The switch's patches reach every connection, and the tree
             // tells which children it moved; only a refusal is this one's.
@@ -730,7 +768,7 @@ impl<H: DeviceResolver> Connection<H> {
             }
             ClientFrame::ShellAbort { command_id } => {
                 match tree.shell_abort(&command_id).await {
-                    Ok(()) => return true,
+                    Ok(()) => return Taken::Now,
                     Err(error) => self.error(AgentCode::ShellStopFailed, error),
                 }
             }
@@ -741,7 +779,7 @@ impl<H: DeviceResolver> Connection<H> {
                 unreachable!("open, close, follow and unfollow are handled before dispatch")
             }
         }
-        false
+        Taken::No
     }
 }
 

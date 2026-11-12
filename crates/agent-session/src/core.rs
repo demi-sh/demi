@@ -1010,7 +1010,7 @@ impl SessionCore {
     ) -> Result<ActionHandle, AdmissionError> {
         self.refuse_admission()?;
         let QueuedMessage { id, content, comments, schedule } = message;
-        if self.knows_turn(&id) {
+        if self.took(&BlockId::try_from(id.as_str().to_owned()).expect("a turn id is not empty")) {
             return Ok(ActionHandle::ended(ActionEnd::Duplicate));
         }
         let path = if matches!(self.activity, Activity::Idle) && self.pending.is_empty() {
@@ -1068,7 +1068,7 @@ impl SessionCore {
 
     /// Whether `id` is the running turn, a queued message or the turn of a
     /// `user` block.
-    pub(super) fn knows_turn(&self, id: &TurnId) -> bool {
+    fn knows_turn(&self, id: &TurnId) -> bool {
         let running = matches!(&self.activity, Activity::Running(run) if &run.turn == id);
         running
             || self
@@ -1076,6 +1076,17 @@ impl SessionCore {
                 .iter()
                 .any(|action| action.is_send() && &action.turn == id)
             || self.transcript.has_user_turn(id)
+    }
+
+    /// Whether the session took input under `id` already, sent either way:
+    /// a message running, queued or written as its turn's `user` block, or
+    /// a steer pending or written as its block. Messages and steers share
+    /// one id space, as a steer opens a turn under its id and a pending one
+    /// becomes a queued message under it when the session closes; input
+    /// sent again under an id, after its answer was lost, is taken once.
+    pub(super) fn took(&self, id: &BlockId) -> bool {
+        let turn = TurnId::try_from(id.as_str().to_owned()).expect("a block id is not empty");
+        self.inputs.has_steer(id) || self.transcript.holds_steer(id) || self.knows_turn(&turn)
     }
 
     /// Starts the next turn with the first human steer that waits, which no
@@ -1995,11 +2006,13 @@ impl SessionCore {
         comments: Vec<MessageComment>,
     ) -> Result<(), SteerError> {
         let own_turn = TurnId::try_from(id.as_str().to_owned()).expect("a block id is not empty");
-        if self.inputs.pending_steers().iter().any(|steer| steer.id == id)
-            || self.transcript.holds_input(&id)
-            || self.knows_turn(&own_turn)
-        {
+        if self.took(&id) {
             return Ok(());
+        }
+        // A steer's block takes its id: one another block holds, as a tool
+        // call's, would make two blocks of one id.
+        if self.transcript.position(&id).is_some() {
+            return Err(SteerError::Conflict);
         }
         if self.disposing || matches!(self.activity, Activity::Closed { .. }) {
             return Err(SteerError::Closed);

@@ -261,12 +261,24 @@ first. The other actions are the ones the app has:
 
 | Method | What it does |
 | --- | --- |
-| `send(input)` | Sends a message, queued behind a running turn; resolves once the conversation holds it |
-| `steer(input)` | Hands a message to the running turn; resolves once the turn took it |
+| `send(input, messageId?)` | Sends a message, queued behind a running turn; resolves once the conversation holds it |
+| `steer(input, steerId?)` | Hands a message to the running turn; resolves once the turn took it |
 | `abort()` | Stops the running turn |
 | `retry()` | Runs the latest turn again from your message |
 | `resume()` | Finishes a turn that did not finish |
 | `compact()` | Summarizes the conversation so far, to free its context |
+
+`send` and `steer` take an id after the input. Give one when you may send
+the same message again, such as after a lost answer: while the conversation
+holds input under an id, queued, waiting or in its history, anything sent
+under it again, as a message or a steer, is acknowledged and not taken a
+second time. Input that leaves it, such as a message taken out of the queue,
+frees its id. Make each id your own, such as a ticket's number with a
+prefix: a steer under the id of one of the conversation's blocks is refused.
+
+```ts
+await conversation.steer('Use the staging database instead.', 'steer-ticket-42')
+```
 
 A message is text, or content blocks, such as a file on one of the core's
 devices:

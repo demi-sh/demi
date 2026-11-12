@@ -69,7 +69,7 @@
 use std::rc::{Rc, Weak};
 
 use axum::extract::ws::close_code;
-use demi_agent_server::{ContentError, ContentResolver, FileReference, Outgoing, ResolvedFiles};
+use demi_agent_server::{ContentError, ContentResolver, FileReference, Outgoing, ResolvedFiles, Taken};
 use demi_agent_store::media::HeldMedia;
 use demi_core_store::StorageError;
 use demi_core_store::conversation_index::ConversationRecord;
@@ -659,10 +659,14 @@ impl Core {
                     self.deny(conversation, held.clone()).await;
                 }
                 let taken = connection.handle_as(frame, command).await;
-                if taken && !stops {
+                // Input sent again, which the session took before, denies
+                // nothing and is no new message; a message saved for later
+                // leaves the list however the session holds it.
+                let now = taken == Taken::Now;
+                if now && !stops {
                     self.deny(conversation, held).await;
                 }
-                if let (true, Some((message, attachments))) = (taken, sent) {
+                if let (true, Some((message, attachments))) = (now, sent) {
                     tracing::info!(
                         event = "message.accepted",
                         %conversation,
@@ -675,7 +679,7 @@ impl Core {
                         "a message was taken by its conversation"
                     );
                 }
-                if let (true, Some((id, turn))) = (taken, saved) {
+                if let (true, Some((id, turn))) = (taken != Taken::No, saved) {
                     self.take_saved(conversation, id, turn).await;
                 }
                 Handled::Replies(Vec::new())

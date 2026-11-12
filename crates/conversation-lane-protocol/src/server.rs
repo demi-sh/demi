@@ -456,8 +456,8 @@ pub enum AgentCode {
     EditFileMissing,
     /// An edit stopped before it was accepted.
     EditStopped,
-    /// The frame's files could not be resolved, or the edit could not be
-    /// prepared or saved.
+    /// The frame's files could not be resolved, the edit could not be
+    /// prepared or saved, or a steer's id names another block.
     FrameFailed,
     /// The conversation's agent could not be opened or restored.
     OpenFailed,
