@@ -8,10 +8,20 @@ import { dropSource } from './preview'
 
 /**
  * A video on its stage, the space it is shown in, with a frosted capsule of
- * controls that floats over the stage's bottom, always there, and takes no
- * room of its own: Play or Pause, the time played, the playhead, the length,
- * the speed, Mute and Full Screen. The picture is drawn in `picture`, its box
- * on the stage; a picture that comes down to the capsule lies under it.
+ * controls that floats over the stage's bottom and takes no room of its own:
+ * Play or Pause, the time played, the playhead, the length, the speed, Mute
+ * and Full Screen. The picture is drawn in `picture`, its box on the stage; a
+ * picture that comes down to the capsule lies under it.
+ *
+ * With a pointer that hovers, the capsule shows while the pointer is anywhere
+ * on the stage, the space around the picture too, and fades away as the
+ * pointer leaves, so it never stays over the picture, as a browser's own
+ * player does. While the video plays, a pointer that rests 3 seconds anywhere
+ * but on the capsule hides it too, until it moves again, as YouTube's and
+ * QuickTime Player's do. A key pressed in the player shows it for those 3
+ * seconds, and the keyboard's focus on one of its controls keeps it until the
+ * playing video's rest. A finger has no hover, so on a phone the capsule is
+ * always there.
  *
  * With a pointer that hovers, the volume stands above Mute while the pointer
  * is on either or one has the keyboard, as a system player's does, so the
@@ -57,6 +67,50 @@ const fullScreen = ref(false)
 const RATES = [1, 1.5, 2]
 /** How far Left and Right move the playhead, in seconds. */
 const STEP_SECONDS = 5
+/** How long a pointer rests on a playing video, or a key shows the capsule, before the capsule goes, as a system player's does. */
+const REST_MS = 3000
+
+/**
+ * What decides whether the capsule shows, beside the keyboard's focus on a
+ * control: the pointer's hover; a key, which shows it until `REST_MS` has
+ * passed; or the rest on the playing video, `REST_MS` with no key and no move
+ * of the pointer off the capsule, which hides it until either comes.
+ */
+const capsule = ref<'pointer' | 'key' | 'resting'>('pointer')
+let restTimer: ReturnType<typeof setTimeout> | undefined
+
+function restAfter(): void {
+  clearTimeout(restTimer)
+  restTimer = setTimeout(settle, REST_MS)
+}
+
+/** `REST_MS` on: a playing video's capsule goes, unless the pointer is on it or on the volume over it. */
+function settle(): void {
+  const kept = root.value?.querySelector('[data-video-controls]:hover')
+  capsule.value = playing.value && !kept ? 'resting' : 'pointer'
+}
+
+/** The pointer moved or came onto the stage: the capsule follows its hover, and a playing video's rest starts over. */
+function stir(): void {
+  capsule.value = 'pointer'
+  if (playing.value)
+    restAfter()
+  else
+    clearTimeout(restTimer)
+}
+
+/** The video started or stopped, which a key that shows the capsule may have done. */
+function playChanged(): void {
+  if (capsule.value !== 'key')
+    stir()
+}
+
+function left(): void {
+  if (capsule.value === 'key')
+    return
+  capsule.value = 'pointer'
+  clearTimeout(restTimer)
+}
 
 const played = computed(() => (length.value ? Math.min(1, current.value / length.value) : 0))
 const loadedShare = computed(() => (length.value ? Math.min(1, loaded.value / length.value) : 0))
@@ -172,6 +226,8 @@ function fullScreenChanged(): void {
 function key(event: KeyboardEvent): void {
   if (event.metaKey || event.ctrlKey || event.altKey)
     return
+  capsule.value = 'key'
+  restAfter()
   // The volume's own arrows move it, and leave the playhead where it is.
   if (event.key.startsWith('Arrow') && event.target instanceof Element && event.target.matches('[data-video-volume]'))
     return
@@ -192,6 +248,7 @@ function loadedMetadata(): void {
 
 function ended(): void {
   playing.value = false
+  playChanged()
 }
 
 onMounted(() => {
@@ -200,6 +257,7 @@ onMounted(() => {
     media.value.volume = volume.value
 })
 onBeforeUnmount(() => {
+  clearTimeout(restTimer)
   document.removeEventListener('fullscreenchange', fullScreenChanged)
   if (media.value)
     dropSource(media.value)
@@ -214,7 +272,12 @@ onBeforeUnmount(() => {
     role="group"
     :aria-label="props.name"
     data-video-player
+    :data-capsule="capsule"
     @keydown="key"
+    @pointerenter="stir"
+    @pointermove="stir"
+    @pointerdown="stir"
+    @pointerleave="left"
   >
     <video
       ref="media"
@@ -230,8 +293,8 @@ onBeforeUnmount(() => {
       @durationchange="measured"
       @progress="progressed"
       @timeupdate="current = media?.currentTime ?? 0; progressed()"
-      @play="playing = true"
-      @pause="playing = false"
+      @play="playing = true; playChanged()"
+      @pause="playing = false; playChanged()"
       @ended="ended"
       @volumechange="volumeChanged"
       @ratechange="rate = media?.playbackRate ?? 1"
@@ -351,6 +414,37 @@ onBeforeUnmount(() => {
   background: color-mix(in srgb, var(--color-surface-float) 62%, transparent);
   box-shadow: 0 0 0 0.5px var(--color-line), var(--shadow-float);
   backdrop-filter: blur(20px) saturate(180%);
+}
+
+/*
+ * The capsule fades by its blur layer and its controls, each on its own: an
+ * element under 1 opacity is a backdrop root, so on the capsule itself it
+ * would take the blur away for the whole fade.
+ */
+@media (hover: hover) {
+  .video-controls {
+    --capsule-opacity: 0;
+    pointer-events: none;
+  }
+
+  .video-controls::before,
+  .video-controls > * {
+    opacity: var(--capsule-opacity);
+    transition: opacity 200ms ease-out;
+  }
+
+  .video-player:hover .video-controls,
+  .video-player[data-capsule='key'] .video-controls,
+  .video-player:has(:focus-visible) .video-controls {
+    --capsule-opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* The playing video's rest wins over the focus, which a click on a control leaves there. */
+  .video-player[data-capsule='resting'] .video-controls {
+    --capsule-opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .video-controls::before {
