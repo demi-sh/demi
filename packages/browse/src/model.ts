@@ -27,6 +27,9 @@
 //   its stream begins, with a 400 the backend does not try again, and stays
 //   queued: a stream that broke midway would be tried again, and the try
 //   would take the next answer.
+// - Its usage is Demi's own estimate, a token for each 4 bytes: the request's
+//   JSON as its input, the answer's text as its output, so the context
+//   indicator and compaction see a conversation the size it is.
 // - The queue lives as long as the tool's server. A server that starts again
 //   for changed code has none.
 import type { Server } from 'bun'
@@ -53,6 +56,8 @@ export interface Asked {
   tools: string[]
   /** The text of the request's last user message, or what its last tool result says. */
   last: string
+  /** The request's JSON, all the model reads. */
+  body: string
   /** The answer it took; null for the fixed lines. */
   answer: Answer | null
 }
@@ -97,7 +102,8 @@ export class ScriptedModel {
         if (request.method !== 'POST' || url.pathname !== '/v1/messages') {
           return new Response('The scripted model answers POST /v1/messages only', { status: 404 })
         }
-        return model!.answer(await request.json() as MessagesRequest, request.signal)
+        const body = await request.text()
+        return model!.answer(body, request.signal)
       },
     })
     model = new ScriptedModel(server)
@@ -134,7 +140,9 @@ export class ScriptedModel {
     await this.server.stop(true)
   }
 
-  private answer(request: MessagesRequest, gone: AbortSignal): Response {
+  private answer(body: string, gone: AbortSignal): Response {
+    const request = JSON.parse(body) as MessagesRequest
+    const inputTokens = Math.ceil(Buffer.byteLength(body) / 4)
     const tools = request.tools ?? []
     const turn = tools.length > 0
     const shell = tools.find((tool) => commandProperty(tool) !== null)
@@ -144,10 +152,10 @@ export class ScriptedModel {
       return Response.json({ type: 'error', error: { type: 'invalid_request_error', message } }, { status: 400 })
     }
     const taken = turn ? this.queue.shift() ?? null : null
-    this.asked.push({ at: Date.now(), tools: tools.map((tool) => tool.name), last: lastSaid(request), answer: taken })
+    this.asked.push({ at: Date.now(), tools: tools.map((tool) => tool.name), last: lastSaid(request), body, answer: taken })
     const steps: Answer = taken ?? [{ say: turn ? NOTHING_QUEUED : NO_TURN }]
     const encoder = new TextEncoder()
-    const events = this.events(steps, shell, gone)
+    const events = this.events(steps, shell, inputTokens, gone)
     return new Response(
       new ReadableStream<Uint8Array>({
         async pull(controller) {
@@ -165,7 +173,8 @@ export class ScriptedModel {
   }
 
   /** The vendor's events for `steps`, each when its step's pace has it; ends early once the backend is `gone`. */
-  private async *events(steps: Answer, shell: OfferedTool | undefined, gone: AbortSignal): AsyncGenerator<{ type: string } & Record<string, unknown>> {
+  private async *events(steps: Answer, shell: OfferedTool | undefined, inputTokens: number, gone: AbortSignal): AsyncGenerator<{ type: string } & Record<string, unknown>> {
+    const written = steps.reduce((sum, step) => sum + Buffer.byteLength('say' in step ? step.say : 'think' in step ? step.think : 'run' in step ? step.run : ''), 0)
     yield {
       type: 'message_start',
       message: {
@@ -176,7 +185,7 @@ export class ScriptedModel {
         content: [],
         stop_reason: null,
         stop_sequence: null,
-        usage: { input_tokens: 1, output_tokens: 1 },
+        usage: { input_tokens: inputTokens, output_tokens: 1 },
       },
     }
     let index = 0
@@ -224,7 +233,7 @@ export class ScriptedModel {
       yield { type: 'content_block_stop', index }
       index += 1
     }
-    yield { type: 'message_delta', delta: { stop_reason: stop, stop_sequence: null }, usage: { output_tokens: 1 } }
+    yield { type: 'message_delta', delta: { stop_reason: stop, stop_sequence: null }, usage: { output_tokens: Math.max(1, Math.ceil(written / 4)) } }
     yield { type: 'message_stop' }
   }
 }

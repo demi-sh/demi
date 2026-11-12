@@ -319,9 +319,12 @@ the command's run on the device, the page's connection.
   again when the tool's code changes.
 - **A request that offers no tool**, such as one for a conversation's title, is
   no step of a turn. It takes no answer and gets a fixed line.
-- `demi.model.requests()` returns what the backend asked, each request with the
-  answer it took. `demi.model.left()` returns how many answers are still
-  queued.
+- **Its usage** is Demi's own estimate, a token for each 4 bytes of the
+  request's JSON and of the answer's text, so the context indicator and
+  compaction see the conversation at its size.
+- `demi.model.requests()` returns what the backend asked, each request with its
+  JSON and the answer it took. `demi.model.left()` returns how many answers
+  are still queued.
 
 ### The transcript's ruler
 
