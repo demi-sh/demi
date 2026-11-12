@@ -217,6 +217,16 @@ The loop ends when you leave it or the conversation closes.
 `conversation.close()` stops following the conversation; its agents go on in
 the core, and the next action follows it again.
 
+`conversation.sendToAgent(node, text)` sends a message to one subagent, named
+by its id in the conversation's agents. A subagent at work takes it as a
+steer, an idle one starts a turn with it, and one that ended is resumed with
+it. Give the message an id when you may send it again, such as after a lost
+answer: the subagent takes a message once, however often it arrives.
+
+```ts
+await conversation.sendToAgent(node, 'The build finished.', 'reminder-7')
+```
+
 ## Permission requests
 
 A command that acts on Demi itself, such as `demi credentials`, which hands

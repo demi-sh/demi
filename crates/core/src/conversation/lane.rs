@@ -403,11 +403,7 @@ impl Core {
     /// It runs under the conversation's file gate and its settings order, with the
     /// model its record holds, and only when the backend would deliver an `open`.
     /// A tree that is live already is left as it is.
-    pub(crate) async fn restore_tree(&self, conversation: &ConversationId) -> Result<(), String> {
-        self.store().conversation(conversation.clone())
-            .await
-            .map_err(|error| error.to_string())?
-            .ok_or("the conversation is gone")?;
+    pub(crate) async fn restore_tree(&self, conversation: &ConversationId) -> Result<(), TreeRefusal> {
         let slot = self.conversations().slot(conversation);
         let _files = slot.file_gate().enter(Purpose::Demand).await;
         let _settings = slot.settings.acquire().await;
@@ -419,13 +415,13 @@ impl Core {
             .await
         {
             Ok(Prepared::Deliver) => {}
-            Ok(Prepared::Refused(code, message)) => return Err(format!("{code}: {message}")),
-            Err(error) => return Err(error.to_string()),
+            Ok(Prepared::Refused(code, message)) => return Err(TreeRefusal::Refused(code, message)),
+            Err(error) => return Err(TreeRefusal::Failed(error.to_string())),
         }
         self.agent()
             .restore(&root_of(conversation))
             .await
-            .map_err(|error| error.to_string())
+            .map_err(|error| TreeRefusal::Failed(error.to_string()))
     }
 
     /// Restores the conversation's tree for a read that names its version,
@@ -437,7 +433,7 @@ impl Core {
             return;
         }
         if let Err(reason) = self.restore_tree(conversation).await {
-            tracing::debug!(event = "conversation.read_without_tree", %conversation, reason, "a conversation is read without its tree");
+            tracing::debug!(event = "conversation.read_without_tree", %conversation, %reason, "a conversation is read without its tree");
         }
     }
 
@@ -828,7 +824,7 @@ impl Core {
     /// Denies the held requests `requests`: each call returns as any call
     /// does, with its command's end, and the user's own action is read after
     /// it.
-    async fn deny(&self, conversation: &ConversationId, requests: Vec<PermissionRequestId>) {
+    pub(crate) async fn deny(&self, conversation: &ConversationId, requests: Vec<PermissionRequestId>) {
         if requests.is_empty() {
             return;
         }
@@ -1132,6 +1128,23 @@ fn saved_gone() -> ServerFrame {
         command: ClientFrameKind::SendSaved,
         refusal: Refusal::new(ErrorCode::SavedNotFound, "No such message saved for later"),
         request_id: None,
+    }
+}
+
+/// Why a conversation's tree did not open without a page.
+#[derive(Debug, thiserror::Error)]
+pub enum TreeRefusal {
+    /// The conversation refuses an open as it refuses a page's: it is gone
+    /// or archived, or its model or provider is.
+    #[error("{0}: {1}")]
+    Refused(ErrorCode, String),
+    #[error("{0}")]
+    Failed(String),
+}
+
+impl From<TreeRefusal> for String {
+    fn from(refusal: TreeRefusal) -> Self {
+        refusal.to_string()
     }
 }
 

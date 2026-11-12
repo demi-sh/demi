@@ -251,6 +251,8 @@ pub fn web() -> Vec<Root> {
         receives::<conversations::BatchAnswer>(),
         sends::<conversations::ForkRequest>(),
         receives::<conversations::ForkAnswer>(),
+        sends::<conversations::SubagentMessage>(),
+        receives::<conversations::SubagentMessageAnswer>(),
         sends::<side_questions::AskRequest>(),
         sends::<side_questions::SideFollowUp>(),
         sends::<side_questions::SideQuestionPatch>(),

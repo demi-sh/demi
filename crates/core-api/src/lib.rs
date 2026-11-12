@@ -145,6 +145,7 @@ pub fn routes() -> Router<Api> {
         .route("/conversations/{id}/side-questions/{side}/stop", post(side_questions::stop))
         .route("/conversations/{id}/workflows", get(conversations::workflows))
         .route("/conversations/{id}/agents/{node}/transcript", get(history::transcript))
+        .route("/conversations/{id}/agents/{node}/messages", post(conversations::message_subagent))
         .route("/conversations/{id}/agents/{node}/blocks/{block}", get(history::block))
         .route("/conversations/{id}/commands/{command}", get(history::command))
         .route("/conversations/{id}/read", post(conversations::read))

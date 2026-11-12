@@ -882,6 +882,27 @@ pub enum BatchResult {
     },
 }
 
+/// `POST /conversations/:id/agents/:node/messages`: a message of the user's
+/// to the subagent `node`, which it takes once however often it is sent.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, garde::Validate)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SubagentMessage {
+    /// Its id, which a retry repeats so nothing is sent twice; one is made
+    /// when none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(skip)]
+    pub id: Option<BlockId>,
+    #[garde(custom(crate::not_blank))]
+    pub text: String,
+}
+
+/// What a message to a subagent answers: its id, the one it named or the one
+/// made for it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SubagentMessageAnswer {
+    pub id: BlockId,
+}
+
 /// `POST /conversations/:id/fork`: the new conversation's id, chosen by the
 /// web app, and the completed assistant text the history is kept through.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, garde::Validate)]

@@ -79,3 +79,13 @@ pub const MAX_PAGE_MESSAGE_BYTES: usize = 1024 * 1024;
 /// Bounded because a message is read whole into memory and a client sends
 /// without end.
 pub const MAX_PLUGIN_MESSAGE_BYTES: usize = 64 * 1024 * 1024;
+
+/// A check of a text that must say something: whitespace alone says
+/// nothing.
+fn not_blank(text: &str, _: &()) -> garde::Result {
+    if demi_shared_types::is_blank(text) {
+        Err(garde::Error::new("is blank"))
+    } else {
+        Ok(())
+    }
+}

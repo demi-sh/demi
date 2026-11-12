@@ -119,6 +119,22 @@ pub enum ResolveError {
     Failed(String),
 }
 
+/// Why a subagent did not take a message of the user's.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum SubagentMessageError {
+    #[error("the conversation has no such subagent")]
+    NoSubagent,
+    #[error("the main agent takes messages as the conversation's")]
+    MainAgent,
+    /// It refused the message, as one that is stopping or whose parent
+    /// ended does, or its start refused it, as it would refuse a resume.
+    #[error("{0}")]
+    Refused(String),
+    /// What decides the delivery could not be read.
+    #[error("{0}")]
+    Failed(String),
+}
+
 /// Why a conversation's tree could not be restored without a connection.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum RestoreError {
@@ -577,6 +593,61 @@ impl<H: DeviceResolver> AgentServer<H> {
                 None => root.clone(),
             };
         }
+    }
+
+    /// Hands the subagent `node` of the conversation `root`, whose tree is
+    /// open, the user's message `text` under `id`: a live subagent takes it as
+    /// a steer, which starts a turn when it is idle, and an ended one is
+    /// resumed with it, as `demi agent resume` resumes one for its parent.
+    /// One whose history or queue holds `id` took it already and takes
+    /// nothing, so a message sent again after its answer was lost runs no
+    /// second turn and resumes nothing.
+    pub async fn message_subagent(
+        &self,
+        root: &NodeId,
+        node: &NodeId,
+        id: BlockId,
+        text: String,
+    ) -> Result<(), SubagentMessageError> {
+        let tree = self
+            .tree(root)
+            .ok_or_else(|| SubagentMessageError::Failed("the conversation's tree is not open".to_owned()))?;
+        let failed = |error: StoreError| SubagentMessageError::Failed(error.to_string());
+        // A side question is no node of the store, and the root has no parent.
+        let record = tree
+            .store()
+            .node(node)
+            .await
+            .map_err(failed)?
+            .ok_or(SubagentMessageError::NoSubagent)?;
+        let parent = record.parent.ok_or(SubagentMessageError::MainAgent)?;
+        // Before any start, which a closed parent refuses: a subagent that
+        // took the message took it whatever its parent did since.
+        if let Some(taken) = tree.take_message(node, &id, &text).await {
+            return taken;
+        }
+        if &parent != root && !tree.is_live(&parent) {
+            let number = tree
+                .store()
+                .node(&parent)
+                .await
+                .map_err(failed)?
+                .map_or(0, |parent| parent.number);
+            return Err(SubagentMessageError::Refused(format!(
+                "subagent {number}, which started subagent {}, has ended, and only a running parent resumes its subagent; send subagent {number} a message first",
+                record.number
+            )));
+        }
+        let input = tree::StartInput::Message {
+            id: node.clone(),
+            number: record.number,
+            message_id: id,
+            text,
+        };
+        tree.start(&parent, input)
+            .await
+            .map(drop)
+            .map_err(SubagentMessageError::Refused)
     }
 
     /// The live node `node` of the conversation `root`: where the backend's

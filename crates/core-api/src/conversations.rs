@@ -25,7 +25,7 @@ use demi_web_api_protocol::workflows::ConversationWorkflowList;
 use demi_web_api_protocol::conversations::{
     BatchAnswer, BatchResult, ConversationBatch, ConversationDetail, ConversationPatch, CreatedConversation,
     ConversationUpdate, Conversations, ConversationsQuery, CreateConversation, FieldResult,
-    ForkAnswer, ForkRequest, ReadRequest,
+    ForkAnswer, ForkRequest, ReadRequest, SubagentMessage, SubagentMessageAnswer,
 };
 use demi_web_api_protocol::error::ErrorCode;
 use demi_web_api_protocol::ids::{ConversationId, UserId};
@@ -38,6 +38,8 @@ use crate::caller::Principal;
 use crate::attached_devices;
 use crate::query::QueryParams;
 use demi_core::conversation::{AgentsError, ForkRefusal};
+use demi_core::conversation::subagent_messages::SubagentMessageRefusal;
+use demi_shared_types::NodeId;
 use demi_core::services::CoreServices;
 use demi_core_sync::etag_of;
 
@@ -343,6 +345,46 @@ pub(crate) async fn workflows(
         .call(move |core, _| async move { core.conversation_workflows(&record.id).await })
         .await?;
     Ok(Json(workflows))
+}
+
+/// `POST /conversations/:id/agents/:node/messages { id?, text }`: hands the
+/// subagent `node` the message, which it takes once however often it is sent,
+/// and answers its id.
+pub(crate) async fn message_subagent(
+    State(state): State<Api>,
+    Principal(user): Principal,
+    Path((id, node)): Path<(String, String)>,
+    JsonBody(message): JsonBody<SubagentMessage>,
+) -> Result<Json<SubagentMessageAnswer>, ApiError> {
+    let record = owned(&state.services, &user, &id).await?;
+    let no_subagent = || ApiError::new(StatusCode::NOT_FOUND, ErrorCode::NotFound, "No such subagent");
+    let node = NodeId::try_from(node).map_err(|_| no_subagent())?;
+    let answered = state
+        .shards
+        .of(&user)
+        .call(move |core, _| async move { core.message_subagent(&record.id, &node, message).await })
+        .await?;
+    let refusal = match answered {
+        Ok(answer) => return Ok(Json(answer)),
+        Err(refusal) => refusal,
+    };
+    let reason = refusal.to_string();
+    Err(match refusal {
+        SubagentMessageRefusal::NoSubagent => no_subagent(),
+        // The main agent is no subagent; its messages go to the conversation.
+        SubagentMessageRefusal::MainAgent => {
+            ApiError::new(StatusCode::NOT_FOUND, ErrorCode::NotFound, "The main agent takes messages as the conversation's")
+        }
+        SubagentMessageRefusal::Refused(reason) => ApiError::new(StatusCode::CONFLICT, ErrorCode::SendFailed, reason),
+        SubagentMessageRefusal::Conversation(ErrorCode::ConversationNotFound, _) => not_found(),
+        SubagentMessageRefusal::Conversation(code, message) => ApiError::new(StatusCode::CONFLICT, code, message),
+        SubagentMessageRefusal::Failed(_) => {
+            ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, ErrorCode::InternalError, reason)
+        }
+        SubagentMessageRefusal::Closing => {
+            ApiError::new(StatusCode::SERVICE_UNAVAILABLE, ErrorCode::BackendClosing, reason)
+        }
+    })
 }
 
 /// `POST /conversations/:id/fork { id, blockId }`: the conversation `id`

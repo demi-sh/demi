@@ -98,7 +98,7 @@ use demi_agent_session::{
     Subscription,
 };
 use demi_agent_store::{ClosePhase, Kind, NodeClose, NodeRecord, Placement, Reprofile};
-use demi_agent_transcript::last_failure;
+use demi_agent_transcript::{Earlier, last_failure};
 use demi_agent_tools::{DeviceResolver, SubagentSource};
 use demi_conversation_lane_protocol::{
     JobModel, JobPhase, TranscriptPatch,
@@ -124,7 +124,7 @@ use super::profiles::{Limits, SetupFor};
 use crate::{
     Node,
     node::{self, Instructions, NodeRole, NodeSpec, Origin},
-    server::AgentServer,
+    server::{AgentServer, SubagentMessageError},
 };
 
 /// The bound of `show`'s last assistant text and of an archived child's
@@ -219,6 +219,15 @@ pub(crate) enum StartInput {
         message: String,
         profile_name: Option<String>,
     },
+    /// A message of the child's user under `message_id`, which the child
+    /// takes as a steer if an earlier start made it live, or is resumed
+    /// with unless it took it while this start waited.
+    Message {
+        id: NodeId,
+        number: u64,
+        message_id: BlockId,
+        text: String,
+    },
 }
 
 /// Who stops a child, which decides whether its parent is told.
@@ -289,8 +298,50 @@ impl<H: DeviceResolver> Tree<H> {
             .map(|child| child.node.clone())
     }
 
-    fn is_live(&self, id: &NodeId) -> bool {
+    pub(crate) fn is_live(&self, id: &NodeId) -> bool {
         self.children.borrow().contains_key(id)
+    }
+
+    /// What the subagent `id` makes of the user's `text` under the id
+    /// `message` without a start: a live one takes it as a steer, once
+    /// however often it is handed; one that ended with the message in its
+    /// history took it already; one that is stopping takes nothing yet.
+    /// None for one that ended without it, which only a start hands it to.
+    pub(crate) async fn take_message(
+        &self,
+        id: &NodeId,
+        message: &BlockId,
+        text: &str,
+    ) -> Option<Result<(), SubagentMessageError>> {
+        if let Some(live) = self.live_agent(id) {
+            let content = vec![UserContentBlock::Text { text: text.to_owned() }];
+            return Some(
+                live.session()
+                    .steer(content, message.clone())
+                    .map_err(|error| SubagentMessageError::Refused(error.to_string())),
+            );
+        }
+        if let Some(child) = self.child(id) {
+            return Some(Err(SubagentMessageError::Refused(format!(
+                "subagent {} is stopping; send the message again once it has stopped",
+                child.node.record().number
+            ))));
+        }
+        match self.history_holds(id, message).await {
+            Ok(true) => Some(Ok(())),
+            Ok(false) => None,
+            Err(error) => Some(Err(SubagentMessageError::Failed(error))),
+        }
+    }
+
+    /// Whether the history of the agent `id`, which is not live, holds the
+    /// message `message`.
+    async fn history_holds(&self, id: &NodeId, message: &BlockId) -> Result<bool, String> {
+        let store = self.store.session_store(id);
+        let checkpoint = store.load().await.map_err(|error| error.to_string())?;
+        let blocks = checkpoint.map_or(0, |checkpoint| checkpoint.block_count());
+        let earlier = Earlier::read(store.as_ref(), blocks).await.map_err(|error| error.to_string())?;
+        Ok(earlier.holds_input(message))
     }
 
     /// The live children of `owner`, in spawn order.
@@ -441,7 +492,8 @@ impl<H: DeviceResolver> Tree<H> {
         self.children.borrow().len() + self.admitted.get()
     }
 
-    /// Starts a child of `caller` for `demi agent spawn` or `resume`.
+    /// Starts a child of `caller` for `demi agent spawn` or `resume`, or for
+    /// a message of the user's to an ended one.
     ///
     /// It creates or reopens the child in a task of the tree, so the start runs
     /// to its end even when the call is cancelled. Starts of one owner take
@@ -478,7 +530,20 @@ impl<H: DeviceResolver> Tree<H> {
                     id,
                     message,
                     profile_name,
-                } => tree.reopen(&owner, id, message, profile_name).await,
+                } => {
+                    let message = tree.text_message(message);
+                    tree.reopen(&owner, id, message, profile_name).await
+                }
+                // Each check runs in the queue of starts: one made before it
+                // may be stale by the time this start's turn comes.
+                StartInput::Message { id, number, message_id, text } => {
+                    if let Some(taken) = tree.take_message(&id, &message_id, &text).await {
+                        return taken.map(|()| number).map_err(|error| error.to_string());
+                    }
+                    let turn = TurnId::try_from(message_id.into_string()).expect("a block id is not empty");
+                    let message = queued(turn, vec![UserContentBlock::Text { text }]);
+                    tree.reopen(&owner, id, message, None).await
+                }
             }
         }
         .in_current_span());
@@ -634,7 +699,7 @@ impl<H: DeviceResolver> Tree<H> {
         self: &Rc<Self>,
         owner: &Rc<Node<H>>,
         id: NodeId,
-        message: String,
+        message: QueuedMessage,
         profile_name: Option<String>,
     ) -> Result<u64, String> {
         let stored = self
@@ -700,7 +765,7 @@ impl<H: DeviceResolver> Tree<H> {
                 &id,
                 round,
                 started_at,
-                Some(self.text_message(message)),
+                Some(message),
                 reprofile,
             )
             .await
@@ -730,12 +795,8 @@ impl<H: DeviceResolver> Tree<H> {
 
     /// A message of `content` under a new id.
     pub(super) fn content_message(&self, content: Vec<UserContentBlock>) -> QueuedMessage {
-        QueuedMessage {
-            comments: Vec::new(),
-            id: TurnId::try_from(self.ids.next_id()).expect("an id source never gives an empty id"),
-            content,
-            schedule: None,
-        }
+        let id = TurnId::try_from(self.ids.next_id()).expect("an id source never gives an empty id");
+        queued(id, content)
     }
 
     /// Everything spawn, reopen and restore share.
@@ -2538,6 +2599,16 @@ fn snapshot<H: DeviceResolver>(
 /// Past the end of any path, which a store's search of the path's blocks
 /// reads as its end: a position is a database integer.
 const PATH_END: usize = 1 << 62;
+
+/// The message `content` under the id `id`.
+fn queued(id: TurnId, content: Vec<UserContentBlock>) -> QueuedMessage {
+    QueuedMessage {
+        comments: Vec::new(),
+        id,
+        content,
+        schedule: None,
+    }
+}
 
 /// The last line of `demi agent show`'s text: the history read of the
 /// agent `number`'s latest blocks, from its last text on, or from its first

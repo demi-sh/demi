@@ -93,7 +93,7 @@ impl Core {
             if self.is_closing() {
                 return Err(SideRefusal::Failed("the backend is shutting down".to_owned()));
             }
-            self.restore_tree(&record.id).await.map_err(SideRefusal::Failed)?;
+            self.restore_tree(&record.id).await.map_err(|refusal| SideRefusal::Failed(refusal.into()))?;
         }
         // The same request again, as one whose answer was lost, finds the
         // side question asked, and resolves its files no second time. Its
@@ -234,7 +234,7 @@ impl Core {
         if self.is_closing() {
             return Err(SideRefusal::Failed("the backend is shutting down".to_owned()));
         }
-        self.restore_tree(conversation).await.map_err(SideRefusal::Failed)
+        self.restore_tree(conversation).await.map_err(|refusal| SideRefusal::Failed(refusal.into()))
     }
 
     /// The card of the side question `side` of `conversation` changed: the

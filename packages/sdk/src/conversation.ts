@@ -22,6 +22,7 @@ import {
 import {
   conversationDetailSchema,
   conversationFrameSchema,
+  subagentMessageAnswerSchema,
   transcriptPageSchema,
   type AbortResult,
   type Block,
@@ -200,6 +201,18 @@ export class Conversation {
   async send(input: Input, messageId: string = randomUUID()): Promise<void> {
     const client = await this.open()
     await client.submit(content(input), messageId)
+  }
+
+  /**
+   * Sends `text` to the subagent `node`, an id of the conversation's agents,
+   * which takes it once however often it is sent under `messageId`: a live
+   * one as a steer, and an ended one is resumed with it. Resolves with the
+   * message's id, the one made for it when `messageId` is absent.
+   */
+  async sendToAgent(node: string, text: string, messageId?: string): Promise<string> {
+    const path = `/conversations/${encodeURIComponent(this.id)}/agents/${encodeURIComponent(node)}/messages`
+    const { id } = await this.routes.json('POST', path, subagentMessageAnswerSchema, { id: messageId, text })
+    return id
   }
 
   /** Steers the running turn with `input`; resolves once the turn took it. */
