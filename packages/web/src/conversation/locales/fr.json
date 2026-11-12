@@ -20,6 +20,7 @@
     "reorderConversations": "Impossible de réorganiser les conversations",
     "updateReadStatus": "Impossible de mettre à jour l’état de lecture",
     "reloadConversation": "Impossible de recharger la conversation",
+    "unpin": "Impossible de désépingler le document",
     "detachDevice": "Impossible de détacher l’appareil",
     "changeModel": "Impossible de changer de modèle",
     "changeWorkflow": "Impossible de changer de flux de travail",

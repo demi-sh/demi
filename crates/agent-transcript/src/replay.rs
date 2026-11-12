@@ -27,8 +27,8 @@ use demi_provider_common::{
     UserPart,
 };
 use demi_shared_types::{
-    comments_content,
-    AgentMessage, AgentMessageEvent, B64Bytes, INSTRUCTIONS_SOURCE, BlobRef, Block, BlockId, CommandReport, CompletionOutcome,
+    comments_content, sent_whole,
+    AgentMessage, AgentMessageEvent, B64Bytes, BlobRef, Block, BlockId, CommandReport, CompletionOutcome,
     DocumentSource,
     PermissionOutcome,
     FileExtension, MediaSource, Model, ModelMediaKind, Timestamp, model_accepts_images, model_accepts_video, ToolCallStatus, ToolMediaSource,
@@ -105,9 +105,8 @@ pub fn replay(request: &RequestView) -> Replay {
                 let content = user.lead_content().iter().chain(&user.content).map(|part| request.user_part(part)).collect();
                 items.push(InferenceItem::UserMessage { content });
             }
-            // The instructions are sent whole.
             Block::Context(context) => items.push(InferenceItem::UserMessage {
-                content: vec![if context.source == INSTRUCTIONS_SOURCE {
+                content: vec![if sent_whole(&context.source) {
                     UserPart::Text(context.text.clone())
                 } else {
                     bounded(&context.text)

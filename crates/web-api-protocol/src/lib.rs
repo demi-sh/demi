@@ -31,6 +31,7 @@ pub mod drafts;
 pub mod error;
 pub mod files;
 pub mod attached_devices;
+pub mod pins;
 pub mod ids;
 pub mod instructions;
 pub mod work;

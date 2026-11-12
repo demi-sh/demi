@@ -425,6 +425,8 @@ async function fork(request: MessageForkRequest): Promise<void> {
     :notifications-card="notificationsCard"
     @turn-on-notifications="void notifications.turnOnForAgent()"
     @dismiss-notifications-card="void notifications.dismissCard(conversation!.id)"
+    :pins="conversation.metadata.shown.value?.pins"
+    @unpin="void store.unpin(conversation!, $event)"
     :pending-submissions="pendingSubmissions"
     :removing="conversation.removing"
     @retry-undelivered="store.retrySend(conversation, $event)"

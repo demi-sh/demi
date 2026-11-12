@@ -30,6 +30,7 @@ mod live_reads;
 pub(crate) mod notifications;
 pub(crate) mod project_files;
 pub(crate) mod organize;
+pub(crate) mod pins;
 pub(crate) mod product;
 mod providers;
 pub(crate) mod restart_resume;
@@ -217,13 +218,14 @@ pub(crate) fn conversation_parts(
 
 /// The context sources a node asks before each provider request, in order:
 /// the product's execution context, the instructions, the side questions,
-/// then each plugin that is one, in registration order.
+/// the pinned documents, then each plugin that is one, in registration order.
 fn context_sources(shard: &Weak<Shard>, services: &Services) -> Rc<[Rc<dyn ContextSource>]> {
     let execution = Rc::new(ExecutionContext {
         shard: shard.clone(),
     }) as Rc<dyn ContextSource>;
     let instructions = Rc::new(Instructions::new(shard.clone())) as Rc<dyn ContextSource>;
     let side_questions = Rc::new(side_questions::Told::new(shard.clone())) as Rc<dyn ContextSource>;
+    let pinned = Rc::new(pins::Pins { shard: shard.clone() }) as Rc<dyn ContextSource>;
     let plugins = services
         .plugins
         .context_sources()
@@ -234,5 +236,5 @@ fn context_sources(shard: &Weak<Shard>, services: &Services) -> Rc<[Rc<dyn Conte
                 plugin,
             }) as Rc<dyn ContextSource>
         });
-    [execution, instructions, side_questions].into_iter().chain(plugins).collect()
+    [execution, instructions, side_questions, pinned].into_iter().chain(plugins).collect()
 }

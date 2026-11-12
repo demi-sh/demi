@@ -519,8 +519,20 @@ pub struct ContextBlock {
 /// project's instruction files, whose block replay sends whole.
 pub const INSTRUCTIONS_SOURCE: &str = "instructions";
 
+/// Whether replay sends a context block of `source` whole: the instructions,
+/// and the pinned documents, which a limit of their own bounds. Replay keeps
+/// only the start and the end of any other long text.
+pub fn sent_whole(source: &str) -> bool {
+    source == INSTRUCTIONS_SOURCE || source == PINNED_DOCUMENTS_SOURCE
+}
+
 /// The context source of what the user asked aside, in side questions.
 pub const SIDE_QUESTIONS_SOURCE: &str = "side_questions";
+
+/// The context source of the documents the main agent pinned
+/// (`crates/backend-user-shard/src/conversation/pins.rs`). No plugin may be
+/// named so: a plugin's id has no `_`.
+pub const PINNED_DOCUMENTS_SOURCE: &str = "pinned_documents";
 
 /// The context source of the conversation's execution context, which
 /// also names what still runs after a compaction; no plugin may be named

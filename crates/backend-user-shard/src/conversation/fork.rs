@@ -193,6 +193,7 @@ impl Shard {
                             .map(AttachedDevice::record)
                             .collect(),
                         context_version: source.context_version,
+                        pins: control.pin_copies(source.id.clone()).await?,
                     },
                 };
                 control

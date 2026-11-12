@@ -271,6 +271,7 @@
     "resume": "Resume",
     "continue": "Continue",
     "continueWith": "Continue with {label}",
+    "unpin": "Unpin",
     "openProviders": "Open Providers",
     "outputTokens": "{tokens} token | {tokens} tokens",
     "tokenRate": "{rate} tok/s",

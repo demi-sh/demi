@@ -20,6 +20,7 @@
     "reorderConversations": "無法重新排序對話",
     "updateReadStatus": "無法更新已讀狀態",
     "reloadConversation": "無法重新載入對話",
+    "unpin": "無法取消釘選文件",
     "detachDevice": "無法取消附加裝置",
     "changeModel": "無法變更模型",
     "changeWorkflow": "無法變更工作流程",

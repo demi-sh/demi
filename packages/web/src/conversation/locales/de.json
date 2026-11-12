@@ -20,6 +20,7 @@
     "reorderConversations": "Chats konnten nicht neu angeordnet werden",
     "updateReadStatus": "Lesestatus konnte nicht aktualisiert werden",
     "reloadConversation": "Chat konnte nicht neu geladen werden",
+    "unpin": "Dokument konnte nicht gelöst werden",
     "detachDevice": "Gerät konnte nicht getrennt werden",
     "changeModel": "Modell konnte nicht geändert werden",
     "changeWorkflow": "Workflow konnte nicht geändert werden",

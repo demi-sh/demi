@@ -57,6 +57,8 @@ import ActivitySlot from '@demicodes/web-ui/agent/blocks/ActivitySlot.vue'
 import type { ActivityKind } from '@demicodes/web-ui/agent/activity-slot'
 import { provideEditSelection } from '@demicodes/web-ui/agent/edit-selection'
 import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
+import type { PinnedDocumentView } from '@demicodes/web-ui/agent/PinnedDocumentChip.vue'
+import { GALLERY_DEVICE } from '../fixtures/attachments'
 import GalleryWorkWindows from '../components/GalleryWorkWindows.vue'
 import { gallerySessionWork } from '../fixtures/session-work'
 import { galleryFiles, useGalleryWork, type GalleryWork } from '../fixtures/work'
@@ -787,6 +789,10 @@ function agentOpens(show: boolean) {
  * only while it is.
  */
 const deviceOnline = ref(true)
+/** The documents the session's agent pinned: × unpins one, a click opens it. */
+const sessionPins = ref<PinnedDocumentView[]>([
+  { id: 1, path: `${PROJECT_ROOT}/docs/guides/deploying.md`, device: 'MacBook Pro', deviceId: GALLERY_DEVICE },
+])
 /** The session's messages reach the gallery project: images from its fixtures, files opened in the frame's windows. */
 const sessionFiles = {
   ...galleryConversationFiles(project.source, ({ path, line }) => {
@@ -4394,6 +4400,8 @@ onBeforeUnmount(() => {
     <template v-if="view === 'session'">
       <ChatSession @show-subagent="() => {}"
         :conversation="session"
+        :pins="sessionPins"
+        @unpin="(id) => (sessionPins = sessionPins.filter((pin) => pin.id !== id))"
         has-provider
         :share="shareService"
         :select-edit="(selection) => { frameWork.selectEdit(selection); view = 'frame' }"

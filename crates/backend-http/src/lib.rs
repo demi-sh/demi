@@ -59,6 +59,7 @@ mod listener;
 mod models;
 mod oauth;
 mod passkeys;
+mod pins;
 mod push;
 mod page_client;
 mod work;
@@ -619,6 +620,7 @@ fn router(state: AppState, closing: CancellationToken, web_directory: Option<Pat
             "/conversations/{id}/notifications-card/dismiss",
             post(push::dismiss_card),
         )
+        .route("/conversations/{id}/pins/{pin}", delete(pins::unpin))
         .route(
             "/conversations/{id}/schedules/{schedule}",
             patch(schedules::change).delete(schedules::delete),

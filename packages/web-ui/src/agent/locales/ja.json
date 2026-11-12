@@ -271,6 +271,7 @@
     "resume": "再開",
     "continue": "続ける",
     "continueWith": "{label} で続ける",
+    "unpin": "ピン留めを解除",
     "openProviders": "プロバイダーを開く",
     "outputTokens": "{tokens} トークン",
     "tokenRate": "{rate} トークン/秒",

@@ -125,6 +125,7 @@ pub mod plugin_reports;
 pub mod passkeys;
 mod path;
 pub mod permissions;
+pub mod pins;
 pub mod plugin_secrets;
 mod plugin_store;
 pub mod plugin_values;

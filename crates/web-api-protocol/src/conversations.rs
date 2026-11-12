@@ -308,6 +308,8 @@ pub struct ConversationMetadata {
     /// The conversation's attached devices, under a revision an attach, a
     /// detach or a rename raises.
     pub devices: ConversationDevices,
+    /// The documents its main agent pinned, first pinned first.
+    pub pins: Vec<crate::pins::PinnedDocument>,
     /// The number of the conversation's latest attachment, 3 for `a3`, 0
     /// before its first (`crates/backend-device-access/src/attachment_commands.rs`): a message
     /// that names a higher number names one still to come, whose description
