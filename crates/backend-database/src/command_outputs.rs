@@ -39,6 +39,10 @@ pub struct CommandOutput {
     /// The title of the call that started it, which its reports name;
     /// empty for a row written before rows kept it.
     pub title: String,
+    /// When it started, which [`super::running::end`] takes from its record
+    /// as running; none for a row written before rows kept it, or for a
+    /// command that ended with no such record.
+    pub started: Option<Timestamp>,
     pub ended: Timestamp,
     /// How it ended; `Unrecorded` for a row a release before 0.1.21 wrote,
     /// which the column holds as null.
@@ -125,7 +129,7 @@ impl KeptMedium {
 }
 
 const COLUMNS: &str =
-    "command_id, ended_at, ending, blob, missing_bytes, missing_reason, not_stored, title, media";
+    "command_id, ended_at, ending, blob, missing_bytes, missing_reason, not_stored, title, media, started_at";
 
 /// Writes `rows` in one transaction; a command that has a row keeps it.
 pub fn insert(connection: &mut Connection, rows: &[CommandOutput]) -> Result<(), StorageError> {
@@ -140,7 +144,7 @@ pub fn insert(connection: &mut Connection, rows: &[CommandOutput]) -> Result<(),
 pub(crate) fn insert_in(transaction: &Connection, rows: &[CommandOutput]) -> Result<(), StorageError> {
     {
         let mut insert = transaction.prepare_cached(&format!(
-            "INSERT INTO command_outputs ({COLUMNS}) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+            "INSERT INTO command_outputs ({COLUMNS}) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
              ON CONFLICT (command_id) DO NOTHING"
         ))?;
         for row in rows {
@@ -166,6 +170,7 @@ pub(crate) fn insert_in(transaction: &Connection, rows: &[CommandOutput]) -> Res
                 not_stored,
                 row.title,
                 media,
+                row.started.map(Timestamp::as_millisecond),
             ])?;
         }
     }
@@ -313,9 +318,14 @@ fn decode_row(row: &Row<'_>) -> Result<CommandOutput, StorageError> {
             .collect(),
         None => Vec::new(),
     };
+    let started = row
+        .get::<_, Option<i64>>("started_at")?
+        .map(|millis| decode("command_outputs", "started_at", Timestamp::from_millisecond(millis)))
+        .transpose()?;
     Ok(CommandOutput {
         command,
         title: row.get("title")?,
+        started,
         ended,
         end,
         output,

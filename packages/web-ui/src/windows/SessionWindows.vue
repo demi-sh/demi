@@ -34,9 +34,10 @@ import { t } from './locales/text'
  *   pinned kind's window stands while the user keeps it open.
  * - The session's own windows (`own`), such as Agents, Running and a side
  *   question, which the conversation's view fills (`own` slot). Those with a
- *   count stand in the taskbar's system area while it is more than none or
- *   their window is open, as a closed window with nothing to count has
- *   nothing to show.
+ *   count stand in the taskbar's system area once the conversation has had
+ *   what they show (`used`), and stay, so the taskbar keeps its buttons
+ *   while what runs comes and goes; one whose window is open stands too, as
+ *   after a switch to a version of a message whose path has none.
  *
  * The stage alone says which windows stand and which is in front; each
  * window of the work shows the newest of its own tabs. The host's address
@@ -53,8 +54,10 @@ import { t } from './locales/text'
  * (`listOpen`), and a window shows alone over the conversation.
  */
 export interface OwnWindow extends StageWindowView {
-  /** The count its system button shows; absent, it is no system button and shows only while open. */
+  /** What its system button counts, shown above zero; absent, it is no system button and shows only while open. */
   count?: number
+  /** Whether the conversation has had what its system button shows, which shows the button from then on. */
+  used?: boolean
   /** The dot its system button wears (`TaskbarItem.dot`). */
   dot?: TaskbarItem['dot']
   select(tab: string): void
@@ -482,7 +485,7 @@ const items = computed<TaskbarItem[]>(() => {
 })
 const system = computed<TaskbarItem[]>(() => props.own
   .flatMap((window) => window.count === undefined ? [] : itemOf(window.id) ?? [])
-  .filter((item) => item.count !== 0 || item.state !== 'closed'))
+  .filter((item) => ownOf(item.id)?.used || item.state !== 'closed'))
 /** What Open lists: every window of the work but those that say it does not (`openable`). */
 const opens = computed<TaskbarOpen[]>(() => windows.value.filter((window) => window.window.openable !== false).map((window) => ({
   kind: window.window.id,
@@ -614,7 +617,7 @@ function listPick(id: string): void {
           :key="item.id"
           :icon="windowIcon(item)"
           :label="item.tabs.find((tab) => tab.id === item.current)?.title ?? item.name"
-          :value="item.count !== undefined ? String(item.count) : item.tabs.length > 1 ? String(item.tabs.length) : undefined"
+          :value="item.count !== undefined ? item.count ? String(item.count) : undefined : item.tabs.length > 1 ? String(item.tabs.length) : undefined"
           value-faint
           @select="listPick(item.id)"
         />

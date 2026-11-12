@@ -39,6 +39,8 @@ pub struct CommandRecord {
     /// stopped, which the conversation does not wait for.
     service: bool,
     started: Instant,
+    /// When it ended; none while it runs. How long it ran stops there.
+    ended: Option<Instant>,
     last_output: Instant,
     phase: Phase,
     stdout: Stream,
@@ -201,6 +203,7 @@ impl CommandRecord {
             script: Arc::from(script),
             service,
             started: now.checked_sub(running).unwrap_or(now),
+            ended: None,
             last_output: now,
             phase: Phase::Running,
             stdout: Stream::default(),
@@ -364,6 +367,7 @@ impl CommandRecord {
         }
         self.whole = Some(whole);
         self.last_output = Instant::now();
+        self.ended.get_or_insert(self.last_output);
         self.phase = match ending {
             Ending::Exited(exit_code) => Phase::Exited {
                 exit_code,
@@ -478,7 +482,7 @@ impl CommandRecord {
             unreceived,
             newest,
             whole,
-            running_ms: millis(now - self.started),
+            running_ms: millis(self.ran(now)),
             idle_ms: millis(now - self.last_output),
             state,
             files: self.files.clone(),
@@ -507,8 +511,13 @@ impl CommandRecord {
             },
             tail: self.page.tail.clone(),
             chars: self.page.chars,
-            running_ms: millis(Instant::now() - self.started),
+            running_ms: millis(self.ran(Instant::now())),
         }
+    }
+
+    /// How long the command has run at `now`, or ran, once it ended.
+    fn ran(&self, now: Instant) -> std::time::Duration {
+        self.ended.unwrap_or(now) - self.started
     }
 
     fn stream(&self, stream: StreamKind) -> &Stream {

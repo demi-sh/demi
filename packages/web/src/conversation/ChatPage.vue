@@ -20,6 +20,7 @@ import { useConversationNavigation } from './navigation'
 import { useResources } from '../state/resources'
 import { targetKindOf, deviceLabel } from '../state/devices'
 import { provideDeviceNames } from '@demicodes/web-ui/agent/device-names'
+import { endedTerminal } from '@demicodes/web-ui/agent/terminals'
 import type { CredentialKinds } from '@demicodes/web-ui/agent/credential-kinds'
 import { useProviderSettings } from '../settings/providers'
 import { useSettingsAddress } from '../settings/address'
@@ -112,6 +113,15 @@ provideHistoryReading((node) => {
 })
 /** The schedules that wake the conversation, which the taskbar's Schedules button lists. */
 const schedules = computed(() => conversation.value?.metadata.shown.value?.schedules ?? [])
+/** The commands the conversation's calls left running that ended, with their output once read. */
+const endedTerminals = computed(() => {
+  const current = conversation.value
+  if (!current) {
+    return []
+  }
+  return (current.metadata.shown.value?.endedCommands ?? [])
+    .map((entry) => endedTerminal(entry, current.id, current.endedOutputs[entry.commandId]))
+})
 /** The header's place, which carries out a move the offline primary device's card asks for. */
 const place = useTemplateRef<InstanceType<typeof ProjectInfo>>('place')
 /** Where the conversation runs now, live over the account's device states: Resume runs there. */
@@ -444,6 +454,7 @@ async function fork(request: MessageForkRequest): Promise<void> {
     @abort-subagents="store.abortSubagents(conversation)"
     @abort-subagent="store.abortSubagent(conversation, $event)"
     @abort-terminal="store.abortTerminal(conversation, $event)"
+    @read-output="store.history.readEndedOutput(conversation, $event)"
     @recall-queued="store.recall(conversation, $event)"
     @send-queued="store.sendQueued(conversation, $event)"
     @recall-steer="store.recall(conversation, $event)"
@@ -475,6 +486,7 @@ async function fork(request: MessageForkRequest): Promise<void> {
     @refresh-limits="card.refreshLimits"
     @open-instruction="card.openInstruction"
     :schedules="schedules"
+    :ended-terminals="endedTerminals"
     @pause-schedule="(schedule, paused) => store.pauseSchedule(conversation!.id, schedule, paused)"
     @delete-schedule="(schedule) => store.deleteSchedule(conversation!.id, schedule)"
   >

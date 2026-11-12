@@ -328,6 +328,57 @@ pub struct ConversationMetadata {
     /// The conversation's schedules, which wake it, newest first.
     #[garde(skip)]
     pub schedules: Vec<crate::schedules::ConversationSchedule>,
+    /// The commands the calls on the conversation's current path left
+    /// running that ended, its root's and those of the subagents on that
+    /// path, newest first. A command that runs is the live frames'.
+    #[garde(skip)]
+    pub ended_commands: Vec<EndedCommand>,
+}
+
+/// A command a `shell` call left running, its call having returned while it
+/// ran, that ended.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct EndedCommand {
+    pub command_id: CommandId,
+    /// The agent whose call started it.
+    pub node: NodeId,
+    /// That call's title; empty for a command that ended before its record
+    /// kept it.
+    pub title: String,
+    /// Whether the call started it as a service, a command that runs until
+    /// stopped.
+    pub service: bool,
+    /// When it started, or its call when its output row did not keep its
+    /// start; null when neither was kept.
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[schemars(with = "Nullable<Timestamp>")]
+    pub started_at: Option<Timestamp>,
+    pub ended_at: Timestamp,
+    pub end: demi_shared_types::CommandEnd,
+}
+
+/// `GET /conversations/:id/commands/:commandId/output`: an ended command's
+/// output as its terminal shows it, with the script its call ran.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, garde::Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct EndedOutput {
+    /// The script its call ran; empty when the conversation holds no call
+    /// of it.
+    #[garde(skip)]
+    pub script: String,
+    /// The end of its output, as much as its call's view holds; empty when
+    /// it was not stored.
+    #[garde(skip)]
+    pub output: String,
+    /// How many characters its whole output holds.
+    #[garde(range(max = MAX_SAFE_INTEGER))]
+    pub chars: u64,
+    /// Why its output was not stored; null when it was.
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[schemars(with = "Nullable<String>")]
+    #[garde(skip)]
+    pub not_stored: Option<String>,
 }
 
 /// The replies the user is likely to send after an answer

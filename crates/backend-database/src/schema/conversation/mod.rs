@@ -11,6 +11,7 @@ mod from_0_1_5785;
 mod from_0_1_65_dev_directories_follow_moves;
 mod from_0_1_65_dev_source_host;
 mod from_0_1_65_dev_video_sizes;
+mod from_0_1_65_dev_commands_left_running;
 
 pub(super) const HISTORY: &[Shipped] = &[
     Shipped {
@@ -43,5 +44,9 @@ pub(super) const HISTORY: &[Shipped] = &[
     Shipped {
         sql: include_str!("from_0_1_65_dev_video_sizes.sql"),
         migration: from_0_1_65_dev_video_sizes::MIGRATION,
+    },
+    Shipped {
+        sql: include_str!("from_0_1_65_dev_commands_left_running.sql"),
+        migration: from_0_1_65_dev_commands_left_running::MIGRATION,
     },
 ];

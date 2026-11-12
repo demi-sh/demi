@@ -31,6 +31,7 @@ import SessionDockChip from '@demicodes/web-ui/agent/SessionDockChip.vue'
 import PinnedDocumentChip, { type PinnedDocumentView } from '@demicodes/web-ui/agent/PinnedDocumentChip.vue'
 import SubagentPanel from '@demicodes/web-ui/agent/SubagentPanel.vue'
 import SubagentHistoryMenu from './SubagentHistoryMenu.vue'
+import CommandHistoryMenu from './CommandHistoryMenu.vue'
 import TerminalPanel from '@demicodes/web-ui/agent/TerminalPanel.vue'
 import SessionWindows, { type OwnWindow } from '../windows/SessionWindows.vue'
 import { useSessionStage, type SessionWork } from '../windows/session-work'
@@ -38,7 +39,7 @@ import { useAgentsWindow } from './agents-window'
 import { useCommandWindows } from './command-windows'
 import { questionText } from './comments/asks'
 import { provideLiveCalls } from './live-calls'
-import { useCallTerminals, useDockTerminals } from './terminals'
+import { useCallTerminals, useDockTerminals, type TerminalRecord } from './terminals'
 import { provideCommandRevealer } from './command-reports'
 import { provideOriginRevealer } from './agent-receipts'
 import { provideCommentRevealer, type CommentPlace } from './comments/comments'
@@ -72,7 +73,7 @@ import StatusDot from '../ui/StatusDot.vue'
 import SchedulesButton from '../schedules/SchedulesButton.vue'
 import SchedulesMenu from '../schedules/SchedulesMenu.vue'
 import { t as scheduleText } from '../schedules/locales/text'
-import type { ConversationSchedule } from '../schedules/types'
+import { wakingSchedules, type ConversationSchedule } from '../schedules/types'
 import { provideScheduleOpener } from './message-origins'
 import { provideComposerFocus } from './composer-focus'
 import { provideSuggestedReplies, type SuggestedReplies } from './suggested-replies'
@@ -151,6 +152,12 @@ const props = withDefaults(defineProps<{
    * button lists.
    */
   schedules?: readonly ConversationSchedule[]
+  /**
+   * The commands the conversation's calls left running that ended, as the
+   * conversation lists them (`endedTerminal`), with their output once read,
+   * which the Running and Services windows list under Completed.
+   */
+  endedTerminals?: readonly TerminalRecord[]
   /**
    * The conversation's device files its messages name; absent, their paths stay
    * text.
@@ -253,6 +260,8 @@ const props = withDefaults(defineProps<{
 })
 // A schedule's name above a message in the transcript opens the Schedules menu.
 const schedulesOpen = ref(false)
+/** How many schedules wake the conversation, which the window list's Schedules row counts as the button does. */
+const schedulesWaking = computed(() => wakingSchedules(props.schedules ?? [], props.conversation.archived))
 provideScheduleOpener((id) => (props.schedules?.some((schedule) => schedule.id === id)
   ? () => { schedulesOpen.value = true }
   : undefined))
@@ -333,6 +342,8 @@ const emit = defineEmits<{
   abortSubagents: []
   abortSubagent: [id: string]
   abortTerminal: [id: string]
+  /** Read the output of the ended command `id`, which a window shows. */
+  readOutput: [id: string]
   recallQueued: [id: string]
   sendQueued: [id: string]
   recallSteer: [id: string]
@@ -431,7 +442,7 @@ provideCommandRevealer((commandId) => {
     find(commandId)
   })
 })
-const terminals = useDockTerminals(() => props.conversation)
+const terminals = useDockTerminals(() => props.conversation, () => props.endedTerminals ?? [])
 /** The window of the transcript the list shows, and where it stands. */
 const shown = computed(() => shownWindow(props.conversation.history, props.conversation.shownAt))
 
@@ -1219,6 +1230,7 @@ watch(
             v-else-if="id === 'running' || id === 'services'"
             :terminals="commandWindows.tabs(id === 'running' ? 'command' : 'service')"
             :active-id="commandWindows.shown(id === 'running' ? 'command' : 'service')"
+            @read="(command) => emit('readOutput', command)"
           />
         </template>
         <template #trailing="{ id }">
@@ -1228,6 +1240,14 @@ watch(
             :agents="shownAgents"
             :active-id="activeSubagentId"
             @select="(agent) => (activeSubagentId = agent)"
+          />
+          <!-- Running's and Services' Completed, alike: an ended command picked replaces the ended tab. -->
+          <CommandHistoryMenu
+            v-else-if="id === 'running' || id === 'services'"
+            :kind="id === 'running' ? 'command' : 'service'"
+            :terminals="commandWindows.ended(id === 'running' ? 'command' : 'service')"
+            :active-id="commandWindows.shown(id === 'running' ? 'command' : 'service')"
+            @select="(command) => commandWindows.pick(id === 'running' ? 'command' : 'service', command)"
           />
         </template>
         <template #system>
@@ -1244,7 +1264,7 @@ watch(
             v-if="schedules?.length"
             :icon="AlarmClock"
             :label="scheduleText('name')"
-            :value="String(schedules.length)"
+            :value="schedulesWaking ? String(schedulesWaking) : undefined"
             value-faint
             @select="windowListOpen = false; schedulesOpen = true"
           />

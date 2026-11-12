@@ -40,8 +40,12 @@ export type Step =
   | { think: string, ms?: number }
   /** Text, as Markdown, streamed over `ms` milliseconds, at once without. */
   | { say: string, ms?: number }
-  /** A shell command, which ends the answer: the backend runs it and asks again. */
-  | { run: string }
+  /**
+   * A shell command, which ends the answer: the backend runs it and asks
+   * again. With `background` the call returns at once and the command runs
+   * on; with `service` it returns once the command's output is quiet.
+   */
+  | { run: string, background?: boolean, service?: boolean }
   /** Nothing for this many milliseconds. */
   | { wait: number }
 
@@ -204,7 +208,7 @@ export class ScriptedModel {
           return
         }
         yield { type: 'content_block_start', index, content_block: { type: 'tool_use', id: `toolu_scripted_${++this.blocks}`, name: shell.name, input: {} } }
-        yield { type: 'content_block_delta', index, delta: { type: 'input_json_delta', partial_json: JSON.stringify(commandInput(shell, step.run)) } }
+        yield { type: 'content_block_delta', index, delta: { type: 'input_json_delta', partial_json: JSON.stringify(commandInput(shell, step)) } }
         yield { type: 'content_block_stop', index }
         stop = 'tool_use'
         break
@@ -262,10 +266,16 @@ function commandProperty(tool: OfferedTool): string | null {
  * such as a title of the step, says the command's first line, as a model
  * that describes its step briefly would.
  */
-function commandInput(tool: OfferedTool, command: string): Record<string, string> {
-  const title = command.split('\n')[0]!
-  const input = Object.fromEntries(stringProperties(tool).map((name) => [name, title]))
-  input[commandProperty(tool)!] = command
+function commandInput(tool: OfferedTool, step: Extract<Step, { run: string }>): Record<string, string | boolean> {
+  const title = step.run.split('\n')[0]!
+  const input: Record<string, string | boolean> = Object.fromEntries(stringProperties(tool).map((name) => [name, title]))
+  input[commandProperty(tool)!] = step.run
+  if (step.background) {
+    input.background = true
+  }
+  if (step.service) {
+    input.service = true
+  }
   return input
 }
 

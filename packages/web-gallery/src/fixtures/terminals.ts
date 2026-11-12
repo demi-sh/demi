@@ -1,5 +1,5 @@
 import { DEMO_BUN_TEST, DEMO_GIT_DIFF, DEMO_RG } from './terminal-output'
-import type { TerminalRecord } from '@demicodes/web-ui/agent/terminals'
+import { endedTerminal, type EndedCommandEntry, type EndedOutputText, type TerminalRecord } from '@demicodes/web-ui/agent/terminals'
 import { BASH_SCRIPT, steppedRunCall, LEFT_RUNNING_CALL, RUNNING_RUN_CALL, RUNNING_SHELL_DESCRIPTION, RUNNING_SHELL_SCRIPT, returnedShellTool, runningShellTool } from './blocks'
 import { ago } from './time'
 
@@ -55,6 +55,53 @@ export function previewService(): TerminalRecord {
     output: 'Local: http://localhost:4173/\n',
     service: true,
   }
+}
+
+/** The conversation of the ended commands' list, whose own commands name it as their agent. */
+const ROOT = 'gallery-conversation'
+
+/** Each ended command the conversation lists, with the output the backend answers for it. */
+const ENDED: readonly { entry: EndedCommandEntry; output: EndedOutputText }[] = [
+  {
+    entry: { commandId: 'term-docs', node: ROOT, title: 'Build the documentation site', service: false, startedAt: ago(7_260_000), endedAt: ago(7_200_000), end: { kind: 'exited', exitCode: 0 } },
+    output: { script: 'bun run docs:build', output: 'Building 48 pages\nBuilt 48 pages in 3.1s\n', chars: 41, notStored: null },
+  },
+  {
+    entry: { commandId: 'term-flaky', node: ROOT, title: 'Run the login test 20 times', service: false, startedAt: ago(5_520_000), endedAt: ago(5_400_000), end: { kind: 'exited', exitCode: 1 } },
+    output: { script: 'for run in $(seq 20); do bun test src/login.test.ts || exit 1; done', output: 'run 1 passed\nrun 2 passed\nrun 3 failed: expected 200, got 401\n', chars: 62, notStored: null },
+  },
+  {
+    entry: { commandId: 'term-archive', node: ROOT, title: 'Print the release archive', service: false, startedAt: ago(3_660_000), endedAt: ago(3_600_000), end: { kind: 'exited', exitCode: 0 } },
+    output: { script: 'tar -czf - dist', output: '', chars: 0, notStored: 'larger than the backend keeps' },
+  },
+  {
+    entry: { commandId: 'term-previews', node: ROOT, title: 'Serve the component previews', service: true, startedAt: ago(10_800_000), endedAt: ago(9_000_000), end: { kind: 'stopped' } },
+    output: { script: 'bun run previews --port 6006', output: 'Local: http://localhost:6006/\n', chars: 30, notStored: null },
+  },
+]
+
+/**
+ * The commands the conversation's calls left running that ended, as its
+ * list names them: their output is still to be read (`readGalleryOutput`).
+ */
+export function galleryEndedTerminals(): TerminalRecord[] {
+  return ENDED.map(({ entry }) => endedTerminal(entry, ROOT, undefined))
+}
+
+/**
+ * Reads the output of the ended command `terminal`, as the page asks the
+ * backend for it: it loads for a moment, then shows.
+ */
+export function readGalleryOutput(terminal: TerminalRecord): void {
+  const ended = ENDED.find(({ entry }) => entry.commandId === terminal.id)
+  if (!ended) {
+    return
+  }
+  terminal.outputRead = { state: 'reading' }
+  setTimeout(() => {
+    Object.assign(terminal, endedTerminal(ended.entry, ROOT, ended.output))
+    delete terminal.outputRead
+  }, 900)
 }
 
 export function galleryTerminals(): TerminalRecord[] {

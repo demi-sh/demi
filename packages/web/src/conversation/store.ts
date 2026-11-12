@@ -559,6 +559,7 @@ export const useConversations = defineStore('conversations', () => {
       turnStartedAt: null,
       sides: [],
       terminals: [],
+      endedOutputs: {},
       load: 'loading',
       pendingAction: null,
       resuming: false,
@@ -2001,6 +2002,7 @@ export const useConversations = defineStore('conversations', () => {
       childrenRead.delete(child.id)
     }
     conversation.subagents = []
+    conversation.endedOutputs = {}
     conversation.sides = conversation.sides.filter((side) => !side.listed)
     conversation.agentsHeld = null
     conversation.lastError = null

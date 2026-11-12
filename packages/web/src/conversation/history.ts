@@ -1,6 +1,8 @@
 import type { TranscriptReveal } from '@demicodes/web-ui/agent/history'
+import { errorMessage } from '@demicodes/web-ui/infra/errors'
+import { isAbortError } from '@demicodes/utils'
 import { apiRequest, readResponse } from '../api/client'
-import { commandCallSchema } from '../api/generated/web-api'
+import { commandCallSchema, endedOutputSchema } from '../api/generated/web-api'
 import type { Conversation } from '../state/types'
 import { readNodeBlocks } from '../state/offline'
 import { createHistoryReads } from './history-reads'
@@ -37,6 +39,25 @@ export function createConversationHistoryReads(
       )
       const call = await readResponse(response, commandCallSchema)
       return { node: call.node === conversation.id ? null : call.node, blockId: call.blockId }
+    },
+    /**
+     * Reads the output of the ended command `commandId` into the
+     * conversation's `endedOutputs`, which says meanwhile that it reads, and
+     * after a failure why; a read the page gave up leaves it unread.
+     */
+    async readEndedOutput(conversation: Conversation, commandId: string): Promise<void> {
+      conversation.endedOutputs[commandId] = { state: 'reading' }
+      try {
+        const response = await apiRequest(
+          `/conversations/${encodeURIComponent(conversation.id)}/commands/${encodeURIComponent(commandId)}/output`,
+          { signal: signal() },
+        )
+        conversation.endedOutputs[commandId] = await readResponse(response, endedOutputSchema)
+      } catch (error) {
+        conversation.endedOutputs[commandId] = isAbortError(error)
+          ? { state: 'unread' }
+          : { state: 'failed', message: errorMessage(error) }
+      }
     },
   }
 }

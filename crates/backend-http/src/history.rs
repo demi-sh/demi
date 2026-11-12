@@ -22,7 +22,7 @@ use demi_backend_database::tree::{self, BlockRead, Entry, PageQuery, PageRead, T
 use demi_backend_user_shard::conversation::{attachment_facts, failure_facts, named_blocks, replies, reply_block_facts};
 use demi_conversation_lane_protocol::{PAGE_BLOCKS, STORED_EPOCH, Version, index_u32, light};
 use demi_shared_types::{Block, BlockId, CommandId, NodeId};
-use demi_web_api_protocol::conversations::{CommandCall, TranscriptPage, TranscriptQuery, WholeBlock};
+use demi_web_api_protocol::conversations::{CommandCall, EndedOutput, TranscriptPage, TranscriptQuery, WholeBlock};
 use demi_web_api_protocol::error::ErrorCode;
 
 use super::AppState;
@@ -296,6 +296,37 @@ pub(super) fn block_answer(
         Some(BlockRead::NoNode) => Err(no_node()),
         Some(BlockRead::NoBlock) | None => Err(no_block()),
     }
+}
+
+/// `GET /conversations/:id/commands/:commandId/output`: an ended command's
+/// output as its terminal shows it.
+pub(super) async fn ended_output(
+    State(state): State<AppState>,
+    AuthUser(user): AuthUser,
+    Path((id, command)): Path<(String, String)>,
+) -> Result<Json<EndedOutput>, ApiError> {
+    let record = owned(&state.services, &user.id, &id).await?;
+    let no_output = || {
+        ApiError::new(
+            StatusCode::NOT_FOUND,
+            ErrorCode::NotFound,
+            format!("No ended command {command} in this conversation"),
+        )
+    };
+    let command_id = CommandId::try_from(command.clone()).map_err(|_| no_output())?;
+    let output = state
+        .shards
+        .of(&user.id)
+        .call(move |shard, _| async move { shard.ended_output(&record.id, &command_id).await })
+        .await?
+        .map_err(|error| {
+            ApiError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ErrorCode::ConversationUnreadable,
+                error.to_string(),
+            )
+        })?;
+    output.map(Json).ok_or_else(no_output)
 }
 
 /// `GET /conversations/:id/commands/:commandId`: where the call that started

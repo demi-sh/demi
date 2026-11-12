@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { WINDOW_SCOPE } from '@demicodes/web-ui/ui/window-stack'
 import SubagentHistoryMenu from '@demicodes/web-ui/agent/SubagentHistoryMenu.vue'
+import CommandHistoryMenu from '@demicodes/web-ui/agent/CommandHistoryMenu.vue'
 import SubagentPanel from '@demicodes/web-ui/agent/SubagentPanel.vue'
 import TerminalPanel from '@demicodes/web-ui/agent/TerminalPanel.vue'
 import { useAgentsWindow } from '@demicodes/web-ui/agent/agents-window'
@@ -24,7 +25,8 @@ import { useAgentContext } from '../agent-context'
  * them as the product's session does, and the window's own Close and tabs set
  * them back. `shows` opens Running or Services as the specimen comes. With
  * `fill`, a window that opens fills the area, for a specimen of the window
- * alone.
+ * alone. An ended command among `terminals` that the page knows from the
+ * conversation's list asks for its output (`readOutput`) as it first shows.
  */
 const props = withDefaults(defineProps<{
   agents?: readonly SubagentRecord[]
@@ -41,6 +43,7 @@ const emit = defineEmits<{
   abort: []
   abortAgent: [id: string]
   abortTerminal: [id: string]
+  readOutput: [id: string]
   revealed: []
 }>()
 const open = defineModel<boolean>('open', { default: false })
@@ -130,6 +133,7 @@ watch(() => showing('agents'), (shown) => {
         v-else
         :terminals="commandWindows.tabs(id === 'running' ? 'command' : 'service')"
         :active-id="commandWindows.shown(id === 'running' ? 'command' : 'service')"
+        @read="(command) => emit('readOutput', command)"
       />
     </template>
     <template #trailing="{ id }">
@@ -138,6 +142,13 @@ watch(() => showing('agents'), (shown) => {
         :agents="agents"
         :active-id="agentsWindow.activeId.value"
         @select="(agent) => (agentsWindow.activeId.value = agent)"
+      />
+      <CommandHistoryMenu
+        v-else-if="id === 'running' || id === 'services'"
+        :kind="id === 'running' ? 'command' : 'service'"
+        :terminals="commandWindows.ended(id === 'running' ? 'command' : 'service')"
+        :active-id="commandWindows.shown(id === 'running' ? 'command' : 'service')"
+        @select="(command) => commandWindows.pick(id === 'running' ? 'command' : 'service', command)"
       />
     </template>
     <template #system>

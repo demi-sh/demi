@@ -221,7 +221,13 @@
     "endCommand": "結束指令",
     "closeTab": "關閉分頁",
     "loading": "正在載入終端機…",
-    "unavailable": "無法載入終端機。"
+    "unavailable": "無法載入終端機。",
+    "completed": "已完成",
+    "searchCompleted": "搜尋已完成",
+    "noneCompleted": "沒有已完成的指令",
+    "outputLoading": "正在載入輸出…",
+    "outputUnavailable": "無法載入輸出。",
+    "outputNotStored": "輸出未儲存：{reason}"
   },
   "session": {
     "loading": "正在載入對話…",

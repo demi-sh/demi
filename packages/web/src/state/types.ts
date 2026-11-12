@@ -19,7 +19,7 @@ import type { PendingAction } from '@demicodes/web-ui/agent/activity-slot'
 import type { SendWay } from '@demicodes/web-ui/agent/send-way'
 import type { SessionLoad } from '@demicodes/web-ui/agent/session-status'
 import type { SubagentRecord } from '@demicodes/web-ui/agent/subagents'
-import type { TerminalRecord } from '@demicodes/web-ui/agent/terminals'
+import type { EndedOutputRead, EndedOutputText, TerminalRecord } from '@demicodes/web-ui/agent/terminals'
 import type { Raw } from 'vue'
 import type { Slot } from '@demicodes/web-ui/infra/slot'
 import type { AttachedDevice, ConversationMetadata, ConversationTarget, CostWindow, DeviceKind, ConversationWorkflowList, RecentCost, SuggestedReplies } from '../api/generated/web-api'
@@ -201,6 +201,11 @@ export interface Conversation extends Omit<SidebarConversation, 'device'> {
    */
   sides: SideRecord[]
   terminals: TerminalRecord[]
+  /**
+   * The output of each ended command of the conversation's list the page
+   * read, by the command's id, or where reading it is.
+   */
+  endedOutputs: Record<string, EndedOutputRead | EndedOutputText>
   load: SessionLoad
   pendingAction: PendingAction
   resuming: ConversationState['resuming']

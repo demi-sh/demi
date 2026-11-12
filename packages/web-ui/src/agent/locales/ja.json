@@ -221,7 +221,13 @@
     "endCommand": "コマンドを終了",
     "closeTab": "タブを閉じる",
     "loading": "ターミナルを読み込んでいます…",
-    "unavailable": "ターミナルを読み込めませんでした。"
+    "unavailable": "ターミナルを読み込めませんでした。",
+    "completed": "完了済み",
+    "searchCompleted": "完了したものを検索",
+    "noneCompleted": "完了したコマンドはありません",
+    "outputLoading": "出力を読み込んでいます…",
+    "outputUnavailable": "出力を読み込めませんでした。",
+    "outputNotStored": "出力は保存されていません: {reason}"
   },
   "session": {
     "loading": "チャットを読み込んでいます…",

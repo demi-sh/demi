@@ -96,6 +96,7 @@ pub(crate) struct Columns {
     pub outside_turn: bool,
     pub resumed: bool,
     pub summary_tokens: Option<i64>,
+    pub left_running: Option<&'static str>,
 }
 
 impl Columns {
@@ -115,8 +116,25 @@ impl Columns {
             outside_turn: block["outsideTurn"].as_bool().unwrap_or_default(),
             resumed: block["isResumed"].as_bool().unwrap_or_default(),
             summary_tokens: block["summaryTokens"].as_i64(),
+            left_running: left_running(block),
         })
     }
+}
+
+/// The kind of the command `block` left running: a completed shell call
+/// whose view says its command still ran as it returned, `service` when its
+/// input started it as one.
+fn left_running(block: &Value) -> Option<&'static str> {
+    let view = &block["view"];
+    if block["type"] != "tool_call" || block["status"] == "executing" || view["kind"] != "shell" || view["status"] != "running" {
+        return None;
+    }
+    let service = block["input"]
+        .as_str()
+        .and_then(|input| serde_json::from_str::<Value>(input).ok())
+        .and_then(|input| input["service"].as_bool())
+        .unwrap_or_default();
+    Some(if service { "service" } else { "command" })
 }
 
 /// A block split into its record's body, before compression, and the
@@ -636,8 +654,9 @@ pub(crate) fn insert_split(
     let record: i64 = transaction
         .prepare_cached(
             "INSERT INTO blocks (node_id, idx, follows, replaces, format, type, id, turn_id, command, source,
-               status, forkable, placement, created_at, outside_turn, resumed, summary_tokens, dictionary, body)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)
+               status, forkable, placement, created_at, outside_turn, resumed, summary_tokens, dictionary, body,
+               left_running)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20)
              RETURNING record",
         )?
         .query_row(
@@ -660,7 +679,8 @@ pub(crate) fn insert_split(
                 c.resumed,
                 c.summary_tokens,
                 dictionary,
-                body
+                body,
+                c.left_running
             ],
             |row| row.get(0),
         )?;
@@ -682,7 +702,7 @@ pub(crate) fn update(transaction: &Transaction<'_>, codec: &Codec<'_>, node: &st
         .prepare_cached(
             "UPDATE blocks SET format = ?2, type = ?3, id = ?4, turn_id = ?5, command = ?6, source = ?7,
                status = ?8, forkable = ?9, placement = ?10, created_at = ?11, outside_turn = ?12, resumed = ?13,
-               summary_tokens = ?14, dictionary = ?15, body = ?16
+               summary_tokens = ?14, dictionary = ?15, body = ?16, left_running = ?17
              WHERE record = ?1",
         )?
         .execute(params![
@@ -701,7 +721,8 @@ pub(crate) fn update(transaction: &Transaction<'_>, codec: &Codec<'_>, node: &st
             c.resumed,
             c.summary_tokens,
             dictionary,
-            body
+            body,
+            c.left_running
         ])?;
     let mut remove = transaction.prepare_cached("DELETE FROM block_contents WHERE record = ?1 AND content = ?2")?;
     for content in before.difference(&named) {

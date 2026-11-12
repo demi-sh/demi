@@ -13,7 +13,8 @@ import { t } from './locales/text'
  * A conversation's Agents window: a tab for each running child, and the
  * finished one it shows (`activeId`). A finished child's tab closes, a running
  * one's stays until the child is stopped. Its count is the running children's,
- * and its dot shows while one runs, breathing while a model of one works.
+ * and its dot shows while one runs, breathing while a model of one works. It
+ * is used once the conversation has a child.
  *
  * With any tab, one is selected, as in a web browser: the child picked while
  * its tab stays, else the first tab, so the window never stands on no tab.
@@ -57,6 +58,7 @@ export function useAgentsWindow(
       icon: Bot,
       name: windowsText('names.agents'),
       count: running.length,
+      used: agents().length > 0,
       dot: running.length === 0 ? undefined : working ? 'breathing' : 'steady',
       anchors: true,
       tabs: tabs.value.map((agent) => ({

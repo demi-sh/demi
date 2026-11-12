@@ -570,6 +570,10 @@ fn router(state: AppState, closing: CancellationToken, web_directory: Option<Pat
             "/conversations/{id}/commands/{command}",
             get(history::command),
         )
+        .route(
+            "/conversations/{id}/commands/{command}/output",
+            get(history::ended_output),
+        )
         .route("/conversations/{id}/read", post(conversations::read))
         .route(
             "/conversations/{id}/attachments/{attachment}/file",

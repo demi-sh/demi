@@ -221,7 +221,13 @@
     "endCommand": "Encerrar comando",
     "closeTab": "Fechar aba",
     "loading": "Carregando terminal…",
-    "unavailable": "Não foi possível carregar o terminal."
+    "unavailable": "Não foi possível carregar o terminal.",
+    "completed": "Concluídos",
+    "searchCompleted": "Busca concluída",
+    "noneCompleted": "Nenhum comando concluído",
+    "outputLoading": "Carregando saída…",
+    "outputUnavailable": "Não foi possível carregar a saída.",
+    "outputNotStored": "Saída não armazenada: {reason}"
   },
   "session": {
     "loading": "Carregando conversa…",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onBeforeUnmount, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, watch } from 'vue'
 import { AlarmClock } from '@lucide/vue'
 import { appOverlayStore } from '../overlay/appOverlay'
 import Dropdown from '../ui/Dropdown.vue'
@@ -8,11 +8,12 @@ import { TASKBAR_LEAVE_MS } from '../windows/taskbar-motion'
 import { taskbarMenuKey } from '../windows/taskbar-menu'
 import { t } from './locales/text'
 import SchedulesMenu from './SchedulesMenu.vue'
-import type { ConversationSchedule } from './types'
+import { wakingSchedules, type ConversationSchedule } from './types'
 
 /**
  * The taskbar's Schedules button, after Agents, Running and Services and drawn
- * as they are: the alarm clock and the count of the conversation's schedules.
+ * as they are: the alarm clock, and the count of the conversation's schedules
+ * that wake it, those not paused in a conversation not archived, above zero.
  * It opens them as the app's own menu upward (`SchedulesMenu`) as soon as
  * the pointer rests on it, as the system buttons beside it show theirs, and
  * the menu goes once the pointer has left both. With no schedule left, the
@@ -21,11 +22,13 @@ import type { ConversationSchedule } from './types'
  * that resting opens is a glance, as the system buttons' are, so the button
  * wears no window's mark under it while it shows.
  */
-defineProps<{
+const props = defineProps<{
   schedules: readonly ConversationSchedule[]
   /** The conversation is archived: its schedules wake nothing, and the menu only lists them. */
   archived?: boolean
 }>()
+
+const waking = computed(() => wakingSchedules(props.schedules, props.archived === true))
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -83,7 +86,7 @@ onBeforeUnmount(stay)
       <!-- Resting on it opens the menu; a click there leaves it open. -->
       <TaskbarButton
         :icon="AlarmClock"
-        :count="schedules.length"
+        :count="waking || undefined"
         state="closed"
         fixed
         :aria-label="t('name')"

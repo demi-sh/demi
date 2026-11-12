@@ -230,7 +230,7 @@ import GalleryAgentDirectory from '../components/GalleryAgentDirectory.vue'
 import GalleryAgentLoading from '../components/GalleryAgentLoading.vue'
 import GalleryAgentBubbles from '../components/GalleryAgentBubbles.vue'
 import GalleryReceipts from '../components/GalleryReceipts.vue'
-import { galleryTerminals, leftRunningCommand, runningRunCommand, steppedRunCommands } from '../fixtures/terminals'
+import { galleryEndedTerminals, galleryTerminals, leftRunningCommand, readGalleryOutput, runningRunCommand, steppedRunCommands } from '../fixtures/terminals'
 import { demoDeviceStart } from '../fixtures/device-installation'
 import { useLiveGalleryCommand } from '../live-command'
 import { useTurnFlow, type TurnFlowKind } from '../turn-flow'
@@ -422,6 +422,17 @@ const messageEdit = ref<MessageEditState | null>(null)
 const editRevision = ref(0)
 const agents = reactive(gallerySubagents())
 const terminals = reactive(galleryTerminals())
+/** The commands the conversation's calls left running that ended, which the Terminals window lists under Completed. */
+const endedTerminals = reactive(galleryEndedTerminals())
+/** The Terminals window's commands: those that run, then the ended ones of the conversation's list. */
+const terminalWindowCommands = computed(() => [...terminals, ...endedTerminals])
+/** An ended command's output, read as the window first shows it. */
+function readEndedOutput(id: string): void {
+  const terminal = endedTerminals.find((each) => each.id === id)
+  if (terminal) {
+    readGalleryOutput(terminal)
+  }
+}
 // The running call's command prints as it runs; the call's specimen shows it
 // under the call, and the Terminals window in its tab.
 useLiveGalleryCommand(terminals)
@@ -473,6 +484,7 @@ function resetWindows(): void {
       agent.endedAt = fresh.endedAt
     }
   }
+  endedTerminals.splice(0, endedTerminals.length, ...galleryEndedTerminals())
   const freshTerminals = galleryTerminals()
   for (const terminal of terminals) {
     const fresh = freshTerminals.find((entry) => entry.id === terminal.id)
@@ -3664,7 +3676,7 @@ onBeforeUnmount(() => {
       </GallerySection>
       <GallerySection
         title="Terminals"
-        note="The Running window. Tabs are running jobs, each titled by its call’s description, cut at the end and whole in its tooltip; the body is a read-only xterm with ANSI color from bun, rg and git. The terminal opens with the script as a terminal shows what was typed: a muted $ and the first line, a muted > before each further line (Show the auth test changes), long lines wrapped at the terminal’s width (Find where the old cookie name is still used), the script highlighted as Bash in the colors all code shows in (Count the old cookie name and list the changed files), then the output. The watch tab’s output comes live: the terminal adds only what is new and keeps its scrollback, and after a burst longer than a frame holds, it shows the frame’s tail anew. A click on a tab only selects it; its menu, from a right-click or the Menu key or Shift+F10, ends a running command (End Command) or closes an ended one’s tab (Close Tab). A command being stopped shows a spinner in its tab’s mark until its runner says that it ended, and End Command is off meanwhile. The taskbar's Running and Services buttons, after Open, count their commands and show or hide their windows; Running's icon wears the accent's steady dot while a command runs, and Services none, a running service being settled."
+        note="The Running window. Tabs are running jobs, each titled by its call’s description, cut at the end and whole in its tooltip; the body is a read-only xterm with ANSI color from bun, rg and git. The terminal opens with the script as a terminal shows what was typed: a muted $ and the first line, a muted > before each further line (Show the auth test changes), long lines wrapped at the terminal’s width (Find where the old cookie name is still used), the script highlighted as Bash in the colors all code shows in (Count the old cookie name and list the changed files), then the output. The watch tab’s output comes live: the terminal adds only what is new and keeps its scrollback, and after a burst longer than a frame holds, it shows the frame’s tail anew. A click on a tab only selects it; its menu, from a right-click or the Menu key or Shift+F10, ends a running command (End Command) or closes an ended one’s tab (Close Tab). A command being stopped shows a spinner in its tab’s mark until its runner says that it ended, and End Command is off meanwhile. Completed in the title bar lists the commands of the window’s kind that ended, newest first, as Agents does its children, those of this page and those the conversation keeps from before, each with how long it ran, a failed one tagged Failed, a stopped one Stopped and a lost one Lost; the command picked there shows as the window’s ended tab, reading its output the first time (Loading output… here for a moment), or saying why the conversation did not store it (Print the release archive); Services lists the component previews stopped earlier. The taskbar’s Running and Services buttons, after Open, count the commands that run, and show or hide their windows; once a conversation has had a command of a kind, its button stays, its icon alone while none runs, and a count that comes or goes slides the buttons beside it. Running's icon wears the accent's steady dot while a command runs, and Services none, a running service being settled. End every command here to see the buttons stay without a number."
       >
         <div class="mb-3 flex flex-wrap gap-2">
           <Button variant="ghost" size="sm" @click="resetWindows">Run Them Again</Button>
@@ -3672,10 +3684,11 @@ onBeforeUnmount(() => {
         <div class="gallery-frame h-[24rem] overflow-hidden">
           <GalleryOwnWindows
             :key="terminalsShown"
-            :terminals="terminals"
+            :terminals="terminalWindowCommands"
             shows="running"
             fill
             @abort-terminal="sessionFlow.abortTerminal"
+            @read-output="readEndedOutput"
           />
         </div>
       </GallerySection>

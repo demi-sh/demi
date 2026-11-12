@@ -32,7 +32,7 @@ use demi_agent_store::{
 };
 use demi_runner_client::decode_output;
 use demi_conversation_lane_protocol::{BlockVersions, PAGE_BLOCKS, PageAt, TurnSpeed, page};
-use demi_web_api_protocol::conversations::{CompactionSummary, TranscriptQuery};
+use demi_web_api_protocol::conversations::{CompactionSummary, EndedCommand, TranscriptQuery};
 use demi_shared_types::{
     Block, BlockId, CommandEnd, CommandId, CompletionId, INSTRUCTIONS_SOURCE, InstructionEntry,
     ModelSelection, NodeId, QueuedMessage, Sequence, SessionPhase, Timestamp, ToolCallBlock, TurnId, is_blank,
@@ -242,11 +242,11 @@ fn copy_prefix(
     transaction.execute(
         &format!(
             "INSERT INTO blocks (node_id, idx, follows, replaces, format, type, id, turn_id, command, source, status,
-               forkable, placement, created_at, outside_turn, resumed, summary_tokens, dictionary, body)
+               forkable, placement, created_at, outside_turn, resumed, summary_tokens, dictionary, body, left_running)
              SELECT ?1, copy.idx, CASE copy.idx WHEN 0 THEN NULL ELSE copy.idx - 1 END, NULL,
                row.format, row.type, row.id, row.turn_id, row.command, row.source, row.status, row.forkable,
                row.placement, row.created_at, row.outside_turn, row.resumed, row.summary_tokens,
-               (SELECT id FROM temp.fork_dictionaries WHERE source = row.dictionary), row.body
+               (SELECT id FROM temp.fork_dictionaries WHERE source = row.dictionary), row.body, row.left_running
              FROM temp.fork_rows AS copy JOIN {schema}.blocks AS row ON row.node_id = ?2 AND row.idx = copy.source
              ORDER BY copy.idx"
         ),
@@ -741,57 +741,56 @@ impl AgentTreeStore for SqliteTreeStore {
         })
     }
 
-    /// Reads the command's row on a read-only connection, then its blob,
-    /// which it decodes on the blocking pool: a stored output takes up to
-    /// 16 MiB.
     fn command_output<'a>(
         &'a self,
         command: &'a CommandId,
     ) -> LocalBoxFuture<'a, Result<Option<StoredCommand>, StoreError>> {
-        Box::pin(async move {
-            let wanted = command.clone();
-            let row = self
-                .db
-                .read(move |connection| command_outputs::read(connection, &wanted))
-                .await
-                .map_err(store_error)?
-                .flatten();
-            let Some(row) = row else {
-                return Ok(None);
-            };
-            let (blob, missing) = match row.output {
-                OutputRow::Stored { blob, missing } => (blob, missing),
-                OutputRow::NotStored(reason) => {
-                    return Ok(Some(StoredCommand {
-                        title: row.title,
-                        end: row.end,
-                        output: StoredOutput::NotStored(reason),
-                        media: row.media,
-                    }));
-                }
-            };
-            let bytes = self.blobs.get(&blob).await?.ok_or_else(|| {
-                StoreError::Failed(format!(
-                    "the blob {blob} of the output of {command} is missing"
-                ))
-            })?;
-            let output =
-                tokio::task::spawn_blocking(move || decode_output(bytes.as_bytes(), missing))
-                    .await
-                    .map_err(|error| StoreError::Failed(error.to_string()))?
-                    .map_err(|error| {
-                        StoreError::Corrupt(format!(
-                            "the output of {command} does not decode: {error}"
-                        ))
-                    })?;
-            Ok(Some(StoredCommand {
+        Box::pin(stored_command(&self.db, self.blobs.as_ref(), command))
+    }
+}
+
+/// What the conversation of `db` keeps of the ended command `command`: its
+/// row, read on a read-only connection, then its output's blob in `blobs`,
+/// decoded on the blocking pool, as a stored output takes up to 16 MiB.
+/// None when the conversation has no row of it.
+pub async fn stored_command(
+    db: &ConversationDb,
+    blobs: &dyn BlobStore,
+    command: &CommandId,
+) -> Result<Option<StoredCommand>, StoreError> {
+    let wanted = command.clone();
+    let row = db
+        .read(move |connection| command_outputs::read(connection, &wanted))
+        .await
+        .map_err(store_error)?
+        .flatten();
+    let Some(row) = row else {
+        return Ok(None);
+    };
+    let (blob, missing) = match row.output {
+        OutputRow::Stored { blob, missing } => (blob, missing),
+        OutputRow::NotStored(reason) => {
+            return Ok(Some(StoredCommand {
                 title: row.title,
                 end: row.end,
-                output: StoredOutput::Stored { output },
+                output: StoredOutput::NotStored(reason),
                 media: row.media,
-            }))
-        })
-    }
+            }));
+        }
+    };
+    let bytes = blobs.get(&blob).await?.ok_or_else(|| {
+        StoreError::Failed(format!("the blob {blob} of the output of {command} is missing"))
+    })?;
+    let output = tokio::task::spawn_blocking(move || decode_output(bytes.as_bytes(), missing))
+        .await
+        .map_err(|error| StoreError::Failed(error.to_string()))?
+        .map_err(|error| StoreError::Corrupt(format!("the output of {command} does not decode: {error}")))?;
+    Ok(Some(StoredCommand {
+        title: row.title,
+        end: row.end,
+        output: StoredOutput::Stored { output },
+        media: row.media,
+    }))
 }
 
 impl SessionStore for SqliteSessionStore {
@@ -2669,6 +2668,70 @@ pub fn subagents(connection: &Connection) -> Result<Vec<Subagent>, StorageError>
         });
     }
     Ok(nodes)
+}
+
+/// The query [`ended_commands`] runs: the agents of the conversation's
+/// current path, the root and the subagents its calls started, and the
+/// rows of their own current paths that left a command running, through
+/// the index of such rows, each with the command's end.
+fn ended_commands_sql() -> String {
+    format!(
+        "WITH RECURSIVE on_path (id) AS (
+           SELECT id FROM nodes WHERE parent_id IS NULL
+           UNION ALL
+           SELECT nodes.id FROM nodes JOIN on_path ON nodes.parent_id = on_path.id WHERE {STARTED_ON_PATH}
+         )
+         SELECT call.node_id, call.command, call.left_running, call.created_at,
+           kept.started_at, kept.ended_at, kept.ending, kept.title
+         FROM on_path
+         JOIN nodes AS agent ON agent.id = on_path.id AND (agent.parent_id IS NULL OR agent.number IS NOT NULL)
+         JOIN path_runs AS own ON own.node_id = agent.id AND own.source IS NULL
+         JOIN blocks AS call INDEXED BY blocks_left_running
+           ON call.node_id = own.node_id AND call.idx >= own.first AND call.idx < own.first + own.length
+         JOIN command_outputs AS kept ON kept.command_id = call.command
+         WHERE call.left_running IS NOT NULL
+         ORDER BY kept.ended_at DESC, kept.command_id"
+    )
+}
+
+/// The commands the calls on the conversation's current path left running
+/// that ended, the root's and those of the subagents on that path, newest
+/// first, each once.
+pub fn ended_commands(connection: &Connection) -> Result<Vec<EndedCommand>, StorageError> {
+    let mut statement = connection.prepare_cached(&ended_commands_sql())?;
+    let mut rows = statement.query([])?;
+    let mut ended: Vec<EndedCommand> = Vec::new();
+    let mut listed = BTreeSet::new();
+    while let Some(row) = rows.next()? {
+        let command: String = row.get("command")?;
+        // A command whose call a fork copied is listed once.
+        if !listed.insert(command.clone()) {
+            continue;
+        }
+        let command_id = decode("blocks", "command", CommandId::try_from(command))?;
+        let ending: Option<String> = row.get("ending")?;
+        // A row from before rows kept the start falls back on its call's.
+        let started = match row.get::<_, Option<i64>>("started_at")? {
+            Some(millis) => Some(decode("command_outputs", "started_at", Timestamp::from_millisecond(millis))?),
+            None => row
+                .get::<_, Option<String>>("created_at")?
+                .map(|text| decode("blocks", "created_at", text.parse::<Timestamp>()))
+                .transpose()?,
+        };
+        ended.push(EndedCommand {
+            command_id,
+            node: decode("blocks", "node_id", NodeId::try_from(row.get::<_, String>("node_id")?))?,
+            title: row.get("title")?,
+            service: row.get::<_, String>("left_running")? == "service",
+            started_at: started,
+            ended_at: instant(row, "command_outputs", "ended_at")?,
+            end: match ending {
+                Some(text) => json("command_outputs", "ending", &text)?,
+                None => CommandEnd::Unrecorded,
+            },
+        });
+    }
+    Ok(ended)
 }
 
 /// The call that started the command `command`, with the node that ran it, on
