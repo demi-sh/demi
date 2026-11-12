@@ -342,6 +342,9 @@ impl Operations for DeviceOperations {
                     caller: CommandCaller::User {},
                     locale: request.introduction.locale.clone(),
                     color_scheme: request.introduction.color_scheme,
+                    // A stream names no browser profile: it takes the
+                    // browser as the conversation's commands left it.
+                    browser_profile: None,
                 },
                 package: request.binding.package,
                 operation: request.binding.operation,

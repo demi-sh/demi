@@ -69,6 +69,29 @@ demi_shared_types::id!(
     AttachmentId
 );
 
+demi_shared_types::id!(
+    /// A browser profile's name, which conversations that share its sign-ins
+    /// name: a directory's name every system a device runs reads alike
+    /// (`demi_command_protocol::is_browser_profile_name`).
+    BrowserProfileName,
+    check = browser_profile_name,
+    error = NotBrowserProfileName,
+    schema = { "type": "string", "pattern": "^[a-z0-9_-]{1,64}$" }
+);
+
+/// Why a text is not a browser profile's name.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error("must be 1 to 64 lowercase letters, digits, '-' and '_', and not a name Windows keeps for a device, such as con or nul")]
+pub struct NotBrowserProfileName;
+
+fn browser_profile_name(text: &str) -> Result<(), NotBrowserProfileName> {
+    if demi_command_protocol::is_browser_profile_name(text) {
+        Ok(())
+    } else {
+        Err(NotBrowserProfileName)
+    }
+}
+
 /// What a UUID looks like where the web app checks one: RFC 9562 versions 1
 /// to 8, the nil UUID and the max UUID, in either case.
 const UUID_PATTERN: &str = "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$";

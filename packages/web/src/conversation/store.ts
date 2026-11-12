@@ -2434,7 +2434,7 @@ export const useConversations = defineStore('conversations', () => {
    * lists no efforts has none to name; the backend chooses the first effort
    * of one whose settings name none.
    */
-  function settingsPatch(settings: ModelSettings): ConversationPatch {
+  function settingsPatch(settings: ModelSettings): Pick<ConversationPatch, 'model' | 'thinkingEffort' | 'serviceTierId'> {
     return {
       model: { providerId: settings.providerId, modelId: settings.modelId },
       ...(settings.thinkingEffort === null ? {} : { thinkingEffort: settings.thinkingEffort }),

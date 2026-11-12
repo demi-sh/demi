@@ -136,6 +136,7 @@ impl Hub {
         let tasks = environment.tasks().clone();
         let operations = Arc::new(Operations::default());
         let owner = Owner {
+            environment: environment.clone(),
             operations: operations.clone(),
             captures: environment.captures().clone(),
             opening: environment.opening.clone(),
@@ -312,6 +313,8 @@ struct Viewer {
 type Departure = Pin<Box<dyn Future<Output = u64> + Send>>;
 
 struct Owner {
+    /// Whose Chrome's screen the hub asks for.
+    environment: BrowserEnvironment,
     operations: Arc<Operations>,
     captures: CaptureChannel,
     /// Where the hub says what size a tab the user opens takes.
@@ -319,10 +322,12 @@ struct Owner {
     tasks: TaskTracker,
     order: u64,
     viewers: HashMap<u64, Viewer>,
-    /// The viewer that operated most recently, whose screen the browser's is.
+    /// The viewer that operated most recently, whose screen the hub asks
+    /// for.
     driver: Option<u64>,
     streams: HashMap<TabId, StreamHandle>,
-    /// The screen last set.
+    /// The screen last asked for; the Chrome's is the largest any of its
+    /// environments asks for.
     screen: Option<Screen>,
     /// A layout is due once the requests at hand are handled.
     due: bool,
@@ -535,24 +540,20 @@ impl Owner {
             .map(|(_, panel)| panel)
     }
 
-    /// The screen follows the driver's size, at the highest ratio a viewer
-    /// used; a watched Web or Mobile tab takes its decider's panel and ratio.
-    /// What cannot be applied is logged and told to the viewers it was for.
+    /// The screen the hub asks for follows the driver's size and ratio, and
+    /// the Chrome's is the largest any of its environments asks for
+    /// (`BrowserEnvironment::set_screen`); a watched Web or Mobile tab takes
+    /// its decider's panel and ratio. What cannot be applied is logged and
+    /// told to the viewers it was for.
     async fn layout(&mut self) {
-        // The screen's ratio only rises: Chrome keeps painting a cross-site
-        // frame at the old scale when it falls, until the page loads again.
-        let used = self.screen.map(|screen| screen.ratio);
         let desired = self
             .driver
             .and_then(|driver| self.viewers.get(&driver))
             .and_then(|viewer| viewer.panel)
-            .map(|panel| {
-                let ratio = screen_ratio(panel.ratio);
-                Screen {
-                    width: panel.screen_width,
-                    height: panel.screen_height,
-                    ratio: used.map_or(ratio, |used| used.max(ratio)),
-                }
+            .map(|panel| Screen {
+                width: panel.screen_width,
+                height: panel.screen_height,
+                ratio: screen_ratio(panel.ratio),
             });
         let mut tabs: Vec<(BrowserTab, Panel)> = Vec::new();
         for viewer in self.viewers.values() {
@@ -597,7 +598,7 @@ impl Owner {
             && self.screen != Some(desired)
             && let Some((tab, _)) = tabs.first()
         {
-            match tab.update_screen(desired).await {
+            match self.environment.set_screen(tab, desired).await {
                 Ok(()) => self.screen = Some(desired),
                 Err(error) => {
                     tracing::warn!(event = "live_view.step_failed", step = "screen", %error, "a step of the live view failed");

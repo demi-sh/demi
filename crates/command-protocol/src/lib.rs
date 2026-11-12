@@ -77,9 +77,9 @@ pub use edits::{
     EditContext, EditCopies, EditFile, EditJournal, EditKind, PathChange, TextRefusal, text_of,
 };
 pub use invocation::{
-    COMMAND_LOCALE_LANGUAGES, PROVIDER_SCOPE_PREFIX, is_conversation_scope, CONVERSATION_NAME_CHARS, CommandCaller, CommandContext, CommandError,
+    BrowserProfile, COMMAND_LOCALE_LANGUAGES, PROVIDER_SCOPE_PREFIX, is_conversation_scope, CONVERSATION_NAME_CHARS, CommandCaller, CommandContext, CommandError,
     ColorScheme, CommandLocale, Completion, Invocation, LocalInvocation, Viewable, conversation_name,
-    SCRATCH_ROOT_ENV, browser_profile_directory, browser_tab_record, recordings_directory, scratch_directory, scratch_name, scratch_root, without_nul,
+    SCRATCH_ROOT_ENV, browser_profile_directory, browser_tab_record, is_browser_profile_name, named_browser_profile, recordings_directory, scratch_directory, scratch_name, scratch_root, without_nul,
 };
 pub use line_counts::line_counts;
 pub use media::{MAX_MEDIUM_BYTES, MediumFacts, is_binary, sniff_media_type};

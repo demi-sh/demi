@@ -561,6 +561,12 @@ impl Core {
                 RecordChange::Workflow(workflow).into(),
             ));
         }
+        if let Some(profile) = patch.browser_profile {
+            changes.push((
+                vec![PatchField::BrowserProfile],
+                RecordChange::BrowserProfile(profile).into(),
+            ));
+        }
         if let Some(target) = patch.target {
             changes.push((vec![PatchField::Target], ConversationChange::Target(target)));
         }

@@ -179,8 +179,9 @@ impl Core {
                         // The destination inherits the source's model
                         // settings, the selection its record holds.
                         model: source.model.clone(),
-                        // And its workflow.
+                        // And its workflow and browser profile.
                         workflow: source.workflow.clone(),
+                        browser_profile: source.browser_profile.clone(),
                         created_at: services.clock.now(),
                         attached_devices: store.attached_devices(source.id.clone())
                             .await?

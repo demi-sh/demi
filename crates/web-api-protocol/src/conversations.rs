@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::rust::{double_option, unwrap_or_skip};
 
 use crate::error::ErrorCode;
-use crate::ids::{ConversationId, DeviceId, ProjectId, ProviderId, WorkspaceId};
+use crate::ids::{BrowserProfileName, ConversationId, DeviceId, ProjectId, ProviderId, WorkspaceId};
 use crate::query::StrictBool;
 use crate::drafts::ConversationDraft;
 use crate::attached_devices::ConversationDevices;
@@ -134,6 +134,17 @@ pub struct CreateConversation {
     #[schemars(with = "WorkflowChoice")]
     #[garde(dive)]
     pub workflow: Option<WorkflowChoice>,
+    /// The browser profile it names, whose sign-ins it shares with every
+    /// conversation that names it on its device; a profile of its own when
+    /// absent.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "unwrap_or_skip"
+    )]
+    #[schemars(with = "BrowserProfileName")]
+    #[garde(skip)]
+    pub browser_profile: Option<BrowserProfileName>,
     /// The message the conversation starts with, as the socket's `send`
     /// frame carries it.
     #[serde(
@@ -260,6 +271,10 @@ pub struct ConversationMetadata {
     /// (`crates/core/src/conversation/workflows.rs`), kept as its
     /// model is.
     pub workflow: WorkflowChoice,
+    /// The browser profile it names; null for a profile of its own.
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[schemars(with = "Nullable<BrowserProfileName>")]
+    pub browser_profile: Option<BrowserProfileName>,
     /// The directory the conversation's work runs in, resolved by the backend
     /// for every kind of target, so the web app never derives it.
     pub cwd: String,
@@ -772,6 +787,16 @@ pub struct ConversationPatch {
     #[schemars(with = "WorkflowChoice")]
     #[garde(dive)]
     pub workflow: Option<WorkflowChoice>,
+    /// The browser profile it names from its next browser command on; null
+    /// for a profile of its own.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "double_option"
+    )]
+    #[schemars(with = "Option<BrowserProfileName>")]
+    #[garde(skip)]
+    pub browser_profile: Option<Option<BrowserProfileName>>,
     /// A switch of the conversation's execution target.
     #[serde(
         default,
@@ -804,6 +829,7 @@ pub enum PatchField {
     ThinkingEffort,
     ServiceTierId,
     Workflow,
+    BrowserProfile,
     Target,
 }
 

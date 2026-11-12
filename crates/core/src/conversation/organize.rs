@@ -328,6 +328,7 @@ async fn new(core: Rc<Core>, call: Call<NewArgs>, port: RpcPort) -> Result<u8, R
         target,
         model: starting.model.clone(),
         workflow: workflow.clone(),
+        browser_profile: starting.browser_profile.clone(),
     };
     let id = ConversationId::try_from(uuid::Uuid::new_v4().to_string()).expect("a UUID is a conversation's id");
     let record = match core.create_started(id.clone(), start).await.map_err(failed)? {

@@ -136,6 +136,7 @@ impl Core {
         Ok(ConversationMetadata {
             model: record.model.as_ref().map(settings).transpose()?,
             workflow: record.workflow,
+            browser_profile: record.browser_profile,
             cwd: resolved.path().to_owned(),
             last_turn: facts.last_turn.as_ref().map(last_turn),
             turn_speed: facts.turn_speed,

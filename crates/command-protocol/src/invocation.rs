@@ -124,6 +124,45 @@ pub fn browser_tab_record(scratch_root: Option<&std::path::Path>, conversation: 
     browser_profile_directory(scratch_root, conversation).join("tabs.json")
 }
 
+/// Where the browser profile named `name` is on a device whose user's home
+/// is `home`: a directory of the home, so it outlives every conversation
+/// and a Cloud's stop and reset. Demi keeps no record of it; the directory
+/// is the profile.
+pub fn named_browser_profile(home: &std::path::Path, name: &str) -> std::path::PathBuf {
+    home.join(".demi").join("browser-profiles").join(name)
+}
+
+/// Whether `name` can name a browser profile: a directory's name that every
+/// system a device runs reads as itself alone. So 1 to 64 lowercase ASCII
+/// letters, digits, `-` and `_`, none of the names Windows keeps for its
+/// devices: macOS and Windows tell no case apart, and would take `Support`
+/// and `support` for one directory under two names. The bound keeps the
+/// profile's path, with Chrome's files below it, within the length Windows
+/// allows a path.
+pub fn is_browser_profile_name(name: &str) -> bool {
+    let bytes = name.as_bytes();
+    let spelled = (1..=64).contains(&bytes.len())
+        && bytes.iter().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || *byte == b'-' || *byte == b'_');
+    let device = matches!(name, "con" | "prn" | "aux" | "nul")
+        || (bytes.len() == 4 && (name.starts_with("com") || name.starts_with("lpt")) && matches!(bytes[3], b'1'..=b'9'));
+    spelled && !device
+}
+
+/// The browser profile a conversation names, as its job saw it at its
+/// start (`named_browser_profile`).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BrowserProfile {
+    /// Its name; none for a profile of the conversation's own.
+    #[garde(inner(custom(browser_profile_name)))]
+    pub name: Option<String>,
+    /// How many times the conversation changed its profile before then: a
+    /// command of a job that saw fewer changes than another, such as one a
+    /// script left running, leaves the browser where the later one put it.
+    #[garde(range(max = super::package::MAX_SAFE_INTEGER))]
+    pub revision: u64,
+}
+
 /// How many characters of a conversation's id name its scratch directory.
 const SCRATCH_NAME_CHARS: usize = 12;
 
@@ -190,6 +229,14 @@ pub struct CommandContext {
     /// The color scheme of the user's page, as it last reported it.
     #[garde(skip)]
     pub color_scheme: ColorScheme,
+    /// The browser profile the conversation names, which its browser runs
+    /// on with every conversation naming it on the device; none for work
+    /// that is no conversation's, and for a stream that reaches the runner
+    /// directly, which takes the browser as the conversation's commands
+    /// left it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[garde(dive)]
+    pub browser_profile: Option<BrowserProfile>,
 }
 
 /// The metadata that opens a native command invocation.
@@ -311,6 +358,15 @@ pub fn conversation_name(value: &str, _: &()) -> garde::Result {
         ));
     }
     Ok(())
+}
+
+/// A garde rule: the value can name a browser profile.
+fn browser_profile_name(value: &str, _: &()) -> garde::Result {
+    if is_browser_profile_name(value) {
+        Ok(())
+    } else {
+        Err(garde::Error::new("must be one directory's name"))
+    }
 }
 
 /// A garde rule: the value holds no NUL character, as paths and environment

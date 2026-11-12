@@ -3,7 +3,7 @@
 //! The backend is its only source and builds it when the work starts.
 
 use demi_command_protocol::{
-    ColorScheme, CommandCaller, CommandContext, CommandLocale,
+    BrowserProfile, ColorScheme, CommandCaller, CommandContext, CommandLocale,
     PROVIDER_SCOPE_PREFIX,
 };
 use demi_web_api_protocol::ids::{ConversationId, ProviderId};
@@ -21,13 +21,19 @@ pub fn default_locale() -> CommandLocale {
 }
 
 /// The context of work `caller` starts for `conversation`: the reported
-/// locale, or the default before one.
+/// locale, or the default before one, and the browser profile the
+/// conversation names.
 pub async fn command_context(
     store: &CoreStore,
     conversation: &ConversationId,
     caller: CommandCaller,
 ) -> Result<CommandContext, StorageError> {
-    context(store, conversation.to_string(), caller).await
+    let mut context = context(store, conversation.to_string(), caller).await?;
+    context.browser_profile = store.conversation(conversation.clone()).await?.map(|record| BrowserProfile {
+        name: record.browser_profile.map(|profile| profile.into_string()),
+        revision: record.browser_profile_revision,
+    });
+    Ok(context)
 }
 
 /// The context of work for the provider entry `provider` that
@@ -59,6 +65,7 @@ async fn context(
         caller,
         locale,
         color_scheme,
+        browser_profile: None,
     })
 }
 

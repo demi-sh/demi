@@ -120,6 +120,7 @@ impl Core {
             target,
             model,
             workflow: request.workflow.unwrap_or_default(),
+            browser_profile: request.browser_profile,
         })
     }
 }

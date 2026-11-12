@@ -174,7 +174,22 @@ for (const listed of core.state.devices) {
 without a target runs on the Cloud, which only Demi's server runs, so in a
 program it is refused with `cloud_unavailable`, as one on a device that does
 not exist is with `device_not_found`. `core.conversations.open(id)` takes a
-conversation created earlier.
+conversation created earlier, and `conversation.update(patch)` changes the
+same fields later.
+
+Each conversation's browser has a profile of its own, so a sign-in made in
+one conversation is not seen in another. Conversations that name the same
+`browserProfile` on one device share its browser instead: a site one of them
+signs in to is signed in for the others, and each keeps its own tabs. The
+profile is the directory `~/.demi/browser-profiles/<name>` on the device,
+made at its first use; list, copy or remove it as any directory.
+
+```ts
+const triage = await core.conversations.create({ title: 'Triage', model, target, browserProfile: 'support' })
+const refunds = await core.conversations.create({ title: 'Refunds', model, target, browserProfile: 'support' })
+// Back to a profile of its own, from its next browser command on:
+await refunds.update({ browserProfile: null })
+```
 
 `conversation.run(input)` sends a message and resolves once the turn it
 starts ended. It fails when the message leaves the queue without running, as

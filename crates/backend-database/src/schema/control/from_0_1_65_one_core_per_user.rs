@@ -233,16 +233,21 @@ fn write_core(transaction: &Transaction<'_>, user: &str, directory: &Path) -> ru
 }
 
 /// Copies `table`'s rows that `condition` picks for `user`, in the columns the
-/// core's table has. A core's one-row table numbers its row 1.
+/// core's table has. A core's one-row table numbers its row 1, and a column
+/// the server's table lacks, such as a conversation's browser profile, takes
+/// the core's default.
 fn copy_rows(from: &Connection, to: &Connection, user: &str, table: &str, condition: &str) -> rusqlite::Result<()> {
-    let columns: Vec<String> = to
-        .prepare(&format!("SELECT name FROM pragma_table_info('{table}')"))?
-        .query_map([], |row| row.get(0))?
-        .collect::<rusqlite::Result<_>>()?;
     let held: Vec<String> = from
         .prepare(&format!("SELECT name FROM pragma_table_info('{table}')"))?
         .query_map([], |row| row.get(0))?
         .collect::<rusqlite::Result<_>>()?;
+    let columns: Vec<String> = to
+        .prepare(&format!("SELECT name FROM pragma_table_info('{table}')"))?
+        .query_map([], |row| row.get(0))?
+        .collect::<rusqlite::Result<Vec<String>>>()?
+        .into_iter()
+        .filter(|column| column == "id" || held.contains(column))
+        .collect();
     let read: Vec<String> = columns
         .iter()
         .map(|column| if held.contains(column) { format!("\"{column}\"") } else { "1".to_owned() })

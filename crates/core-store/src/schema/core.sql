@@ -340,6 +340,12 @@ CREATE TABLE conversations (
   -- The conversation is unread while it is above read_revision.
   asked_end_revision INTEGER NOT NULL DEFAULT 0 CHECK (asked_end_revision >= 0),
   asked_end_failed INTEGER NOT NULL DEFAULT 0 CHECK (asked_end_failed IN (0, 1)),
+  -- The browser profile it names, whose Chrome its browser shares with every
+  -- conversation that names it on the device; null for a profile of its own.
+  -- How many times that changed, which tells a command of a job that saw an
+  -- earlier one from a later one's.
+  browser_profile TEXT,
+  browser_profile_revision INTEGER NOT NULL DEFAULT 0 CHECK (browser_profile_revision >= 0),
   CHECK (
     (target_kind = 'cloud'
       AND target_device_id IS NULL AND target_project_id IS NULL)

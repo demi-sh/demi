@@ -1,5 +1,7 @@
-//! What a conversation's browser has open, kept in the conversation's profile
-//! so the next resident opens it again.
+//! What a conversation's browser has open, kept in the conversation's own
+//! profile so the next resident opens it again; a browser that runs on a
+//! profile the conversation names keeps it there too, since a named profile
+//! holds several conversations' browsers.
 //!
 //! A conversation's browser ends by itself when its last tab closes, when the
 //! conversation is released, or when Chrome is lost; its tabs end with it. A
@@ -28,6 +30,7 @@
 
 use std::path::{Path, PathBuf};
 
+use demi_command_package_browser_chrome::tabs::environment::private_directory_all;
 use demi_command_package_browser_chrome::tabs::registry::Snapshot;
 use demi_command_package_browser_protocol::browser::{BrowserCreatedBy, TabId};
 use demi_command_protocol::{ColorScheme, CommandLocale};
@@ -41,6 +44,13 @@ pub(crate) struct TabRecord {
     pub(crate) locale: CommandLocale,
     pub(crate) color_scheme: ColorScheme,
     pub(crate) tabs: Vec<RecordedTab>,
+    /// The profile its Chrome ran on, when the conversation named one; none
+    /// for the conversation's own.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) profile: Option<PathBuf>,
+    /// How many times the conversation had changed its profile then.
+    #[serde(default)]
+    pub(crate) revision: u64,
 }
 
 /// One tab as it is opened again.
@@ -60,10 +70,16 @@ pub(crate) struct RecordedTab {
 
 impl TabRecord {
     /// The record of `listing`, a browser started in `locale` and
-    /// `color_scheme`; none for a browser without tabs to open again. A
-    /// temporary command's tab is not one: it closes as its command ends,
-    /// and the next resident runs no command of this one's.
-    pub(crate) fn of(listing: &Snapshot, locale: &CommandLocale, color_scheme: ColorScheme) -> Option<Self> {
+    /// `color_scheme` on `profile` at `revision`; none for a browser without
+    /// tabs to open again. A temporary command's tab is not one: it closes as
+    /// its command ends, and the next resident runs no command of this one's.
+    pub(crate) fn of(
+        listing: &Snapshot,
+        locale: &CommandLocale,
+        color_scheme: ColorScheme,
+        profile: Option<PathBuf>,
+        revision: u64,
+    ) -> Option<Self> {
         let tabs: Vec<RecordedTab> = listing
             .tabs
             .iter()
@@ -80,6 +96,8 @@ impl TabRecord {
             locale: locale.clone(),
             color_scheme,
             tabs,
+            profile,
+            revision,
         })
     }
 
@@ -111,7 +129,14 @@ impl TabRecord {
         let staged = staged(path);
         let written = serde_json::to_vec(self)
             .map_err(std::io::Error::other)
-            .and_then(|bytes| std::fs::write(&staged, bytes))
+            .and_then(|bytes| {
+                // The conversation's own profile, which no Chrome made while
+                // its browser runs on a profile it names.
+                if let Some(directory) = path.parent() {
+                    private_directory_all(directory)?;
+                }
+                std::fs::write(&staged, bytes)
+            })
             .and_then(|()| std::fs::rename(&staged, path));
         if let Err(error) = written {
             tracing::warn!(event = "browser_tab_record.write_failed", %error, "the browser's tab record could not be written");
