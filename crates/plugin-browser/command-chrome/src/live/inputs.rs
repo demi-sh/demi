@@ -80,8 +80,10 @@ fn scale(tab: &BrowserTab, _frame: Option<(u32, u32)>) -> f64 {
     tab.state().viewport.borrow().current.device_pixel_ratio
 }
 
-/// Reports a mouse event as Chrome is given it.
+/// Reports a mouse event as Chrome is given it, to the recordings and to the
+/// tab's pointer (`tabs/pointer.rs`).
 pub(crate) fn mouse(tab: &BrowserTab, event: &DispatchMouseEventParams, by: InputBy) {
+    tab.state().pointer.given(event);
     tab.state().inputs.report(Instant::now(), by, |frame| {
         let scale = scale(tab, frame);
         let (x, y) = (event.x * scale, event.y * scale);

@@ -14,6 +14,7 @@ pub mod loading;
 pub mod logs;
 pub mod navigation;
 pub mod passkeys;
+pub mod pointer;
 pub mod registry;
 pub mod session;
 pub mod tab;

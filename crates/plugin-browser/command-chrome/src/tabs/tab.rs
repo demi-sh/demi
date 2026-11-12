@@ -82,6 +82,8 @@ pub struct TabState {
     pub tasks: TaskTracker,
     /// The recordings that take the tab's inputs.
     pub inputs: crate::live::inputs::Inputs,
+    /// Where Chrome has the tab's mouse.
+    pub pointer: crate::tabs::pointer::Pointer,
 }
 
 impl TabState {
@@ -109,7 +111,8 @@ impl TabState {
             crate::tabs::history::observe(page, ended.clone(), tasks, changes.clone()).await?;
         let favicon =
             crate::tabs::favicon::observe(page, ended.clone(), tasks, changes.clone()).await?;
-        let dialog = DialogInput::start(page.clone(), opening, ended, tasks, failure.clone());
+        let dialog = DialogInput::start(page.clone(), opening, ended.clone(), tasks, failure.clone());
+        let pointer = crate::tabs::pointer::observe(page, ended, tasks, dialog.watch()).await?;
         Ok(Arc::new(Self {
             failure,
             gate: TabGate::default(),
@@ -127,6 +130,7 @@ impl TabState {
             changes,
             tasks: tasks.clone(),
             inputs: Default::default(),
+            pointer,
         }))
     }
 }
