@@ -221,7 +221,13 @@
     "endCommand": "Befehl beenden",
     "closeTab": "Tab schließen",
     "loading": "Terminal wird geladen …",
-    "unavailable": "Das Terminal konnte nicht geladen werden."
+    "unavailable": "Das Terminal konnte nicht geladen werden.",
+    "completed": "Abgeschlossen",
+    "searchCompleted": "Suche abgeschlossen",
+    "noneCompleted": "Keine abgeschlossenen Befehle",
+    "outputLoading": "Ausgabe wird geladen …",
+    "outputUnavailable": "Die Ausgabe konnte nicht geladen werden.",
+    "outputNotStored": "Ausgabe nicht gespeichert: {reason}"
   },
   "session": {
     "loading": "Chat wird geladen …",

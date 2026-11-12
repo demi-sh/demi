@@ -59,8 +59,9 @@ use super::PAGE_CHARS;
 /// The characters of merged output a shell view keeps, from the end.
 ///
 /// Bounded because a running command's output has no end and a view goes into
-/// the model's context window.
-pub(super) const VIEW_CHARS: usize = 32_768;
+/// the model's context window. A page reads as much of an ended command's
+/// output, so its terminal shows what the call's view showed.
+pub const VIEW_CHARS: usize = 32_768;
 /// The largest video or document: about ten minutes of video at a
 /// viewing-grade encoding, under the inline payload ceiling the major APIs
 /// enforce. An image is fitted instead.

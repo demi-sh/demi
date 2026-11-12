@@ -221,7 +221,13 @@
     "endCommand": "停止命令",
     "closeTab": "关闭标签页",
     "loading": "正在加载终端…",
-    "unavailable": "无法加载终端。"
+    "unavailable": "无法加载终端。",
+    "completed": "已完成",
+    "searchCompleted": "搜索已完成",
+    "noneCompleted": "没有已完成的命令",
+    "outputLoading": "正在加载输出…",
+    "outputUnavailable": "无法加载输出。",
+    "outputNotStored": "输出未存储：{reason}"
   },
   "session": {
     "loading": "正在加载对话…",

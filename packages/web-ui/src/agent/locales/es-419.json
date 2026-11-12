@@ -221,7 +221,13 @@
     "endCommand": "Finalizar comando",
     "closeTab": "Cerrar pestaña",
     "loading": "Cargando terminal…",
-    "unavailable": "No se pudo cargar la terminal."
+    "unavailable": "No se pudo cargar la terminal.",
+    "completed": "Completados",
+    "searchCompleted": "Búsqueda completada",
+    "noneCompleted": "No hay comandos completados",
+    "outputLoading": "Cargando salida…",
+    "outputUnavailable": "No se pudo cargar la salida.",
+    "outputNotStored": "Salida no guardada: {reason}"
   },
   "session": {
     "loading": "Cargando chat…",

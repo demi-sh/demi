@@ -18,6 +18,14 @@ export interface ConversationSchedule {
   lastRun: LastRun | null
 }
 
+/**
+ * How many of `schedules` wake their conversation: those not turned off, none
+ * of an archived conversation's. The Schedules button counts them.
+ */
+export function wakingSchedules(schedules: readonly ConversationSchedule[], archived: boolean): number {
+  return archived ? 0 : schedules.filter((schedule) => !schedule.paused).length
+}
+
 /** How a schedule last woke its conversation. */
 export interface LastRun {
   at: string

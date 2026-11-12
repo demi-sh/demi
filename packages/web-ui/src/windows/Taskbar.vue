@@ -42,6 +42,7 @@ import { t } from './locales/text'
  * - The system's own buttons stand right after Open, between dividers, in
  *   their order, where they keep their place however many windows open:
  *   they are not pinned or unpinned, show their count in place of a title,
+ *   none at zero, where the button holds its icon alone,
  *   and their menus open rightward from there. The `system` slot adds
  *   buttons there that open a menu, such as Schedules.
  */
@@ -66,7 +67,7 @@ export interface TaskbarItem {
   pinned: boolean
   /** closed: pinned, its window not open; front: the window takes the keys. */
   state: 'closed' | 'minimized' | 'shown' | 'front'
-  /** The count a system button shows in place of a title. */
+  /** What a system button counts, shown in place of a title above zero. */
   count?: number
   /** The accent's dot on a system button's icon: steady, or breathing while a model works. */
   dot?: 'steady' | 'breathing'
@@ -201,7 +202,9 @@ function rest(item: TaskbarItem, event: PointerEvent, system = false): void {
   if (opening) {
     clearTimeout(opening)
   }
-  if (item.tabs.length === 0 || (item.state === 'closed' && !system)) {
+  // A system button's menu shows with no tab too: its name heads it, the
+  // one place its name shows.
+  if (!system && (item.tabs.length === 0 || item.state === 'closed')) {
     leave()
     return
   }
@@ -304,7 +307,7 @@ function press(item: TaskbarItem): void {
           v-for="item in system"
           :key="item.id"
           :icon="item.icon"
-          :count="item.count ?? item.tabs.length"
+          :count="item.count || undefined"
           :dot="item.dot"
           :state="item.state"
           :aria-label="item.name"

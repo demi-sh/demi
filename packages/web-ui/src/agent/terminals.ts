@@ -7,6 +7,7 @@ import { storedShellView } from './block-helpers'
 import { latestBlocks } from './history'
 import { computed, toRaw, type ComputedRef } from 'vue'
 import type { HeldTranscript } from '@demicodes/conversation-client'
+import { t } from './locales/text'
 
 /**
  * Where a command is, as its frames and stored views say: running, exited,
@@ -70,6 +71,77 @@ export interface TerminalRecord {
    * it.
    */
   service?: boolean
+  /**
+   * For an ended command the page knows from the conversation's list
+   * (`endedTerminal`): where the reading of its output is, which its window
+   * starts when it first shows it. Absent once its output is read, and for a
+   * command known from its live frames.
+   */
+  outputRead?: EndedOutputRead
+  /** Why the conversation did not store its output; absent when it did. */
+  notStored?: string
+}
+
+/** Where the reading of an ended command's output is. */
+export type EndedOutputRead =
+  | { state: 'unread' | 'reading' }
+  | { state: 'failed'; message: string }
+
+/**
+ * A command a `shell` call left running that ended, as the conversation's
+ * metadata lists it.
+ */
+export interface EndedCommandEntry {
+  commandId: string
+  /** The agent whose call started it. */
+  node: string
+  title: string
+  service: boolean
+  startedAt: string | null
+  endedAt: string
+  end:
+    | { kind: 'exited'; exitCode: number }
+    | { kind: 'stopped' }
+    | { kind: 'lost'; reason: string }
+    | { kind: 'unrecorded' }
+}
+
+/** An ended command's output, as the conversation keeps it. */
+export interface EndedOutputText {
+  script: string
+  output: string
+  chars: number
+  notStored: string | null
+}
+
+/**
+ * The command `entry` names as its window shows it, in the conversation
+ * `root`: with its output once `read` holds it, else where reading it is.
+ * A command whose title was not kept is named by its number, as its report
+ * is.
+ */
+export function endedTerminal(
+  entry: EndedCommandEntry,
+  root: string,
+  read: EndedOutputRead | EndedOutputText | undefined,
+): TerminalRecord {
+  const end = entry.end
+  const text = read !== undefined && 'output' in read ? read : null
+  return {
+    id: entry.commandId,
+    title: entry.title.trim() || t('transcript.report.untitled', { id: entry.commandId }),
+    ...(text?.script ? { script: text.script } : {}),
+    phase: end.kind === 'stopped' ? 'aborted' : end.kind === 'lost' ? 'lost' : 'exited',
+    startedAt: entry.startedAt ?? entry.endedAt,
+    endedAt: entry.endedAt,
+    output: text?.output ?? '',
+    ...(text ? {} : { outputRead: read !== undefined && !('output' in read) ? read : { state: 'unread' } }),
+    ...(text?.notStored ? { notStored: text.notStored } : {}),
+    ...(end.kind === 'exited' ? { exitCode: end.exitCode } : {}),
+    ...(end.kind === 'lost' ? { lostReason: end.reason } : {}),
+    ...(entry.node === root ? {} : { subagentId: entry.node }),
+    ...(entry.service ? { service: true } : {}),
+  }
 }
 
 /**
@@ -297,59 +369,94 @@ export interface DockSource {
 }
 
 /**
- * The ids of the calls in `blocks` that still run, in one pass: a model may
- * reuse a call's id, and the latest call of an id says whether it runs.
+ * The calls of a transcript by what became of their commands: those that
+ * still run, and those that returned while their command still ran, whose
+ * view says so.
  */
-function executingCalls(blocks: readonly Block[]): ReadonlySet<string> {
+interface CallStates {
+  executing: ReadonlySet<string>
+  leftRunning: ReadonlySet<string>
+}
+
+/**
+ * The states of the calls in `blocks`, in one pass: a model may reuse a
+ * call's id, and the latest call of an id says what it is.
+ */
+function callStates(blocks: readonly Block[]): CallStates {
   const executing = new Set<string>()
+  const leftRunning = new Set<string>()
   for (const block of blocks) {
     if (block.type !== 'tool_call') {
       continue
     }
+    executing.delete(block.toolUseId)
+    leftRunning.delete(block.toolUseId)
     if (block.status === 'executing') {
       executing.add(block.toolUseId)
-    } else {
-      executing.delete(block.toolUseId)
+    } else if (storedShellView(block)?.status === 'running') {
+      leftRunning.add(block.toolUseId)
     }
   }
-  return executing
+  return { executing, leftRunning }
 }
 
-const NO_CALLS: ReadonlySet<string> = new Set()
+const NO_CALLS: CallStates = { executing: new Set(), leftRunning: new Set() }
 
 /**
- * The commands the dock holds: all but those whose `shell` call still runs,
- * whose output shows under the call. Each agent's running calls are a
- * computed of their own, over the latest blocks of that agent's transcript:
- * a patch to one transcript, as each streamed piece is, scans that
- * transcript once and no other, and the commands are then read once, each by
- * the set of its agent.
+ * The commands the dock holds, each once: those a `shell` call left
+ * running. The conversation's list of them that ended (`ended`) says which
+ * ended and when, whatever the page holds of their calls; a command the page
+ * follows by its live frames shows the output they brought. Of the others
+ * the page follows, one that runs is the dock's once its call returned, and
+ * one that ended is while the list has not caught up with it, when its
+ * call's view says it was left running; one that ended within its call
+ * never was the dock's. Each agent's calls are a computed of their own, over
+ * the latest blocks of that agent's transcript: a patch to one transcript,
+ * as each streamed piece is, scans that transcript once and no other, and
+ * the commands are then read once, each by the calls of its agent.
  */
-export function useDockTerminals(source: () => DockSource): ComputedRef<TerminalRecord[]> {
-  const rootCalls = computed(() => executingCalls(latestBlocks(source().history)))
+export function useDockTerminals(
+  source: () => DockSource,
+  ended: () => readonly TerminalRecord[] = () => [],
+): ComputedRef<TerminalRecord[]> {
+  const rootCalls = computed(() => callStates(latestBlocks(source().history)))
   // By the subagent's record, which the store keeps while the child is
   // listed; a record that goes takes its computed with it.
-  const childCalls = new WeakMap<object, ComputedRef<ReadonlySet<string>>>()
-  const callsOf = (agent: DockSource['subagents'][number]): ReadonlySet<string> => {
+  const childCalls = new WeakMap<object, ComputedRef<CallStates>>()
+  const callsOf = (agent: DockSource['subagents'][number]): CallStates => {
     const key = toRaw(agent)
     let calls = childCalls.get(key)
     if (calls === undefined) {
-      calls = computed(() => executingCalls(latestBlocks(agent.history)))
+      calls = computed(() => callStates(latestBlocks(agent.history)))
       childCalls.set(key, calls)
     }
     return calls.value
   }
   const agents = computed(() => new Map(source().subagents.map((agent) => [agent.id, agent])))
-  return computed(() => source().terminals.filter((terminal) => {
-    if (terminal.toolUseId === undefined) {
-      return true
-    }
-    const agent = terminal.subagentId === undefined ? undefined : agents.value.get(terminal.subagentId)
-    const executing = terminal.subagentId === undefined
-      ? rootCalls.value
-      : agent === undefined ? NO_CALLS : callsOf(agent)
-    return !executing.has(terminal.toolUseId)
-  }))
+  return computed(() => {
+    const listed = new Map(ended().map((terminal) => [terminal.id, terminal]))
+    const shown = new Set<string>()
+    const live = source().terminals.flatMap((terminal): TerminalRecord[] => {
+      const entry = listed.get(terminal.id)
+      if (entry !== undefined) {
+        shown.add(terminal.id)
+        const { outputRead: _unread, ...known } = entry
+        return [{ ...known, output: terminal.output, chars: terminal.chars, script: terminal.script ?? entry.script }]
+      }
+      if (terminal.toolUseId === undefined) {
+        return [terminal]
+      }
+      const agent = terminal.subagentId === undefined ? undefined : agents.value.get(terminal.subagentId)
+      const calls = terminal.subagentId === undefined
+        ? rootCalls.value
+        : agent === undefined ? NO_CALLS : callsOf(agent)
+      if (calls.executing.has(terminal.toolUseId)) {
+        return []
+      }
+      return isTerminalRunning(terminal.phase) || calls.leftRunning.has(terminal.toolUseId) ? [terminal] : []
+    })
+    return [...live, ...ended().filter((terminal) => !shown.has(terminal.id))]
+  })
 }
 
 export function isTerminalRunning(phase: TerminalPhase): boolean {

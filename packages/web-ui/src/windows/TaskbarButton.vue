@@ -8,7 +8,8 @@ import { resized } from './taskbar-motion'
 /**
  * One button of the taskbar: its icon, then its name, then a count. A
  * window's button shows its tab's name and, holding more than one tab,
- * their count; a system button, its count alone; More, its name.
+ * their count; a system button, its count alone, or its icon alone at zero;
+ * More, its name.
  *
  * The state says how it draws: closed and minimized windows are fainter; a
  * shown window wears a mark under it, the one in front the accent's, as More

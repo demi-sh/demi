@@ -7,8 +7,9 @@
 //! cost of its rows of no agent, and each list its view shows whole under its
 //! revision: its messages saved for later as the composer lists them, the
 //! states plugins hold for its work's tabs, its attached devices, its
-//! directory's workflows and its permission requests. Each is read with an
-//! indexed query that touches no transcript row. The work's tabs are the
+//! directory's workflows, its permission requests and the commands its
+//! calls left running that ended. Each is read with an indexed query that
+//! touches no transcript row. The work's tabs are the
 //! entry's, so the page draws the work as soon as the conversation is listed.
 //!
 //! The persisted facts come from a read-only connection, so listing hundreds of
@@ -20,7 +21,7 @@ use demi_backend_database::conversation_index::ConversationRecord;
 use demi_backend_database::tree::{self, EndedTurn, SummaryFacts, Terminal};
 use demi_shared_types::{ModelSelection, SessionPhase};
 use demi_web_api_protocol::conversations::{
-    ConversationMetadata, ConversationShares, ConversationStatus, ConversationSummary, LastTurn, ModelSettings,
+    ConversationMetadata, ConversationShares, ConversationStatus, ConversationSummary, EndedCommand, LastTurn, ModelSettings,
     TurnOutcome, UnreadEnd,
 };
 use demi_web_api_protocol::attached_devices::{AttachedDevice, ConversationDevices};
@@ -150,6 +151,7 @@ impl Shard {
             .unwrap_or_default();
         let first_call_at = services.control.conversation_first_call(record.id.clone()).await?;
         let schedules = self.conversation_schedules(&record.id).await?;
+        let ended_commands = self.ended_commands(&record.id).await;
         let notifications_card = services.control.notifications_card(record.id.clone()).await?;
         Ok(ConversationMetadata {
             model: record.model.as_ref().map(settings).transpose()?,
@@ -171,8 +173,27 @@ impl Shard {
             plugin_revisions: self.plugins().plugin_revisions(&record.id),
             permissions,
             schedules,
+            ended_commands,
             id: record.id,
         })
+    }
+
+    /// The commands the conversation's calls left running that ended
+    /// (`tree::ended_commands`); none, as for its facts, when its database
+    /// cannot be read, so the rest of its metadata shows.
+    async fn ended_commands(&self, id: &ConversationId) -> Vec<EndedCommand> {
+        match self.services().conversations.read(id, tree::ended_commands).await {
+            Ok(ended) => ended.unwrap_or_default(),
+            Err(error) => {
+                tracing::error!(
+                    event = "conversation_commands.read_failed",
+                    conversation = %id,
+                    error = &error as &dyn std::error::Error,
+                    "a conversation's database could not be read for its ended commands"
+                );
+                Vec::new()
+            }
+        }
     }
 
     /// The facts of the conversation `id`'s checkpoint an entry and its

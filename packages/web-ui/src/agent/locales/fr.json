@@ -221,7 +221,13 @@
     "endCommand": "Terminer la commande",
     "closeTab": "Fermer l’onglet",
     "loading": "Chargement du terminal…",
-    "unavailable": "Impossible de charger le terminal."
+    "unavailable": "Impossible de charger le terminal.",
+    "completed": "Terminées",
+    "searchCompleted": "Recherche terminée",
+    "noneCompleted": "Aucune commande terminée",
+    "outputLoading": "Chargement de la sortie…",
+    "outputUnavailable": "Impossible de charger la sortie.",
+    "outputNotStored": "Sortie non conservée : {reason}"
   },
   "session": {
     "loading": "Chargement de la conversation…",

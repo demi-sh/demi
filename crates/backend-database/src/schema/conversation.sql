@@ -134,14 +134,21 @@ CREATE TABLE blocks (
   summary_tokens INTEGER,
   dictionary     INTEGER REFERENCES dictionaries (id),
   body           BLOB NOT NULL,
+  -- The kind of the command a completed shell call left running, its view
+  -- saying it still ran as the call returned: `command`, or `service` when
+  -- the call started it as one. Null for every other row.
+  left_running   TEXT CHECK (left_running IN ('command', 'service')),
   UNIQUE (node_id, idx)
 ) STRICT;
 -- A page of a transcript is read by its requests, which start at its user
 -- blocks; a block is found by its id, and the call that started a command
 -- by the command its view names (web-api-conversations.md § Conversation history).
+-- The commands a conversation's calls left running are read by its current
+-- paths, from the index alone.
 CREATE INDEX blocks_by_type ON blocks (node_id, type, idx);
 CREATE INDEX blocks_by_id ON blocks (id);
 CREATE INDEX blocks_by_command ON blocks (command) WHERE command IS NOT NULL;
+CREATE INDEX blocks_left_running ON blocks (node_id, idx, command, left_running, created_at) WHERE left_running IS NOT NULL;
 -- The rows that follow a row: its versions and the branches the session's
 -- rewrites left; and the rows that do not follow the row written before
 -- them, where a place may hold versions.
@@ -262,9 +269,10 @@ CREATE TABLE share_attachments (
 ) STRICT;
 
 -- Each ended command's whole output: stored as a blob, with the bytes at
--- its end the backend does not have and why; or not stored, and why; and
--- the title of the call that started it, empty for a row written before
--- rows kept it.
+-- its end the backend does not have and why; or not stored, and why; the
+-- title of the call that started it, empty for a row written before rows
+-- kept it; and when it started, null for a row written before rows kept
+-- that.
 CREATE TABLE command_outputs (
   command_id     TEXT PRIMARY KEY,
   ended_at       INTEGER NOT NULL,
@@ -282,6 +290,7 @@ CREATE TABLE command_outputs (
   -- when it viewed none, and for a row written before rows kept them.
   -- command_outputs.media: command media format 1
   media          TEXT,
+  started_at     INTEGER,
   CHECK ((blob IS NOT NULL) + (not_stored IS NOT NULL) = 1),
   CHECK ((missing_bytes IS NULL) = (missing_reason IS NULL)),
   CHECK (missing_bytes IS NULL OR blob IS NOT NULL)

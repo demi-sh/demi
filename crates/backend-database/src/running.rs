@@ -168,14 +168,21 @@ pub fn place(connection: &Connection, command: &CommandId, node: &NodeId) -> Res
 }
 
 /// Records the command's end, `output`, in place of its record as running,
-/// in one transaction; answers the job it ran as, when it was recorded
-/// running.
-pub fn end(connection: &mut Connection, output: CommandOutput) -> Result<Option<String>, StorageError> {
+/// whose start it keeps, in one transaction; answers the job it ran as,
+/// when it was recorded running.
+pub fn end(connection: &mut Connection, mut output: CommandOutput) -> Result<Option<String>, StorageError> {
     let transaction = connection.transaction()?;
-    let job = transaction
-        .prepare_cached("DELETE FROM running_commands WHERE command_id = ?1 RETURNING job_id")?
-        .query_row([output.command.as_str()], |row| row.get(0))
+    let running: Option<(String, i64)> = transaction
+        .prepare_cached("DELETE FROM running_commands WHERE command_id = ?1 RETURNING job_id, started_at")?
+        .query_row([output.command.as_str()], |row| Ok((row.get(0)?, row.get(1)?)))
         .optional()?;
+    let job = match running {
+        Some((job, started)) => {
+            output.started = Some(decode("running_commands", "started_at", Timestamp::from_millisecond(started))?);
+            Some(job)
+        }
+        None => None,
+    };
     command_outputs::insert_in(&transaction, &[output])?;
     transaction.commit()?;
     Ok(job)

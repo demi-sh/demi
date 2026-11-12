@@ -713,6 +713,7 @@ impl CommandKeeper for Keeper {
             let row = CommandOutput {
                 command: command.clone(),
                 title: title.to_owned(),
+                started: None,
                 ended,
                 end,
                 output: stored,

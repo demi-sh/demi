@@ -20,6 +20,7 @@ pub mod cost;
 mod cost_report;
 mod creation;
 mod deletion;
+mod ended_output;
 mod attachment_facts;
 mod failure_facts;
 mod history;

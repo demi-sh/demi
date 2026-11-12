@@ -221,7 +221,13 @@
     "endCommand": "End Command",
     "closeTab": "Close Tab",
     "loading": "Loading terminal…",
-    "unavailable": "Couldn’t load the terminal."
+    "unavailable": "Couldn’t load the terminal.",
+    "completed": "Completed",
+    "searchCompleted": "Search completed",
+    "noneCompleted": "No completed commands",
+    "outputLoading": "Loading output…",
+    "outputUnavailable": "Couldn’t load the output.",
+    "outputNotStored": "Output not stored: {reason}"
   },
   "session": {
     "loading": "Loading conversation…",

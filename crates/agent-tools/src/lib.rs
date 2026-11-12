@@ -113,7 +113,7 @@ use input::{Hold, ShellInput, parse};
 pub use reports::{EndOf, end_report, fill_output, progress_report};
 pub use demi_agent_transcript::duration;
 pub use result::{
-    Look, Moved, interrupted_look, look_text, report_media, report_output, whole_look_text, whole_status,
+    Look, Moved, VIEW_CHARS, interrupted_look, look_text, report_media, report_output, whole_look_text, whole_status,
 };
 pub use product::{
     ChosenWorkflow, ContextAnswer, ContextSource, ConversationProfiles, EFFORT_OFF, DeviceResolver,
