@@ -85,7 +85,7 @@ impl RelyingParty {
         let mut builder = WebauthnBuilder::new(id, &origin)
             .inspect_err(|error| tracing::warn!(event = "passkeys.relying_party_refused", %error, "the public URL is no relying party"))
             .ok()?
-            .rp_name("jush");
+            .rp_name("Jush");
         if let Some(page) = page.filter(|page| page.origin() != origin.origin()) {
             builder = builder.append_allowed_origin(page);
         }

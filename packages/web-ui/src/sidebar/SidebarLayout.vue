@@ -48,7 +48,7 @@ const props = withDefaults(defineProps<{
   label?: string
   /** The keys of the `sidebar` action, shown in the collapse button's tip. */
   toggleShortcut?: string
-}>(), { label: 'jush' })
+}>(), { label: 'Jush' })
 const emit = defineEmits<{
   resizeEnd: [width: number]
 }>()

@@ -1,5 +1,5 @@
 // The slot a check runs in (browse.md § One browser per slot): slot n for a
-// checkout at `../demi-slots/<n>`, slot 0 for any other, such as the user's
+// checkout at `../jush-slots/<n>`, slot 0 for any other, such as the user's
 // own. The slot decides the servers' ports and the folder that holds the
 // slot's browser, state and output, so two slots never share anything.
 import { basename, dirname, join, resolve } from 'node:path'
@@ -29,7 +29,7 @@ export interface Slot {
 }
 
 /** The folder that holds the numbered slots beside the user's checkout. */
-const SLOTS = 'demi-slots'
+const SLOTS = 'jush-slots'
 
 export function slotNumber(root: string): number {
   const path = resolve(root)
