@@ -13,13 +13,13 @@
 //!   that goes into another, as a second spelling of its directory or a worktree
 //!   of its repository, is removed for good, its conversations with the other.
 
-use demi_shared_types::{Timestamp, WorkflowChoice};
-use demi_web_api_protocol::conversations::ModelSettings;
-use demi_device_paths::DevicePaths;
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId, UserId, WorkspaceId};
-use demi_runner_protocol::wire::RunnerPlatform;
-use demi_web_api_protocol::projects::{SavedScope, ProjectDto};
+use jush_shared_types::{Timestamp, WorkflowChoice};
+use jush_web_api_protocol::conversations::ModelSettings;
+use jush_device_paths::DevicePaths;
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId, UserId, WorkspaceId};
+use jush_runner_protocol::wire::RunnerPlatform;
+use jush_web_api_protocol::projects::{SavedScope, ProjectDto};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::StorageError;

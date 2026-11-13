@@ -11,9 +11,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use demi_device_interface::{Seen, UnsentStart};
-use demi_shared_types::{CommandId, NodeId, Timestamp, TurnId};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_device_interface::{Seen, UnsentStart};
+use jush_shared_types::{CommandId, NodeId, Timestamp, TurnId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 

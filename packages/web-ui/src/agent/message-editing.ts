@@ -1,6 +1,6 @@
 import { inject, provide, type InjectionKey } from 'vue'
 import { z } from 'zod'
-import { EditRejectedError } from '@demicodes/conversation-client'
+import { EditRejectedError } from '@jush-ai/conversation-client'
 import {
   editRequestSchema,
   messageCommentSchema,
@@ -11,13 +11,13 @@ import {
   type MessageComment,
   type SessionPhase,
   type Version,
-} from '@demicodes/protocol'
+} from '@jush-ai/protocol'
 import { reportError } from '../infra/errors'
 import { plainCopy } from '../infra/plain-copy'
 import { t } from './locales/text'
 import type { MessageListBlock } from './pending-steers'
 
-export { EditRejectedError } from '@demicodes/conversation-client'
+export { EditRejectedError } from '@jush-ai/conversation-client'
 
 /**
  * A file the edit added, once its upload is done: the upload the edit names

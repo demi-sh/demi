@@ -7,7 +7,7 @@
   const ancestors = new Set();
   let remaining = maxBytes;
   const fail = (text) => {
-    throw new Error(`demi-unsupported-result: ${text}`);
+    throw new Error(`jush-unsupported-result: ${text}`);
   };
   const isIdentifier = (key) => {
     if (key.length === 0) {

@@ -9,7 +9,7 @@ status: proposed
 A model writes a mockup page with `cat > menu.html <<'EOF' ...`, and the
 vendor's safety classifier stops the reply there: a refusal, in Anthropic's
 words (`stop_reason: "refusal"`), a content filter in OpenAI's, a safety block
-in Google's. Demi calls such a reply filtered. What follows depends on the
+in Google's. Jush calls such a reply filtered. What follows depends on the
 provider:
 
 - **The Anthropic API, OpenAI and Google** end the turn with a failure record,
@@ -18,13 +18,13 @@ provider:
   presses Resume, and the model reads only "Continue from where you left
   off.": it never learns that its reply was filtered. A long task stops at
   every filtered reply until the user comes back.
-- **Claude Code** never tells Demi. Demi hands the agent the message's calls
+- **Claude Code** never tells Jush. Jush hands the agent the message's calls
   at its `message_stop` without reading how the message ended, and the agent
   runs them. Meanwhile the CLI goes on by itself: it gives the call the result
   "Interrupted: ... it may have partially or fully completed" and tells the
-  model "Do not produce that content again, even reworded". Demi's transcript
+  model "Do not produce that content again, even reworded". Jush's transcript
   holds the call's real result instead, so a later process, which resumes
-  from Demi's transcript, gives the model a history it never saw. Nothing
+  from Jush's transcript, gives the model a history it never saw. Nothing
   limits how many filtered replies a turn takes. The usage ledger records the
   filtered request as answered.
 
@@ -33,7 +33,7 @@ requests between two filtered replies succeed.
 
 ## Decision
 
-A filtered reply ends the request, whatever the provider, and Demi resumes
+A filtered reply ends the request, whatever the provider, and Jush resumes
 the turn at once, as if the user had pressed Resume, telling the model why.
 The fourth filtered reply of one turn ends the turn instead, and Resume then
 goes on.
@@ -87,7 +87,7 @@ the fourth filtered reply, the failure record:
   does not go on by itself, and ends the run with
   `ProviderFailure::ended_early(EarlyEnd::Filter, "refusal", frame)`. The
   request's ledger row is refused with `filtered`. The next request starts a
-  process that resumes from Demi's transcript. A message fetched without
+  process that resumes from Jush's transcript. A message fetched without
   streaming comes as one line per block, and the provider stops at its first
   line, so its later blocks, calls among them, are not kept: the model still
   reads why its reply stopped.
@@ -120,7 +120,7 @@ the fourth filtered reply, the failure record:
 ## Prior art
 
 - **Claude Code** goes on by itself after a refusal, with no limit, and tells
-  the model not to write that content again. Demi departs in the words: the
+  the model not to write that content again. Jush departs in the words: the
   model is told what happened and decides.
 - **Anthropic's documentation**
   ([Streaming refusals](https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/handle-streaming-refusals))
@@ -131,7 +131,7 @@ the fourth filtered reply, the failure record:
 ## Alternatives
 
 - **Let the Claude Code CLI go on by itself.** Its calls would run while the
-  CLI tells the model they may not have, and Demi's transcript would differ
+  CLI tells the model they may not have, and Jush's transcript would differ
   from what the model read.
 - **End the turn at every filtered reply.** A long task would wait for the
   user each time, though the next request usually succeeds.

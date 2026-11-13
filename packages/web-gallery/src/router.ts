@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import type { TitleText } from '@demicodes/web-ui/ui/ui-text'
+import type { TitleText } from '@jush-ai/web-ui/ui/ui-text'
 import OverviewSection from './sections/OverviewSection.vue'
 import SignInSection from './sections/SignInSection.vue'
 import SurfacesSection from './sections/SurfacesSection.vue'

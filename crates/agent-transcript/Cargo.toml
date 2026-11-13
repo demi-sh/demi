@@ -1,5 +1,5 @@
 [package]
-name = "demi-agent-transcript"
+name = "jush-agent-transcript"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -14,13 +14,13 @@ bench = false
 [features]
 # Predictable identities (`agent_transcript::testing`), with the store's test
 # support below them.
-testing = ["demi-agent-store/testing"]
+testing = ["jush-agent-store/testing"]
 
 [dependencies]
-demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
-demi-agent-store = { path = "../agent-store" }
-demi-shared-types = { path = "../shared-types" }
-demi-provider-common = { path = "../provider-common" }
+jush-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
+jush-agent-store = { path = "../agent-store" }
+jush-shared-types = { path = "../shared-types" }
+jush-provider-common = { path = "../provider-common" }
 comrak = { version = "0.56", default-features = false }
 percent-encoding = "2"
 regex = "1"

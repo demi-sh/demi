@@ -10,10 +10,10 @@
 //! the name then replaces what was typed, and the project of a directory that
 //! another project has is that project.
 
-use demi_backend_database::devices::DeviceRecord;
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::ids::DeviceId;
+use jush_backend_database::devices::DeviceRecord;
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::ids::DeviceId;
 
 use crate::DeviceShard;
 use crate::transition::ChangeRefusal;
@@ -53,7 +53,7 @@ impl dyn DeviceShard + '_ {
     ///
     /// - A directory of a paired device, given or a project's, is stored as it
     ///   is; a project keeps its own id.
-    /// - A Cloud directory a move names, as `demi device move` does, is stored
+    /// - A Cloud directory a move names, as `jush device move` does, is stored
     ///   as typed, and the Cloud is not woken for it.
     /// - The Cloud's directory of a conversation and a Cloud project's are ones
     ///   the backend made.
@@ -93,7 +93,7 @@ fn typed_directory(device: &DeviceRecord, path: &str) -> Result<String, ChangeRe
     let path = match paths.home_relative(path) {
         Some(_) => {
             let home = match device.kind {
-                DeviceKind::Managed => device.home.as_deref().unwrap_or(demi_backend_database::CLOUD_HOME),
+                DeviceKind::Managed => device.home.as_deref().unwrap_or(jush_backend_database::CLOUD_HOME),
                 DeviceKind::User => device.home.as_deref().ok_or(ChangeRefusal::DeviceHomeUnknown)?,
             };
             paths.from_home(home, path)

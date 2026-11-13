@@ -4,9 +4,9 @@
 use crate::interpreter::{invocation_file, scope};
 use brush_core::{CommandArg, ExecutionContext, ExecutionResult, builtins};
 use bytes::Bytes;
-use demi_command_protocol::{LocalInvocation, Record};
-use demi_command_sdk::{Input, InvocationContext, Output, ResidentError};
-use demi_runner_process::{
+use jush_command_protocol::{LocalInvocation, Record};
+use jush_command_sdk::{Input, InvocationContext, Output, ResidentError};
+use jush_runner_process::{
     command_client::{RAW, RawCommand},
     stdio::is_null_device,
 };

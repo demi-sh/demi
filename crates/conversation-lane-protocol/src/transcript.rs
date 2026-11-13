@@ -3,7 +3,7 @@
 
 use std::ops::Range;
 
-use demi_shared_types::{AgentMessageEvent, Block, BlockId, MAX_SAFE_INTEGER, Timestamp, ToolResultContentBlock, ToolView};
+use jush_shared_types::{AgentMessageEvent, Block, BlockId, MAX_SAFE_INTEGER, Timestamp, ToolResultContentBlock, ToolView};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +19,7 @@ pub enum TranscriptPatch {
     Add {
         #[garde(skip)]
         index: u32,
-        #[serde(with = "demi_shared_types::client_block")]
+        #[serde(with = "jush_shared_types::client_block")]
         #[schemars(with = "Block")]
         #[garde(dive)]
         value: Block,
@@ -31,7 +31,7 @@ pub enum TranscriptPatch {
     ReplaceBlock {
         #[garde(skip)]
         index: u32,
-        #[serde(with = "demi_shared_types::client_block")]
+        #[serde(with = "jush_shared_types::client_block")]
         #[schemars(with = "Block")]
         #[garde(dive)]
         value: Block,

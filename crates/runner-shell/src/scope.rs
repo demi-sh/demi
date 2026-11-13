@@ -38,7 +38,7 @@ use brush_core::{
     execution_host::{BackgroundTask, ExecutionHost, FileControl},
     processes::ChildProcess,
 };
-use demi_runner_process::{
+use jush_runner_process::{
     command_client::CONTEXT_ENV,
     job_shell::JobCommands,
     process::{self, ChildAttributes},
@@ -172,7 +172,7 @@ pub struct Scope {
     pub commands: Option<JobCommands>,
     /// The job's edit recorder; the scope records into it only until the job
     /// detaches (`Scope::recorder`).
-    pub edits: Option<demi_command_sdk::edits::Recorder>,
+    pub edits: Option<jush_command_sdk::edits::Recorder>,
     /// Whether the scope's work is a background task's, whose programs write
     /// the files they are redirected to themselves, unrecorded
     /// (`external_output`).
@@ -230,7 +230,7 @@ impl Scope {
     /// again until one closes or the job ends (`crates/command-sdk/src/descriptors.rs`). It runs
     /// on a shell thread, which may block.
     pub(crate) fn descriptors<T>(&self, mut make: impl FnMut() -> io::Result<T>) -> io::Result<T> {
-        demi_command_sdk::descriptors::retry_blocking(|| {
+        jush_command_sdk::descriptors::retry_blocking(|| {
             self.check()?;
             make()
         })
@@ -248,7 +248,7 @@ impl Scope {
 
     /// The recorder of the job's edits while the job runs; none once it has
     /// ended, whatever it left running writing then.
-    fn recorder(&self) -> Option<&demi_command_sdk::edits::Recorder> {
+    fn recorder(&self) -> Option<&jush_command_sdk::edits::Recorder> {
         self.edits
             .as_ref()
             .filter(|_| !self.work.detach.is_cancelled())
@@ -785,7 +785,7 @@ impl ExecutionHost for Scope {
         // A signal waits until the child is in the table, which it may act
         // on before the start returns.
         let starting = self.work.starting();
-        // A start that waits (`demi_runner_process::process::start`) ends
+        // A start that waits (`jush_runner_process::process::start`) ends
         // with the job.
         let mut child = process::start_blocking(|| {
             self.check()?;

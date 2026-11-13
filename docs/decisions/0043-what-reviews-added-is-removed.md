@@ -56,5 +56,5 @@ asks:
 ### Consequences
 
 * Good, because each package does what its design asks and no more.
-* Bad, because a workflow, or a `.demi` directory, that is a link is not
+* Bad, because a workflow, or a `.jush` directory, that is a link is not
   watched for changes to its target.

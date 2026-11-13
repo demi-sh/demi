@@ -188,7 +188,7 @@ device pixels: the browser scales it by 0.962.
   (`video/frame_cadence_adapter.cc`), when the source stops sending frames,
   the encoder is fed the last frame again at the frame rate until the quality
   converges (`video/quality_convergence_monitor.cc`, by the frames' QP), then
-  once a second. Demi repeats for one second and stops: it needs no frames to
+  once a second. Jush repeats for one second and stops: it needs no frames to
   keep a receiver's freeze detection quiet, and a converged repeat costs a few
   hundred bytes, so a fixed second costs less than reading each slice's QP,
   which H.264 has no threshold for in libwebrtc either.
@@ -197,7 +197,7 @@ device pixels: the browser scales it by 0.962.
   probes at 3 and 6 times the start rate, and periodic probes while the
   application limits the rate, every 5 seconds at twice the estimate, which
   libwebrtc runs for screen content under a field trial. str0m ports it with
-  its probe estimator (`src/bwe/probe/`). Demi's probes are padding chunks on the video channel, where
+  its probe estimator (`src/bwe/probe/`). Jush's probes are padding chunks on the video channel, where
   WebRTC's are RTP padding.
 - **Claude Desktop 3.6556 (not open source; read from its bundle and run).**
   Its browser pane embeds a real browser view and streams no pictures. Its
@@ -206,11 +206,11 @@ device pixels: the browser scales it by 0.962.
   mode at the simulator's own pixels, 12 Mbps with bursts of 18 Mbps a
   second, a key frame every 4 seconds, BT.709. It neither adapts to the path
   nor refines a still picture; its periodic key frame refreshes it. It serves
-  local sessions only, so a fixed rate fits it; Demi's Host may be far away.
+  local sessions only, so a fixed rate fits it; Jush's Host may be far away.
 - **Chrome's VideoToolbox encoder**
   (`media/gpu/mac/vt_video_encode_accelerator_mac.mm`) turns on the
   low-latency rate control when low delay is required and the hardware
-  encoder supports it; it fails with the software encoder, so Demi opens
+  encoder supports it; it fails with the software encoder, so Jush opens
   without it where it fails.
 
 ## Alternatives

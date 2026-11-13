@@ -46,7 +46,7 @@ mod registry;
 
 use std::{fmt, path::PathBuf, time::SystemTime};
 
-use demi_command_protocol::{ArtifactLocation, PackageArtifact, ResidentSequence};
+use jush_command_protocol::{ArtifactLocation, PackageArtifact, ResidentSequence};
 use futures_util::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -58,7 +58,7 @@ pub use registry::{ProgramsKept, Resident, ResidentHandle, ResidentLease, Reside
 pub enum RuntimeError {
     /// The executable could not be downloaded, copied or verified.
     #[error("native artifact: {0}")]
-    Artifact(#[from] demi_shared_artifacts::Error),
+    Artifact(#[from] jush_shared_artifacts::Error),
     /// The backend did not say where the artifact is, or said it wrongly.
     #[error("native artifact location: {0}")]
     Location(String),
@@ -71,7 +71,7 @@ pub enum RuntimeError {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    Resident(#[from] demi_command_sdk::ResidentError),
+    Resident(#[from] jush_command_sdk::ResidentError),
     #[error("resident does not match its package descriptor")]
     CatalogMismatch,
     #[error("resident did not answer within its {0} deadline")]
@@ -89,7 +89,7 @@ pub enum RuntimeError {
 /// it reports (`crates/command-protocol/src/lib.rs`).
 #[derive(Debug, Clone, thiserror::Error)]
 pub struct ResidentExit {
-    /// The package, such as `demi.file`.
+    /// The package, such as `jush.file`.
     pub resident: String,
     pub reason: ExitReason,
     /// The end of the resident's standard error.

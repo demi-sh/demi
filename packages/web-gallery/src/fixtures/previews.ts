@@ -76,11 +76,11 @@ export const overlongMarkdown = `Started the dev server on Alexs-MacBook-Pro.loc
 The test lives at \`packages/web-ui/src/files/__tests__/crumb-fit.test.ts\`.
 
 \`\`\`
-demi skills list
+jush skills list
 \`\`\`
 
 \`\`\`
-demi: this conversation needs the user's permission to manage skills; the request was sent to the user and this command failed.
+jush: this conversation needs the user's permission to manage skills; the request was sent to the user and this command failed.
 \`\`\`
 
 \`\`\`

@@ -106,7 +106,7 @@ facts (`conversation.load` and `ConversationRuntime.caughtUp`).
 * Element Web, the Matrix client, shows a spinner at the end of the
   timeline while it fetches newer events (`MessagePanel`'s bottom spinner,
   [element-web](https://github.com/element-hq/element-web)). It adds the
-  spinner as a list item, which moves the rows; Demi draws it over the edge,
+  spinner as a list item, which moves the rows; Jush draws it over the edge,
   as 0059's motivation requires.
 * Telegram says Updating in the chat's title bar, as 0059 did, and the user
   found that spot easy to miss.

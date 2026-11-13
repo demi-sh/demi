@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount } from 'vue'
-import SettingsInstructions from '@demicodes/web-ui/settings/SettingsInstructions.vue'
+import SettingsInstructions from '@jush-ai/web-ui/settings/SettingsInstructions.vue'
 
 /**
  * The Instructions section over a specimen's text. A save waits a beat, as

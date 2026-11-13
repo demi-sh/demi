@@ -22,7 +22,7 @@
 //!   start hands over once its registration works (it releases the lock, asks
 //!   the manager to start the installation's runner, exits 0), so a runner is
 //!   supervised from the first minute after an install or an update. The
-//!   manager names its own with `DEMI_SUPERVISED`, so it never hands over.
+//!   manager names its own with `JUSH_SUPERVISED`, so it never hands over.
 //! - Removal removes the registration last, so the manager never starts a
 //!   runner that is gone.
 //! - Where no registration can be made (Linux without a systemd user manager, a
@@ -33,8 +33,8 @@
 //! # Signing on macOS
 //!
 //! A grant of the protected folders is remembered per designated requirement,
-//! so the build workflow signs the runner with Demi's own certificate, the
-//! same in every release (`sh.demi.runner`). An ad hoc signature names the
+//! so the build workflow signs the runner with Jush's own certificate, the
+//! same in every release (`ai.jush.runner`). An ad hoc signature names the
 //! build's hash, and the system would ask again after every update.
 //!
 //! The certificate is self-signed and not for Gatekeeper, which never checks a
@@ -47,8 +47,8 @@ use std::{
 };
 
 #[cfg(unix)]
-use demi_shared_artifacts::{Mode, Permissions, Publication};
-use demi_runner_protocol::{SUPERVISED, wire::AutostartUnavailable};
+use jush_shared_artifacts::{Mode, Permissions, Publication};
+use jush_runner_protocol::{SUPERVISED, renamed, wire::AutostartUnavailable};
 
 /// What a registration that is in place does for the runner.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -72,24 +72,65 @@ pub struct Registration {
     home: PathBuf,
     /// Whether this process is the runner the manager started.
     supervised: bool,
+    /// Whether the registration has the names of before the rename
+    /// (`crate::renamed`).
+    before_rename: bool,
 }
+
+/// The name of a LaunchAgent and of a scheduled task, before the
+/// installation's id.
+#[cfg(any(target_os = "macos", windows))]
+const LABEL_PREFIX: &str = "ai.jush.runner";
+
+/// The name of a systemd user unit, before the installation's id.
+#[cfg(target_os = "linux")]
+const UNIT_PREFIX: &str = "jush-runner";
 
 impl Registration {
     /// The registration of the installation in `directory` of the user whose
     /// home is `home`, as this process sees it.
     pub fn of(directory: &Path, home: &Path) -> io::Result<Self> {
+        Self::named(directory, home, false)
+    }
+
+    /// The registration an installation from before the rename has, under
+    /// the names of then (`crate::renamed`).
+    pub fn before_rename(directory: &Path, home: &Path) -> io::Result<Self> {
+        Self::named(directory, home, true)
+    }
+
+    fn named(directory: &Path, home: &Path, before_rename: bool) -> io::Result<Self> {
         let directory = std::path::absolute(directory)?;
         let id = directory
             .file_name()
             .and_then(|name| name.to_str())
             .ok_or_else(|| io::Error::other("the installation's directory has no name"))?
             .to_owned();
+        // The registration of before the rename only goes, and never runs
+        // this process: the runner that removes it is the new one's.
+        let supervised = !before_rename && std::env::var_os(SUPERVISED).is_some_and(|value| !value.is_empty());
         Ok(Self {
             id,
             directory,
             home: home.to_owned(),
-            supervised: std::env::var_os(SUPERVISED).is_some_and(|value| !value.is_empty()),
+            supervised,
+            before_rename,
         })
+    }
+
+    #[cfg(any(target_os = "macos", windows))]
+    fn label_prefix(&self) -> &'static str {
+        if self.before_rename { renamed::LABEL_PREFIX } else { LABEL_PREFIX }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn unit_prefix(&self) -> &'static str {
+        if self.before_rename { renamed::UNIT_PREFIX } else { UNIT_PREFIX }
+    }
+
+    /// The home of the user whose installation this is.
+    pub fn home(&self) -> &Path {
+        &self.home
     }
 
     /// Whether this process is the runner the manager started, which never
@@ -224,7 +265,7 @@ async fn write(path: &Path, contents: &str) -> io::Result<bool> {
     if let Some(parent) = path.parent() {
         tokio::fs::create_dir_all(parent).await?;
     }
-    demi_shared_artifacts::publish_bytes(
+    jush_shared_artifacts::publish_bytes(
         path,
         contents.as_bytes(),
         Publication {
@@ -338,7 +379,7 @@ fn path(value: &str) -> String {
 fn unit(launcher: &str, home: &str, directory: &str) -> String {
     format!(
         "[Unit]\n\
-         Description=Demi runner of {directory}\n\
+         Description=Jush runner of {directory}\n\
          \n\
          [Service]\n\
          ExecStart={launcher} run --log\n\
@@ -435,7 +476,7 @@ mod macos {
 
     impl Registration {
         fn label(&self) -> String {
-            format!("sh.demi.runner.{}", self.id)
+            format!("{}.{}", self.label_prefix(), self.id)
         }
 
         fn plist(&self) -> PathBuf {
@@ -558,7 +599,7 @@ mod linux {
 
     impl Registration {
         fn unit_name(&self) -> String {
-            format!("demi-runner-{}.service", self.id)
+            format!("{}-{}.service", self.unit_prefix(), self.id)
         }
 
         /// In the user's configuration, where the user manager reads it.
@@ -675,7 +716,7 @@ mod windows {
         /// script below follows with the user's SID: Windows keeps every
         /// user's tasks in one folder. The `Run` value is the user's own.
         fn name(&self) -> String {
-            format!("sh.demi.runner.{}", self.id)
+            format!("{}.{}", self.label_prefix(), self.id)
         }
 
         /// PowerShell's arguments, which run the launcher with `run --log`,
@@ -695,7 +736,7 @@ mod windows {
         }
 
         fn description(&self) -> String {
-            format!("Starts the Demi runner of {} at logon.", self.directory.display())
+            format!("Starts the Jush runner of {} at logon.", self.directory.display())
         }
     }
 
@@ -704,28 +745,28 @@ mod windows {
     /// as: the environment's `USERDOMAIN` and `USERNAME` may name no
     /// account, as `WORKGROUP\alex` named none on a Windows 11 that a
     /// runner served.
-    const USER: &str = "DEMI-TASK-USER";
+    const USER: &str = "JUSH-TASK-USER";
 
     /// What every script begins with: the task's name, the installation's
     /// followed by the user's SID.
     const NAMED: &str = "$sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value; \
-        $name = $env:DEMI_TASK_NAME + '.' + $sid; ";
+        $name = $env:JUSH_TASK_NAME + '.' + $sid; ";
 
-    /// Registers the task `DEMI_TASK_XML` describes, for this process's
+    /// Registers the task `JUSH_TASK_XML` describes, for this process's
     /// user, unless one of its name already runs the same program for the
     /// same installation.
     const REGISTER: &str = "$ErrorActionPreference = 'Stop'; \
         $task = Get-ScheduledTask -TaskPath '\\' -TaskName $name -ErrorAction SilentlyContinue; \
-        if ($task -and $task.Description -eq $env:DEMI_TASK_DESCRIPTION -and @($task.Actions).Count -eq 1 -and \
-          $task.Actions[0].Execute -eq 'powershell.exe' -and $task.Actions[0].Arguments -eq $env:DEMI_TASK_ARGUMENTS -and \
+        if ($task -and $task.Description -eq $env:JUSH_TASK_DESCRIPTION -and @($task.Actions).Count -eq 1 -and \
+          $task.Actions[0].Execute -eq 'powershell.exe' -and $task.Actions[0].Arguments -eq $env:JUSH_TASK_ARGUMENTS -and \
           $task.Settings.MultipleInstances -eq 'Queue') { exit 0 }; \
-        Register-ScheduledTask -TaskName $name -Xml $env:DEMI_TASK_XML.Replace($env:DEMI_TASK_USER, $sid) -Force | Out-Null";
+        Register-ScheduledTask -TaskName $name -Xml $env:JUSH_TASK_XML.Replace($env:JUSH_TASK_USER, $sid) -Force | Out-Null";
 
     async fn powershell(script: &str, registration: &Registration, extra: &[(&str, String)]) -> Result<String, String> {
         let mut command = tokio::process::Command::new("powershell.exe");
         command
             .args(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", &format!("{NAMED}{script}")])
-            .env("DEMI_TASK_NAME", registration.name());
+            .env("JUSH_TASK_NAME", registration.name());
         for (name, value) in extra {
             command.env(name, value);
         }
@@ -737,10 +778,10 @@ mod windows {
         let arguments = registration.arguments();
         let task = task(USER, &description, &arguments, &registration.home.to_string_lossy());
         let extra = [
-            ("DEMI_TASK_USER", USER.to_owned()),
-            ("DEMI_TASK_XML", task),
-            ("DEMI_TASK_DESCRIPTION", description),
-            ("DEMI_TASK_ARGUMENTS", arguments.clone()),
+            ("JUSH_TASK_USER", USER.to_owned()),
+            ("JUSH_TASK_XML", task),
+            ("JUSH_TASK_DESCRIPTION", description),
+            ("JUSH_TASK_ARGUMENTS", arguments.clone()),
         ];
         match powershell(REGISTER, registration, &extra).await {
             Ok(_) => {

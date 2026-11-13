@@ -24,7 +24,7 @@
 mod channel;
 mod state;
 
-use demi_backend_page_sync::Part;
+use jush_backend_page_sync::Part;
 
 pub use self::state::{StateError, etag_of, etag_of_json};
 use crate::shard::Shard;

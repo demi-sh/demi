@@ -45,7 +45,7 @@ use std::{
     time::Duration,
 };
 
-use demi_machine_manager_protocol::NetworkRules;
+use jush_machine_manager_protocol::NetworkRules;
 use hickory_proto::{
     op::{Message, OpCode, ResponseCode},
     rr::RData,

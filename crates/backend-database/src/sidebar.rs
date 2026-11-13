@@ -3,7 +3,7 @@
 //!
 //! Activity never reorders a row.
 
-use demi_web_api_protocol::ids::{ConversationId, UserId, ProjectId};
+use jush_web_api_protocol::ids::{ConversationId, UserId, ProjectId};
 use rusqlite::{Connection, OptionalExtension, params};
 
 use super::StorageError;

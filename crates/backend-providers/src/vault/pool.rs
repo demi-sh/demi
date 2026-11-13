@@ -6,12 +6,12 @@
 //! vault's refresh turns. A pool is bound to its entry, so a provider given it
 //! cannot reach another entry's accounts.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::providers::{CredentialRow, CredentialWrite};
-use demi_provider_common::credentials::{
+use jush_backend_database::StorageError;
+use jush_backend_database::providers::{CredentialRow, CredentialWrite};
+use jush_provider_common::credentials::{
     AccountDocument, AccountMeta, CredentialPool, PoolError, RefreshPermit, Revision,
 };
-use demi_web_api_protocol::ids::{CredentialId, ProviderId};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId};
 use futures_util::future::BoxFuture;
 
 use super::entries::Vault;

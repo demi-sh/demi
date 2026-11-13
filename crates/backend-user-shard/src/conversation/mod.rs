@@ -53,19 +53,19 @@ pub mod workflows;
 use std::rc::{Rc, Weak};
 use std::sync::Arc;
 
-use demi_agent_server::{AgentServer, ServerConfig, ServerDeps, TreeStores};
-use demi_agent_store::AgentTreeStore;
-use demi_agent_tools::ContextSource;
+use jush_agent_server::{AgentServer, ServerConfig, ServerDeps, TreeStores};
+use jush_agent_store::AgentTreeStore;
+use jush_agent_tools::ContextSource;
 use instructions::Instructions;
-use demi_agent_transcript::RandomIds;
-use demi_agent_store::media::BlobStore;
-use demi_backend_database::search::TranscriptChange;
-use demi_backend_database::tree::SqliteTreeStore;
-use demi_backend_device_access::shells::ShardShellEnvironments;
-use demi_backend_device_access::{DeviceShard, conversation_of};
-use demi_backend_page_sync::Part;
-use demi_shared_types::NodeId;
-use demi_web_api_protocol::ids::UserId;
+use jush_agent_transcript::RandomIds;
+use jush_agent_store::media::BlobStore;
+use jush_backend_database::search::TranscriptChange;
+use jush_backend_database::tree::SqliteTreeStore;
+use jush_backend_device_access::shells::ShardShellEnvironments;
+use jush_backend_device_access::{DeviceShard, conversation_of};
+use jush_backend_page_sync::Part;
+use jush_shared_types::NodeId;
+use jush_web_api_protocol::ids::UserId;
 
 pub use self::deletion::finish_deletions;
 pub use self::attachment_facts::{attachment_facts, named_blocks, replies, reply_block_facts};
@@ -139,9 +139,9 @@ pub(crate) fn conversation_parts(
     let config = ServerConfig {
         outbox_steps: services.conversation_tuning.outbox_steps,
         call_window_ms: services.conversation_tuning.call_window_ms,
-        session: demi_agent_session::SessionConfig {
+        session: jush_agent_session::SessionConfig {
             silence: services.conversation_tuning.silence,
-            ..demi_agent_session::SessionConfig::default()
+            ..jush_agent_session::SessionConfig::default()
         },
         ..ServerConfig::default()
     };

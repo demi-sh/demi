@@ -72,7 +72,7 @@ export interface CredentialAnswer {
 }
 
 /**
- * The page's words for the category `id`: Demi's own categories' from this
+ * The page's words for the category `id`: Jush's own categories' from this
  * catalogue, a plugin's from the plugin's, under its id, which the category's id
  * starts with, as `skills.manage` is the `skills` plugin's.
  *

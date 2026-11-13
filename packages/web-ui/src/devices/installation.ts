@@ -1,5 +1,5 @@
 import { createLucideIcon, type IconNode } from '@lucide/vue'
-import type { ClientPlatform } from '@demicodes/utils'
+import type { ClientPlatform } from '@jush-ai/utils'
 import { siApple, siLinux } from 'simple-icons'
 import type { SegmentedOption } from '../ui/Segmented.vue'
 

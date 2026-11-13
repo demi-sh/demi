@@ -17,16 +17,17 @@ use axum::response::{IntoResponse, Response};
 use axum_extra::TypedHeader;
 use axum_extra::headers::Authorization;
 use axum_extra::headers::authorization::Bearer;
-use demi_backend_user_shard::provider_sharing::Borrowing;
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::lent_media::Unlent;
-use demi_provider_common::media::channel::Call;
-use demi_provider_relay::wire::media::{Frames, KEEP_ALIVE, MAKES_NONE, frame, keep_alive};
-use demi_provider_relay::wire::{
-    ClientMessage, MESSAGE_BYTES, OtherVersion, SERVER_HEADER, TURNED_OFF, VERSION_HEADER, decoded, encoded, version,
+use jush_backend_user_shard::provider_sharing::Borrowing;
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::lent_media::Unlent;
+use jush_provider_common::media::channel::Call;
+use jush_provider_relay::wire::media::{Frames, KEEP_ALIVE, MAKES_NONE, frame, keep_alive};
+use jush_provider_relay::wire::{
+    ClientMessage, EARLIER_SERVER_HEADER, EARLIER_VERSION_HEADER, MESSAGE_BYTES, OtherVersion, SERVER_HEADER,
+    TURNED_OFF, VERSION_HEADER, decoded, encoded, version,
 };
-use demi_shared_types::MediaKind;
-use demi_web_api_protocol::providers::{NewShareKey, ShareKeys};
+use jush_shared_types::MediaKind;
+use jush_web_api_protocol::providers::{NewShareKey, ShareKeys};
 use futures_util::{SinkExt as _, StreamExt as _, future};
 
 use super::AppState;
@@ -70,8 +71,13 @@ async fn borrowing(
     headers: &HeaderMap,
     bearer: Option<TypedHeader<Authorization<Bearer>>>,
 ) -> Result<Borrowing, Response> {
-    let named = |name: &str| headers.get(name).and_then(|value| value.to_str().ok());
-    if named(VERSION_HEADER) != Some(version()) {
+    let named = |name: &str, earlier: &str| {
+        headers
+            .get(name)
+            .or_else(|| headers.get(earlier))
+            .and_then(|value| value.to_str().ok())
+    };
+    if named(VERSION_HEADER, EARLIER_VERSION_HEADER) != Some(version()) {
         return Err((StatusCode::CONFLICT, Json(OtherVersion { version: version().to_owned() })).into_response());
     }
     let refused = || StatusCode::UNAUTHORIZED.into_response();
@@ -80,7 +86,11 @@ async fn borrowing(
     };
     // The device the borrower gives, as the key's row shows it; a name no
     // device has is shown as it came, cut to a device's length.
-    let server: String = named(SERVER_HEADER).unwrap_or("").chars().take(253).collect();
+    let server: String = named(SERVER_HEADER, EARLIER_SERVER_HEADER)
+        .unwrap_or("")
+        .chars()
+        .take(253)
+        .collect();
     match services.borrowing(bearer.token(), server).await {
         Ok(Some(borrowing)) => Ok(borrowing),
         Ok(None) => Err(refused()),
@@ -128,7 +138,7 @@ pub(super) async fn provider(
             tracing::info!(event = "relay.provider_failed", key, message, "a lent entry could not be read");
             ApiError::new(
                 StatusCode::SERVICE_UNAVAILABLE,
-                demi_web_api_protocol::error::ErrorCode::ProviderStatusFailed,
+                jush_web_api_protocol::error::ErrorCode::ProviderStatusFailed,
                 "The provider could not be read.",
             )
             .into_response()
@@ -156,7 +166,7 @@ pub(super) async fn media(
     let too_large = || {
         ApiError::new(
             StatusCode::PAYLOAD_TOO_LARGE,
-            demi_web_api_protocol::error::ErrorCode::TooLarge,
+            jush_web_api_protocol::error::ErrorCode::TooLarge,
             format!("The request body is over its {MESSAGE_BYTES}-byte limit"),
         )
     };

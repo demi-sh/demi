@@ -13,8 +13,8 @@ use comrak::{
     nodes::{AstNode, LineColumn, NodeValue},
     parse_document,
 };
-use demi_provider_common::RequestPurpose;
-use demi_shared_types::char_offset;
+use jush_provider_common::RequestPurpose;
+use jush_shared_types::char_offset;
 
 use crate::small_request::SmallRequest;
 

@@ -13,11 +13,11 @@
 
 use std::cmp::Reverse;
 
-use demi_provider_common::model_words;
+use jush_provider_common::model_words;
 
-use demi_shared_types::{Model, ModelSelection, ProviderModel, THINKING_OFF, ThinkingCapability, ThinkingConfig};
-use demi_web_api_protocol::providers::{Availability, CatalogProvider};
-use demi_web_api_protocol::settings::Preferences;
+use jush_shared_types::{Model, ModelSelection, ProviderModel, THINKING_OFF, ThinkingCapability, ThinkingConfig};
+use jush_web_api_protocol::providers::{Availability, CatalogProvider};
+use jush_web_api_protocol::settings::Preferences;
 
 /// The words a model's ID or name holds for each tier of Automatic, in
 /// order: a tier matches a model one of whose two holds all its words.

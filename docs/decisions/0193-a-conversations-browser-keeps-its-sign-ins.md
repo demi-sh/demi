@@ -7,9 +7,9 @@ status: proposed, superseded in part by 0295
 ## Problem
 
 Alex asks the agent to check the orders on `shop.example.com`. The agent
-opens the page with `demi browser`, shows the sign-in, and Alex signs in by
+opens the page with `jush browser`, shows the sign-in, and Alex signs in by
 hand in the work panel. An hour later Chrome crashes on a heavy page. The
-next `demi browser tab new` opens the shop signed out, and Alex has to sign
+next `jush browser tab new` opens the shop signed out, and Alex has to sign
 in again, with a code from the phone.
 
 The same happens whenever the conversation's Chrome stops:
@@ -51,12 +51,12 @@ recordings, which have the same lifetime
 (`crates/runner-jobs/src/scratch.rs`):
 
 ```text
-<DEMI_HOME>/scratch/<conversation>/
+<JUSH_HOME>/scratch/<conversation>/
   .recordings/
   .browser/              the conversation's Chrome profile
     profile.lock         held while a Chrome runs on it
     downloads/ uploads/  emptied when that Chrome stops
-/tmp/demi-browser-a1B2c3/  the runtime directory, as today
+/tmp/jush-browser-a1B2c3/  the runtime directory, as today
 ```
 
 ```rust
@@ -64,7 +64,7 @@ recordings, which have the same lifetime
 pub fn browser_profile_in(scratch_root: &Path, conversation: &str) -> PathBuf;
 ```
 
-- `demi_command_protocol` names the directory, as it names the recordings'.
+- `jush_command_protocol` names the directory, as it names the recordings'.
   The browser resident starts Chrome on it, and the runner removes it.
 - An environment holds `profile.lock` from launch to retirement, so two
   residents never run a Chrome on one profile. An upgrade's previous release
@@ -103,7 +103,7 @@ older release left in its temporary directory is swept as today.
 
 ## Spike
 
-Whether a profile survives Chrome being killed with the switches Demi
+Whether a profile survives Chrome being killed with the switches Jush
 starts it with (`--headless`, `--use-mock-keychain`,
 `--password-store=basic`), on Chrome for Testing on macOS. A local page set
 an `HttpOnly` cookie with `Max-Age` and a `localStorage` entry, Chrome was
@@ -128,7 +128,7 @@ killed with `SIGKILL`, and a new Chrome on the same profile read both back:
 - Browser Use starts each browser on a new temporary profile unless a
   `user_data_dir` is given, which then persists
   ([`profile.py`](https://github.com/browser-use/browser-use/blob/b49a68e4060acb226da8f784194fef301c53a6d7/browser_use/browser/profile.py#L557)).
-  Demi gives each conversation its own directory, so sign-ins persist without
+  Jush gives each conversation its own directory, so sign-ins persist without
   one conversation reading another's.
 
 ## Alternatives
@@ -136,7 +136,7 @@ killed with `SIGKILL`, and a new Chrome on the same profile read both back:
 - **Save the storage state.** Write the cookies and storage out through CDP
   after each change and load them into a new profile, as Playwright's
   `storageState` does. It misses IndexedDB, service workers and the
-  sites' other stores, and would be Demi's own copy of what the profile
+  sites' other stores, and would be Jush's own copy of what the profile
   already holds.
 - **One profile per Host.** Every conversation would share the sign-ins, and
   one conversation's agent would act in another's accounts.

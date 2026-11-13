@@ -11,7 +11,7 @@ use std::io::Write;
 use std::path::Path;
 
 pub fn main() {
-    // Demi's: the script reads only what Cargo already fingerprints (the
+    // Jush's: the script reads only what Cargo already fingerprints (the
     // features, PROFILE and the package's name), so it watches no file:
     // without any rerun-if line, Cargo reruns it whenever any file of the
     // package is newer than its last run, and a rerun-if-changed watch is

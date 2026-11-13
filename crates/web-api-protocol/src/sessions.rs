@@ -3,20 +3,20 @@
 
 use std::borrow::Cow;
 
-use demi_shared_types::Timestamp;
+use jush_shared_types::Timestamp;
 use garde::Validate;
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Serialize};
 
 use crate::auth::Password;
 
-demi_shared_types::id!(
+jush_shared_types::id!(
     /// A session's id, which names it in the account's list; the token its
     /// cookie holds never leaves the browser it signed in.
     SessionId
 );
 
-demi_shared_types::id!(
+jush_shared_types::id!(
     /// A handoff code's id, which the session the code made names.
     HandoffId
 );

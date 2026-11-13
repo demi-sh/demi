@@ -17,8 +17,8 @@
   "foot": {
     "handOff": "다른 기기로 핸드오프",
     "settings": "설정",
-    "updateAvailable": "Demi {version} 사용 가능",
-    "updating": "Demi 업데이트 중"
+    "updateAvailable": "Jush {version} 사용 가능",
+    "updating": "Jush 업데이트 중"
   },
   "account": {
     "label": "계정",

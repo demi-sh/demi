@@ -2,16 +2,16 @@ import { t } from './locales/text'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useSession } from '../auth/session'
-import { fileExtensionSchema } from '@demicodes/protocol'
-import { SerialQueue, isAbortError } from '@demicodes/utils'
-import { errorMessage, reportError, shownError, type ShownError } from '@demicodes/web-ui/infra/errors'
-import type { ProviderLoginPhase } from '@demicodes/web-ui/settings/types'
-import type { HeadlineText } from '@demicodes/web-ui/ui/ui-text'
-import { providerLogo } from '@demicodes/web-ui/settings/vendor-logos'
-import { canTest, testedModel } from '@demicodes/web-ui/settings/tested-model'
-import { providerOperation, providerTarget } from '@demicodes/web-ui/settings/provider-operations'
-import type { ProviderShareService } from '@demicodes/web-ui/settings/provider-sharing'
-import { operations } from '@demicodes/web-ui/ui/operations'
+import { fileExtensionSchema } from '@jush-ai/protocol'
+import { SerialQueue, isAbortError } from '@jush-ai/utils'
+import { errorMessage, reportError, shownError, type ShownError } from '@jush-ai/web-ui/infra/errors'
+import type { ProviderLoginPhase } from '@jush-ai/web-ui/settings/types'
+import type { HeadlineText } from '@jush-ai/web-ui/ui/ui-text'
+import { providerLogo } from '@jush-ai/web-ui/settings/vendor-logos'
+import { canTest, testedModel } from '@jush-ai/web-ui/settings/tested-model'
+import { providerOperation, providerTarget } from '@jush-ai/web-ui/settings/provider-operations'
+import type { ProviderShareService } from '@jush-ai/web-ui/settings/provider-sharing'
+import { operations } from '@jush-ai/web-ui/ui/operations'
 import {
   SETTINGS_MEDIA_KINDS,
   type SettingsModelDraft,
@@ -23,7 +23,7 @@ import {
   type SettingsProviderModel,
   type SettingsVendor,
   type SettingsWireApi,
-} from '@demicodes/web-ui/settings/types'
+} from '@jush-ai/web-ui/settings/types'
 import { ApiError, apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   codeTakenSchema,
@@ -287,7 +287,7 @@ export const useProviderSettings = defineStore('provider-settings', () => {
     create({ source: 'compatible' })
   }
 
-  /** Another Demi's provider, which its share key names once it is pasted. */
+  /** Another Jush's provider, which its share key names once it is pasted. */
   function addBorrowed(): void {
     create({ source: 'borrowed' })
   }

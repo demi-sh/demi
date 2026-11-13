@@ -9,8 +9,8 @@
 
 use std::io::Write as _;
 
-use demi_command_protocol::STDERR_LINE_BYTES;
-use demi_shared_types::{LogLine, LogOrigin, log_layer::LineLayer};
+use jush_command_protocol::STDERR_LINE_BYTES;
+use jush_shared_types::{LogLine, LogOrigin, log_layer::LineLayer};
 use serde_json::Value;
 use tracing_subscriber::{filter::LevelFilter, layer::SubscriberExt as _, util::SubscriberInitExt as _, Layer as _};
 

@@ -7,7 +7,7 @@ import { t } from './locales/text'
  * the page stays where it is. `name` names the file where the server does
  * not, as for a picture saved from a message.
  *
- * Demi added to an iPhone's or an iPad's Home Screen cannot download: a
+ * Jush added to an iPhone's or an iPad's Home Screen cannot download: a
  * download there covers the whole app with the file, with no way back. There
  * the file goes to the share sheet, whose Save Image and Save to Files keep
  * it (`shareFile`). Safari in a tab, and every other browser, downloads it.
@@ -23,7 +23,7 @@ export function downloadUrl(url: string, name = ''): void {
   link.click()
 }
 
-/** Whether the page is Demi added to the Home Screen of an iPhone or an iPad, Safari's `navigator.standalone`. */
+/** Whether the page is Jush added to the Home Screen of an iPhone or an iPad, Safari's `navigator.standalone`. */
 function onHomeScreen(): boolean {
   return Reflect.get(navigator, 'standalone') === true
 }

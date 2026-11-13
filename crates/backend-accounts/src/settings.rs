@@ -2,7 +2,7 @@
 //! and how a patch merges into what is saved.
 
 
-use demi_web_api_protocol::settings::{
+use jush_web_api_protocol::settings::{
     BrowserLocale,
     ContextLimitChange, ContextLimits, Preferences, PreferencesPatch,
 };

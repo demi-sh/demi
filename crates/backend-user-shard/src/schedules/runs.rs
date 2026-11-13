@@ -16,17 +16,17 @@
 
 use std::rc::Rc;
 
-use demi_agent_server::AgentServer;
-use demi_agent_store::StoreError;
-use demi_backend_database::schedules::{RunCause, StoredRun, StoredSchedule};
-use demi_backend_device_access::root_of;
-use demi_backend_page_sync::Part;
-use demi_shared_types::{
+use jush_agent_server::AgentServer;
+use jush_agent_store::StoreError;
+use jush_backend_database::schedules::{RunCause, StoredRun, StoredSchedule};
+use jush_backend_device_access::root_of;
+use jush_backend_page_sync::Part;
+use jush_shared_types::{
     Block, QueuedMessage, ScheduleId, ScheduleMark, ScheduleRunId, SessionPhase, Timestamp, TurnId, UserContentBlock,
 };
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
-use demi_web_api_protocol::schedules::{IfBusy, RunNote, RunState, Task, Timing, Trigger};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::schedules::{IfBusy, RunNote, RunState, Task, Timing, Trigger};
 
 use super::hooks::Call;
 use super::message;
@@ -380,7 +380,7 @@ impl Shard {
                 }
             };
             match end {
-                // A run whose agent ran `demi notify send` is Notified.
+                // A run whose agent ran `jush notify send` is Notified.
                 TurnEnd::Answered(line) => {
                     run.state = if run.notified { RunState::Notified } else { RunState::Done };
                     run.line = line;
@@ -449,7 +449,7 @@ enum TurnEnd {
 /// How the turn `turn` of the conversation's root ended, from its blocks
 /// through the next message wherever they are (`AgentSession::turn_blocks`);
 /// none while its message waits or it runs.
-async fn turn_end<H: demi_agent_tools::DeviceResolver>(
+async fn turn_end<H: jush_agent_tools::DeviceResolver>(
     agent: &Rc<AgentServer<H>>,
     conversation: &ConversationId,
     turn: &TurnId,
@@ -476,7 +476,7 @@ fn turn_end_in(blocks: &[Block], resting: bool) -> Option<TurnEnd> {
     let mut failure = None;
     for block in &blocks[..end] {
         match block {
-            Block::Text(text) if !demi_shared_types::is_blank(&text.text) => {
+            Block::Text(text) if !jush_shared_types::is_blank(&text.text) => {
                 answer = Some(text.text.clone());
                 failure = None;
             }
@@ -490,7 +490,7 @@ fn turn_end_in(blocks: &[Block], resting: bool) -> Option<TurnEnd> {
         None => TurnEnd::Answered(answer.map(|answer| {
             answer
                 .chars()
-                .take(demi_web_api_protocol::push::ANSWER_START_CHARS)
+                .take(jush_web_api_protocol::push::ANSWER_START_CHARS)
                 .collect()
         })),
     })

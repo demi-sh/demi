@@ -23,10 +23,10 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use demi_provider_registry::shutdowns::ModelShutdowns;
-use demi_provider_registry::vendors::VendorCatalog;
-use demi_provider_common::models_dev::ModelsDevClient;
-use demi_shared_types::SystemClock;
+use jush_provider_registry::shutdowns::ModelShutdowns;
+use jush_provider_registry::vendors::VendorCatalog;
+use jush_provider_common::models_dev::ModelsDevClient;
+use jush_shared_types::SystemClock;
 use reqwest::Url;
 use tokio_util::sync::CancellationToken;
 use resvg::{tiny_skia, usvg};
@@ -39,7 +39,7 @@ const LOGOS: &str = "packages/web-ui/src/settings/logos";
 const HAND_KEPT: &str = "hand-kept.txt";
 
 /// A vendor ID models.dev does not have, whose mark is its placeholder.
-const NO_SUCH_VENDOR: &str = "demi-no-such-vendor";
+const NO_SUCH_VENDOR: &str = "jush-no-such-vendor";
 
 const MODELS_DEV: &str = "https://models.dev/";
 
@@ -110,7 +110,7 @@ impl std::fmt::Display for Unusable {
 }
 
 pub fn run(_options: Options) -> Result<(), Error> {
-    let client = demi_shared_artifacts::download_client().map_err(|error| Error::ModelsDev(error.to_string()))?;
+    let client = jush_shared_artifacts::download_client().map_err(|error| Error::ModelsDev(error.to_string()))?;
     let base = Url::parse(MODELS_DEV).expect("models.dev's address is a URL");
     let directory = crate::repository().join(LOGOS);
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -154,7 +154,7 @@ pub async fn refresh(client: &reqwest::Client, base: &Url, directory: &Path) -> 
     // model, so no shutdown day is ever read.
     let shutdowns = ModelShutdowns::new(
         client.clone(),
-        demi_provider_registry::shutdowns::DEFAULT_URL.parse().expect("LiteLLM's address parses"),
+        jush_provider_registry::shutdowns::DEFAULT_URL.parse().expect("LiteLLM's address parses"),
         Arc::new(SystemClock),
     );
     let catalog = VendorCatalog::new(ModelsDevClient::new(client.clone(), document, Arc::new(SystemClock), &[]), shutdowns);
@@ -364,13 +364,13 @@ fn mark_url(base: &Url, vendor_id: &str) -> Url {
 /// The file models.dev answers at `url`; any status but success stops the
 /// refresh, so a failed request never removes a mark.
 async fn fetch(client: &reqwest::Client, url: &Url) -> Result<Vec<u8>, Error> {
-    let failed = |error: demi_shared_artifacts::Error| Error::Fetch {
+    let failed = |error: jush_shared_artifacts::Error| Error::Fetch {
         url: url.clone(),
         message: error.to_string(),
     };
-    let request = demi_shared_artifacts::Download::new(url.as_str());
+    let request = jush_shared_artifacts::Download::new(url.as_str());
     let (received, bytes) =
-        demi_shared_artifacts::download_bytes(client, request, &CancellationToken::new())
+        jush_shared_artifacts::download_bytes(client, request, &CancellationToken::new())
             .await
             .map_err(failed)?;
     received.plain().map_err(failed)?;

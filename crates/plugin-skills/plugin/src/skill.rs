@@ -1,4 +1,4 @@
-//! A skill's `SKILL.md`: the three fields of its front matter Demi
+//! A skill's `SKILL.md`: the three fields of its front matter Jush
 //! reads, checked leniently, as the format's guide for clients asks.
 
 use schemars::JsonSchema;

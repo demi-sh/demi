@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import type { Block, CommandReport, SessionPhase } from '@demicodes/protocol'
-import AgentMessageList from '@demicodes/web-ui/agent/AgentMessageList.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import type { Block, CommandReport, SessionPhase } from '@jush-ai/protocol'
+import AgentMessageList from '@jush-ai/web-ui/agent/AgentMessageList.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import GallerySection from './GallerySection.vue'
 import GallerySpecimen from './GallerySpecimen.vue'
 import { demoModel, shellView, withEnd } from '../fixtures/blocks'

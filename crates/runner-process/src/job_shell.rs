@@ -9,9 +9,9 @@ use std::{
     sync::Arc,
 };
 
-use demi_command_protocol::LocalInvocation;
-use demi_command_sdk::{Handler, edits::Recorder};
-use demi_runner_protocol::wire::{OutputStream, Signal};
+use jush_command_protocol::LocalInvocation;
+use jush_command_sdk::{Handler, edits::Recorder};
+use jush_runner_protocol::wire::{OutputStream, Signal};
 use futures_util::future::BoxFuture;
 use tokio::sync::{mpsc, oneshot, watch};
 use tokio_util::sync::CancellationToken;
@@ -23,7 +23,7 @@ use crate::process::{OutputChunk, ProcessExit, ProcessInput};
 #[derive(Clone)]
 pub struct JobCommands {
     /// The job's execution context, which every invocation names and the
-    /// programs the job starts find in `DEMI_CONTEXT_ID`.
+    /// programs the job starts find in `JUSH_CONTEXT_ID`.
     pub context: String,
     /// The root commands the job's manifest declares.
     pub roots: Vec<String>,

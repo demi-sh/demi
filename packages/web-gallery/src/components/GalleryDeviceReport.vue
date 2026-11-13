@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { provide } from 'vue'
-import { deviceReportKey, type DeviceReport } from '@demicodes/web-ui/auth/device-unlock'
+import { deviceReportKey, type DeviceReport } from '@jush-ai/web-ui/auth/device-unlock'
 
 /**
  * Makes what is inside speak of another device than the one the gallery is

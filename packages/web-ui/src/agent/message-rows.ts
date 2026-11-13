@@ -1,6 +1,6 @@
 import { keptComputed } from '../infra/keep-same'
 import { computed, ref, toRaw, watch, type ComputedRef } from 'vue'
-import type { Block, QueuedMessage, SessionPhase } from '@demicodes/protocol'
+import type { Block, QueuedMessage, SessionPhase } from '@jush-ai/protocol'
 import { assistantFooterIds, replyEndIds } from './assistant-footer'
 import type { PendingAction } from './activity-slot'
 import { listTailBlocks, submissionRows, undeliveredPlaces } from './list-tail'
@@ -37,7 +37,7 @@ export interface MessageRowsSource {
   load?: SessionLoad
   pendingAction?: PendingAction
   /**
-   * Demi resumes by itself the turn a restart of the backend interrupted:
+   * Jush resumes by itself the turn a restart of the backend interrupted:
    * while the agent is idle, the list shows it as a recovery pressed, saying
    * Resuming.
    */
@@ -142,7 +142,7 @@ export function useMessageRows(
 
   // A recovery this page asked for lasts from the press until the session
   // is idle again with nothing pending: the turn it ran ended, or the server
-  // refused it, and the record shows again. One Demi runs by itself after a
+  // refused it, and the record shows again. One Jush runs by itself after a
   // restart lasts as long as the page is told it does, or until the session
   // runs. It is taken as the press is told
   // (`flush: 'sync'`): a list that reads the rows before a later watcher took
@@ -164,7 +164,7 @@ export function useMessageRows(
     },
     { immediate: true, flush: 'sync' },
   )
-  // A conversation opened while Demi resumes it may hold its transcript only
+  // A conversation opened while Jush resumes it may hold its transcript only
   // later: the record is found once it arrives.
   watch(visibleBlocks, (shown) => {
     if (resuming.value && recovery.value === null) {

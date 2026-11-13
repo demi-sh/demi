@@ -8,7 +8,7 @@
 
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes256Gcm, Nonce};
-use demi_web_api_protocol::ids::{CredentialId, ProviderId, UserId};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId, UserId};
 
 const NONCE_BYTES: usize = 12;
 
@@ -44,6 +44,10 @@ pub enum Row<'a> {
 impl Row<'_> {
     /// The row's name as bytes: a label, then each id preceded by its length,
     /// so that no two rows share a name.
+    ///
+    /// The labels keep the product's name of when they were chosen: every
+    /// sealed row is bound to its label, so a label is a fixed value, not a
+    /// name.
     fn name(&self) -> Vec<u8> {
         let (label, ids): (&[u8], Vec<&str>) = match self {
             Self::Config(provider) => (b"demi provider config", vec![provider.as_str()]),

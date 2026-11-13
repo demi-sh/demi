@@ -54,7 +54,7 @@ const clipId = useId()
 /** The time it shows: the time played once it started, its length before. */
 const time = computed(() => {
   // The time played counts whole seconds; the length is the nearest, as
-  // `demi audio` says it.
+  // `jush audio` says it.
   if (playing.value || current.value > 0)
     return clock(Math.floor(current.value))
   return length.value === null ? '–:––' : clock(Math.round(length.value))

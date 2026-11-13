@@ -1,7 +1,7 @@
-import { DeviceFiles, type Answered } from '@demicodes/web-ui/files/file-cache'
-import { errorMessage } from '@demicodes/web-ui/infra/errors'
-import { keptSource, type ContentReads, type FileReads } from '@demicodes/web-ui/files/kept-source'
-import type { ReadAt, WatchChannel } from '@demicodes/web-ui/files/watch-channel'
+import { DeviceFiles, type Answered } from '@jush-ai/web-ui/files/file-cache'
+import { errorMessage } from '@jush-ai/web-ui/infra/errors'
+import { keptSource, type ContentReads, type FileReads } from '@jush-ai/web-ui/files/kept-source'
+import type { ReadAt, WatchChannel } from '@jush-ai/web-ui/files/watch-channel'
 import {
   FileBrowserError,
   type FileBrowserEntry,
@@ -9,7 +9,7 @@ import {
   type FileBrowserLink,
   type FileBrowserSource,
   type FileUploadOptions,
-} from '@demicodes/web-ui/files/types'
+} from '@jush-ai/web-ui/files/types'
 import { z } from 'zod'
 import { ApiError, apiError, apiRequest, apiUrl, invalidResponse, jsonBody, readResponse } from './client'
 import {
@@ -28,7 +28,7 @@ import { searchEvents } from './file-search'
 import { uploadBytes } from './uploads'
 import { t } from './locales/text'
 import type { Device } from '../state/types'
-import type { SentenceText } from '@demicodes/web-ui/ui/ui-text'
+import type { SentenceText } from '@jush-ai/web-ui/ui/ui-text'
 
 /**
  * A raw file answer's headers as a file description: its size, its modification
@@ -50,7 +50,7 @@ const fileHeadersSchema = z.object({
 })
 
 /**
- * `X-Demi-Read-At: <epoch>.<number>`, the device's number before it read.
+ * `X-Jush-Read-At: <epoch>.<number>`, the device's number before it read.
  */
 const readAtSchema = z.string().regex(/^.+\.\d+$/).transform((value): ReadAt => {
   const dot = value.lastIndexOf('.')
@@ -59,7 +59,7 @@ const readAtSchema = z.string().regex(/^.+\.\d+$/).transform((value): ReadAt => 
 
 /** The Device's number an answer carries; null for one that names none, which is never current. */
 export function readAtOf(headers: Headers): ReadAt | null {
-  const value = headers.get('x-demi-read-at')
+  const value = headers.get('x-jush-read-at')
   if (value === null)
     return null
   const parsed = readAtSchema.safeParse(value)

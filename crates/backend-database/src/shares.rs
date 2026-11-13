@@ -18,10 +18,10 @@ use std::collections::BTreeSet;
 use std::sync::OnceLock;
 use std::ops::Range;
 
-use demi_agent_store::media::block_blobs;
-use demi_shared_types::{BlobRef, Block, BlockId, NodeId, PictureCopy, TextBlock, Timestamp};
-use demi_web_api_protocol::ids::{ConversationId, ShareToken, UserId};
-use demi_web_api_protocol::shares::ShareTarget;
+use jush_agent_store::media::block_blobs;
+use jush_shared_types::{BlobRef, Block, BlockId, NodeId, PictureCopy, TextBlock, Timestamp};
+use jush_web_api_protocol::ids::{ConversationId, ShareToken, UserId};
+use jush_web_api_protocol::shares::ShareTarget;
 use comrak::nodes::NodeValue;
 use comrak::{Arena, Options, parse_document};
 use rusqlite::{Connection, OptionalExtension, Row, Transaction, params};

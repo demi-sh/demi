@@ -80,7 +80,7 @@ None.
   [`RoomScrollStateStore`](https://github.com/element-hq/element-web/blob/develop/apps/web/src/stores/RoomScrollStateStore.ts):
   a `focussedEvent` and a `pixelOffset` when the reader scrolled away from
   the live timeline, none while following it. A room the reader left
-  scrolled up reopens at that event however many events arrived since. Demi
+  scrolled up reopens at that event however many events arrived since. Jush
   keeps the same two cases and adds a third: a place the reader left, in a
   conversation that changed since, gives way to the end.
 * **Slack** and **Discord** open a channel with unread messages at the
@@ -88,7 +88,7 @@ None.
 * **Telegram** opens a chat with unread messages at the first of them.
 * **ChatGPT** and **Claude** open a conversation at its end.
 
-Demi departs from Slack and Telegram by opening at the end rather than at
+Jush departs from Slack and Telegram by opening at the end rather than at
 the first new row: a turn's news is its outcome, which stands at the end,
 and the steps before it are folded into its run.
 

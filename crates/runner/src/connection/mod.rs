@@ -1,4 +1,4 @@
-//! One backend connection (the wire is `demi_runner_protocol::wire`).
+//! One backend connection (the wire is `jush_runner_protocol::wire`).
 //!
 //! Its owner routes each message to the work it belongs to and owns what lasts
 //! as long as the connection: the volumes, the device requests, the resident
@@ -19,7 +19,7 @@
 //! agent reads it in its context block.
 //!
 //! Work that runs apart from the owner reaches it through a
-//! `demi_runner_jobs::connection::ConnectionHandle`, whose requests the
+//! `jush_runner_jobs::connection::ConnectionHandle`, whose requests the
 //! connection that serves, or the registration between connections, serve.
 
 mod kept;

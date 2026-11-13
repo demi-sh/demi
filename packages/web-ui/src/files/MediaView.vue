@@ -14,7 +14,7 @@ import MediumStage from './MediumStage.vue'
 import { arrowStep, samePlace, useMediaViewer, type MediumPlace } from './media-viewer'
 import FileIcon from './FileIcon.vue'
 import { formatBytes } from './format'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { ICON_PX } from '../ui/icon-metrics'
 import type { StepReach } from './swipe-step'
 import type { PixelSize } from './thumbnail'
@@ -34,7 +34,7 @@ import { t } from './locales/text'
  *   keys. On a phone a pull down or a tap beside the medium puts its window
  *   away.
  * - A picture zooms and pans as in the viewer's window (`ImagePreview`); a
- *   video plays in Demi's player (`VideoPlayer`), and pauses while another tab
+ *   video plays in Jush's player (`VideoPlayer`), and pauses while another tab
  *   shows.
  */
 const props = defineProps<{

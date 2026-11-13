@@ -13,7 +13,7 @@ band across part of its width.
 
 ## Decision
 
-**A video plays under a frosted capsule of Demi's own, always there, over the
+**A video plays under a frosted capsule of Jush's own, always there, over the
 bottom of the picture.** The picture keeps its size: the capsule floats on
 it, centered, 12 px above its bottom edge, and takes no room of its own.
 
@@ -70,7 +70,7 @@ None.
   video, show the container full screen, and fall back to
   `webkitEnterFullscreen` on an iPhone, as this does.
 - Both hide their controls while the video plays and the pointer is still;
-  Demi keeps them, since a recording is looked at closely, paused and moved
+  Jush keeps them, since a recording is looked at closely, paused and moved
   through.
 
 ## Alternatives

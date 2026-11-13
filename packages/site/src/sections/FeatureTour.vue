@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The second screen: a tour of what using Demi is like. The list on the left
+// The second screen: a tour of what using Jush is like. The list on the left
 // works as tabs: the selected feature opens to its description, and its demo
 // plays on the right. The tour moves to the next feature when the progress bar
 // fills; a reader who asks for reduced motion moves it by hand. Once the page

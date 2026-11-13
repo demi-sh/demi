@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsPortForwards from '@demicodes/web-ui/settings/SettingsPortForwards.vue'
-import type { ForwardDevice, PortForwardChange, SettingsPortForward } from '@demicodes/web-ui/settings/port-forwards'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsPortForwards from '@jush-ai/web-ui/settings/SettingsPortForwards.vue'
+import type { ForwardDevice, PortForwardChange, SettingsPortForward } from '@jush-ai/web-ui/settings/port-forwards'
 import { GALLERY_MARKS, shownAmong } from '../fixtures/device-marks'
 import { slow } from '../fixtures/slow'
 

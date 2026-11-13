@@ -1,7 +1,7 @@
-//! `/api/storage`: what Demi keeps on the server and on each of the caller's
+//! `/api/storage`: what Jush keeps on the server and on each of the caller's
 //! devices, and the rules that clean it up.
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
+use jush_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ use crate::ids::{ConversationId, DeviceId};
 #[serde(rename_all = "camelCase")]
 pub struct Storage {
     pub server: ServerStorage,
-    /// The rules for what Demi keeps on the caller's devices, one set for all
+    /// The rules for what Jush keeps on the caller's devices, one set for all
     /// of them, each applied on each device on its own.
     pub rules: StorageRules,
     /// Each of the caller's devices, its Cloud included.
@@ -84,7 +84,7 @@ impl Default for LogRetention {
     }
 }
 
-/// The rules for what Demi keeps on a user's devices: `PUT /storage/rules`.
+/// The rules for what Jush keeps on a user's devices: `PUT /storage/rules`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct StorageRules {
@@ -136,7 +136,7 @@ pub struct DeviceStorage {
     pub report: Option<DeviceStorageReport>,
 }
 
-/// What Demi keeps on a device, as its runner last measured it. Sizes are the
+/// What Jush keeps on a device, as its runner last measured it. Sizes are the
 /// bytes the files take on the disk.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -151,7 +151,7 @@ pub struct DeviceStorageReport {
     #[schemars(with = "Nullable<u64>")]
     #[garde(range(max = MAX_SAFE_INTEGER))]
     pub disk_available_bytes: Option<u64>,
-    /// What Demi downloaded to run, its logs and its other state.
+    /// What Jush downloaded to run, its logs and its other state.
     #[garde(range(max = MAX_SAFE_INTEGER))]
     pub components_bytes: u64,
     /// Each conversation's files, largest first.

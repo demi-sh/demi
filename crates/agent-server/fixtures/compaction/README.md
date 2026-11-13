@@ -68,9 +68,9 @@ The development endpoint in the repository's `.env` serves DeepSeek too:
 
 ```sh
 set -a; . ./.env; set +a
-DEEPSEEK_API_KEY="$DEMI_DEV_PROVIDER_API_KEY" \
-DEEPSEEK_BASE_URL="$DEMI_DEV_PROVIDER_BASE_URL" \
-DEEPSEEK_FLASH_MODEL="$DEMI_DEV_PROVIDER_MODEL" \
+DEEPSEEK_API_KEY="$JUSH_DEV_PROVIDER_API_KEY" \
+DEEPSEEK_BASE_URL="$JUSH_DEV_PROVIDER_BASE_URL" \
+DEEPSEEK_FLASH_MODEL="$JUSH_DEV_PROVIDER_MODEL" \
   target/debug/examples/compaction-fixture recall
 ```
 

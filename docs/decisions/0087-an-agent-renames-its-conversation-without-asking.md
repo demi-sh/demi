@@ -8,7 +8,7 @@ status: proposed
 
 A user asks an agent to keep its conversation's title on what the
 conversation is doing now, such as "Photo album: thumbnails". The first
-`demi conversation rename` in each conversation stops on a card, "Allow this
+`jush conversation rename` in each conversation stops on a card, "Allow this
 conversation to organize conversations?", and waits until the user answers
 it. A title is the conversation's own, the user sees it change in the
 sidebar at once and can rename it back, so the card asks the user to guard
@@ -16,7 +16,7 @@ nothing.
 
 ## Decision
 
-`demi conversation rename <title>` renames the conversation it runs in at
+`jush conversation rename <title>` renames the conversation it runs in at
 once, in every conversation, with no card and no permission to grant.
 
 * The Organize Conversations permission goes: its category
@@ -38,7 +38,7 @@ None.
 ## Prior art
 
 ChatGPT, Claude and Codex title a conversation without asking, and so does
-Demi's own generated title.
+Jush's own generated title.
 
 ## Alternatives
 

@@ -1,4 +1,4 @@
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { formatBytes } from '../../files/format'
 import { t } from '../locales/text'
 import type { FileReference } from './copied-message'

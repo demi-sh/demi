@@ -1,5 +1,5 @@
-import type { ProviderShareService } from '@demicodes/web-ui/settings/provider-sharing'
-import type { SettingsShareKey } from '@demicodes/web-ui/settings/types'
+import type { ProviderShareService } from '@jush-ai/web-ui/settings/provider-sharing'
+import type { SettingsShareKey } from '@jush-ai/web-ui/settings/types'
 import { productWould } from '../product-would'
 import { simulatedRequestId } from './request-failures'
 import { slow } from './slow'
@@ -39,7 +39,7 @@ export function useGalleryShareKeys(initial: readonly SettingsShareKey[], option
       const key: SettingsShareKey = { id: crypto.randomUUID(), createdAt: new Date().toISOString(), used: null, expiresAt: ahead(UNUSED_FOR) }
       keys = [key, ...keys]
       productWould('Make the Share Key')
-      return { key, text: `demi-share-key-${btoa(key.id).replaceAll('=', '')}` }
+      return { key, text: `jush-share-key-${btoa(key.id).replaceAll('=', '')}` }
     },
     async revoke(_providerId, keyId) {
       await slow()

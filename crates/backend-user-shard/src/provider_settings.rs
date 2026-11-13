@@ -3,7 +3,7 @@
 //! (`crates/provider-registry/src/vendors.rs`).
 //!
 //! There is one path, with its checks and its words, for the settings page and
-//! for `demi providers` (`crates/backend-user-shard/src/shard/provider_commands.rs`).
+//! for `jush providers` (`crates/backend-user-shard/src/shard/provider_commands.rs`).
 //!
 //! An entry may be added with nothing but its kind; it is incomplete until it has
 //! what it needs.
@@ -25,30 +25,30 @@
 //! - Nothing is checked against the vendor while the user types.
 //! - A model added with a taken id takes the first free `-2`, `-3` suffix.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::providers::EntrySwitches;
-use demi_provider_registry::families::{ProviderFamily, family_name};
-use demi_provider_registry::entry::{ApiKeyConfig, EntryCredential, ProviderEntry};
-use demi_backend_providers::vault::entries::Vault;
-use demi_backend_providers::vault::operations::{Held, OperationGuard};
-use demi_provider_common::credentials::MemoryCredentialPool;
-use demi_provider_common::{ProviderHttp, Secret, SecretError};
-use demi_provider_relay::borrow::{Borrowed, FAMILY as BORROWED, server_name};
-use demi_provider_relay::key::{NotAKey, ShareKey};
-use demi_shared_types::{AudioShape, CacheTtl, MediaKind, MediaShapes, WireApi};
-use demi_web_api_protocol::auth::UserDto;
-use demi_web_api_protocol::ids::{DeviceId, ProviderId, UserId};
-use demi_web_api_protocol::providers::{
+use jush_backend_database::StorageError;
+use jush_backend_database::providers::EntrySwitches;
+use jush_provider_registry::families::{ProviderFamily, family_name};
+use jush_provider_registry::entry::{ApiKeyConfig, EntryCredential, ProviderEntry};
+use jush_backend_providers::vault::entries::Vault;
+use jush_backend_providers::vault::operations::{Held, OperationGuard};
+use jush_provider_common::credentials::MemoryCredentialPool;
+use jush_provider_common::{ProviderHttp, Secret, SecretError};
+use jush_provider_relay::borrow::{Borrowed, FAMILY as BORROWED, server_name};
+use jush_provider_relay::key::{NotAKey, ShareKey};
+use jush_shared_types::{AudioShape, CacheTtl, MediaKind, MediaShapes, WireApi};
+use jush_web_api_protocol::auth::UserDto;
+use jush_web_api_protocol::ids::{DeviceId, ProviderId, UserId};
+use jush_web_api_protocol::providers::{
     ConfiguredModel, ConfiguredModels, CreateProvider, CredentialKind, ModelKind, ModelMatch, ProviderHeader, ProviderPatch,
     Rotation, Vendor,
 };
-use demi_web_api_protocol::text::{EndpointUrl, Trimmed};
+use jush_web_api_protocol::text::{EndpointUrl, Trimmed};
 use std::sync::Arc;
 
 use crate::services::Services;
 
 /// Why a change of an entry, or a search, was refused, in the words both
-/// the settings page and `demi providers` show.
+/// the settings page and `jush providers` show.
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderRefusal {
     /// The user only infers with the scope's entries.
@@ -152,7 +152,7 @@ pub enum ProviderRefusal {
     #[error(transparent)]
     Storage(#[from] StorageError),
     #[error(transparent)]
-    Store(#[from] demi_provider_registry::store::StoreError),
+    Store(#[from] jush_provider_registry::store::StoreError),
 }
 
 /// The article before a kind of model: a text model, an audio model.
@@ -704,7 +704,7 @@ impl Services {
         &self,
         user: &UserId,
         refresh: bool,
-    ) -> Result<demi_web_api_protocol::providers::ModelCatalog, CatalogError> {
+    ) -> Result<jush_web_api_protocol::providers::ModelCatalog, CatalogError> {
         self.catalog_of(user, Some(refresh)).await
     }
 
@@ -715,7 +715,7 @@ impl Services {
     pub async fn known_model_catalog(
         &self,
         user: &UserId,
-    ) -> Result<demi_web_api_protocol::providers::ModelCatalog, CatalogError> {
+    ) -> Result<jush_web_api_protocol::providers::ModelCatalog, CatalogError> {
         self.catalog_of(user, None).await
     }
 
@@ -725,7 +725,7 @@ impl Services {
         &self,
         user: &UserId,
         waits: Option<bool>,
-    ) -> Result<demi_web_api_protocol::providers::ModelCatalog, CatalogError> {
+    ) -> Result<jush_web_api_protocol::providers::ModelCatalog, CatalogError> {
         let entries = self.vault.entries_for(user).await?;
         let preferences = self.control.preferences(user.clone()).await?;
         let mut providers = match waits {
@@ -740,8 +740,8 @@ impl Services {
             provider.video_models = videos.remove(provider.provider_id.as_str()).unwrap_or_default();
             provider.audio_models = audio.remove(provider.provider_id.as_str()).unwrap_or_default();
         }
-        let small_model = demi_provider_registry::small_model::automatic_small_model(&providers, &preferences);
-        Ok(demi_web_api_protocol::providers::ModelCatalog { providers, small_model })
+        let small_model = jush_provider_registry::small_model::automatic_small_model(&providers, &preferences);
+        Ok(jush_web_api_protocol::providers::ModelCatalog { providers, small_model })
     }
 
     /// Each entry's models of `kind` by entry id, which the model catalog
@@ -749,8 +749,8 @@ impl Services {
     pub async fn entry_media_models(
         &self,
         user: &UserId,
-        kind: demi_shared_types::MediaKind,
-    ) -> Result<std::collections::HashMap<String, Vec<demi_web_api_protocol::providers::EntryMediaModel>>, demi_provider_registry::registry::RegistryError> {
+        kind: jush_shared_types::MediaKind,
+    ) -> Result<std::collections::HashMap<String, Vec<jush_web_api_protocol::providers::EntryMediaModel>>, jush_provider_registry::registry::RegistryError> {
         crate::shard::media::entry_media_models(self, user, kind).await
     }
 
@@ -904,7 +904,7 @@ const COMPATIBLE_FAMILY: &str = "anthropic";
 
 /// What a borrowed entry is named until its share key names it after the
 /// lender's.
-const BORROWED_LABEL: &str = "Another Demi";
+const BORROWED_LABEL: &str = "Another Jush";
 
 /// The name a compatible entry takes when it is given none.
 const COMPATIBLE_LABEL: &str = "Compatible API";
@@ -935,5 +935,5 @@ pub enum CatalogError {
     #[error(transparent)]
     Storage(#[from] StorageError),
     #[error(transparent)]
-    Registry(#[from] demi_provider_registry::registry::RegistryError),
+    Registry(#[from] jush_provider_registry::registry::RegistryError),
 }

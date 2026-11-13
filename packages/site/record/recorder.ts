@@ -217,9 +217,9 @@ function start(): void {
 
   const post = window.parent.postMessage.bind(window.parent) as (message: unknown, origin: string) => void
   window.parent.postMessage = ((message: unknown, origin: string) => {
-    const data = message as { demi?: string } | null
+    const data = message as { jush?: string } | null
     // The demo's first screen is up when it says it is ready: the recording plays from there.
-    if (data?.demi === 'ready')
+    if (data?.jush === 'ready')
       recording.startMs = now()
     else
       events.push([stamp(), 'message', message])

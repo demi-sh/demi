@@ -5,7 +5,7 @@
 //! Into the Ubuntu tree the script made, it installs, from a server release and
 //! the files in its `files/`:
 //!
-//! - The runner and its `demi` alias that the runner release names.
+//! - The runner and its `jush` alias that the runner release names.
 //! - Each command package's executable under its content-addressed path, each
 //!   checked against its release's record.
 //!
@@ -22,19 +22,19 @@
 //! - Publishes the release directory through `artifact`'s release publication
 //!   and prints the base version.
 //!
-//! Everything of Demi's own lies under `/opt/demi`, which the machine manager
+//! Everything of Jush's own lies under `/opt/jush`, which the machine manager
 //! replaces with the configured image's at every boot, whatever image a Cloud
 //! is pinned to:
 //!
-//! - `/opt/demi/bin/demi-runner` and its alias `/opt/demi/bin/demi`, with
-//!   `/usr/bin/demi-runner` and `/usr/bin/demi` as links to them.
+//! - `/opt/jush/bin/jush-runner` and its alias `/opt/jush/bin/jush`, with
+//!   `/usr/bin/jush-runner` and `/usr/bin/jush` as links to them.
 //! - Each command package's executable at
-//!   `/opt/demi/artifacts/<sha256>/<executable>`, from which the runner starts
+//!   `/opt/jush/artifacts/<sha256>/<executable>`, from which the runner starts
 //!   command residents instead of downloading them, after checking each against
 //!   the backend's pinned descriptor.
 //!
-//! The image also makes the runner's two directories, private to `demi`:
-//! `/var/lib/demi` and `/var/log/demi`. Nothing is compiled, pulled or
+//! The image also makes the runner's two directories, private to `jush`:
+//! `/var/lib/jush` and `/var/log/jush`. Nothing is compiled, pulled or
 //! extracted on an ordinary wake, and a Docker daemon plays no part.
 
 use std::collections::BTreeMap;
@@ -42,14 +42,14 @@ use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 
-use demi_command_protocol::{PackageArtifact, PackageDescriptor};
-use demi_machine_manager_protocol::image::{
+use jush_command_protocol::{PackageArtifact, PackageDescriptor};
+use jush_machine_manager_protocol::image::{
     Architecture, CloudImageManifest, FormatVersion, INIT_PATH, InstalledPackage, ManifestError,
     Os, RUNNER_PATH, RootfsArchive, RootfsFile,
 };
-use demi_runner_protocol::image::ARTIFACTS_PATH;
-use demi_runner_protocol::release::{RUNNER, RunnerRelease, compressed_file};
-use demi_shared_artifacts::{
+use jush_runner_protocol::image::ARTIFACTS_PATH;
+use jush_runner_protocol::release::{RUNNER, RunnerRelease, compressed_file};
+use jush_shared_artifacts::{
     Digest, Mode, Permissions, Publication, ReleaseFile, ReleaseRecord,
 };
 use tokio_util::sync::CancellationToken;
@@ -58,8 +58,8 @@ use crate::native::{DESCRIPTOR, MANIFEST};
 
 /// The image release's record.
 const IMAGE_MANIFEST: &str = "manifest.json";
-/// The name the runner also answers to, beside it in `/opt/demi/bin`.
-const RUNNER_ALIAS: &str = "demi";
+/// The name the runner also answers to, beside it in `/opt/jush/bin`.
+const RUNNER_ALIAS: &str = "jush";
 /// Where the runner and its alias are linked from, on every `PATH`.
 const LINKS_PATH: &str = "/usr/bin";
 /// What the build reads of the tree: its dpkg database and its os-release
@@ -97,7 +97,7 @@ pub enum Error {
     #[error("{}: {source}", path.display())]
     File {
         path: PathBuf,
-        source: demi_shared_artifacts::Error,
+        source: jush_shared_artifacts::Error,
     },
     #[error("{} {reason}", path.display())]
     Invalid { path: PathBuf, reason: String },
@@ -115,7 +115,7 @@ pub enum Error {
     #[error(transparent)]
     Manifest(#[from] ManifestError),
     #[error(transparent)]
-    Artifact(#[from] demi_shared_artifacts::Error),
+    Artifact(#[from] jush_shared_artifacts::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -148,7 +148,7 @@ async fn package(
     let packages = installed_packages(&root).await?;
     let ubuntu = ubuntu_release(&root).await?;
     let release = std::path::absolute(&options.release)?;
-    let files = release.join(demi_runner_protocol::release::FILES);
+    let files = release.join(jush_runner_protocol::release::FILES);
     let (runner, runner_artifact) = runner_release(&release.join("runners"), target).await?;
     let mut releases: Vec<(String, PackageDescriptor, PackageArtifact)> = Vec::new();
     for (executable, directory) in command_packages(&release.join("commands")).await? {
@@ -193,7 +193,7 @@ async fn package(
         tokio::task::spawn_blocking(move || write_archive(&root, &archive, &cancel))
     };
     writing.await.map_err(std::io::Error::other)??;
-    let digest = demi_shared_artifacts::digest(&archive, u64::MAX, cancel).await?;
+    let digest = jush_shared_artifacts::digest(&archive, u64::MAX, cancel).await?;
     let manifest = CloudImageManifest {
         format_version: FormatVersion,
         os: Os::Linux,
@@ -225,11 +225,11 @@ async fn package(
         digest,
         executable: false,
     }];
-    demi_shared_artifacts::publish_release(&output, record, &files, cancel).await?;
+    jush_shared_artifacts::publish_release(&output, record, &files, cancel).await?;
     eprintln!("Cloud image: {}", output.display());
     // The base version names the manifest's bytes as published.
     let published =
-        demi_shared_artifacts::digest(&output.join(IMAGE_MANIFEST), u64::MAX, cancel).await?;
+        jush_shared_artifacts::digest(&output.join(IMAGE_MANIFEST), u64::MAX, cancel).await?;
     Ok(published.sha256)
 }
 
@@ -299,8 +299,8 @@ async fn command_packages(commands: &Path) -> Result<Vec<(String, PathBuf)>, Err
 }
 
 /// Installs the runner of `release`, whose compressed copy is among `files`, as
-/// `/opt/demi/bin/demi-runner` with `demi` as its alias beside it, and links
-/// both from `/usr/bin`: everything of Demi's lies under `/opt/demi`, which a
+/// `/opt/jush/bin/jush-runner` with `jush` as its alias beside it, and links
+/// both from `/usr/bin`: everything of Jush's lies under `/opt/jush`, which a
 /// Cloud takes from the configured image
 /// (`cloud-guest-image/rootfs/packages.txt`).
 async fn install_runner(
@@ -317,7 +317,7 @@ async fn install_runner(
         .await
         .map_err(at(directory))?;
     install_decoded(&source, artifact, &installed).await?;
-    // `demi` is the runner by another name, beside it.
+    // `jush` is the runner by another name, beside it.
     let name = installed
         .file_name()
         .expect("the runner's path names a file");
@@ -375,7 +375,7 @@ async fn install_decoded(
         sha256: artifact.sha256.clone(),
     };
     let decoded = tokio::task::spawn_blocking(move || {
-        demi_shared_artifacts::decode_blocking(&encoded, &expected)
+        jush_shared_artifacts::decode_blocking(&encoded, &expected)
     })
     .await
     .map_err(std::io::Error::other)?
@@ -388,7 +388,7 @@ async fn install_decoded(
         permissions: Permissions::Executable,
         durable: false,
     };
-    demi_shared_artifacts::publish_bytes(destination, &decoded, publication)
+    jush_shared_artifacts::publish_bytes(destination, &decoded, publication)
         .await
         .map_err(at(destination))
 }
@@ -412,7 +412,7 @@ async fn measure(path: &Path, cancel: &CancellationToken) -> Result<PackageArtif
     if !metadata.is_file() {
         return Err(invalid(path, "is not a regular file"));
     }
-    let digest = demi_shared_artifacts::digest(path, u64::MAX, cancel)
+    let digest = jush_shared_artifacts::digest(path, u64::MAX, cancel)
         .await
         .map_err(at(path))?;
     Ok(PackageArtifact {
@@ -557,7 +557,7 @@ fn compress(
     let mut buffer = vec![0; 1024 * 1024];
     loop {
         if cancel.is_cancelled() {
-            return Err(demi_shared_artifacts::Error::Cancelled.into());
+            return Err(jush_shared_artifacts::Error::Cancelled.into());
         }
         let count = match input.read(&mut buffer) {
             Ok(count) => count,
@@ -579,7 +579,7 @@ fn in_tree(root: &Path, path: &str) -> PathBuf {
 }
 
 /// An error about the file at `path`.
-fn at<E: Into<demi_shared_artifacts::Error>>(path: &Path) -> impl FnOnce(E) -> Error {
+fn at<E: Into<jush_shared_artifacts::Error>>(path: &Path) -> impl FnOnce(E) -> Error {
     let path = path.to_owned();
     move |source| Error::File {
         path,

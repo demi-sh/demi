@@ -5,18 +5,18 @@
 
 use std::path::Path;
 
-use demi_plugin_audio::Audio;
-use demi_plugin_browser::Browser;
-use demi_plugin_changes::Changes;
-use demi_plugin_file::File;
-use demi_plugin_file_browser::FileBrowser;
-use demi_plugin_image::Image;
-use demi_plugin_video::Video;
-use demi_plugin_interface::PluginFactory;
-use demi_plugin_mobile::Mobile;
-use demi_plugin_skills::Skills;
-use demi_plugin_web::Web;
-use demi_plugin_widget::Widgets;
+use jush_plugin_audio::Audio;
+use jush_plugin_browser::Browser;
+use jush_plugin_changes::Changes;
+use jush_plugin_file::File;
+use jush_plugin_file_browser::FileBrowser;
+use jush_plugin_image::Image;
+use jush_plugin_video::Video;
+use jush_plugin_interface::PluginFactory;
+use jush_plugin_mobile::Mobile;
+use jush_plugin_skills::Skills;
+use jush_plugin_web::Web;
+use jush_plugin_widget::Widgets;
 
 /// The plugins built into the backend whose data is under `data_dir`.
 pub fn builtin(data_dir: &Path) -> Vec<Box<dyn PluginFactory>> {

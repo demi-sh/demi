@@ -29,11 +29,11 @@
 
 use std::path::Path;
 
-use demi_runner_protocol::console::{HANDED_OVER, NO_AUTOSTART, PAIRED, PAIRING_CODE, REMOVAL};
-use demi_runner_protocol::installation::{LAUNCHER_PS1, LAUNCHER_SH, installation_name};
-use demi_runner_protocol::release::{ReleaseError, RunnerRelease};
-use demi_runner_protocol::wire::RunnerPlatform;
-use demi_web_api_protocol::devices::InstallCommands;
+use jush_runner_protocol::console::{HANDED_OVER, NO_AUTOSTART, PAIRED, PAIRING_CODE, REMOVAL};
+use jush_runner_protocol::installation::{LAUNCHER_PS1, LAUNCHER_SH, installation_name};
+use jush_runner_protocol::release::{ReleaseError, RunnerRelease};
+use jush_runner_protocol::wire::RunnerPlatform;
+use jush_web_api_protocol::devices::InstallCommands;
 use url::Url;
 
 /// A backend URL an installer cannot name: not HTTP or HTTPS, or with a
@@ -57,7 +57,7 @@ pub fn backend_url(url: &Url) -> Result<Url, InvalidBackendUrl> {
 }
 
 /// The commands that install and start the runner of `backend` on each
-/// system, which Add Device and `demi device install-command` show. They fetch the
+/// system, which Add Device and `jush device install-command` show. They fetch the
 /// installer from `backend`'s origin, which serves it whatever path the URL
 /// has. `curl` may use only the URL's scheme, and TLS 1.2 or newer for
 /// `https`, so a development backend's plain `http` is reached too.
@@ -101,7 +101,7 @@ pub fn start_command(
 ) -> String {
     let windows = platform == RunnerPlatform::Win32;
     let separator = if windows { '\\' } else { '/' };
-    let default = format!(".demi{separator}runner{separator}{}", installation_name(backend));
+    let default = format!(".jush{separator}runner{separator}{}", installation_name(backend));
     let place = match installation {
         None => Place::Home(default),
         Some(installation) => {
@@ -297,15 +297,15 @@ esac
 case "$target" in
 @CASES@
   *)
-    echo "This server has no Demi runner for $target." >&2
+    echo "This server has no Jush runner for $target." >&2
     exit 1
     ;;
 esac
-# The installation's directory: the one DEMI_HOME names, else this backend's
-# own under ~/.demi/runner (`crates/runner/src/console.rs`). Everything below, the launcher, the runner's service
+# The installation's directory: the one JUSH_HOME names, else this backend's
+# own under ~/.jush/runner (`crates/runner/src/console.rs`). Everything below, the launcher, the runner's service
 # registration and its removal command, finds the installation from here.
-if [ -n "${DEMI_HOME:-}" ]; then
-  state=$DEMI_HOME
+if [ -n "${JUSH_HOME:-}" ]; then
+  state=$JUSH_HOME
 else
   case "$installation" in
     ''|*[!a-zA-Z0-9._-]*)
@@ -313,7 +313,7 @@ else
       exit 1
       ;;
   esac
-  state="$HOME/.demi/runner/$installation"
+  state="$HOME/.jush/runner/$installation"
 fi
 # Whose installation this is, before anything in it changes: the backend it
 # records, compared as written.
@@ -357,9 +357,9 @@ verify() {
     exit 1
   fi
 }
-curl -fSL "$base/runner-artifacts/$release/$target/demi-runner" -o "$stage/demi-runner"
-verify "$stage/demi-runner" "$runner_hash"
-chmod 755 "$stage/demi-runner"
+curl -fSL "$base/runner-artifacts/$release/$target/jush-runner" -o "$stage/jush-runner"
+verify "$stage/jush-runner" "$runner_hash"
+chmod 755 "$stage/jush-runner"
 pid=
 log="$state/runner.log"
 previous="$state/runner.log.1"
@@ -377,23 +377,23 @@ size_of() {
 # log was moved there.
 seen=0
 previous_size=$(size_of "$previous")
-if DEMI_HOME="$state" DEMI_RELEASE_ID="$release" "$stage/demi-runner" status --backend "$backend" >/dev/null 2>&1; then
+if JUSH_HOME="$state" JUSH_RELEASE_ID="$release" "$stage/jush-runner" status --backend "$backend" >/dev/null 2>&1; then
   echo "Runner already running: $state"
   # It wrote its state before this installer began: it writes it again,
   # its code or the device it is paired as, to its log alone. A runner that
   # ended meanwhile is found stopped below.
   seen=$(size_of "$log")
-  DEMI_HOME="$state" "$stage/demi-runner" announce --backend "$backend" >/dev/null 2>&1 || true
+  JUSH_HOME="$state" "$stage/jush-runner" announce --backend "$backend" >/dev/null 2>&1 || true
 else
   # Not `status`, which zsh keeps read-only.
   runner_status=$?
   if [ "$runner_status" -eq 3 ]; then
     echo 'Waiting for existing jobs before upgrading this runner…'
-    DEMI_HOME="$state" "$stage/demi-runner" drain --backend "$backend"
+    JUSH_HOME="$state" "$stage/jush-runner" drain --backend "$backend"
   fi
   # Every release runs from one file, so the system tells one program across
   # updates (`crates/runner-protocol/src/installation.rs`).
-  mv -f "$stage/demi-runner" "$state/demi-runner"
+  mv -f "$stage/jush-runner" "$state/jush-runner"
   # Pass values as quoted arguments; never interpolate a backend into executable shell code.
   cat > "$state/run.next" <<'LAUNCHER'
 @LAUNCHER@
@@ -472,7 +472,7 @@ while :; do
   previous_size=$previous_now
   read_lines "$log"
   if [ -n "$unstarted" ]; then
-    printf 'This device will not start Demi by itself after a restart: %s\n' "$unstarted"
+    printf 'This device will not start Jush by itself after a restart: %s\n' "$unstarted"
     unstarted=
   fi
   if [ -n "$removal" ]; then
@@ -520,72 +520,72 @@ done
 
 const POWERSHELL_SCRIPT: &str = r#"#requires -Version 5.1
 $ErrorActionPreference = 'Stop'
-$demiBackend = @BACKEND@
-$demiBase = @BASE@
-$demiRelease = @RELEASE@
-$demiInstallation = @INSTALLATION@
-$demiPairingPrefix = @PAIRING@
-$demiPairedPrefix = @PAIRED@
-$demiRemovalPrefix = @REMOVAL@
-$demiNoAutostartPrefix = @NO_AUTOSTART@
-$demiHandedOver = @HANDED_OVER@
+$jushBackend = @BACKEND@
+$jushBase = @BASE@
+$jushRelease = @RELEASE@
+$jushInstallation = @INSTALLATION@
+$jushPairingPrefix = @PAIRING@
+$jushPairedPrefix = @PAIRED@
+$jushRemovalPrefix = @REMOVAL@
+$jushNoAutostartPrefix = @NO_AUTOSTART@
+$jushHandedOver = @HANDED_OVER@
 # When the runner this installer started handed over to the service
 # manager's (`crates/runner/src/autostart.rs`).
-$demiHanded = $null
-$demiArtifacts = @{
+$jushHanded = $null
+$jushArtifacts = @{
 @ARTIFACTS@
 }
 switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()) {
-  'Arm64' { $demiTarget = 'aarch64-pc-windows-msvc' }
-  'X64' { $demiTarget = 'x86_64-pc-windows-msvc' }
+  'Arm64' { $jushTarget = 'aarch64-pc-windows-msvc' }
+  'X64' { $jushTarget = 'x86_64-pc-windows-msvc' }
   default { throw 'Unsupported runner architecture' }
 }
 # A server's release may lack this platform's runner, as a development
 # build of other targets does; the shell installer refuses in the same words.
-if (-not $demiArtifacts.ContainsKey($demiTarget)) { throw "This server has no Demi runner for $demiTarget." }
-$demiHome = if ($env:USERPROFILE) { $env:USERPROFILE } else { [Environment]::GetFolderPath('UserProfile') }
-# The installation's directory: the one DEMI_HOME names, else this backend's
-# own under ~/.demi/runner (`crates/runner/src/console.rs`). Everything below, the launcher, the runner's service
+if (-not $jushArtifacts.ContainsKey($jushTarget)) { throw "This server has no Jush runner for $jushTarget." }
+$jushHome = if ($env:USERPROFILE) { $env:USERPROFILE } else { [Environment]::GetFolderPath('UserProfile') }
+# The installation's directory: the one JUSH_HOME names, else this backend's
+# own under ~/.jush/runner (`crates/runner/src/console.rs`). Everything below, the launcher, the runner's service
 # registration and its removal command, finds the installation from here.
-if ($env:DEMI_HOME) {
+if ($env:JUSH_HOME) {
   # Absolute, as the runner and the lines this installer shows name it; a
   # relative one is read against this session's location.
-  $demiState = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($env:DEMI_HOME)
+  $jushState = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($env:JUSH_HOME)
 } else {
-  if ($demiInstallation -notmatch '^[a-zA-Z0-9._-]+$') { throw 'Invalid installation ID' }
-  $demiState = Join-Path $demiHome ".demi/runner/$demiInstallation"
+  if ($jushInstallation -notmatch '^[a-zA-Z0-9._-]+$') { throw 'Invalid installation ID' }
+  $jushState = Join-Path $jushHome ".jush/runner/$jushInstallation"
 }
-$demiBackendFile = Join-Path $demiState 'backend-url'
+$jushBackendFile = Join-Path $jushState 'backend-url'
 # Whose installation this is, before anything in it changes: the backend it
 # records, compared as written (`-cne`: `-ne` ignores case, and a path's case
 # can name another backend).
-if ((Test-Path $demiBackendFile) -and ([IO.File]::ReadAllText($demiBackendFile).Trim() -cne $demiBackend)) {
+if ((Test-Path $jushBackendFile) -and ([IO.File]::ReadAllText($jushBackendFile).Trim() -cne $jushBackend)) {
   throw 'Installation belongs to another backend'
 }
-$demiReleases = Join-Path $demiState 'releases'
-[IO.Directory]::CreateDirectory($demiReleases) | Out-Null
-$demiLockFile = Join-Path $demiState 'install.lock'
-$demiLock = [IO.File]::Open($demiLockFile, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::Write, [IO.FileShare]::None)
-$demiStage = Join-Path $demiReleases ('.download-' + [Guid]::NewGuid().ToString('N'))
-$demiExe = Join-Path $demiStage 'demi-runner.exe'
-$demiPreviousHome = $env:DEMI_HOME
-$demiPreviousRelease = $env:DEMI_RELEASE_ID
-$demiProcess = $null
-$demiLog = Join-Path $demiState 'runner.log'
-$demiPrevious = Join-Path $demiState 'runner.log.1'
+$jushReleases = Join-Path $jushState 'releases'
+[IO.Directory]::CreateDirectory($jushReleases) | Out-Null
+$jushLockFile = Join-Path $jushState 'install.lock'
+$jushLock = [IO.File]::Open($jushLockFile, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::Write, [IO.FileShare]::None)
+$jushStage = Join-Path $jushReleases ('.download-' + [Guid]::NewGuid().ToString('N'))
+$jushExe = Join-Path $jushStage 'jush-runner.exe'
+$jushPreviousHome = $env:JUSH_HOME
+$jushPreviousRelease = $env:JUSH_RELEASE_ID
+$jushProcess = $null
+$jushLog = Join-Path $jushState 'runner.log'
+$jushPrevious = Join-Path $jushState 'runner.log.1'
 # The size of the file at `$Path`; 0 when there is none.
-function Get-DemiSize([string]$Path) {
+function Get-JushSize([string]$Path) {
   if (Test-Path $Path) { (Get-Item $Path).Length } else { [long]0 }
 }
 # Where the log ended when this installer began waiting, whether it started
 # the runner or found it running: what it held before is an earlier
 # runner's, or an earlier state's. The size of runner.log.1 tells when the
 # log was moved there.
-$demiSeen = [long]0
-$demiPreviousSize = Get-DemiSize $demiPrevious
+$jushSeen = [long]0
+$jushPreviousSize = Get-JushSize $jushPrevious
 # The bytes of the file at `$Path` from `$From` on, read beside the runner,
 # which writes it and may rename it.
-function Read-DemiLog([string]$Path, [long]$From) {
+function Read-JushLog([string]$Path, [long]$From) {
   # The comma keeps an array, even an empty one, from being unrolled.
   if (-not (Test-Path $Path)) { return ,[byte[]]::new(0) }
   $stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]'ReadWrite, Delete')
@@ -610,14 +610,14 @@ function Read-DemiLog([string]$Path, [long]$From) {
 # no breakaway refuses that start, and the runner then starts in it, as in
 # a PowerShell window, whose job nothing closes. Start-Process takes no
 # creation flags, so the installer calls CreateProcess itself.
-function Start-DemiRunner([string]$CommandLine, [string]$Directory) {
-  if (-not ('DemiRunnerStart' -as [type])) {
+function Start-JushRunner([string]$CommandLine, [string]$Directory) {
+  if (-not ('JushRunnerStart' -as [type])) {
     Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
-public static class DemiRunnerStart {
+public static class JushRunnerStart {
   [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
   struct StartupInfo {
     public int cb;
@@ -658,12 +658,12 @@ public static class DemiRunnerStart {
 }
 '@
   }
-  [Diagnostics.Process]::GetProcessById([DemiRunnerStart]::Start($CommandLine, $Directory))
+  [Diagnostics.Process]::GetProcessById([JushRunnerStart]::Start($CommandLine, $Directory))
 }
-function Invoke-DemiControl([string]$Action) {
+function Invoke-JushControl([string]$Action) {
   $control = [Diagnostics.ProcessStartInfo]::new()
-  $control.FileName = $demiExe
-  $control.Arguments = $Action + ' --backend "' + $demiBackend + '"'
+  $control.FileName = $jushExe
+  $control.Arguments = $Action + ' --backend "' + $jushBackend + '"'
   $control.UseShellExecute = $false
   $control.CreateNoWindow = $true
   $control.RedirectStandardOutput = $true
@@ -682,9 +682,9 @@ function Invoke-DemiControl([string]$Action) {
 }
 # The folder Git for Windows is installed in, as the runner finds it
 # (`crates/runner/src/git.rs`), or $null when it finds none.
-function Get-DemiGit {
+function Get-JushGit {
   $git = [Diagnostics.ProcessStartInfo]::new()
-  $git.FileName = $demiExe
+  $git.FileName = $jushExe
   $git.Arguments = 'git'
   $git.UseShellExecute = $false
   $git.CreateNoWindow = $true
@@ -700,14 +700,14 @@ function Get-DemiGit {
   }
 }
 # Installs Git for Windows, whose `usr\bin` holds the utilities a job runs
-# besides Demi's own, with its own installer, silently. An account in the
+# besides Jush's own, with its own installer, silently. An account in the
 # Administrators group installs it for every user, without asking: the
 # installer raises the one UAC prompt. A standard account chooses when asked:
 # for every user, with an administrator's name and password at the UAC
 # prompt, or for this user alone in its own folder, with no prompt; a window
 # that cannot ask installs for this user alone. The installer's download is
 # checked by the digest GitHub publishes for it and by its signature.
-function Install-DemiGit {
+function Install-JushGit {
   # The group's claim, not its membership: an unelevated process of an
   # administrator holds the group for denial only, which its groups omit.
   $everyone = @([Security.Principal.WindowsIdentity]::GetCurrent().Claims | Where-Object { $_.Value -eq 'S-1-5-32-544' }).Count -gt 0
@@ -717,24 +717,24 @@ function Install-DemiGit {
         [Management.Automation.Device.ChoiceDescription]::new('&Every user', 'Asks for an administrator''s name and password.'),
         [Management.Automation.Device.ChoiceDescription]::new('&Me only', 'Installs in your own folder and asks for nothing.')
       )
-      $everyone = $Device.UI.PromptForChoice('Git for Windows', 'Demi runs the utilities of Git for Windows, such as ls and grep, and it is not installed. Install it for:', $choices, 1) -eq 0
+      $everyone = $Device.UI.PromptForChoice('Git for Windows', 'Jush runs the utilities of Git for Windows, such as ls and grep, and it is not installed. Install it for:', $choices, 1) -eq 0
     } catch {
       $everyone = $false
     }
   }
-  $kind = if ($demiTarget -eq 'aarch64-pc-windows-msvc') { 'arm64' } else { '64-bit' }
+  $kind = if ($jushTarget -eq 'aarch64-pc-windows-msvc') { 'arm64' } else { '64-bit' }
   $installer = Join-Path ([IO.Path]::GetTempPath()) ('git-for-windows-' + [Guid]::NewGuid().ToString('N') + '.exe')
   try {
     Write-Output 'Installing Git for Windows...'
-    $demiPreviousProgress = $ProgressPreference
+    $jushPreviousProgress = $ProgressPreference
     try {
       $ProgressPreference = 'SilentlyContinue'
-      $release = Invoke-RestMethod -UseBasicParsing -Uri 'https://api.github.com/repos/git-for-windows/git/releases/latest' -Headers @{ 'User-Agent' = 'demi-installer' }
+      $release = Invoke-RestMethod -UseBasicParsing -Uri 'https://api.github.com/repos/git-for-windows/git/releases/latest' -Headers @{ 'User-Agent' = 'jush-installer' }
       $asset = $release.assets | Where-Object { $_.name -like "Git-*-$kind.exe" } | Select-Object -First 1
       if (-not $asset) { throw 'Git for Windows has no installer for this system' }
       Invoke-WebRequest -UseBasicParsing -Uri $asset.browser_download_url -OutFile $installer
     } finally {
-      $ProgressPreference = $demiPreviousProgress
+      $ProgressPreference = $jushPreviousProgress
     }
     if ($asset.digest -and (Get-FileHash -Algorithm SHA256 $installer).Hash -ne ($asset.digest -replace '^sha256:', '')) {
       throw 'Git for Windows download checksum mismatch'
@@ -756,154 +756,154 @@ function Install-DemiGit {
 }
 try {
   try {
-    [IO.Directory]::CreateDirectory($demiStage) | Out-Null
-    Write-Output "Downloading runner for $demiTarget..."
-    $demiPreviousProgress = $ProgressPreference
+    [IO.Directory]::CreateDirectory($jushStage) | Out-Null
+    Write-Output "Downloading runner for $jushTarget..."
+    $jushPreviousProgress = $ProgressPreference
     try {
       $ProgressPreference = 'SilentlyContinue'
-      Invoke-WebRequest -UseBasicParsing -Uri "$demiBase/runner-artifacts/$demiRelease/$demiTarget/demi-runner.exe" -OutFile $demiExe
+      Invoke-WebRequest -UseBasicParsing -Uri "$jushBase/runner-artifacts/$jushRelease/$jushTarget/jush-runner.exe" -OutFile $jushExe
     } finally {
-      $ProgressPreference = $demiPreviousProgress
+      $ProgressPreference = $jushPreviousProgress
     }
-    if ((Get-Item $demiExe).Length -ne $demiArtifacts[$demiTarget].Size -or
-        (Get-FileHash -Algorithm SHA256 $demiExe).Hash.ToLowerInvariant() -ne $demiArtifacts[$demiTarget].Hash) {
+    if ((Get-Item $jushExe).Length -ne $jushArtifacts[$jushTarget].Size -or
+        (Get-FileHash -Algorithm SHA256 $jushExe).Hash.ToLowerInvariant() -ne $jushArtifacts[$jushTarget].Hash) {
       throw 'Runner download checksum mismatch'
     }
-    # A job's utilities besides Demi's own are Git for Windows': a device is
+    # A job's utilities besides Jush's own are Git for Windows': a device is
     # not added without it, so a failed or refused install ends the setup.
-    if (-not (Get-DemiGit)) {
+    if (-not (Get-JushGit)) {
       try {
-        Install-DemiGit
+        Install-JushGit
       } catch {
         throw "Git for Windows was not installed: $($_.Exception.Message)"
       }
     }
-    $env:DEMI_HOME = $demiState
-    $env:DEMI_RELEASE_ID = $demiRelease
-    $demiStatus = Invoke-DemiControl 'status'
-    if ($demiStatus -eq 0) {
-      Write-Output "Runner already running: $demiState"
+    $env:JUSH_HOME = $jushState
+    $env:JUSH_RELEASE_ID = $jushRelease
+    $jushStatus = Invoke-JushControl 'status'
+    if ($jushStatus -eq 0) {
+      Write-Output "Runner already running: $jushState"
       # It wrote its state before this installer began: it writes it again,
       # its code or the device it is paired as, to its log alone. A runner
       # that ended meanwhile is found stopped below.
-      $demiSeen = Get-DemiSize $demiLog
-      Invoke-DemiControl 'announce' | Out-Null
+      $jushSeen = Get-JushSize $jushLog
+      Invoke-JushControl 'announce' | Out-Null
     } else {
-      if ($demiStatus -eq 3) {
+      if ($jushStatus -eq 3) {
         Write-Output 'Waiting for existing jobs before upgrading this runner...'
-        if ((Invoke-DemiControl 'drain') -ne 0) { throw 'Runner drain failed' }
+        if ((Invoke-JushControl 'drain') -ne 0) { throw 'Runner drain failed' }
       }
       # Every release runs from one file, so the system tells one program
       # across updates (`crates/runner-protocol/src/installation.rs`).
-      $demiRunner = Join-Path $demiState 'demi-runner.exe'
+      $jushRunner = Join-Path $jushState 'jush-runner.exe'
       # A drained runner releases its lock before its process ends, and
       # Windows replaces no running executable but renames one: the earlier
       # runner is set aside, as an update does (`crates/runner/src/update.rs`).
-      if (Test-Path $demiRunner) {
-        Move-Item $demiRunner (Join-Path $demiReleases ('.replaced-' + [Guid]::NewGuid().ToString('N') + '.exe'))
+      if (Test-Path $jushRunner) {
+        Move-Item $jushRunner (Join-Path $jushReleases ('.replaced-' + [Guid]::NewGuid().ToString('N') + '.exe'))
       }
-      Move-Item $demiExe $demiRunner
-      $demiExe = $demiRunner
-      $demiUtf8 = [Text.UTF8Encoding]::new($false)
-      [IO.File]::WriteAllText($demiBackendFile, $demiBackend + [Environment]::NewLine, $demiUtf8)
-      [IO.File]::WriteAllText((Join-Path $demiState 'release-id'), $demiRelease + [Environment]::NewLine, $demiUtf8)
-      $demiLauncher = @'
+      Move-Item $jushExe $jushRunner
+      $jushExe = $jushRunner
+      $jushUtf8 = [Text.UTF8Encoding]::new($false)
+      [IO.File]::WriteAllText($jushBackendFile, $jushBackend + [Environment]::NewLine, $jushUtf8)
+      [IO.File]::WriteAllText((Join-Path $jushState 'release-id'), $jushRelease + [Environment]::NewLine, $jushUtf8)
+      $jushLauncher = @'
 @LAUNCHER@
 '@
-      [IO.File]::WriteAllText((Join-Path $demiState 'run.ps1'), $demiLauncher, $demiUtf8)
+      [IO.File]::WriteAllText((Join-Path $jushState 'run.ps1'), $jushLauncher, $jushUtf8)
       Write-Output 'Starting runner...'
-      $demiSeen = Get-DemiSize $demiLog
+      $jushSeen = Get-JushSize $jushLog
       # The runner writes its log itself.
-      $demiProcess = Start-DemiRunner ('"' + $demiExe + '" run --backend "' + $demiBackend + '" --log') $demiHome
-      Write-Output "Runner installed for $demiBackend"
+      $jushProcess = Start-JushRunner ('"' + $jushExe + '" run --backend "' + $jushBackend + '" --log') $jushHome
+      Write-Output "Runner installed for $jushBackend"
     }
   } catch {
-    if ($demiProcess -and -not $demiProcess.HasExited) {
-      $demiProcess.Kill()
-      $demiProcess.WaitForExit()
+    if ($jushProcess -and -not $jushProcess.HasExited) {
+      $jushProcess.Kill()
+      $jushProcess.WaitForExit()
     }
     throw
   } finally {
     # The installation is in place; the runner's own updates may take its
     # lock while this installer waits for pairing.
-    $demiLock.Dispose()
-    if (Test-Path $demiStage) { Remove-Item -Recurse -Force $demiStage }
+    $jushLock.Dispose()
+    if (Test-Path $jushStage) { Remove-Item -Recurse -Force $jushStage }
   }
   # Shows the runner's log as pairing goes: each pairing code the runner
   # receives, then the device's name and the removal command once it is
   # paired. Only complete lines are read; of the codes read at once, only
   # the last is still live. Interrupting this installer leaves the runner
   # running.
-  $demiBegin = $demiSeen
-  $demiShown = $null
+  $jushBegin = $jushSeen
+  $jushShown = $null
   while ($true) {
-    $demiCode = $null
-    $demiName = $null
-    $demiRemoval = $null
+    $jushCode = $null
+    $jushName = $null
+    $jushRemoval = $null
     # The runner started its log again past its size: what was left in the
     # old one, runner.log.1 by now, comes first, then the new one from its
     # start.
-    $demiPaths = @($demiLog)
-    $demiPreviousNow = Get-DemiSize $demiPrevious
-    if ((Get-DemiSize $demiLog) -lt $demiSeen -or $demiPreviousNow -ne $demiPreviousSize) {
-      $demiPaths = @($demiPrevious, $demiLog)
+    $jushPaths = @($jushLog)
+    $jushPreviousNow = Get-JushSize $jushPrevious
+    if ((Get-JushSize $jushLog) -lt $jushSeen -or $jushPreviousNow -ne $jushPreviousSize) {
+      $jushPaths = @($jushPrevious, $jushLog)
     }
-    $demiPreviousSize = $demiPreviousNow
-    foreach ($demiPath in $demiPaths) {
-      if ($demiPath -eq $demiLog -and $demiPaths.Count -eq 2) {
-        $demiSeen = [long]0
-        $demiBegin = [long]0
+    $jushPreviousSize = $jushPreviousNow
+    foreach ($jushPath in $jushPaths) {
+      if ($jushPath -eq $jushLog -and $jushPaths.Count -eq 2) {
+        $jushSeen = [long]0
+        $jushBegin = [long]0
       }
-      $demiBytes = Read-DemiLog $demiPath $demiSeen
-      $demiEnd = if ($demiBytes.Length -gt 0) { [Array]::LastIndexOf($demiBytes, [byte]10) } else { -1 }
-      if ($demiEnd -lt 0) { continue }
-      $demiSeen += $demiEnd + 1
-      foreach ($demiLine in [Text.Encoding]::UTF8.GetString($demiBytes, 0, $demiEnd).Split("`n")) {
-        $demiLine = $demiLine.TrimEnd("`r")
-        if ($demiLine.StartsWith($demiPairingPrefix)) {
-          $demiCode = $demiLine.Substring($demiPairingPrefix.Length)
-        } elseif ($demiLine.StartsWith($demiPairedPrefix)) {
-          $demiName = $demiLine.Substring($demiPairedPrefix.Length)
-        } elseif ($demiLine.StartsWith($demiRemovalPrefix)) {
-          $demiRemoval = $demiLine.Substring($demiRemovalPrefix.Length)
-        } elseif ($demiLine.StartsWith($demiHandedOver)) {
-          if (-not $demiHanded) { $demiHanded = [DateTime]::UtcNow }
-        } elseif ($demiLine.StartsWith($demiNoAutostartPrefix)) {
-          Write-Output ('This device will not start Demi by itself after a restart: ' + $demiLine.Substring($demiNoAutostartPrefix.Length))
+      $jushBytes = Read-JushLog $jushPath $jushSeen
+      $jushEnd = if ($jushBytes.Length -gt 0) { [Array]::LastIndexOf($jushBytes, [byte]10) } else { -1 }
+      if ($jushEnd -lt 0) { continue }
+      $jushSeen += $jushEnd + 1
+      foreach ($jushLine in [Text.Encoding]::UTF8.GetString($jushBytes, 0, $jushEnd).Split("`n")) {
+        $jushLine = $jushLine.TrimEnd("`r")
+        if ($jushLine.StartsWith($jushPairingPrefix)) {
+          $jushCode = $jushLine.Substring($jushPairingPrefix.Length)
+        } elseif ($jushLine.StartsWith($jushPairedPrefix)) {
+          $jushName = $jushLine.Substring($jushPairedPrefix.Length)
+        } elseif ($jushLine.StartsWith($jushRemovalPrefix)) {
+          $jushRemoval = $jushLine.Substring($jushRemovalPrefix.Length)
+        } elseif ($jushLine.StartsWith($jushHandedOver)) {
+          if (-not $jushHanded) { $jushHanded = [DateTime]::UtcNow }
+        } elseif ($jushLine.StartsWith($jushNoAutostartPrefix)) {
+          Write-Output ('This device will not start Jush by itself after a restart: ' + $jushLine.Substring($jushNoAutostartPrefix.Length))
         }
       }
     }
-    if ($demiRemoval) {
-      Write-Output "Paired as $demiName"
-      Write-Output "To remove this runner, run: $demiRemoval"
+    if ($jushRemoval) {
+      Write-Output "Paired as $jushName"
+      Write-Output "To remove this runner, run: $jushRemoval"
       break
     }
-    if ($demiCode -and $demiCode -ne $demiShown) {
-      if ($demiShown) {
-        Write-Output "The code expired; enter this one instead: $demiCode"
+    if ($jushCode -and $jushCode -ne $jushShown) {
+      if ($jushShown) {
+        Write-Output "The code expired; enter this one instead: $jushCode"
       } else {
-        Write-Output "Enter this pairing code in Add Device: $demiCode"
+        Write-Output "Enter this pairing code in Add Device: $jushCode"
       }
-      $demiShown = $demiCode
+      $jushShown = $jushCode
     }
     # The runner it started may have handed over after the log was read.
-    if ($demiProcess -and $demiProcess.HasExited -and -not $demiHanded) {
-      $demiTail = [Text.Encoding]::UTF8.GetString((Read-DemiLog $demiLog $demiBegin))
-      if ($demiTail.Contains($demiHandedOver)) { $demiHanded = [DateTime]::UtcNow }
+    if ($jushProcess -and $jushProcess.HasExited -and -not $jushHanded) {
+      $jushTail = [Text.Encoding]::UTF8.GetString((Read-JushLog $jushLog $jushBegin))
+      if ($jushTail.Contains($jushHandedOver)) { $jushHanded = [DateTime]::UtcNow }
     }
-    $demiAlive = if ($demiProcess -and -not $demiHanded) {
-      -not $demiProcess.HasExited
+    $jushAlive = if ($jushProcess -and -not $jushHanded) {
+      -not $jushProcess.HasExited
     } else {
-      ((Invoke-DemiControl 'status') -eq 0) -or ($demiHanded -and ([DateTime]::UtcNow - $demiHanded).TotalSeconds -lt 15)
+      ((Invoke-JushControl 'status') -eq 0) -or ($jushHanded -and ([DateTime]::UtcNow - $jushHanded).TotalSeconds -lt 15)
     }
-    if (-not $demiAlive) {
-      throw ('The runner stopped:' + [Environment]::NewLine + [Text.Encoding]::UTF8.GetString((Read-DemiLog $demiLog $demiBegin)))
+    if (-not $jushAlive) {
+      throw ('The runner stopped:' + [Environment]::NewLine + [Text.Encoding]::UTF8.GetString((Read-JushLog $jushLog $jushBegin)))
     }
     Start-Sleep -Milliseconds 200
   }
 } finally {
-  $env:DEMI_HOME = $demiPreviousHome
-  $env:DEMI_RELEASE_ID = $demiPreviousRelease
-  if ($demiProcess) { $demiProcess.Dispose() }
+  $env:JUSH_HOME = $jushPreviousHome
+  $env:JUSH_RELEASE_ID = $jushPreviousRelease
+  if ($jushProcess) { $jushProcess.Dispose() }
 }
 "#;

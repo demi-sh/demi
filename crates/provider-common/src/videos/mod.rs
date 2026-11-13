@@ -19,7 +19,7 @@
 pub mod xai;
 
 use bytes::Bytes;
-use demi_shared_types::{Clock, Cost, TokenUsage, VideoResolution};
+use jush_shared_types::{Clock, Cost, TokenUsage, VideoResolution};
 use futures_util::future::BoxFuture;
 use http::HeaderMap;
 use reqwest::Url;
@@ -87,7 +87,7 @@ pub trait VideoMaker: MediaMaker {
     }
 }
 
-/// What `demi video edit` and `demi video extend` ask of a video.
+/// What `jush video edit` and `jush video extend` ask of a video.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 pub enum Change {
     /// The same scene changed as the prompt says, its length and shape
@@ -262,7 +262,7 @@ pub enum DoneVideo {
     Sent(Bytes),
 }
 
-/// Downloads `url` as Demi's one download
+/// Downloads `url` as Jush's one download
 /// (`crates/shared-artifacts/src/download.rs`): resumed after a break or a
 /// stall, without an overall deadline.
 ///
@@ -301,7 +301,7 @@ pub async fn download(
         let http = http.without_redirects().map_err(crate::media::transport)?;
         let origin = endpoint.origin();
         let headers = move |hop: &Url| if hop.origin() == origin { key.clone() } else { HeaderMap::new() };
-        let request = demi_shared_artifacts::Download {
+        let request = jush_shared_artifacts::Download {
             limit: ANSWER_LIMIT as u64,
             redirects: crate::client::REDIRECTS,
             headers: &headers,
@@ -309,17 +309,17 @@ pub async fn download(
             // The client decodes the codings the build's reqwest knows, so
             // the first answer's bytes may count none the vendor sent.
             first_decoded: true,
-            ..demi_shared_artifacts::Download::new(url.as_str())
+            ..jush_shared_artifacts::Download::new(url.as_str())
         };
         // A video call ends with its job, which drops this future: nothing
         // else cancels its download.
         let cancel = tokio_util::sync::CancellationToken::new();
-        let downloaded = demi_shared_artifacts::download_bytes(&http, request, &cancel)
+        let downloaded = jush_shared_artifacts::download_bytes(&http, request, &cancel)
             .await
             .and_then(|(received, video)| received.plain().map(|()| video));
         match downloaded {
             Ok(video) => Ok(Bytes::from(video)),
-            Err(demi_shared_artifacts::Error::TooLarge { .. }) => Err(crate::media::too_large("video")),
+            Err(jush_shared_artifacts::Error::TooLarge { .. }) => Err(crate::media::too_large("video")),
             Err(error) => Err(crate::media::unreadable(format!("its video did not download: {error}"))),
         }
     }

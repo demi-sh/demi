@@ -2,15 +2,15 @@
 //! declared command of a job or a user stream knows beyond its arguments.
 //! The backend is its only source and builds it when the work starts.
 
-use demi_command_protocol::{
+use jush_command_protocol::{
     ColorScheme, CommandCaller, CommandContext, CommandLocale,
     PROVIDER_SCOPE_PREFIX,
 };
-use demi_web_api_protocol::ids::{ConversationId, ProviderId, UserId};
-use demi_web_api_protocol::settings::BrowserLocale;
+use jush_web_api_protocol::ids::{ConversationId, ProviderId, UserId};
+use jush_web_api_protocol::settings::BrowserLocale;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
 
 /// The locale commands receive until the user's browser reports one.
 pub fn default_locale() -> CommandLocale {

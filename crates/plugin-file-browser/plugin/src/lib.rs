@@ -1,7 +1,7 @@
 //! The `file-browser` plugin: its identity, its page package, and the
 //! `attachment` and `media` tab kinds its page shows.
 //!
-//! Its page, `@demicodes/plugin-file-browser`, shows:
+//! Its page, `@jush-ai/plugin-file-browser`, shows:
 //!
 //! - the Files window's File view over the product's file routes
 //!   (`crates/xtask/src/contracts/registry.rs`);
@@ -12,7 +12,7 @@
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     Manifest, NoRequests, Page, Plugin, PluginError, PluginFactory, PluginId, PluginPort, Reply,
     Request,
 };
@@ -36,7 +36,7 @@ impl FileBrowser {
             "File Browser",
             "Opens the conversation's files in the Files window to read them, with a tree of the working directory.",
         );
-        manifest.page = Some(Page::new("@demicodes/plugin-file-browser")
+        manifest.page = Some(Page::new("@jush-ai/plugin-file-browser")
             .tab_kind(ATTACHMENT_KIND)
             .tab_kind(MEDIA_KIND));
         Self { manifest }

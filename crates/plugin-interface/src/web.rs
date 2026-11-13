@@ -4,7 +4,7 @@
 use std::fmt;
 use std::time::Duration;
 
-use demi_shared_types::B64Bytes;
+use jush_shared_types::B64Bytes;
 use serde::{Deserialize, Serialize};
 use url::Url;
 

@@ -15,9 +15,9 @@
 //! starts after it. A collection fails closed: when one of the records that may
 //! name a blob cannot be read, it removes nothing.
 
-use demi_backend_blobs::blobs::GRACE_MS;
-use demi_backend_database::references::conversation_blobs;
-use demi_shared_types::{BlobRef, Timestamp};
+use jush_backend_blobs::blobs::GRACE_MS;
+use jush_backend_database::references::conversation_blobs;
+use jush_shared_types::{BlobRef, Timestamp};
 use tokio::sync::watch;
 
 use crate::shard::Shard;

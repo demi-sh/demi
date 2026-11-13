@@ -26,14 +26,14 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_device_interface::{
+use jush_device_interface::{
     PortError, PortRequest, PortResponse, PortTransport, RelayedPipes, RpcError, RpcInvocation,
     RpcPort,
 };
-use demi_command_protocol::MediumFacts;
-use demi_runner_protocol::wire::{Inbound, STDIN_CHUNK_BYTES, WireBytes};
-use demi_shared_gates::SerialGate;
-use demi_shared_types::B64Bytes;
+use jush_command_protocol::MediumFacts;
+use jush_runner_protocol::wire::{Inbound, STDIN_CHUNK_BYTES, WireBytes};
+use jush_shared_gates::SerialGate;
+use jush_shared_types::B64Bytes;
 use futures_util::future::LocalBoxFuture;
 use serde_json::{Map, Value};
 use tokio_util::sync::CancellationToken;
@@ -74,7 +74,7 @@ impl CallEnv {
     }
 
     /// Queues `message` for the runner, behind the call messages before it.
-    fn send(&self, message: &Inbound) -> Result<(), demi_device_interface::DeviceError> {
+    fn send(&self, message: &Inbound) -> Result<(), jush_device_interface::DeviceError> {
         self.session.send(message)
     }
 }
@@ -279,7 +279,7 @@ pub(crate) fn start(link: &Link, call: RpcCall) {
             cause = cause.as_ref().map(Stop::text),
             exit,
             ms = began.elapsed().as_millis() as u64,
-            "a runner's call of a demi command ended"
+            "a runner's call of a jush command ended"
         );
         if entry.comes_back() {
             relaying.session.remove_call(&call_id);

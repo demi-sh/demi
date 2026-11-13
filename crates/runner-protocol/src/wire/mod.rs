@@ -127,7 +127,7 @@ pub use messages::{
     StreamArtifactOwner, WriteExists, StorageRules, StorageRule, StorageAction, StorageReport,
     ConversationStorage, StorageCleanup, CleanupCause,
 };
-pub use demi_shared_types::{DeviceLogLine, LogLevel, LogLine, LogOrigin, ReadAt, is_event_name};
+pub use jush_shared_types::{DeviceLogLine, LogLevel, LogLine, LogOrigin, ReadAt, is_event_name};
 pub use pipe_connection::{PIPE_CONNECTION_ROUTE, PIPE_LANE_CREDIT, PipeLaneRefusal, PipeLaneTarget};
 pub use pipe_frames::{
     CALL_OUTPUT_ROUTE, PIPE_DATA_BYTES, PIPE_IDLE, PIPE_SESSION_MESSAGE_BYTES, UPLOAD_CHUNK_BYTES, UPLOAD_COMPLETE,

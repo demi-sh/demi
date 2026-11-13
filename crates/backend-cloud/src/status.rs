@@ -4,13 +4,13 @@
 //! never wakes the Cloud and asks no one: the machine manager pushes the
 //! sizes and the image, and the page shows what it last said.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::managed::ManagedOperation;
-use demi_machine_manager_protocol::{DeviceId, Isolation as MachineIsolation, MoveStatus};
-use demi_web_api_protocol::cloud::{
+use jush_backend_database::StorageError;
+use jush_backend_database::managed::ManagedOperation;
+use jush_machine_manager_protocol::{DeviceId, Isolation as MachineIsolation, MoveStatus};
+use jush_web_api_protocol::cloud::{
     CloudDevice, CloudMoveStatus, CloudOperation, CloudState, CloudStatus, CloudVolumes,
 };
-use demi_web_api_protocol::settings::Isolation;
+use jush_web_api_protocol::settings::Isolation;
 
 use crate::CloudShard;
 

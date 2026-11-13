@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import type { PlaceholderText } from '@demicodes/web-ui/ui/ui-text'
+import type { PlaceholderText } from '@jush-ai/web-ui/ui/ui-text'
 import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
-import { previewMediaType, type ContextUsage, type UserContentBlock } from '@demicodes/protocol'
+import { previewMediaType, type ContextUsage, type UserContentBlock } from '@jush-ai/protocol'
 import { GLOBAL_PROFILES, OFFERED_PROFILES, useCardCost } from '../fixtures/cost'
-import SessionComposer from '@demicodes/web-ui/agent/SessionComposer.vue'
-import { type WorkflowChoice, type WorkflowList, workflowProfiles } from '@demicodes/web-ui/agent/workflow-menu'
-import { provideSendNextWaiting } from '@demicodes/web-ui/agent/pending-steers'
-import { isEmptyMessage, joinMessageContent, splitMessageContent } from '@demicodes/web-ui/agent/message-input/message-content'
-import { composerCapsule } from '@demicodes/web-ui/agent/message-editor/capsules'
+import SessionComposer from '@jush-ai/web-ui/agent/SessionComposer.vue'
+import { type WorkflowChoice, type WorkflowList, workflowProfiles } from '@jush-ai/web-ui/agent/workflow-menu'
+import { provideSendNextWaiting } from '@jush-ai/web-ui/agent/pending-steers'
+import { isEmptyMessage, joinMessageContent, splitMessageContent } from '@jush-ai/web-ui/agent/message-input/message-content'
+import { composerCapsule } from '@jush-ai/web-ui/agent/message-editor/capsules'
 import {
   missingFilesToast,
   pasteMessage,
   type CopiedStoredFile,
   type PasteHost,
-} from '@demicodes/web-ui/agent/message-input/copied-message'
-import { showToast } from '@demicodes/web-ui/infra/toast'
-import { createId } from '@demicodes/utils'
-import { savedParts, type SavedRow } from '@demicodes/web-ui/agent/saved'
-import { beginSavedEdit, type MessageEditContent, type MessageEditState, type SavedMessageEdit } from '@demicodes/web-ui/agent/message-editing'
-import RemoteFilePicker from '@demicodes/web-ui/files/RemoteFilePicker.vue'
-import type { OfflineDevice } from '@demicodes/web-ui/agent/offline-device'
-import MoveConversationDialog from '@demicodes/web-ui/targets/MoveConversationDialog.vue'
-import { useMoveQuestion } from '@demicodes/web-ui/targets/move-question'
-import type { DeviceChoice } from '@demicodes/web-ui/targets/types'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
+} from '@jush-ai/web-ui/agent/message-input/copied-message'
+import { showToast } from '@jush-ai/web-ui/infra/toast'
+import { createId } from '@jush-ai/utils'
+import { savedParts, type SavedRow } from '@jush-ai/web-ui/agent/saved'
+import { beginSavedEdit, type MessageEditContent, type MessageEditState, type SavedMessageEdit } from '@jush-ai/web-ui/agent/message-editing'
+import RemoteFilePicker from '@jush-ai/web-ui/files/RemoteFilePicker.vue'
+import type { OfflineDevice } from '@jush-ai/web-ui/agent/offline-device'
+import MoveConversationDialog from '@jush-ai/web-ui/targets/MoveConversationDialog.vue'
+import { useMoveQuestion } from '@jush-ai/web-ui/targets/move-question'
+import type { DeviceChoice } from '@jush-ai/web-ui/targets/types'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
 import {
   applyAttachmentUpdate,
   arrangeCapsuleFiles,
@@ -43,13 +43,13 @@ import {
   type ComposerFileAttachment,
   type UploadedFile,
   type UploadFile,
-} from '@demicodes/web-ui/agent/message-input/attachments'
-import { applyModelChange, type ModelSettings, type ModelSettingsChange } from '@demicodes/web-ui/agent/model-selection'
-import type { ModelInfo, ProviderInfo } from '@demicodes/web-ui/transport/protocol'
+} from '@jush-ai/web-ui/agent/message-input/attachments'
+import { applyModelChange, type ModelSettings, type ModelSettingsChange } from '@jush-ai/web-ui/agent/model-selection'
+import type { ModelInfo, ProviderInfo } from '@jush-ai/web-ui/transport/protocol'
 import { demoProviders, usageAt } from '../fixtures/catalog'
 import { composerModels, setGalleryContextLimit, withContextLimits } from '../fixtures/context-limits'
 import { productWould } from '../product-would'
-import type { SendWay, SendWhileRunning } from '@demicodes/web-ui/agent/send-way'
+import type { SendWay, SendWhileRunning } from '@jush-ai/web-ui/agent/send-way'
 import { galleryMessages } from '../fixtures/send-while-running'
 import { demoInstructions, demoOpenInstruction } from '../fixtures/instructions'
 import type { SentMessage, RecallComposer } from '../turn-flow'

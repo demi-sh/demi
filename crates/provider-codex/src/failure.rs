@@ -5,10 +5,10 @@
 //! - A usage limit says when it lifts, in the failure's own fields.
 //! - Anything else falls back to the standard reading.
 
-use demi_provider_common::{
+use jush_provider_common::{
     ErrorCode, HttpFailureRecord, ProviderFailure, quota::unix_seconds, read_http_failure,
 };
-use demi_shared_types::{FailureSource, ProviderErrorDiagnostics, ProviderFailureFacts, Timestamp};
+use jush_shared_types::{FailureSource, ProviderErrorDiagnostics, ProviderFailureFacts, Timestamp};
 
 /// The error type Codex refuses a request with when the account's plan
 /// window is used up.

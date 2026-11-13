@@ -50,7 +50,7 @@ export async function runSteps(steps: Step[]): Promise<never> {
     // Bun reads the repository's .env into this process's environment but
     // not into a package script's, and a child gets the environment this
     // process started with unless given `process.env`: so the .env's
-    // variables (DEMI_DEV_PROVIDER_* for `xtask dev`) reach the steps.
+    // variables (JUSH_DEV_PROVIDER_* for `xtask dev`) reach the steps.
     child = Bun.spawn(step.command, {
       cwd: step.cwd,
       env: process.env,

@@ -2,8 +2,8 @@
 //! configuration, device token and lock, and the record of the runner that
 //! holds it. Each file is checked as it is read.
 
-use demi_runner_process::private_files::{chmod, write_private};
-use demi_runner_protocol::values::{BackendUrl, DeviceToken};
+use jush_runner_process::private_files::{chmod, write_private};
+use jush_runner_protocol::values::{BackendUrl, DeviceToken};
 use serde::{Deserialize, Serialize};
 use std::{
     io,

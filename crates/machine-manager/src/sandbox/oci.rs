@@ -41,8 +41,8 @@
 
 use std::{collections::HashSet, path::Path};
 
-use demi_machine_manager_protocol::image::{INIT_PATH, PROGRAMS_PATH, RUNNER_PATH};
-use demi_runner_protocol::{
+use jush_machine_manager_protocol::image::{INIT_PATH, PROGRAMS_PATH, RUNNER_PATH};
+use jush_runner_protocol::{
     boot::{BACKEND_SOCKET, TEMPORARY_DIRECTORY},
     release::RELEASE_ENV,
 };
@@ -76,7 +76,7 @@ const BOUNDING: [Capability; 11] = [
 ];
 
 /// Where the runner reads its boot record inside the sandbox.
-pub const BOOT_RECORD: &str = "/run/demi-boot.json";
+pub const BOOT_RECORD: &str = "/run/jush-boot.json";
 
 /// The CFS period the CPU budget is a quota of.
 const CPU_PERIOD: u64 = 100_000;
@@ -103,7 +103,7 @@ pub struct Boot<'a> {
     pub backend_socket: &'a Path,
 }
 
-/// A sandbox's cgroup under `demi-cloud`, named by the sandbox id, and its
+/// A sandbox's cgroup under `jush-cloud`, named by the sandbox id, and its
 /// limits.
 pub struct Cgroup<'a> {
     pub name: &'a str,
@@ -137,7 +137,7 @@ pub fn spec(boot: &Boot<'_>) -> Result<Spec, OciSpecError> {
                 .umask(0o022u32)
                 .build()?,
         )
-        .cwd("/home/demi")
+        .cwd("/home/jush")
         .args(
             [
                 INIT_PATH,
@@ -151,9 +151,9 @@ pub fn spec(boot: &Boot<'_>) -> Result<Spec, OciSpecError> {
             .to_vec(),
         )
         .env(vec![
-            "HOME=/home/demi".into(),
-            "USER=demi".into(),
-            "LOGNAME=demi".into(),
+            "HOME=/home/jush".into(),
+            "USER=jush".into(),
+            "LOGNAME=jush".into(),
             "LANG=C.UTF-8".into(),
             "PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin".into(),
             format!("{RELEASE_ENV}={}", boot.runner_release),
@@ -196,7 +196,7 @@ pub fn spec(boot: &Boot<'_>) -> Result<Spec, OciSpecError> {
             let memory = i64::try_from(cgroup.limits.memory_bytes().get())
                 .expect("a memory limit fits in i64");
             linux
-                .cgroups_path(format!("/demi-cloud/{}", cgroup.name))
+                .cgroups_path(format!("/jush-cloud/{}", cgroup.name))
                 .resources(
                     LinuxResourcesBuilder::default()
                         .cpu(
@@ -232,7 +232,7 @@ pub fn spec(boot: &Boot<'_>) -> Result<Spec, OciSpecError> {
                 .build()?,
         )
         .process(process)
-        .hostname("demi-cloud")
+        .hostname("jush-cloud")
         .mounts(mounts(boot.directory, boot.backend_socket)?)
         .linux(linux)
         .build()?;

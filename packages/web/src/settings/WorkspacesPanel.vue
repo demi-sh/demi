@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import SettingsWorkspaces, { type SettingsWorkspace } from '@demicodes/web-ui/settings/SettingsWorkspaces.vue'
+import SettingsWorkspaces, { type SettingsWorkspace } from '@jush-ai/web-ui/settings/SettingsWorkspaces.vue'
 import { useConversations } from '../conversation/store'
 import { useResources } from '../state/resources'
 import { useWorkspaces } from '../state/workspaces'

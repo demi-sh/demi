@@ -2,7 +2,7 @@
 //! and what each path is. A plugin asks them through its port, and the
 //! product and the agent runtime read a project's files with them.
 
-use demi_shared_types::B64Bytes;
+use jush_shared_types::B64Bytes;
 use serde::{Deserialize, Serialize};
 
 /// One path read on a device, as the device names it, and the most

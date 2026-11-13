@@ -20,18 +20,18 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use demi_conversation_lane_protocol::Failures;
-use demi_provider_common::Provider;
-use demi_provider_common::ErrorCode;
-use demi_shared_types::{
+use jush_conversation_lane_protocol::Failures;
+use jush_provider_common::Provider;
+use jush_provider_common::ErrorCode;
+use jush_shared_types::{
     Block, ContinueWith, ErrorBlock, ProviderFailureFacts, Rotation, SignedOutAccount, Timestamp,
 };
-use demi_web_api_protocol::ids::{CredentialId, ProviderId};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId};
 
-use demi_backend_providers::vault::entries::Vault;
-use demi_provider_registry::registry::ProviderRegistry;
-use demi_provider_registry::rotation::Candidate;
-use demi_provider_registry::entry::ProviderEntry;
+use jush_backend_providers::vault::entries::Vault;
+use jush_provider_registry::registry::ProviderRegistry;
+use jush_provider_registry::rotation::Candidate;
+use jush_provider_registry::entry::ProviderEntry;
 
 use crate::shard::device_requests::through_device;
 

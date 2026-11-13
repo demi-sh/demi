@@ -5,7 +5,7 @@
 
 use std::io;
 
-use demi_machine_manager_protocol::{DeviceId, IdError};
+use jush_machine_manager_protocol::{DeviceId, IdError};
 
 use crate::{
     blocking::{self, OffLoop},

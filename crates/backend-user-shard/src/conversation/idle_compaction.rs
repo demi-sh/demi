@@ -34,13 +34,13 @@ use std::collections::HashMap;
 use std::rc::{Rc, Weak};
 use std::time::Duration;
 
-use demi_agent_session::IdleCompactionDue;
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::idle_compactions::IdleCompaction;
-use demi_backend_device_access::root_of;
-use demi_shared_types::IDLE_COMPACTION_CONTEXT;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_agent_session::IdleCompactionDue;
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::idle_compactions::IdleCompaction;
+use jush_backend_device_access::root_of;
+use jush_shared_types::IDLE_COMPACTION_CONTEXT;
+use jush_web_api_protocol::ids::ConversationId;
 use tokio_util::task::AbortOnDropHandle;
 
 use crate::shard::{Shard, Shards};

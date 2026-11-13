@@ -31,12 +31,12 @@ use std::{
     time::Duration,
 };
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     BaseVersion,
     image::{Architecture, CloudImageManifest, INIT_PATH, ManifestError, RUNNER_PATH},
 };
-use demi_machine_manager_protocol::MachineImageState;
-use demi_shared_artifacts::{Digest, Verifier};
+use jush_machine_manager_protocol::MachineImageState;
+use jush_shared_artifacts::{Digest, Verifier};
 use serde::{Deserialize, Serialize};
 use rustix::fs::{Mode, OFlags, ResolveFlags};
 use sha2::Digest as _;
@@ -71,7 +71,7 @@ pub enum BaseError {
     #[error("Pinned Cloud image manifest differs")]
     Differs,
     #[error("Cloud root archive integrity mismatch: {0}")]
-    Integrity(demi_shared_artifacts::Error),
+    Integrity(jush_shared_artifacts::Error),
     #[error(transparent)]
     Archive(#[from] ArchiveError),
     #[error(transparent)]

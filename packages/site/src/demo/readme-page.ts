@@ -13,7 +13,7 @@ export interface ReadmeCues {
 
 declare global {
   interface Window {
-    demiReadme?: ReadmeCues
+    jushReadme?: ReadmeCues
   }
 }
 

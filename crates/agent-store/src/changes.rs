@@ -36,9 +36,9 @@
 use std::collections::{HashMap, HashSet};
 
 use bytes::Bytes;
-use demi_command_protocol::line_counts;
-use demi_device_paths::is_inside;
-use demi_shared_types::{
+use jush_command_protocol::line_counts;
+use jush_device_paths::is_inside;
+use jush_shared_types::{
     AgentMessageEvent, B64Bytes, BlobRef, Block, BlockId, ChangedFile, CommandId, EditKind, EditedFile,
     FileEdit, LineCounts, PathChange, ReportEvent, ShellToolView, ToolView,
 };
@@ -83,7 +83,7 @@ fn place(block: &Block, sender_below: bool) -> Place {
         // reads among its steps. A message from above or beside, such as
         // its parent's or a sibling's, is an instruction it works from and
         // ends a run, as the user's words do; so do the receipts of the
-        // user's decisions and Demi's notices.
+        // user's decisions and Jush's notices.
         Block::AgentMessage(message) => match message.message.event {
             AgentMessageEvent::Completion { .. } => Place::Step,
             AgentMessageEvent::Message {} if sender_below => Place::Step,

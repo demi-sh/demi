@@ -9,7 +9,7 @@ entries to the ChatGPT and Grok subscriptions.
 
 ## Problem
 
-Alex's Demi server is in a data center, and Alex wants their ChatGPT
+Alex's Jush server is in a data center, and Alex wants their ChatGPT
 subscription's requests to leave from the MacBook at home, as an API-key
 entry's can since 0199. The ChatGPT page in Settings has no Connect Through
 row, and the backend refuses a device for any entry that is not an API
@@ -38,7 +38,7 @@ ChatGPT
 
 - Everything 0199 says of the choice holds: an offline device fails the
   request at once, a removed one fails it until another is chosen,
-  `demi providers` sets it, and an administrator's shared subscription goes
+  `jush providers` sets it, and an administrator's shared subscription goes
   out through the administrator's device for every user of it.
 - A sign-in of the provider goes out through its device too, so a sign-in
   through an offline device fails at once with "alex-mbp is offline".
@@ -90,7 +90,7 @@ None.
 - CLIProxyAPI, which serves Codex and Claude subscriptions signed in by
   OAuth, sends their requests through one `proxy-url` for the whole server
   ([configuration](https://pkg.go.dev/github.com/router-for-me/CLIProxyAPI/v6@v6.2.23)).
-  Demi's choice is each provider's, as 0199's is.
+  Jush's choice is each provider's, as 0199's is.
 
 ## Alternatives
 

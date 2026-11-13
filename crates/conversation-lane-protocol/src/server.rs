@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use demi_shared_types::{
+use jush_shared_types::{
     BlobRef, BlockId, CommandId, DeviceId, MAX_SAFE_INTEGER, NodeId, Nullable, OperationId,
     ProviderErrorDiagnostics, ProviderFailureFacts, RequestId, TurnId,
 };
@@ -496,7 +496,7 @@ pub struct AbortResult {
     /// page that stopped it; omitted otherwise.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[garde(skip)]
-    pub given_back: Option<demi_shared_types::QueuedMessage>,
+    pub given_back: Option<jush_shared_types::QueuedMessage>,
 }
 
 /// The one thing an `abort` stops, in the order it looks for one.

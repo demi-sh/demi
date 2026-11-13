@@ -9,13 +9,13 @@ use crate::values::{BackendUrl, DeviceToken};
 /// whose directory the machine manager mounts into the sandbox
 /// (`crates/backend-http/src/lib.rs`). The record's URL still names the
 /// backend's origin.
-pub const BACKEND_SOCKET: &str = "/run/demi-backend/runners.sock";
+pub const BACKEND_SOCKET: &str = "/run/jush-backend/runners.sock";
 
 /// A managed runner's temporary directory, on the system image and private
-/// to `demi`: the runner's environment names it as `TMPDIR`, and the runner
+/// to `jush`: the runner's environment names it as `TMPDIR`, and the runner
 /// empties it when it starts, once per boot
 /// (`crates/machine-manager/src/storage/mod.rs`).
-pub const TEMPORARY_DIRECTORY: &str = "/var/lib/demi/tmp";
+pub const TEMPORARY_DIRECTORY: &str = "/var/lib/jush/tmp";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -35,7 +35,7 @@ pub struct ManagedBoot {
 /// file `file` listens on beside it: the file's path, so two backends on one
 /// device have two names.
 pub fn abstract_socket(file: &std::path::Path) -> String {
-    format!("demi-runners:{}", file.display())
+    format!("jush-runners:{}", file.display())
 }
 
 /// The path that connects to the abstract socket `name`, which tokio reads

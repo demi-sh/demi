@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import { shownAmong } from '../fixtures/device-marks'
 import { correction } from '../fixtures/request-failures'
-import type { ShownError } from '@demicodes/web-ui/infra/errors'
+import type { ShownError } from '@jush-ai/web-ui/infra/errors'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import FileBrowser from '@demicodes/web-ui/files/FileBrowser.vue'
-import FileBrowserAddressBar from '@demicodes/web-ui/files/FileBrowserAddressBar.vue'
-import FileBrowserDialog from '@demicodes/web-ui/files/FileBrowserDialog.vue'
-import ProjectDialog from '@demicodes/web-ui/targets/ProjectDialog.vue'
-import DevicePairingDialog from '@demicodes/web-ui/devices/DevicePairingDialog.vue'
-import { useDevicePairing, type PairingResult } from '@demicodes/web-ui/devices/pairing'
-import { baseName, delay } from '@demicodes/utils'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import FileBrowser from '@jush-ai/web-ui/files/FileBrowser.vue'
+import FileBrowserAddressBar from '@jush-ai/web-ui/files/FileBrowserAddressBar.vue'
+import FileBrowserDialog from '@jush-ai/web-ui/files/FileBrowserDialog.vue'
+import ProjectDialog from '@jush-ai/web-ui/targets/ProjectDialog.vue'
+import DevicePairingDialog from '@jush-ai/web-ui/devices/DevicePairingDialog.vue'
+import { useDevicePairing, type PairingResult } from '@jush-ai/web-ui/devices/pairing'
+import { baseName, delay } from '@jush-ai/utils'
 import { demoInstallCommands } from '../fixtures/device-installation'
-import type { ProjectDevice, ProjectDraft, ProjectDeviceChoice, ProjectProject } from '@demicodes/web-ui/targets/project'
-import FileIcon from '@demicodes/web-ui/files/FileIcon.vue'
-import FileTree from '@demicodes/web-ui/files/FileTree.vue'
-import FileView from '@demicodes/web-ui/files/FileView.vue'
-import UploadConflictDialog from '@demicodes/web-ui/files/UploadConflictDialog.vue'
-import { uploadsOf, type FileUploads, type UploadClash, type UploadItem, type UploadPlacement } from '@demicodes/web-ui/files/file-uploads'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import type { ProjectDevice, ProjectDraft, ProjectDeviceChoice, ProjectProject } from '@jush-ai/web-ui/targets/project'
+import FileIcon from '@jush-ai/web-ui/files/FileIcon.vue'
+import FileTree from '@jush-ai/web-ui/files/FileTree.vue'
+import FileView from '@jush-ai/web-ui/files/FileView.vue'
+import UploadConflictDialog from '@jush-ai/web-ui/files/UploadConflictDialog.vue'
+import { uploadsOf, type FileUploads, type UploadClash, type UploadItem, type UploadPlacement } from '@jush-ai/web-ui/files/file-uploads'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { LINKS, SHOTS_DIR, TREE_ROOT, TREE_SELECTED, failingSource, limitedSearchSource, linksSource, offlineSource, rowsSource, screenshotsSource, searchSource, searchingSource, sizedFile, sizedFolder, stuckSource, uploadSource } from '../fixtures/file-trees'
-import { createMemoryFileSource, dir, file } from '@demicodes/web-ui/files/memory-source'
-import type { FileBrowserMode, FileBrowserPlaceGroup, FileBrowserSource } from '@demicodes/web-ui/files/types'
-import Segmented, { type SegmentedOption } from '@demicodes/web-ui/ui/Segmented.vue'
+import { createMemoryFileSource, dir, file } from '@jush-ai/web-ui/files/memory-source'
+import type { FileBrowserMode, FileBrowserPlaceGroup, FileBrowserSource } from '@jush-ai/web-ui/files/types'
+import Segmented, { type SegmentedOption } from '@jush-ai/web-ui/ui/Segmented.vue'
 import GalleryDialogFrame from '../components/GalleryDialogFrame.vue'
 import { productWould } from '../product-would'
 import GallerySection from '../components/GallerySection.vue'
@@ -123,8 +123,8 @@ async function claimProjectDevice(_code: string, signal?: AbortSignal): Promise<
 }
 const knownProjects = ref<ProjectProject[]>([
   {
-    id: 'demi',
-    name: 'demi',
+    id: 'jush',
+    name: 'jush',
     device: 'alex-mbp',
     path: '/Users/alex/Projects/shop'
   },
@@ -142,10 +142,10 @@ const projectKey = ref(0)
 const cloudSource = createMemoryFileSource(
   {
     platform: 'linux',
-    home: '/home/demi',
+    home: '/home/jush',
     root: dir({
       home: dir({
-        demi: dir({ project: dir({}), scratch: dir({}) })
+        jush: dir({ project: dir({}), scratch: dir({}) })
       })
     })
   }
@@ -157,7 +157,7 @@ const sourceFor = (id: string) =>
 const placesFor = (id: string): FileBrowserPlaceGroup[] => (id === 'cloud' ? [
   {
     label: 'Quick Access',
-    places: [{ path: '/home/demi', label: 'Home' }]
+    places: [{ path: '/home/jush', label: 'Home' }]
   }
 ] : (devices.find((each) => each.id === id) ?? devices[0]!).places)
 function createProject(draft: ProjectDraft) {
@@ -178,7 +178,7 @@ function createProject(draft: ProjectDraft) {
       id: `p-${Date.now()}`,
       name,
       device,
-      path: draft.kind === 'cloud' ? `/home/demi/${name}` : draft.path
+      path: draft.kind === 'cloud' ? `/home/jush/${name}` : draft.path
     }
   )
   projectKey.value += 1
@@ -429,7 +429,7 @@ const questions: { variant: string; clashes: UploadClash[]; directory: string; o
       { name: 'src', isDirectory: true, takenByDirectory: true },
       { name: 'README.md', isDirectory: false, takenByDirectory: false },
     ],
-    directory: 'demi',
+    directory: 'jush',
     others: { files: 1, folders: 0 },
   },
 ]

@@ -15,21 +15,21 @@ Supersedes:
 ## Problem
 
 Alex asks the agent for a 4-second transition shot with Gemini Omni. The
-agent runs `demi video generate --model gemini-omni-1.1-flash --duration 4
-…`. Demi sends no length: the Omni maker lists `--duration` among the
+agent runs `jush video generate --model gemini-omni-1.1-flash --duration 4
+…`. Jush sends no length: the Omni maker lists `--duration` among the
 options its request has no field for, although the catalog states that
 Omni takes 3 to 10 seconds and Google's own Omni client sends
 `response_format.duration`. Omni makes its default, 10 seconds, and Alex
 pays for 10. The command says so only after the video is paid for:
 
 ```text
-demi video generate: warning: Gemini Interactions takes no --duration
+jush video generate: warning: Gemini Interactions takes no --duration
 ```
 
 Two lists say what a video model takes, and they disagree:
 
 - The catalog states each model's durations, resolutions, aspect ratios,
-  frames, references and sound, and `demi video models` shows them.
+  frames, references and sound, and `jush video models` shows them.
 - Each maker keeps its own list of the options its request leaves out
   (`VideoMaker::unsent`), and an option on it is dropped from a request
   that is sent and paid for all the same.
@@ -58,9 +58,9 @@ call that asks for what the entry states the model does not take fails
 before anything is sent, and costs nothing:**
 
 ```text
-demi video generate: gemini-omni-1.1-flash takes --duration 3 to 10
-demi video generate: doubao-seedance-2-0-260128 takes no --seed
-demi video generate: MiniMax-H3 takes no --aspect with --image: the image sets the shape
+jush video generate: gemini-omni-1.1-flash takes --duration 3 to 10
+jush video generate: doubao-seedance-2-0-260128 takes no --seed
+jush video generate: MiniMax-H3 takes no --aspect with --image: the image sets the shape
 ```
 
 Every option the entry does not exclude is sent. A fact the entry does not
@@ -69,7 +69,7 @@ facts has it. A model that makes sound always, such as Omni, honors
 `--audio` without a field for it, and a silent one `--no-audio`; asked the
 other, each fails.
 
-`demi video edit` and `demi video extend` take no `--aspect`: the vendors
+`jush video edit` and `jush video extend` take no `--aspect`: the vendors
 keep the shape of the video they change, so the option asked nothing a
 vendor does.
 
@@ -94,7 +94,7 @@ pub seed: Option<bool>,
 pub aspect_with_first_frame: Option<bool>,
 ```
 
-The entries of the four video vendors Demi supports, Google, xAI,
+The entries of the four video vendors Jush supports, Google, xAI,
 ByteDance (BytePlus and Volcengine) and MiniMax, state every fact their
 APIs state.
 
@@ -161,12 +161,12 @@ resolution and length the model takes.
   ratios and resolutions, and the video page's settings are made from
   them (`src/store/video/slices/generationConfig`)
   (`packages/model-bank/src/aiModels/google/index.ts` in
-  [lobehub/lobehub](https://github.com/lobehub/lobehub)). Demi's catalog
+  [lobehub/lobehub](https://github.com/lobehub/lobehub)). Jush's catalog
   plays that part.
 - The Vercel AI SDK's xAI video model returns an option it lacks as an
   `unsupported` warning on the result, after the call
   (`packages/xai/src/xai-video-model.ts` in
-  [vercel/ai](https://github.com/vercel/ai)), which is what Demi does
+  [vercel/ai](https://github.com/vercel/ai)), which is what Jush does
   today and what this record turns into a refusal before the call.
 
 ## Alternatives

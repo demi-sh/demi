@@ -1,12 +1,12 @@
-//! The `demi mobile` group (`crates/plugin-mobile/command/src/operations.rs`): one native leaf per
-//! operation of the `demi.mobile` package, its arguments and `--json` result
+//! The `jush mobile` group (`crates/plugin-mobile/command/src/operations.rs`): one native leaf per
+//! operation of the `jush.mobile` package, its arguments and `--json` result
 //! declared from the `command-package-mobile-protocol` types, so the command
 //! line, the runner's check and the operation read one definition.
 
-use demi_command_declarations::NativeOperation;
-use demi_command_package_mobile_protocol::PACKAGE;
-use demi_command_package_mobile_protocol::mobile::*;
-use demi_device_interface::{GroupBuilder, LeafBuilder};
+use jush_command_declarations::NativeOperation;
+use jush_command_package_mobile_protocol::PACKAGE;
+use jush_command_package_mobile_protocol::mobile::*;
+use jush_device_interface::{GroupBuilder, LeafBuilder};
 
 /// The group's summary.
 const SUMMARY: &str = "Operate the simulators of the device running this shell, as a person would, while the user watches and operates them in their window. Every coordinate is a pixel of the simulator's screenshot. Element references come from inspect.";
@@ -35,8 +35,8 @@ macro_rules! operations {
 operations! {
     "list" => ListInput, ListResult, "List this device's simulators: the simctl id or AVD name open takes, platform, system, state, the handle while open here, model and name; why a platform has none is a warning on stderr.";
     "open" => OpenInput, OpenResult, format!("Open a simulator by its name or simctl id, booting it without a window when it is shut down; prints its handle, such as m1, its screenshot size and its simctl id, and shows it in the user's Simulators window."); 
-    "close" => CloseInput, CloseResult, "Close a device; shuts it down when demi mobile booted it, else leaves it booted.";
-    "screenshot" => ScreenshotInput, ScreenshotResult, format!("Capture the settled screen: its PNG's bytes on stdout, its long side at most {SCREENSHOT_LONG_SIDE} pixels, so demi mobile screenshot m1 | demi file view shows it to you and > shot.png saves it; or save a new PNG with --output. Waits up to 1.5 s for the screen to stop changing.");
+    "close" => CloseInput, CloseResult, "Close a device; shuts it down when jush mobile booted it, else leaves it booted.";
+    "screenshot" => ScreenshotInput, ScreenshotResult, format!("Capture the settled screen: its PNG's bytes on stdout, its long side at most {SCREENSHOT_LONG_SIDE} pixels, so jush mobile screenshot m1 | jush file view shows it to you and > shot.png saves it; or save a new PNG with --output. Waits up to 1.5 s for the screen to stop changing.");
     "inspect" => InspectInput, InspectResult, "Read the settled screen's UI tree, alerts and the keyboard included: each element's ref, role, label, value, identifier, frame in screenshot pixels and state.";
     "tap" => TapInput, TapResult, "Tap an element, or x y in screenshot pixels: tap m1 text=Continue, tap m1 id=submit, tap m1 e7 (a ref from the last inspect), tap m1 540 1210. text= and id= need no inspect and wait until the element is there, 10 s by default. Returns once the device took the tap; wait waits for what the tap changes.";
     "swipe" => SwipeInput, SwipeResult, "Swipe from x1 y1 to x2 y2 in screenshot pixels, or across an element so its content moves up, down, left or right: swipe m1 id=list up.";
@@ -79,7 +79,7 @@ fn leaf<I: schemars::JsonSchema, R: schemars::JsonSchema>(
         .json_output::<R>()
         .success_output(match name {
             "screenshot" => {
-                "the PNG's bytes on stdout and what it captured on stderr, so pipe it into demi file view to see it or redirect it to save it; with --output, the file saved; --json requires --output"
+                "the PNG's bytes on stdout and what it captured on stderr, so pipe it into jush file view to see it or redirect it to save it; with --output, the file saved; --json requires --output"
             }
             "record" => "start and stop: the recording's ID and state; frames: the changed frames as a table; note: the time it shows from; export: one image path per line, or with --sheet the sheet's path, or with --mp4 the video's bytes on stdout, or with --output the file saved",
             _ => SUCCESS,

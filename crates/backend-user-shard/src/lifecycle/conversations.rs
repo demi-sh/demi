@@ -64,13 +64,13 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
 
-use demi_backend_idle_watch::{Activity, IdlePolicy, Retirement};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_idle_watch::{Activity, IdlePolicy, Retirement};
+use jush_web_api_protocol::ids::ConversationId;
 use tokio_util::task::AbortOnDropHandle;
 use tracing::Instrument as _;
 
 use crate::shard::Shard;
-use demi_backend_device_access::root_of;
+use jush_backend_device_access::root_of;
 
 /// The idle watch of each conversation that reached a device.
 #[derive(Default)]
@@ -116,7 +116,7 @@ impl Shard {
             id: id.clone(),
         };
         let lifecycle = &self.services().lifecycle;
-        let watch = demi_backend_idle_watch::watch(
+        let watch = jush_backend_idle_watch::watch(
             policy,
             lifecycle.idle_window,
             lifecycle.idle_poll,

@@ -7,7 +7,7 @@
 // the product's own.
 //
 // ```text
-//   check: demi.model.answers([...])
+//   check: jush.model.answers([...])
 //                |
 //                v
 //   page --> backend --> POST /v1/messages --> next answer, as the
@@ -27,7 +27,7 @@
 //   its stream begins, with a 400 the backend does not try again, and stays
 //   queued: a stream that broke midway would be tried again, and the try
 //   would take the next answer.
-// - Its usage is Demi's own estimate, a token for each 4 bytes: the request's
+// - Its usage is Jush's own estimate, a token for each 4 bytes: the request's
 //   JSON as its input, the answer's text as its output, so the context
 //   indicator and compaction see a conversation the size it is.
 // - The queue lives as long as the tool's server. A server that starts again

@@ -1,5 +1,5 @@
-import type { Block, ChangedFile, EditCopies, EditedFile, EditKind, FileEdit, LineCounts } from '@demicodes/protocol'
-import type { HeldTranscript } from '@demicodes/conversation-client'
+import type { Block, ChangedFile, EditCopies, EditedFile, EditKind, FileEdit, LineCounts } from '@jush-ai/protocol'
+import type { HeldTranscript } from '@jush-ai/conversation-client'
 import { z } from 'zod'
 import { storedShellView, toolCallTitle } from '../agent/block-helpers'
 import type { ToolCallBlock } from '../agent/block-types'

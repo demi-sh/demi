@@ -4,7 +4,7 @@
 //!
 //! - server-sent event framing;
 //! - the two-step decode of payloads tagged by `type`;
-//! - fields Demi only reports;
+//! - fields Jush only reports;
 //! - the OpenAI-shaped Responses and Chat Completions streams with their
 //!   mappers onto a run's events;
 //! - the token counts of the Anthropic Messages stream.
@@ -28,7 +28,7 @@ mod tagged;
 
 use std::sync::Arc;
 
-use demi_shared_types::{Clock, TokenUsage};
+use jush_shared_types::{Clock, TokenUsage};
 
 use crate::{FailureReader, ProviderFailure};
 
@@ -66,7 +66,7 @@ pub struct Vendor {
 /// The usage an OpenAI-shaped API reports, whose input count includes what it
 /// read from its cache and what it wrote to it.
 ///
-/// Demi keeps the three apart, so both leave the input count. An absent count
+/// Jush keeps the three apart, so both leave the input count. An absent count
 /// is zero.
 pub(crate) fn usage_with_cached_input(
     input: Option<u64>,
@@ -94,9 +94,9 @@ pub(crate) fn tool_input(text: &str) -> serde_json::Value {
     serde_json::from_str(text).unwrap_or_else(|_| serde_json::Value::String(text.to_owned()))
 }
 
-/// The failure of a frame Demi cannot decode: no code, the source `stream`,
+/// The failure of a frame Jush cannot decode: no code, the source `stream`,
 /// and the frame's text as its record; it is never retried automatically.
 pub fn undecodable(label: &str, error: &WireError, text: &str) -> ProviderFailure {
-    let message = format!("{label} API stream sent a frame Demi cannot read: {error}");
+    let message = format!("{label} API stream sent a frame Jush cannot read: {error}");
     ProviderFailure::protocol(message, text)
 }

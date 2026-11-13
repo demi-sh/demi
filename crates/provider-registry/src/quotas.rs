@@ -26,9 +26,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, PoisonError, Weak};
 use std::time::Duration;
 
-use demi_provider_common::quota::QuotaSnapshotStore;
-use demi_shared_types::{Clock, QuotaSnapshot, SnapshotSource, Timestamp};
-use demi_web_api_protocol::ids::{CredentialId, ProviderId};
+use jush_provider_common::quota::QuotaSnapshotStore;
+use jush_shared_types::{Clock, QuotaSnapshot, SnapshotSource, Timestamp};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId};
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 

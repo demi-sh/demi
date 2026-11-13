@@ -4,7 +4,7 @@
 
 use std::{num::NonZeroU32, sync::Arc};
 
-use demi_shared_types::{
+use jush_shared_types::{
     AccountSwitchCause, AgentAccount, AuthState, B64Bytes, MODEL_MEDIA_TYPES, Model, ModelMediaKind, ModelSelection, ProviderErrorDiagnostics,
     ProviderFailureFacts, ProviderModelList, QuotaWindow, QuotaWindowName, RuntimeState, ThinkingConfig, ThinkingForm,
     Timestamp,
@@ -59,7 +59,7 @@ pub trait Provider: std::any::Any + Send + Sync {
 
     /// The models the key may call for a conversation, by the vendor's own
     /// list read through `http`, the entry's client; `None` for a provider
-    /// whose vendor keeps no such list Demi trusts.
+    /// whose vendor keeps no such list Jush trusts.
     ///
     /// The list takes models out of the vendor's models.dev list
     /// (`crates/provider-registry/src/catalog.rs`), and states how a model
@@ -139,7 +139,7 @@ impl OfferedModel {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Capabilities {
     /// The command package whose CLI its requests run as a process on a
-    /// machine the backend places them on, such as `demi.claude-code`; none
+    /// machine the backend places them on, such as `jush.claude-code`; none
     /// for a provider whose requests are HTTP.
     pub cli_package: Option<&'static str>,
 }
@@ -499,7 +499,7 @@ impl RequestPurpose {
 /// A vendor finds what it has cached only when a request begins with exactly
 /// what an earlier one sent. So each request of a session begins with the
 /// session's previous request, byte for byte, in the provider's own format, and
-/// only new content follows. Demi never rewrites what it has sent.
+/// only new content follows. Jush never rewrites what it has sent.
 ///
 /// What changes the prefix:
 ///
@@ -508,7 +508,7 @@ impl RequestPurpose {
 /// - an edit;
 /// - a change of the thinking setting;
 /// - an edit of a configured model's accepted file types;
-/// - a Demi release that changes the system prompt, the tools or the request
+/// - a Jush release that changes the system prompt, the tools or the request
 ///   format.
 ///
 /// What does not:
@@ -549,7 +549,7 @@ impl InferenceRequest {
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 pub struct RequestBlock {
     pub items: std::ops::Range<usize>,
-    pub entries: Vec<demi_shared_types::Entry>,
+    pub entries: Vec<jush_shared_types::Entry>,
     /// Compaction kept the block after a summary, which replaced the history
     /// its entries were written after: what an entry recorded of that history,
     /// such as the reasoning the vendor checks against it or the size of the
@@ -589,12 +589,12 @@ pub enum InferenceItem {
         kept_past_summary: bool,
     },
     /// A step the vendor ran on its side
-    /// (`demi_shared_types::OpaqueBlock`), with every entry of its record.
+    /// (`jush_shared_types::OpaqueBlock`), with every entry of its record.
     /// A provider sends only the entries it owns, as they came, and nothing
     /// of the step when it owns none.
     Opaque {
         model_id: String,
-        entries: Vec<demi_shared_types::Entry>,
+        entries: Vec<jush_shared_types::Entry>,
         /// As for [`Self::AssistantThinking`].
         kept_past_summary: bool,
     },
@@ -743,7 +743,7 @@ pub enum ProviderEvent {
     /// model sees in this run.
     Entries {
         of: EntriesOf,
-        entries: Vec<demi_shared_types::Entry>,
+        entries: Vec<jush_shared_types::Entry>,
     },
     /// One call to the vendor of a run that makes several, such as a Claude
     /// Code run in which the CLI calls the vendor more than once.
@@ -929,11 +929,11 @@ pub struct OpaqueStep {
     /// The vendor's id of the step, which its later events name; none for a
     /// step the vendor gives whole.
     pub call_id: Option<String>,
-    pub status: demi_shared_types::OpaqueStatus,
-    pub view: demi_shared_types::OpaqueView,
+    pub status: jush_shared_types::OpaqueStatus,
+    pub view: jush_shared_types::OpaqueView,
     /// Entries of the vendor's record of the step, owned by the provider;
     /// an update adds its own after those the step holds.
-    pub entries: Vec<demi_shared_types::Entry>,
+    pub entries: Vec<jush_shared_types::Entry>,
 }
 
 /// A tool call the model requested.

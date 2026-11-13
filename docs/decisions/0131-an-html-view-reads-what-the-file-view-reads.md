@@ -10,11 +10,11 @@ to the files of the workspace that are not hidden.
 ## Problem
 
 An agent writes `report.html` in its scratch directory,
-`/Users/alex/.demi/scratch/1a2b3c4d5e6f/`, and gives it as an attachment.
+`/Users/alex/.jush/scratch/1a2b3c4d5e6f/`, and gives it as an attachment.
 Alex opens the attachment, and the File view shows
 `{"code":"not_found","message":"No such file"}` in place of the page: the
 HTML route refuses a path with a name that starts with `.`, and every
-scratch directory lies under `.demi`. When the working directory is a
+scratch directory lies under `.jush`. When the working directory is a
 project, such as `/Users/alex/shop`, the grant refuses the file before that,
 because it is outside the working directory.
 
@@ -28,7 +28,7 @@ An HTML view loads any file the File view can read, wherever it is on the
 Host.
 
 - **The grant** answers the file's absolute path, its names from the root
-  joined by `/`: `/api/html/<token>/Users/alex/.demi/scratch/1a2b3c4d5e6f/report.html`.
+  joined by `/`: `/api/html/<token>/Users/alex/.jush/scratch/1a2b3c4d5e6f/report.html`.
   A Windows path keeps its drive or share as its first names,
   `/api/html/<token>/C%3A/Users/alex/report.html`. A `:` in a name is
   encoded, so a folder's redirect to `a:b/` is not read as a scheme.
@@ -53,7 +53,7 @@ None.
 
 Jupyter Server serves the files under its root directory and refuses hidden
 ones unless `allow_hidden` is set, because its file browser keeps to that
-root too. Demi's File view keeps to no root, so its HTML view keeps to none
+root too. Jush's File view keeps to no root, so its HTML view keeps to none
 either.
 
 ## Alternatives

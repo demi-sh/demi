@@ -1,4 +1,4 @@
-import type { Versions } from '@demicodes/protocol'
+import type { Versions } from '@jush-ai/protocol'
 import type { MessageListBlock } from './pending-steers'
 
 /**

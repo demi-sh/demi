@@ -44,7 +44,7 @@ gVisor needs, in addition:
   manager's resource limits are on (the default). A host booted with
   `systemd.unified_cgroup_hierarchy=0`, as some hosts of Docker are, has them
   as v1. On v1 the memory limit covers swap only with `swapaccount=1`. A host
-  without them runs the manager with `DEMI_MANAGED_LIMITS=off`, and its Clouds
+  without them runs the manager with `JUSH_MANAGED_LIMITS=off`, and its Clouds
   then have no CPU, memory or PID limits.
 - No seccomp listener on the processes the system starts. gVisor intercepts
   system calls with a seccomp listener of its own, and the kernel allows one
@@ -67,7 +67,7 @@ Both runtimes need:
 gVisor needs, in addition:
 
 - `runsc`, the version `crates/machine-manager/runtime/release.json` pins,
-  from `/opt/demi/gvisor/<version>/`. `demi-server` fetches it before a
+  from `/opt/jush/gvisor/<version>/`. `jush-server` fetches it before a
   release that pins it runs.
 - `mke2fs`, `e2fsck` and `resize2fs` from e2fsprogs.
 - `nft` from nftables 0.9.3 or later, which reads the firewall's JSON.
@@ -102,7 +102,7 @@ Existing host firewalls must permit the manager's forwarded traffic:
 ## Configuration
 
 The manager reads the deployment's one configuration file,
-`/opt/demi/config/demi.env`, which the backend reads too
+`/opt/jush/config/jush.env`, which the backend reads too
 (`crates/backend/src/config/mod.rs`).
 
 ### Settings shared with the backend
@@ -111,27 +111,27 @@ The backend's definition of each holds.
 
 | Variable | What the manager does with it |
 | --- | --- |
-| `DEMI_RELEASE` | Imports the Cloud image in the release's `image/`. A server leaves it out: the manager takes its own executable's release, as the backend does. |
-| `DEMI_BACKEND_PUBLIC_URL` | Requires every boot record to name it: the origin a Cloud's runner names to its backend. |
-| `DEMI_MACHINE_MANAGER_SOCKET` | Listens on it. |
-| `DEMI_BACKEND_RUNNER_SOCKET` | Mounts its directory into each Cloud. |
+| `JUSH_RELEASE` | Imports the Cloud image in the release's `image/`. A server leaves it out: the manager takes its own executable's release, as the backend does. |
+| `JUSH_BACKEND_PUBLIC_URL` | Requires every boot record to name it: the origin a Cloud's runner names to its backend. |
+| `JUSH_MACHINE_MANAGER_SOCKET` | Listens on it. |
+| `JUSH_BACKEND_RUNNER_SOCKET` | Mounts its directory into each Cloud. |
 
 ### The manager's own settings
 
-- They carry the prefix `DEMI_MANAGED_`.
-- An unknown `DEMI_MANAGED_*` variable, or a malformed value, fails
+- They carry the prefix `JUSH_MANAGED_`.
+- An unknown `JUSH_MANAGED_*` variable, or a malformed value, fails
   configuration.
 - Counts and MiB sizes are positive decimal integers.
 
 | Variable | Meaning |
 | --- | --- |
-| `DEMI_MANAGED_DATA` | The manager's persistent state, on one filesystem; default `/opt/demi/data/cloud`. |
-| `DEMI_MANAGED_RUNSC` | The pinned runsc executable; default `/opt/demi/gvisor/<pinned version>/runsc`. A deployment leaves it out. |
-| `DEMI_MANAGED_PROOT` | The proot executable; default `bin/proot` in the manager's release. A deployment leaves it out. |
-| `DEMI_MANAGED_DNS` | The IPv4 resolvers a Cloud uses. Optional: see [DNS](#dns). |
-| `DEMI_MANAGED_LIMITS` | `on` (default) or `off`: whether gVisor sandboxes run under the cgroup CPU, memory and PID limits. |
-| `DEMI_MANAGED_CPUS`, `DEMI_MANAGED_MEM_MIB` | Per-sandbox CPU budget and total memory limit, with the limits on. Either one with `DEMI_MANAGED_LIMITS=off` fails configuration. |
-| `DEMI_MANAGED_SUBNET`, `DEMI_MANAGED_SLOTS` | The IPv4 address pool and the maximum number of network slots. |
+| `JUSH_MANAGED_DATA` | The manager's persistent state, on one filesystem; default `/opt/jush/data/cloud`. |
+| `JUSH_MANAGED_RUNSC` | The pinned runsc executable; default `/opt/jush/gvisor/<pinned version>/runsc`. A deployment leaves it out. |
+| `JUSH_MANAGED_PROOT` | The proot executable; default `bin/proot` in the manager's release. A deployment leaves it out. |
+| `JUSH_MANAGED_DNS` | The IPv4 resolvers a Cloud uses. Optional: see [DNS](#dns). |
+| `JUSH_MANAGED_LIMITS` | `on` (default) or `off`: whether gVisor sandboxes run under the cgroup CPU, memory and PID limits. |
+| `JUSH_MANAGED_CPUS`, `JUSH_MANAGED_MEM_MIB` | Per-sandbox CPU budget and total memory limit, with the limits on. Either one with `JUSH_MANAGED_LIMITS=off` fails configuration. |
+| `JUSH_MANAGED_SUBNET`, `JUSH_MANAGED_SLOTS` | The IPv4 address pool and the maximum number of network slots. |
 
 The sizing defaults and limits are in `crates/backend-cloud/src/tuning.rs`
 and `crates/machine-manager/src/config.rs`.
@@ -150,7 +150,7 @@ shipped profile, not settings.
 
 ### DNS
 
-`DEMI_MANAGED_DNS` is a comma-separated, nonempty list. It holds no loopback,
+`JUSH_MANAGED_DNS` is a comma-separated, nonempty list. It holds no loopback,
 unspecified, multicast or broadcast address.
 
 With it, every Cloud uses those resolvers. Without it, a Cloud on Simple
@@ -171,7 +171,7 @@ From those, it skips the addresses a sandbox cannot use
 - IPv6 addresses, which the sandbox turns off.
 
 If none remains, gVisor is unavailable, and the manager's start names
-`DEMI_MANAGED_DNS` as the reason. The manager never picks a public resolver
+`JUSH_MANAGED_DNS` as the reason. The manager never picks a public resolver
 itself. So a host whose resolver is a local cache with no upstream file sets
 the variable to run gVisor.
 
@@ -213,14 +213,14 @@ unchanged:
   a request without one through. A proxy that drops the header turns that
   check off; the backend's log then warns once.
 - Behind a proxy that rewrites `Host`, the backend refuses the product's own
-  pages, unless `DEMI_BACKEND_PUBLIC_URL` is their origin
+  pages, unless `JUSH_BACKEND_PUBLIC_URL` is their origin
   (`crates/backend-http/src/gate.rs`).
 
 To check a deployment from outside, send a request that names another
 origin:
 
 ```sh
-curl -s -X POST https://demi.example/api/auth/login \
+curl -s -X POST https://jush.example/api/auth/login \
   -H 'Origin: https://elsewhere.example' \
   -H 'Content-Type: application/json' --data '{}'
 ```
@@ -230,7 +230,7 @@ curl -s -X POST https://demi.example/api/auth/login \
   the login as one from no page and refused only its empty body, with 400
   `invalid_body`.
 - The same request with the product's own origin, such as
-  `https://demi.example`, must answer 400 `invalid_body`, not 403.
+  `https://jush.example`, must answer 400 `invalid_body`, not 403.
 
 ### Example
 
@@ -239,8 +239,8 @@ this one. The manager uses its defaults for everything but the settings it
 shares with the backend.
 
 ```dotenv
-DEMI_BACKEND_PUBLIC_URL=https://demi.example.com
-DEMI_BACKEND_LISTEN=127.0.0.1:3271
+JUSH_BACKEND_PUBLIC_URL=https://jush.example.com
+JUSH_BACKEND_LISTEN=127.0.0.1:3271
 ```
 
 Public endpoints use TLS. A local HTTP development endpoint is allowed only
@@ -272,24 +272,24 @@ Keep the whole state directory on one dedicated Linux filesystem:
 - Plan capacity for working images, retained generations and image imports,
   not only the quotas users see.
 
-`demi-server setup` checks these requirements with the release's own manager
+`jush-server setup` checks these requirements with the release's own manager
 and refuses a machine that fails them
 ([Installation](../delivery/installation.md)).
 
 ### The systemd unit
 
 The manager's unit is part of the server release, in its `systemd/`.
-`demi-server` copies it into place whenever the server moves to a release
+`jush-server` copies it into place whenever the server moves to a release
 ([One release on a server](../delivery/upgrades.md#one-release-on-a-server)).
 
 The unit:
 
-- runs `/opt/demi/current/bin/demi-machine-manager` as root, with the
-  `demi-cloud` group, private mounts and a restrictive umask;
-- loads `/opt/demi/config/demi.env`;
+- runs `/opt/jush/current/bin/jush-machine-manager` as root, with the
+  `jush-cloud` group, private mounts and a restrictive umask;
+- loads `/opt/jush/config/jush.env`;
 - has no start or stop timeout: a first import, a large recovery or a drain
   can take minutes, and the stop runs the manager's recovery afterwards
-  (`crates/machine-manager/systemd/demi-machine-manager.service` says why).
+  (`crates/machine-manager/systemd/jush-machine-manager.service` says why).
 
 The manager touches only its own service, network namespace and interface
 names, cgroup subtree and nftables table. No shell command a user supplies
@@ -297,7 +297,7 @@ becomes an argument of a privileged program.
 
 ### The backend and upgrades
 
-- The backend runs as the system user `demi`, a member of the `demi-cloud`
+- The backend runs as the system user `jush`, a member of the `jush-cloud`
   group, which lets it use the manager's socket.
 - A server gets a new image, manager and runsc only by moving to a new
   release ([Upgrades](../delivery/upgrades.md)). The running Clouds run on

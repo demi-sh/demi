@@ -1,5 +1,5 @@
 [package]
-name = "demi-live-view-protocol"
+name = "jush-live-view-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,7 +13,7 @@ bench = false
 
 [dependencies]
 bytes.workspace = true
-demi-shared-types = { path = "../shared-types" }
+jush-shared-types = { path = "../shared-types" }
 garde.workspace = true
 schemars.workspace = true
 serde.workspace = true

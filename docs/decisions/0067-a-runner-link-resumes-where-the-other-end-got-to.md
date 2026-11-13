@@ -2,11 +2,11 @@
 status: proposed
 ---
 
-# A runner link resumes where the other end got to, and a `demi` call outlives a drop
+# A runner link resumes where the other end got to, and a `jush` call outlives a drop
 
 ## Problem
 
-A script runs `demi agent spawn …` and the network blinks while the backend
+A script runs `jush agent spawn …` and the network blinks while the backend
 answers. The runner ends the call as cancelled the moment its connection
 closes (`crates/runner-jobs/src/commands/rpc.rs`), the backend stops the
 call's handler with the link, and the script reads
@@ -18,7 +18,7 @@ a call or to anything else, is lost.
 
 ## Decision
 
-The user sees a `demi …` command in a script take longer over a drop and
+The user sees a `jush …` command in a script take longer over a drop and
 end as it would have without one. It fails, with the reason on standard
 error and status 1, only when the runner or the backend started again, the
 call's job ended, the device was revoked, or the call's input was cut off
@@ -101,11 +101,11 @@ pub received: u64, // 0 when `session` is new
 - **A call's stdout** runs over a WebSocket of its own with the same
   session, which the runner opens as the pipe's reader on a route of its
   own: unconfirmed bytes are kept and resent from where the runner got to,
-  and a reader that stops reading (`demi … | head -1`, a cancelled call)
+  and a reader that stops reading (`jush … | head -1`, a cancelled call)
   ends it. A call's stdin stays a stream pipe; input cut off mid-call fails
   the call, since a call that has not read all of its input has done
   nothing. Other pipes, such as a file's contents or a job's output another
-  Host writes for `demi host shell`, stay as they are and keep today's
+  Host writes for `jush host shell`, stay as they are and keep today's
   retry before the first byte.
 - **A Host request in flight** (a page listing files) fails as offline when
   the connection drops, as today, so the page shows a Host as offline
@@ -141,7 +141,7 @@ unconfirmed), which is why a lone `Ack` is sent on time.
   an `Ack` message, keeps the unacknowledged ones and starts a reconnected
   connection with a `Sequence` message saying where to resume
   ([HubProtocol](https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/docs/specs/HubProtocol.md));
-  it caps what it keeps with a buffer size, which Demi leaves to the
+  it caps what it keeps with a buffer size, which Jush leaves to the
   connection's own back pressure.
 - Eternal Terminal keeps a backup of what it wrote and, after a reconnect,
   resends what follows the sequence number the other end acknowledged

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import SwatchPicker from '@demicodes/web-ui/ui/SwatchPicker.vue'
-import { productAccentOptions } from '@demicodes/web-ui/theme/productAppearance'
-import { t as ui } from '@demicodes/web-ui/locales/text'
+import SwatchPicker from '@jush-ai/web-ui/ui/SwatchPicker.vue'
+import { productAccentOptions } from '@jush-ai/web-ui/theme/productAppearance'
+import { t as ui } from '@jush-ai/web-ui/locales/text'
 import type { AccentId } from '../gallery-state'
 
 defineProps<{

@@ -1,6 +1,6 @@
-# Demi documentation
+# Jush documentation
 
-The code is the authority on what Demi does:
+The code is the authority on what Jush does:
 
 - Each module's design is in its entry comment.
 - The map of the code and the rules across it are in
@@ -10,11 +10,11 @@ The code is the authority on what Demi does:
 
 The documents here cover only what is not about one module.
 
-## About Demi
+## About Jush
 
-- [Overview](overview.md): what Demi is, its system boundary, one conversation
+- [Overview](overview.md): what Jush is, its system boundary, one conversation
   end to end, where data and credentials live, and terms
-- [Comparison](comparison.md): Demi beside other coding agents, also in
+- [Comparison](comparison.md): Jush beside other coding agents, also in
   [简体中文](comparison.zh-CN.md), [繁體中文](comparison.zh-TW.md),
   [日本語](comparison.ja.md) and [한국어](comparison.ko.md)
 
@@ -22,7 +22,7 @@ The documents here cover only what is not about one module.
 
 - [Installation](delivery/installation.md): installing a server with one
   command, its parameters, the HTTPS shapes and the distributions, and
-  running it from Demi's container image:
+  running it from Jush's container image:
   [on Railway](delivery/railway.md), [on Render](delivery/render.md),
   [on Fly.io](delivery/fly.md) and
   [with Docker Compose](delivery/docker-compose.md)
@@ -31,7 +31,7 @@ The documents here cover only what is not about one module.
 - [Cloud setup](cloud/setup.md): deploying the machine manager on Linux
 - [Cloud images](cloud/images.md): building the Cloud image and accepting it
 
-## Working on Demi
+## Working on Jush
 
 - [Testing](delivery/testing.md): what a test protects, its level, how it
   proves itself, time and stability, cost and coverage

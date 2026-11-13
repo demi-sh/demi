@@ -31,10 +31,10 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError};
 
 use bytes::Bytes;
-use demi_agent_store::StoreError;
-use demi_agent_store::media::BlobStore;
-use demi_shared_types::{B64Bytes, BlobRef, Clock, Timestamp};
-use demi_web_api_protocol::ids::UserId;
+use jush_agent_store::StoreError;
+use jush_agent_store::media::BlobStore;
+use jush_shared_types::{B64Bytes, BlobRef, Clock, Timestamp};
+use jush_web_api_protocol::ids::UserId;
 use futures_util::StreamExt as _;
 use futures_util::future::LocalBoxFuture;
 use object_store::path::Path;

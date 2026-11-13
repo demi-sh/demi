@@ -12,7 +12,7 @@
  *
  * The window's tabs, controls, touches and the agent's activity show here.
  */
-import { LIVE_CONTROL_FRAME, LIVE_VIDEO_CODEC, type LiveActivity, type ViewerInput } from '@demicodes/protocol'
+import { LIVE_CONTROL_FRAME, LIVE_VIDEO_CODEC, type LiveActivity, type ViewerInput } from '@jush-ai/protocol'
 import {
   closeResultSchema,
   foldDeviceSchema,
@@ -33,12 +33,12 @@ import {
   type MobilePlatform,
   type Orientation,
   mobileTabDataSchema,
-} from '@demicodes/plugin-mobile'
-import { PluginCallError } from '@demicodes/web-ui/plugins/page'
-import type { DeviceDownload } from '@demicodes/web-ui/devices/installed'
-import { encodeControl, encodeVideo } from '@demicodes/web-ui/live/frames'
-import type { OpenUserStream, UserStreamHandlers } from '@demicodes/web-ui/plugins/streams'
-import type { WorkTab } from '@demicodes/web-ui/agent/work-tabs'
+} from '@jush-ai/plugin-mobile'
+import { PluginCallError } from '@jush-ai/web-ui/plugins/page'
+import type { DeviceDownload } from '@jush-ai/web-ui/devices/installed'
+import { encodeControl, encodeVideo } from '@jush-ai/web-ui/live/frames'
+import type { OpenUserStream, UserStreamHandlers } from '@jush-ai/web-ui/plugins/streams'
+import type { WorkTab } from '@jush-ai/web-ui/agent/work-tabs'
 import { shallowRef } from 'vue'
 import { productWould } from '../product-would'
 import type { GalleryWorkRecord } from './work-record'
@@ -51,8 +51,8 @@ const FPS = 10
 const RESTART_MS = 6000
 /** The plugin's program as an updated runner downloads it, of a typical size. */
 const PROGRAM_DOWNLOAD: DeviceDownload = {
-  package: 'demi.mobile',
-  name: 'demi-mobile',
+  package: 'jush.mobile',
+  name: 'jush-mobile',
   version: '0.1.0',
   received: 0,
   size: 27_262_976,
@@ -142,7 +142,7 @@ const SETTINGS_GAP = 24
 const SETTINGS_TOP = 130
 const SETTINGS_HEIGHT = SETTINGS_TOP + SETTINGS_GROUPS.reduce((height, group) => height + group.length * SETTINGS_ROW + SETTINGS_GAP, 0)
 
-/** The simulators the agent opens, in turn: an iPhone, an iPad, then an Android emulator, as `demi mobile open` would. */
+/** The simulators the agent opens, in turn: an iPhone, an iPad, then an Android emulator, as `jush mobile open` would. */
 const SIMULATORS: readonly GallerySimulator[] = [
   {
     name: 'Work iPhone',
@@ -263,7 +263,7 @@ type Side = LiveButtonMark['side']
 
 /**
  * Where an upright edge is once the device is turned, and whether the edge
- * reads the other way along, as `demi-mobile` turns its marks.
+ * reads the other way along, as `jush-mobile` turns its marks.
  */
 const TURNED: Record<Orientation, Record<Side, [Side, boolean]>> = {
   'portrait': { left: ['left', false], right: ['right', false], top: ['top', false], bottom: ['bottom', false] },
@@ -306,18 +306,18 @@ export interface GalleryScreen {
 
 export interface GalleryMobile {
   plugin: GalleryPlugin
-  /** The work tab of a device its user closed: the device closes, as `demi mobile close` does. */
+  /** The work tab of a device its user closed: the device closes, as `jush mobile close` does. */
   removed(tab: WorkTab): void
   /**
-   * The agent opens a simulator with `demi mobile open`, the one of `model`
+   * The agent opens a simulator with `jush mobile open`, the one of `model`
    * when it is given, else the next one: its tab joins the Simulators window.
    */
   agentOpens(model?: string): Promise<void>
-  /** The agent taps each open device at a point of its screen, as `demi mobile tap` does. */
+  /** The agent taps each open device at a point of its screen, as `jush mobile tap` does. */
   agentTaps(): void
-  /** The agent starts or stops recording the first open device, as `demi mobile record` does. */
+  /** The agent starts or stops recording the first open device, as `jush mobile record` does. */
   agentRecords(): void
-  /** The agent opens the first open foldable that is closed, or closes it, as `demi mobile fold` does. */
+  /** The agent opens the first open foldable that is closed, or closes it, as `jush mobile fold` does. */
   agentFolds(): Promise<void>
   /** Each open device's screen turns off by itself, as a device's sleep turns it. */
   devicesSleep(): void
@@ -715,7 +715,7 @@ export function galleryMobile(work: GalleryWorkRecord, screen: GalleryScreen | n
 }
 
 /**
- * One device's stream of a page, as a `demi-mobile` resident serves it: the
+ * One device's stream of a page, as a `jush-mobile` resident serves it: the
  * device its hello names, and whether it is looked at, while which alone it
  * speaks. A hello that names a hinged foldable's display carries that
  * display's pictures, black while the other is lit.
@@ -949,7 +949,7 @@ class MobileView {
       return
     }
     const points = this.display ? displayPoints(device, this.display) : upright(device)
-    // The live view's long side, as demi-mobile scales the pictures.
+    // The live view's long side, as jush-mobile scales the pictures.
     const scale = Math.min(1, 1568 / (Math.max(points.width, points.height) * SCALE))
     const size = {
       width: Math.round((points.width * SCALE * scale) / 2) * 2,

@@ -40,21 +40,21 @@
 use std::rc::{Rc, Weak};
 
 use bytes::Bytes;
-use demi_backend_database::sequences;
-use demi_backend_device_access::device_commands::{reachable, resolve_device};
-use demi_backend_device_access::root_of;
-use demi_plugin_host::Lost;
-use demi_backend_database::server_log::ServerLog;
-use demi_runner_client::{CommandCatalog, DirectAdmission, ForwardEvent, DeviceLog, JobOrigin, LinkPolicy, PackageEvent};
-use demi_runner_protocol::wire::{DeviceLogLine, LinkedWorktree};
-use demi_backend_runners::device_key::conversation_of;
-use demi_backend_permissions::Need;
-use demi_command_protocol::ResidentSequence;
-use demi_device_interface::{BroughtDevice, RpcError, RpcInvocation, RpcPort};
-use demi_shared_gates::{GateLease, Purpose};
-use demi_shared_types::{BlobRef, Sequence};
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_backend_database::sequences;
+use jush_backend_device_access::device_commands::{reachable, resolve_device};
+use jush_backend_device_access::root_of;
+use jush_plugin_host::Lost;
+use jush_backend_database::server_log::ServerLog;
+use jush_runner_client::{CommandCatalog, DirectAdmission, ForwardEvent, DeviceLog, JobOrigin, LinkPolicy, PackageEvent};
+use jush_runner_protocol::wire::{DeviceLogLine, LinkedWorktree};
+use jush_backend_runners::device_key::conversation_of;
+use jush_backend_permissions::Need;
+use jush_command_protocol::ResidentSequence;
+use jush_device_interface::{BroughtDevice, RpcError, RpcInvocation, RpcPort};
+use jush_shared_gates::{GateLease, Purpose};
+use jush_shared_types::{BlobRef, Sequence};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::LocalBoxFuture;
 
 use super::Shard;
@@ -212,7 +212,7 @@ impl LinkPolicy for ShardPolicy {
                     (None, None) => None,
                 };
                 if let Some(need) = need {
-                    demi_backend_permissions::check(shard.permission_shard(), &invocation, need, &port).await?;
+                    jush_backend_permissions::check(shard.permission_shard(), &invocation, need, &port).await?;
                 }
                 let mut invocation = invocation;
                 invocation.brought = brought;
@@ -398,7 +398,7 @@ impl LinkPolicy for ShardPolicy {
         }
     }
 
-    fn storage_measured(&self, report: demi_runner_protocol::wire::StorageReport) {
+    fn storage_measured(&self, report: jush_runner_protocol::wire::StorageReport) {
         // A shard that is closing keeps nothing; the next pass reports again.
         if let Ok(shard) = self.shard() {
             shard.storage_reported(&self.device, report);

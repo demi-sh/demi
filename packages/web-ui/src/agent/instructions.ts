@@ -1,4 +1,4 @@
-import type { Block, InstructionEntry } from '@demicodes/protocol'
+import type { Block, InstructionEntry } from '@jush-ai/protocol'
 import { baseName, parentPath, relativePath } from '../files/paths'
 import { t } from './locales/text'
 

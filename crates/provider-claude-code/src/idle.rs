@@ -285,7 +285,7 @@ impl Kept {
 
     /// Whether the process, while it is still kept, could go on with
     /// `request`, whatever its input ([`LiveCli::continues`]).
-    pub(crate) fn continues(&self, request: &demi_provider_common::InferenceRequest) -> bool {
+    pub(crate) fn continues(&self, request: &jush_provider_common::InferenceRequest) -> bool {
         self.live
             .borrow()
             .as_ref()

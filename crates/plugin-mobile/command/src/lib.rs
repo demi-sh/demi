@@ -1,4 +1,4 @@
-//! The `demi.mobile` package: the device's simulators for the conversations that
+//! The `jush.mobile` package: the device's simulators for the conversations that
 //! open them, as a resident, with a driver per platform behind
 //! one interface (`crates/plugin-mobile/command/src/driver.rs`).
 //!
@@ -8,21 +8,21 @@
 //!
 //! ```text
 //! web page                    backend             device (paired or Cloud)
-//!   device tabs, toolbar  <-- plugin-mobile --> demi-mobile (this crate)
+//!   device tabs, toolbar  <-- plugin-mobile --> jush-mobile (this crate)
 //!   live view  <------- `mobile` user stream --->   Devices: who has what
 //!                                                   Driver, one per platform
-//!                                                     ios: demi-ios-sim helper
+//!                                                     ios: jush-ios-sim helper
 //!                                                     android: emulator gRPC,
 //!                                                              u2.jar over adb
 //! ```
 //!
-//! # What Demi does
+//! # What Jush does
 //!
-//! Demi does what touches the screen, the input and who controls them, each the
+//! Jush does what touches the screen, the input and who controls them, each the
 //! one operation behind both the window's controls and its command, so the agent
 //! can do what the user can and the other way round.
 //!
-//! Demi also runs the app under test, as a person does with Xcode or Android
+//! Jush also runs the app under test, as a person does with Xcode or Android
 //! Studio: it installs a build, launches it, follows the device's log from its
 //! open to its close (`log.rs`), and erases the device to its factory state.
 //!
@@ -36,7 +36,7 @@
 //!   XCTest runner on it, and a phone holds a person's real accounts.
 //! - Only paired devices run them, since a Cloud has neither Xcode nor the
 //!   hardware virtualization the Android Emulator needs.
-//! - Xcode and the Android SDK are the user's. Demi's own helpers, the iOS one
+//! - Xcode and the Android SDK are the user's. Jush's own helpers, the iOS one
 //!   and the Android one, ship with the runner.
 //!
 //! The package is a program of its own: it devices no runner connection, defines
@@ -66,23 +66,23 @@ use std::{future::Future, pin::Pin, sync::Arc};
 
 use bytes::Bytes;
 
-use demi_command_package_mobile_protocol::{
+use jush_command_package_mobile_protocol::{
     Operation, OperationError,
     mobile::{FailureDocument, MobileFailure},
 };
-use demi_command_protocol::{CommandError, Completion, ConversationRequest, ConversationStatus, Invocation};
-use demi_command_sdk::{ConversationContext, Handler, InvocationContext, Messages, Numbers, ResidentError};
+use jush_command_protocol::{CommandError, Completion, ConversationRequest, ConversationStatus, Invocation};
+use jush_command_sdk::{ConversationContext, Handler, InvocationContext, Messages, Numbers, ResidentError};
 
 pub use error::MobileError;
 pub use operations::{QUIET, SETTLE_LIMIT};
 
-use demi_shared_openh264::{Cisco, Codec};
-use demi_shared_recording::Library;
+use jush_shared_openh264::{Cisco, Codec};
+use jush_shared_recording::Library;
 
 use crate::{devices::Devices, driver::Driver, live::Hub, operations::Produced};
 
 /// The resident.
-pub struct DemiMobile {
+pub struct JushMobile {
     devices: Arc<Devices>,
     hub: Arc<Hub>,
     /// The runner's scratch root, whose `<12 digits of the conversation's
@@ -94,17 +94,17 @@ pub struct DemiMobile {
     libraries: std::sync::Mutex<std::collections::HashMap<String, Arc<Library>>>,
 }
 
-impl DemiMobile {
+impl JushMobile {
     /// The resident with this device's drivers.
     pub fn new() -> Self {
-        // The installation's `mobile/`, where the simulators Demi booted
+        // The installation's `mobile/`, where the simulators Jush booted
         // and the open devices are kept across the program's ends (`crates/plugin-mobile/command/src/devices.rs`).
-        let home = std::env::var_os("DEMI_HOME").map(std::path::PathBuf::from);
+        let home = std::env::var_os("JUSH_HOME").map(std::path::PathBuf::from);
         let codec: Arc<dyn Codec> = Arc::new(Cisco::in_installation(home.as_deref()));
         Self::with_drivers(
             device_drivers(home.as_deref(), codec.clone()),
             home.as_deref(),
-            demi_command_protocol::scratch_root(),
+            jush_command_protocol::scratch_root(),
             codec,
         )
     }
@@ -127,7 +127,7 @@ impl DemiMobile {
         let exists = Box::new(move |conversation: &str| {
             scratch
                 .as_deref()
-                .is_none_or(|root| demi_command_protocol::scratch_directory(Some(root), conversation).is_dir())
+                .is_none_or(|root| jush_command_protocol::scratch_directory(Some(root), conversation).is_dir())
         });
         Self {
             devices: Devices::new(drivers, kept::Kept::load(mobile.as_deref()), exists),
@@ -141,7 +141,7 @@ impl DemiMobile {
     /// `conversation`'s scratch directory on this device, or the system's
     /// temporary directory's for a resident without an installation.
     fn scratch(&self, conversation: &str) -> std::path::PathBuf {
-        demi_command_protocol::scratch_directory(self.scratch_root.as_deref(), conversation)
+        jush_command_protocol::scratch_directory(self.scratch_root.as_deref(), conversation)
     }
 
     /// `conversation`'s recordings on this device.
@@ -152,7 +152,7 @@ impl DemiMobile {
             .entry(conversation.to_owned())
             .or_insert_with(|| {
                 Arc::new(Library::new(
-                    demi_command_protocol::recordings_directory(self.scratch_root.as_deref(), conversation),
+                    jush_command_protocol::recordings_directory(self.scratch_root.as_deref(), conversation),
                     self.codec.clone(),
                 ))
             })
@@ -164,14 +164,14 @@ impl DemiMobile {
     }
 }
 
-impl Default for DemiMobile {
+impl Default for JushMobile {
     fn default() -> Self {
         Self::new()
     }
 }
 
 /// The drivers this device has: iOS on a Mac, Android where its SDK is. An
-/// emulator Demi boots writes its log into the installation's
+/// emulator Jush boots writes its log into the installation's
 /// `mobile/android`.
 fn device_drivers(home: Option<&std::path::Path>, codec: Arc<dyn Codec>) -> Vec<Arc<dyn Driver>> {
     vec![
@@ -179,14 +179,14 @@ fn device_drivers(home: Option<&std::path::Path>, codec: Arc<dyn Codec>) -> Vec<
         Arc::new(ios::Ios::new()),
         #[cfg(not(target_os = "macos"))]
         Arc::new(driver::Absent {
-            platform: demi_command_package_mobile_protocol::mobile::MobilePlatform::Ios,
+            platform: jush_command_package_mobile_protocol::mobile::MobilePlatform::Ios,
             reason: "iOS simulators need a Mac".into(),
         }),
         Arc::new(android::Android::new(home.map(|home| home.join("mobile").join("android")), codec)),
     ]
 }
 
-impl Handler for DemiMobile {
+impl Handler for JushMobile {
     type Metadata = Invocation;
 
     fn operations(&self) -> Vec<String> {

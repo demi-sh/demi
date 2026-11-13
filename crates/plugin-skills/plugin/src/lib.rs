@@ -8,7 +8,7 @@
 //! - the skills a repository carries;
 //! - the catalog of both, which reaches the model as a context block.
 //!
-//! Nothing else in Demi knows skills.
+//! Nothing else in Jush knows skills.
 //!
 //! # Places
 //!
@@ -91,11 +91,11 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     CommandPlugin, Manifest, Method, Page, Plugin, PluginError, PluginId, PluginPort, Reply,
     Request, Scope,
 };
-use demi_shared_types::{Clock, SKILLS_SOURCE, SystemClock};
+use jush_shared_types::{Clock, SKILLS_SOURCE, SystemClock};
 use futures_util::future::{LocalBoxFuture, join_all};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -110,8 +110,8 @@ use crate::heads::{CHECK_INTERVAL, Heads};
 use crate::origin::Origin;
 use crate::project::ProjectSkill;
 use crate::sources::{Places, Source, Sources};
-use demi_web_api_protocol::ids::{DeviceId, WorkspaceId};
-use demi_plugin_interface::{GitRefusal, PortFailure, PortRefusal};
+use jush_web_api_protocol::ids::{DeviceId, WorkspaceId};
+use jush_plugin_interface::{GitRefusal, PortFailure, PortRefusal};
 
 pub use crate::fetch::Skipped;
 pub use crate::sources::{Failure, SkillState, SkillsState, SourceState};
@@ -152,7 +152,7 @@ impl Skills {
         let mut manifest = Manifest::new(
             PluginId::try_from(SKILLS_SOURCE).expect("a valid plugin id"),
             "Skills",
-            "Teaches the agent workflows with skills from Git repositories you add with demi skills, and from your repository.",
+            "Teaches the agent workflows with skills from Git repositories you add with jush skills, and from your repository.",
         );
         manifest.context = true;
         manifest.project_search = true;
@@ -168,7 +168,7 @@ impl Skills {
     }
 }
 
-impl demi_plugin_interface::PluginFactory for Skills {
+impl jush_plugin_interface::PluginFactory for Skills {
     fn manifest(&self) -> &Manifest {
         &self.manifest
     }
@@ -243,8 +243,8 @@ pub struct SetSourceEnabled {
 }
 
 fn page() -> Page {
-    Page::new("@demicodes/plugin-skills")
-        .user_state(demi_plugin_interface::State::new::<SkillsState>())
+    Page::new("@jush-ai/plugin-skills")
+        .user_state(jush_plugin_interface::State::new::<SkillsState>())
         .method(Method::new::<AddSource, AddedSource>(
             "add_source",
             Scope::User,
@@ -264,7 +264,7 @@ struct Instance(Rc<State>);
 
 /// What the instance keeps in memory, for its user only.
 struct State {
-    /// The `demi skills` group, which the instance answers.
+    /// The `jush skills` group, which the instance answers.
     commands: CommandPlugin,
     plugin: PluginId,
     resolve: Arc<Resolve>,

@@ -4,7 +4,7 @@
  */
 export const DEMO_NOTICES = `Third-party notices
 
-Demi includes the third-party software below. Each notice names the
+Jush includes the third-party software below. Each notice names the
 packages under one license text, then gives the text.
 
 

@@ -5,7 +5,7 @@
 //! The software keyboard is one Keyboard element with its frame, unless its
 //! keys are asked for.
 
-use demi_command_package_mobile_protocol::mobile::Element;
+use jush_command_package_mobile_protocol::mobile::Element;
 
 use crate::{
     driver::{RawElement, Rect},

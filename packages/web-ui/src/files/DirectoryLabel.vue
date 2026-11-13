@@ -4,8 +4,8 @@ import { directoryParts } from './paths'
 
 /**
  * A directory as a row of a list reads: its own name first, in the row's text,
- * and where it is after it, smaller and grey at the row's end, so `demi` in
- * `~/Projects` and `demi` in `~/Work` differ at a glance.
+ * and where it is after it, smaller and grey at the row's end, so `jush` in
+ * `~/Projects` and `jush` in `~/Work` differ at a glance.
  *
  * - The home is `~` and the root `/`, with no location.
  * - A row that does not fit gives up the location before it cuts the name,

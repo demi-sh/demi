@@ -10,12 +10,12 @@ Alex adds a compatible API entry for a gateway, `https://llm.example.com/v1`
 on Chat Completions, and adds the model `deepseek-v4-pro` to it. The model
 thinks, calls a tool, and the next request of the turn is refused: DeepSeek's
 thinking mode wants the earlier thinking back as `reasoning_content` on the
-assistant message that called the tool. Demi sends it only for an entry of
+assistant message that called the tool. Jush sends it only for an entry of
 the DeepSeek vendor. The same happens for every model that thinks that way
 behind a gateway, and also for vendor entries other than DeepSeek's: Kimi's,
 GLM's and Qwen's models want their thinking back too, which models.dev
 records for each of them (`"interleaved": {"field": "reasoning_content"}`),
-and Demi sends it to none of them.
+and Jush sends it to none of them.
 
 Sam adds a compatible entry on the Messages API for a gateway that relays
 both Claude and other models. A request of an effort is sent as Anthropic's
@@ -23,7 +23,7 @@ adaptive thinking (`thinking: {type: adaptive}` with `output_config.effort`)
 to every model of the entry, since a compatible entry has no vendor and gets
 the default of every vendor rule. Claude Sonnet 5.5 takes that and nothing
 else; another vendor's model behind the same gateway may take only a token
-budget, the form Demi sends every vendor on Messages but Anthropic, and its
+budget, the form Jush sends every vendor on Messages but Anthropic, and its
 request is refused or its thinking is ignored.
 
 Both rules sit in a table by vendor (`VendorPolicy`), so an entry without a
@@ -42,7 +42,7 @@ thinking gets its earlier thinking back as `reasoning_content` on the
 assistant message it preceded, and an empty `reasoning_content` on a
 tool-call message without thinking, as DeepSeek requires of every such
 message, also one written before the conversation switched to it. Only
-thinking the same model wrote, unsigned, goes back: Demi reads it from
+thinking the same model wrote, unsigned, goes back: Jush reads it from
 `reasoning_content` alone. A model without it gets no `reasoning_content`,
 since a model that does not know the field may refuse it.
 
@@ -59,7 +59,7 @@ Interleaved thinking   [ On ]         Earlier thinking goes back with each
 
 - A compatible entry's model shows the row of its entry's API, Thinking on
   Messages and Interleaved thinking on Chat Completions, and the user can
-  change it, in Edit Model or with `demi providers models`. A vendor's model
+  change it, in Edit Model or with `jush providers models`. A vendor's model
   shows neither and the command refuses both: its facts come from the
   backend's models.dev copy each time, also when the entry keeps a list of
   its own, and a model models.dev does not list takes the defaults.
@@ -120,7 +120,7 @@ None: the user chose to build without one.
   sends thinking back in the field it arrived in, `reasoning_content` when
   unknown, and sends an empty one where DeepSeek needs it
   (`packages/ai/src/protocols/openai-chat.ts`): when models.dev says so,
-  or when the provider, endpoint or model ID names DeepSeek. Demi takes the
+  or when the provider, endpoint or model ID names DeepSeek. Jush takes the
   models.dev fact alone, as a field of the model, and no name matching.
 - models.dev records, per model, the field a model wants its thinking back
   in (`interleaved`) and the thinking options it takes (`reasoning_options`).

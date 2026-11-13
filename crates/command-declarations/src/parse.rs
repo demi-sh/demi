@@ -92,7 +92,7 @@ const HELP: &str = "help";
 const JSON: &str = "json";
 
 /// Option names a model gives a body that a command reads from stdin, such
-/// as `--content` for the blocks of `demi file edit`; on a leaf with a stdin
+/// as `--content` for the blocks of `jush file edit`; on a leaf with a stdin
 /// field, such an unknown option is refused with the tip to use stdin.
 const BODY_OPTIONS: &[&str] = &[
     "body", "code", "content", "data", "input", "script", "stdin", "text",
@@ -182,7 +182,7 @@ impl<B> Group<B> {
     }
 }
 
-/// A clap command named `path` with Demi's conventions: no colour, no
+/// A clap command named `path` with Jush's conventions: no colour, no
 /// version, `--help` as the only help, and `usage` as its usage line.
 fn base(path: &str, usage: String) -> Command {
     Command::new(path.to_owned())
@@ -502,7 +502,7 @@ impl<B> Leaf<B> {
 
     /// A clap error as the caller reads it, with three changes:
     ///
-    /// - Demi's tip for an option that names a body read from stdin, a
+    /// - Jush's tip for an option that names a body read from stdin, a
     ///   positional or the rest field, with the pointer to the options in place
     ///   of clap's tip to pass an unknown option as a value after `--`, which
     ///   only a leaf with a rest field takes.
@@ -551,7 +551,7 @@ impl<B> Leaf<B> {
             .any(|name| name == field)
     }
 
-    /// Demi's tip for the unknown option `--name`, when it names how the
+    /// Jush's tip for the unknown option `--name`, when it names how the
     /// command takes the value instead.
     fn tip(&self, path: &str, name: &str) -> Option<String> {
         if let Some(field) = &self.stdin_field

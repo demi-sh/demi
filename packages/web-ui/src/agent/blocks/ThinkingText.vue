@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import StreamedMarkdown from '@demicodes/web-ui/ui/StreamedMarkdown.vue'
+import StreamedMarkdown from '@jush-ai/web-ui/ui/StreamedMarkdown.vue'
 import { useTextArrivals } from '../whole-blocks'
 
 /**

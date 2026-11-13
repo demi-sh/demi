@@ -40,7 +40,7 @@ so the hinge goes on moving for seconds after Alex lets go.
   angle, and the hinge stops where the slider is let go.
 - The model follows the hinge with Device Hub's spring, so it never jumps.
 - Nothing else changes: the toolbar, the capsule, Reset, turning the view and
-  `demi mobile fold` stay as 0133 has them.
+  `jush mobile fold` stay as 0133 has them.
 
 ### The design
 
@@ -70,7 +70,7 @@ so the hinge goes on moving for seconds after Alex lets go.
   carries the state and the input, and no pictures, which the view says
   (`LiveViewerMessage::Unshown {}`) so the Host captures none for it.
 - **The display in focus.** The guest aims touches at the display it
-  lights, and Demi has no call that aims them elsewhere, so the display in
+  lights, and Jush has no call that aims them elsewhere, so the display in
   focus is the guest's: the one its display configuration names incoming,
   from then on, and the active one once the configuration settles. The tree,
   screenshots and the points of input are that display's, and the view's
@@ -86,7 +86,7 @@ so the hinge goes on moving for seconds after Alex lets go.
   Device Hub sends it. The view's postures and slider send the angle on the
   view's stream (`LiveViewerMessage::Hinge { degrees }`), which turns the
   hinge towards the latest angle at once, in the order they came, and
-  answers nothing; `demi mobile fold` waits, as
+  answers nothing; `jush mobile fold` waits, as
   0133 says, until the display the angle lights is the guest's.
 - **The model.** The page moves the model towards the hinge's angle on a
   spring with a smoothing time of 0.25 s, settled within 0.05°.
@@ -124,13 +124,13 @@ check:
 - Xcode 27.1's Device Hub, as the Spike reads it from its binaries.
 - [Device Hub Pro](https://github.com/gitemre/device-hub-pro) (MIT) shows
   one panel at a time and reads the lit one from the two displays' pictures,
-  the one that is not black. Demi shows both, as Device Hub does, so no
+  the one that is not black. Jush shows both, as Device Hub does, so no
   display needs to be guessed for the picture; the focus still does.
 
 ## Alternatives
 
 - One capture that moves to the display the guest names incoming: black for
-  half a second on each fold, and iOS's animation lost on the display Demi
+  half a second on each fold, and iOS's animation lost on the display Jush
   had not moved to yet.
 - A blurred snapshot over the hand-over: Device Hub has none for a fold.
 - Composing both displays into one picture on the Host: the two displays

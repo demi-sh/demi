@@ -57,7 +57,7 @@ The kept devices file drops `owner`, which 0.1.46 to 0.1.56 wrote and
 require. A runner of this version reads their file. A runner of one of
 those versions, after a downgrade, cannot read the file this version
 writes and discards it: the tabs open before the downgrade are not taken
-back, and the devices Demi booted are no longer shut down by Demi. The old
+back, and the devices Jush booted are no longer shut down by Jush. The old
 lock file stays in the device service's directory, unused.
 
 ## Performance

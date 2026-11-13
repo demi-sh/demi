@@ -19,8 +19,8 @@ use std::{
     time::Duration,
 };
 
-use demi_conversation_lane_protocol::{RequestOutput, ServerFrame};
-use demi_shared_types::NodeId;
+use jush_conversation_lane_protocol::{RequestOutput, ServerFrame};
+use jush_shared_types::NodeId;
 use tokio::{sync::Notify, time::Instant};
 
 use super::FrameSink;

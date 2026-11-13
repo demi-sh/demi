@@ -1,12 +1,12 @@
 [package]
-name = "demi-server"
+name = "jush-server"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
 [[bin]]
-name = "demi-server"
+name = "jush-server"
 path = "src/main.rs"
 test = false
 doctest = false
@@ -14,18 +14,18 @@ bench = false
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-demi-backend-database = { path = "../backend-database" }
-demi-machine-manager-protocol = { path = "../machine-manager-protocol" }
+jush-backend-database = { path = "../backend-database" }
+jush-machine-manager-protocol = { path = "../machine-manager-protocol" }
 # The next runner release's record and the backend's management
 # socket.
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-shared-cli = { path = "../shared-cli" }
-demi-shared-types = { path = "../shared-types" }
-# The supervisor's socket, which a container's demi-server asks.
-demi-supervisor-protocol = { path = "../supervisor-protocol" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-shared-cli = { path = "../shared-cli" }
+jush-shared-types = { path = "../shared-types" }
+# The supervisor's socket, which a container's jush-server asks.
+jush-supervisor-protocol = { path = "../supervisor-protocol" }
 # `GET /api/update`, which an upgrade asks while the backend starts.
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 dotenvy = "0.15"
 jiff.workspace = true
 rustix = { version = "1", features = ["fs", "mount", "process", "thread"] }
@@ -43,4 +43,4 @@ which = "8"
 zstd = { version = "0.13", default-features = false }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-demi-shared-processes = { path = "../shared-processes" }
+jush-shared-processes = { path = "../shared-processes" }

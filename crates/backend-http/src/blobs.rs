@@ -15,14 +15,14 @@ use axum::http::header::{CACHE_CONTROL, RANGE, VARY};
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use bytes::Bytes;
-use demi_shared_types::BlobRef;
-use demi_web_api_protocol::error::ErrorCode;
+use jush_shared_types::BlobRef;
+use jush_web_api_protocol::error::ErrorCode;
 
 use super::content::content_headers;
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_device_access::transfer::RangeAnswer;
-use demi_backend_user_shard::services::Services;
+use jush_backend_device_access::transfer::RangeAnswer;
+use jush_backend_user_shard::services::Services;
 
 pub(super) async fn blob(
     State(services): State<Arc<Services>>,

@@ -192,7 +192,7 @@
     "selectFile": "Selecione um arquivo alterado",
     "previousNotKept": "O conteúdo anterior não foi mantido.",
     "changeNotKept": "O conteúdo desta alteração não foi mantido.",
-    "binaryNotKept": "O Demi mantém o texto das alterações que uma conversa faz, não imagens nem outros arquivos binários.",
+    "binaryNotKept": "O Jush mantém o texto das alterações que uma conversa faz, não imagens nem outros arquivos binários.",
     "onNoBranch": "Fora de qualquer branch",
     "committed": "Com commit",
     "workingTree": "Árvore de trabalho",

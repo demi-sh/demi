@@ -11,7 +11,7 @@
 //! latest time any of them keeps. Each part is a set of spans: the model
 //! waited for (a request's first output), thinking, text and calls being
 //! written, calls running once their response ended, a compaction, and the
-//! time before a request left, Demi's own after what ended last, or a failed
+//! time before a request left, Jush's own after what ended last, or a failed
 //! request and the wait after it. Time two parts share counts once, for the
 //! one that ranks first in [`Part`]; what no part covers is other, so the
 //! parts add up to the turn.
@@ -20,7 +20,7 @@
 //! written where the kept history begins, a pass that ran while the
 //! conversation was idle, and a failure outside any turn.
 
-use demi_shared_types::{Block, Timestamp};
+use jush_shared_types::{Block, Timestamp};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -51,7 +51,7 @@ pub(super) struct TurnTiming {
     pub ms: u64,
     /// The provider requests that ended with a response.
     pub requests: u64,
-    /// Demi's own time before a request left, after what ended last.
+    /// Jush's own time before a request left, after what ended last.
     pub preparing_ms: u64,
     /// From a request leaving to its first output.
     pub waiting_ms: u64,

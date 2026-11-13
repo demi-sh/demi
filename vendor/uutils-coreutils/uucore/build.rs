@@ -269,7 +269,7 @@ fn embed_static_utility_locales(
         Path::new(&manifest_dir).join(format!("locales/errors/{locale}.ftl"))
     })?;
 
-    // Demi's: as a path dependency, uucore's siblings are the vendored
+    // Jush's: as a path dependency, uucore's siblings are the vendored
     // utilities, `uu_<util>` without a version; each one's messages are
     // embedded under its name. No directory is watched: a watch is compared
     // by mtime, which would rerun this script, and rebuild uucore and every
@@ -402,7 +402,7 @@ fn embed_locale_file(
             embedded_file,
             "        // Locale for {component} ({locale})"
         )?;
-        // Demi's: the file is included rather than copied, so rustc's
+        // Jush's: the file is included rather than copied, so rustc's
         // dep-info names it and Cargo compares it like any other source of
         // uucore, by checksum when the build asks for that. A rerun-if-changed
         // watch is compared by mtime only, so every fresh checkout reran this

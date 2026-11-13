@@ -49,12 +49,15 @@ use std::{
     process::Command,
 };
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     MANAGER_UNIT, ROOM_RESERVE,
     store::{appended, mounted_from, partial_file, store_file},
 };
 
 use crate::moving::run;
+
+/// The comment above the store's `/etc/fstab` line.
+pub const FSTAB_COMMENT: &str = "# Jush's Cloud store, which shares extents (jush-server)";
 
 /// How a store came to share extents.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -208,7 +211,7 @@ fn format(file: &Path, bytes: u64) -> io::Result<()> {
     let made = fs::OpenOptions::new().write(true).create_new(true).open(&formatting)?;
     fs::set_permissions(&formatting, fs::Permissions::from_mode(0o600))?;
     made.set_len(bytes)?;
-    run(Command::new("mkfs.xfs").args(["-q", "-m", "reflink=1", "-L", "demi-cloud"]).arg(&formatting))?;
+    run(Command::new("mkfs.xfs").args(["-q", "-m", "reflink=1", "-L", "jush-cloud"]).arg(&formatting))?;
     made.sync_all()?;
     fs::rename(&formatting, file)?;
     sync_directory(file.parent().unwrap_or(Path::new("/")))
@@ -235,7 +238,8 @@ fn add_to_fstab(file: &Path, store: &Path) -> io::Result<()> {
     if !text.is_empty() && !text.ends_with(b"\n") {
         text.push(b'\n');
     }
-    text.extend_from_slice(b"# Demi's Cloud store, which shares extents (demi-server)\n");
+    text.extend_from_slice(FSTAB_COMMENT.as_bytes());
+    text.push(b'\n');
     text.extend_from_slice(
         format!(
             "{} {point} xfs loop,discard,nofail,x-systemd.before={MANAGER_UNIT},x-systemd.required-by={MANAGER_UNIT} 0 0\n",
@@ -243,7 +247,7 @@ fn add_to_fstab(file: &Path, store: &Path) -> io::Result<()> {
         )
         .as_bytes(),
     );
-    let staged = PathBuf::from(format!("{FSTAB}.demi"));
+    let staged = PathBuf::from(format!("{FSTAB}.jush"));
     let mode = fs::metadata(FSTAB).map(|metadata| metadata.permissions()).unwrap_or(fs::Permissions::from_mode(0o644));
     fs::write(&staged, &text)?;
     fs::set_permissions(&staged, mode)?;

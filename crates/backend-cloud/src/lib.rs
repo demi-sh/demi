@@ -114,14 +114,14 @@ mod uses;
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_backend_database::control::ControlService;
-use demi_backend_idle_watch::Activity;
-use demi_backend_page_sync::UserMarks;
-use demi_provider_registry::registry::ProviderRegistry;
-use demi_backend_providers::vault::entries::Vault;
-use demi_backend_runners::devices::Devices;
-use demi_backend_runners::public_url::PublicUrl;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProviderId, UserId};
+use jush_backend_database::control::ControlService;
+use jush_backend_idle_watch::Activity;
+use jush_backend_page_sync::UserMarks;
+use jush_provider_registry::registry::ProviderRegistry;
+use jush_backend_providers::vault::entries::Vault;
+use jush_backend_runners::devices::Devices;
+use jush_backend_runners::public_url::PublicUrl;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProviderId, UserId};
 use futures_util::future::LocalBoxFuture;
 use tokio_util::sync::WaitForCancellationFuture;
 use tokio_util::task::TaskTracker;
@@ -152,7 +152,7 @@ impl CloudServices {
     /// manager runs the image of this machine's architecture, none on an
     /// architecture no image is made for.
     pub fn target(&self) -> Option<&'static str> {
-        demi_machine_manager_protocol::image::Architecture::host().map(|architecture| architecture.target())
+        jush_machine_manager_protocol::image::Architecture::host().map(|architecture| architecture.target())
     }
 }
 

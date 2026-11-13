@@ -49,7 +49,7 @@
   },
   "notificationsCard": {
     "title": "L’agent ne peut pas vous notifier",
-    "body": "Aucun de vos navigateurs n’a activé les notifications. Activez-les pour savoir quand l’agent a terminé ou a besoin de vous, même lorsque Demi est fermé.",
+    "body": "Aucun de vos navigateurs n’a activé les notifications. Activez-les pour savoir quand l’agent a terminé ou a besoin de vous, même lorsque Jush est fermé.",
     "blocked": "Les notifications sont bloquées dans les paramètres de site de ce navigateur.",
     "unsupported": "Ce navigateur ne prend pas en charge les notifications.",
     "dismiss": "Ignorer",

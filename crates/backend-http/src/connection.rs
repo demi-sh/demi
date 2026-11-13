@@ -52,20 +52,20 @@ use axum::extract::ws::{CloseFrame, Message, Utf8Bytes, WebSocket, WebSocketUpgr
 use axum::http::StatusCode;
 use axum::response::Response;
 use axum_extra::extract::CookieJar;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::lane::{
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::lane::{
     Counted, FromConnection, Lane, LaneKind, LaneMessage, LaneOrigin, LanePriority, LaneReader,
     PageSession, ToConnection, open_lane,
 };
-use demi_shared_types::{RequestId, Timestamp};
-use demi_web_api_protocol::MAX_PAGE_MESSAGE_BYTES;
-use demi_shared_lanes::{Assembly, AssemblyError, Frame};
-use demi_web_api_protocol::connection::{
+use jush_shared_types::{RequestId, Timestamp};
+use jush_web_api_protocol::MAX_PAGE_MESSAGE_BYTES;
+use jush_shared_lanes::{Assembly, AssemblyError, Frame};
+use jush_web_api_protocol::connection::{
     BackendConnectionMessage, LANE_CREDIT, LaneRefusal, LaneTarget, MAX_LANES, PageConnectionMessage,
 };
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::BoxFuture;
 use futures_util::stream::SplitSink;
 use futures_util::{SinkExt as _, StreamExt as _};
@@ -77,7 +77,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::Instrument as _;
 
 use super::AppState;
-use super::cookies::SESSION_COOKIE;
+use super::cookies;
 use super::error::ApiError;
 use super::page_client::PageClient;
 use super::request_id;
@@ -133,9 +133,8 @@ pub(super) async fn connect(
     client: PageClient,
     upgrade: Result<WebSocketUpgrade, WebSocketUpgradeRejection>,
 ) -> Result<Response, ApiError> {
-    let token = jar
-        .get(SESSION_COOKIE)
-        .map(|cookie| TokenHash::of(cookie.value()))
+    let token = cookies::session_token(&jar)
+        .map(|(token, _)| TokenHash::of(&token))
         .ok_or_else(ApiError::unauthenticated)?;
     let session = state
         .services
@@ -246,10 +245,10 @@ impl Opening {
     }
 }
 
-fn lane_message(message: demi_shared_lanes::Message) -> LaneMessage {
+fn lane_message(message: jush_shared_lanes::Message) -> LaneMessage {
     match message {
-        demi_shared_lanes::Message::Text(text) => LaneMessage::Text(text),
-        demi_shared_lanes::Message::Binary(bytes) => LaneMessage::Binary(bytes),
+        jush_shared_lanes::Message::Text(text) => LaneMessage::Text(text),
+        jush_shared_lanes::Message::Binary(bytes) => LaneMessage::Binary(bytes),
     }
 }
 
@@ -950,7 +949,7 @@ fn queue(write: Write, control: &mut VecDeque<Bytes>, sending: &mut [VecDeque<Se
 /// when the piece is its last, what tells its owner it went.
 fn piece(mut message: Sending) -> (Bytes, Result<Sending, oneshot::Sender<()>>) {
     let rest = message.bytes.slice(message.at..);
-    let first = demi_shared_lanes::pieces(message.lane, message.binary, rest)
+    let first = jush_shared_lanes::pieces(message.lane, message.binary, rest)
         .next()
         .expect("a message has a first piece");
     let Frame::Data { piece, .. } = &first else {

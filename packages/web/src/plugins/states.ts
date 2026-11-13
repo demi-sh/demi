@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { effectScope, reactive, watch, type EffectScope } from 'vue'
-import type { PluginCallError, StateFeed } from '@demicodes/web-ui/plugins/page'
+import type { PluginCallError, StateFeed } from '@jush-ai/web-ui/plugins/page'
 import { apiRequest, readResponse } from '../api/client'
 import { pluginStateAnswerSchema, type ConversationMetadata } from '../api/generated/web-api'
 import type { PageState } from '../state/lists'

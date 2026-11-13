@@ -14,7 +14,7 @@ name=$(cat latin1.txt)     # the bytes 63 61 66 e9, "café" in Latin-1
 printf '%s\n' "$name" > copy.txt
 ```
 
-GNU bash writes the four bytes it read. Demi's job shell (brush, with
+GNU bash writes the four bytes it read. Jush's job shell (brush, with
 uutils in the same process) holds every value as a Rust `String`, so the
 byte `e9` became U+FFFD where the text entered the shell, and `copy.txt`
 holds `63 61 66 ef bf bd`. The same happens to a file name that is no
@@ -82,7 +82,7 @@ pub struct ByteWriter<W>;                       // a builtin's output
   starting points, `-print`, `-print0` and `-printf`, `xargs`'s command
   and arguments, and `which` keep the bytes instead of replacing them with
   U+FFFD.
-- **A protocol of UTF-8 strings,** such as a declared `demi` command's
+- **A protocol of UTF-8 strings,** such as a declared `jush` command's
   arguments and environment, gets U+FFFD for a held byte (`lossy`).
 - **Windows** holds no bytes in its strings: `to_os` and `path` there give
   U+FFFD for a held byte, as before.
@@ -103,12 +103,12 @@ sed 4.9 and GNU findutils on Linux, and every case was compared with it.
   `ENCODE_DIRECT_BASE`, U+F600 to U+F6FF in the Basic Multilingual Plane's
   private-use area; a character that arrives in that range is held as its
   bytes too ([`str2wcs_internal`](https://github.com/fish-shell/fish-shell/blob/3.3.1/src/common.cpp)),
-  as Demi does. Demi takes plane 16 instead, which no common font draws
+  as Jush does. Jush takes plane 16 instead, which no common font draws
   from, where the Basic Multilingual Plane's area holds icon fonts' glyphs
   that a prompt or a file name may contain.
 - Python's [PEP 383](https://peps.python.org/pep-0383/) `surrogateescape`
   maps each such byte to a lone surrogate, U+DC80 to U+DCFF. A Rust
-  `char` cannot hold a lone surrogate, so Demi cannot take that range.
+  `char` cannot hold a lone surrogate, so Jush cannot take that range.
 - bash and other C shells hold bytes and need no scheme.
 
 ## Alternatives

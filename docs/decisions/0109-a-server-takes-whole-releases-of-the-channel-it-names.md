@@ -7,8 +7,8 @@ status: proposed, superseded in part by 0134
 ## Problem
 
 A server release holds the backend, the web app and the Cloud image, but not
-the programs Demi runs on a Host: the runner and the command programs, such
-as `demi-file` and `demi-mobile`, for each of the six targets. Its
+the programs Jush runs on a Host: the runner and the command programs, such
+as `jush-file` and `jush-mobile`, for each of the six targets. Its
 `release.json` names the GitHub release that offers them, and the backend
 downloads each one the first time a Host of its target needs it.
 
@@ -29,9 +29,9 @@ a download with its redirects, size limits and logs; a worker that stores
 the programs of the known Hosts' targets ahead; and a record, `release.json`,
 that only says where the programs are.
 
-Installing does not name a channel either. `https://demi.sh/install.sh`
-redirects to the `install.sh` of GitHub's latest release, the one Demi
-published last. Demi has published none, as every release so far is a
+Installing does not name a channel either. `https://jush.ai/install.sh`
+redirects to the `install.sh` of GitHub's latest release, the one Jush
+published last. Jush has published none, as every release so far is a
 beta, so the documented command answers 404 on every machine. Its
 `--prerelease` installs what Settings › Updates calls Canary, under another
 name, and nothing installs Beta.
@@ -43,7 +43,7 @@ name, and nothing installs Beta.
 The update downloads all of the release, and nothing after it does:
 
 ```text
-Downloading Demi 0.1.5500
+Downloading Jush 0.1.5500
 [==========          ]
 120 MB of 300 MB · 12 MB/s · Less than a minute remaining
 ```
@@ -62,18 +62,18 @@ Downloading Demi 0.1.5500
 
 ### How it works
 
-1. **The archive.** `demi-<version>-server-linux-<arch>.tar.zst` holds a
+1. **The archive.** `jush-<version>-server-linux-<arch>.tar.zst` holds a
    `files/` directory in its root, with the compressed copy of every
    runner and command program for every target: the files that a GitHub
    release offers one by one today.
 
    ```text
-   /opt/demi/releases/0.1.5500/
+   /opt/jush/releases/0.1.5500/
      bin/  systemd/  web/  runners/  commands/  image/
      files/
-       demi-runner-aarch64-apple-darwin.zst
-       demi-runner-x86_64-pc-windows-msvc.exe.zst
-       demi-file-aarch64-apple-darwin.zst
+       jush-runner-aarch64-apple-darwin.zst
+       jush-runner-x86_64-pc-windows-msvc.exe.zst
+       jush-file-aarch64-apple-darwin.zst
        ...
    ```
 
@@ -92,9 +92,9 @@ Downloading Demi 0.1.5500
    the local disk instead of from GitHub.
 4. **The next release.** While an update prepares, the paired devices
    download the next runner from the backend, which takes it from the next
-   release's `files/`: `demi-server` has unpacked that release already.
+   release's `files/`: `jush-server` has unpacked that release already.
 5. **The GitHub release.** It no longer offers the programs one by one. It
-   offers the server archives, the Cloud images, `demi-server`, `SHA256SUMS`
+   offers the server archives, the Cloud images, `jush-server`, `SHA256SUMS`
    and the debug symbols.
 6. **What an older release meets.** A release before this one keeps its
    `release.json` and downloads its programs from its own GitHub release,
@@ -103,7 +103,7 @@ Downloading Demi 0.1.5500
    a backend before this release finds no `release.json` in this release's
    root, and this release's backend finds no `files/` in an older one's. In
    both cases the update goes on, and the devices download their runner
-   after the switch, once, as `demi-server` prints: the first update to this
+   after the switch, once, as `jush-server` prints: the first update to this
    release, and a rollback from it to an older one.
 7. **Publishing.** A release publishes a build whose root holds `files/`;
    one made before this change is refused, since its root names programs
@@ -111,31 +111,31 @@ Downloading Demi 0.1.5500
 
 ### Installing names its channel
 
-Demi has no stable release yet, so an install names its channel, as
+Jush has no stable release yet, so an install names its channel, as
 Settings › Updates does, or a version:
 
 ```sh
-curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --beta
-curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --canary
-curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --version 0.1.5500
+curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --beta
+curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --canary
+curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --version 0.1.5500
 ```
 
 * Without one, `install.sh` installs nothing and says so:
 
   ```text
-  install.sh: Demi has no stable release yet: choose a channel.
-    The releases Demi publishes:  curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --beta
-    The newest build:             curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --canary
+  install.sh: Jush has no stable release yet: choose a channel.
+    The releases Jush publishes:  curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --beta
+    The newest build:             curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --canary
   ```
 
-* `--beta` installs GitHub's latest release; while Demi has published none,
+* `--beta` installs GitHub's latest release; while Jush has published none,
   it says so and points to `--canary`. `--canary` installs the highest
   version among all the releases, as `--prerelease` did, which goes.
 * `install.sh` is one script for every release, no longer an asset of each:
-  it finds the version itself. `https://demi.sh/install.sh` redirects to
+  it finds the version itself. `https://jush.ai/install.sh` redirects to
   `crates/server/install.sh` on the repository's branch that releases are
   published from.
-* `demi-server upgrade` and `demi-server setup` take the same `--beta` and
+* `jush-server upgrade` and `jush-server setup` take the same `--beta` and
   `--canary`, and `--prerelease` goes from them too. `upgrade` with neither
   and no version refuses with the same message; `setup` without one sets up
   its own release, which `install.sh` chose.
@@ -156,11 +156,11 @@ developer's build.
   air-gapped ones included
   ([coder/coder#2533](https://github.com/coder/coder/pull/2533),
   [`site.go`](https://github.com/coder/coder/blob/main/site/site.go)).
-  Its *slim* binaries, without them, are for the workspaces. Demi does
+  Its *slim* binaries, without them, are for the workspaces. Jush does
   the same with its server archive.
 * **VS Code**'s remote development downloads the server for each host
   from Microsoft's CDN when the host is first opened: it has no server of
-  its own to hold them, which Demi has.
+  its own to hold them, which Jush has.
 
 ## Alternatives
 

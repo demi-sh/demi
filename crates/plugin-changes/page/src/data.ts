@@ -9,7 +9,7 @@ import {
   type IntentPayloads,
   type RequestEditRef,
   type RequestEditSelection,
-} from '@demicodes/plugin-sdk'
+} from '@jush-ai/plugin-sdk'
 
 /**
  * What the Change view shows (`crates/agent-store/src/changes.rs`,

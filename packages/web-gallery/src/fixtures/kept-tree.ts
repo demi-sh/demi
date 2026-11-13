@@ -1,9 +1,9 @@
 import { watch } from 'vue'
-import { clamp } from '@demicodes/utils'
-import { TREE_WIDTH } from '@demicodes/web-ui/files/file-view'
-import { treeLayout } from '@demicodes/web-ui/files/tree-layout'
+import { clamp } from '@jush-ai/utils'
+import { TREE_WIDTH } from '@jush-ai/web-ui/files/file-view'
+import { treeLayout } from '@jush-ai/web-ui/files/tree-layout'
 
-const STORAGE_KEY = 'demi-gallery.file-tree'
+const STORAGE_KEY = 'jush-gallery.file-tree'
 
 /**
  * Keeps whether the file tree shows, and its width, across visits: the

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import SkillsSettings from '@demicodes/plugin-skills/SkillsSettings.vue'
-import { skillsPage, type SkillsState } from '@demicodes/plugin-skills'
-import { PageScope, providePageHost } from '@demicodes/web-ui/plugins/page'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import SkillsSettings from '@jush-ai/plugin-skills/SkillsSettings.vue'
+import { skillsPage, type SkillsState } from '@jush-ai/plugin-skills'
+import { PageScope, providePageHost } from '@jush-ai/web-ui/plugins/page'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { galleryPageHost, skillsPlugin } from '../fixtures/plugins'
 import { SKILLS_CALLS_OPEN, skillsCalls } from '../fixtures/settings'
 

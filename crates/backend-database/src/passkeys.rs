@@ -8,9 +8,9 @@
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::passkeys::{PasskeyChallengeId, PasskeyDto, PasskeyId};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::passkeys::{PasskeyChallengeId, PasskeyDto, PasskeyId};
 use jiff::SignedDuration;
 use rusqlite::{OptionalExtension, Row, params};
 use webauthn_rs::prelude::{Credential, DiscoverableAuthentication, Passkey, PasskeyRegistration};

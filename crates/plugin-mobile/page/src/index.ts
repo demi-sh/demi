@@ -5,12 +5,12 @@
 // manifest.
 //
 // The view is the browser's live view with a different source. Its pictures and
-// its control are shared (`crates/live-view`, `@demicodes/plugin-sdk`), and
+// its control are shared (`crates/live-view`, `@jush-ai/plugin-sdk`), and
 // only what a source alone has stays here, the simulator's frame and buttons.
 // The toolbar's controls each run the operation of the command that does the
 // same and wait for nothing, the picture being the answer; a rotation turns
 // the shown picture at once.
-import { definePage } from '@demicodes/plugin-sdk'
+import { definePage } from '@jush-ai/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import { mobileDeviceKind } from './live/kind'
 import { mobileStore } from './live/store'

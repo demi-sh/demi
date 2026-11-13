@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SearchSource } from '@demicodes/protocol'
+import type { SearchSource } from '@jush-ai/protocol'
 import { sourceHost, sourcePage } from '../opaque-steps'
 
 /**

@@ -1,5 +1,5 @@
 [package]
-name = "demi-agent-server"
+name = "jush-agent-server"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -20,16 +20,16 @@ testing = []
 bytes.workspace = true
 # Reads a user message's Markdown for the title it gives.
 comrak = { version = "0.56", default-features = false }
-demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
-demi-agent-session = { path = "../agent-session" }
-demi-agent-store = { path = "../agent-store" }
-demi-agent-tools = { path = "../agent-tools" }
-demi-agent-transcript = { path = "../agent-transcript" }
-demi-shared-types = { path = "../shared-types" }
-demi-shared-gates = { path = "../shared-gates" }
-demi-provider-common = { path = "../provider-common" }
-demi-device-interface = { path = "../device-interface" }
-demi-device-paths = { path = "../device-paths" }
+jush-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
+jush-agent-session = { path = "../agent-session" }
+jush-agent-store = { path = "../agent-store" }
+jush-agent-tools = { path = "../agent-tools" }
+jush-agent-transcript = { path = "../agent-transcript" }
+jush-shared-types = { path = "../shared-types" }
+jush-shared-gates = { path = "../shared-gates" }
+jush-provider-common = { path = "../provider-common" }
+jush-device-interface = { path = "../device-interface" }
+jush-device-paths = { path = "../device-paths" }
 futures-util.workspace = true
 schemars.workspace = true
 serde.workspace = true
@@ -45,10 +45,10 @@ tracing.workspace = true
 # to a real model with the crate's test support. It is an example, so every
 # build of the one selection compiles it and no test runs it; its provider is a
 # dev-dependency, so the library never links one.
-demi-agent-server = { path = ".", features = ["testing"] }
-demi-agent-store = { path = "../agent-store", features = ["testing"] }
-demi-agent-tools = { path = "../agent-tools", features = ["testing"] }
-demi-provider-openai-api = { path = "../provider-openai-api" }
+jush-agent-server = { path = ".", features = ["testing"] }
+jush-agent-store = { path = "../agent-store", features = ["testing"] }
+jush-agent-tools = { path = "../agent-tools", features = ["testing"] }
+jush-provider-openai-api = { path = "../provider-openai-api" }
 flate2 = "1"
 reqwest.workspace = true
 

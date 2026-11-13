@@ -1,4 +1,4 @@
-//! The SDK MCP channel: Demi's MCP server for one CLI process, an rmcp server
+//! The SDK MCP channel: Jush's MCP server for one CLI process, an rmcp server
 //! in local mode on the user's shard, reached through an in-memory transport.
 //!
 //! Before the CLI starts, the provider makes the handshake the CLI's client
@@ -42,7 +42,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
-use demi_provider_common::{MediaBytes, ResultPart, ToolCall, ToolDefinition};
+use jush_provider_common::{MediaBytes, ResultPart, ToolCall, ToolDefinition};
 use futures_channel::mpsc;
 use futures_util::StreamExt as _;
 use rmcp::model::{
@@ -191,14 +191,14 @@ impl Mcp {
         let initialize_result = self
             .ask(serde_json::json!({
                 "jsonrpc": "2.0",
-                "id": "demi-initialize",
+                "id": "jush-initialize",
                 "method": "initialize",
                 "params": {
                     "protocolVersion": protocol,
                     "capabilities": {},
                     "clientInfo": {
-                        "name": "demi",
-                        "version": demi_shared_artifacts::BUILD_VERSION,
+                        "name": "jush",
+                        "version": jush_shared_artifacts::BUILD_VERSION,
                     },
                 },
             }))
@@ -210,7 +210,7 @@ impl Mcp {
         let tools_list_result = self
             .ask(serde_json::json!({
                 "jsonrpc": "2.0",
-                "id": "demi-tools-list",
+                "id": "jush-tools-list",
                 "method": "tools/list",
             }))
             .await?;
@@ -240,7 +240,7 @@ impl Mcp {
         }
     }
 
-    /// Sends the server `message`, which Demi wrote.
+    /// Sends the server `message`, which Jush wrote.
     fn send(&self, message: serde_json::Value) -> Result<(), String> {
         let message = serde_json::from_value::<ClientJsonRpcMessage>(message)
             .map_err(|error| format!("The MCP message cannot be read: {error}"))?;
@@ -358,7 +358,7 @@ impl Mcp {
     }
 }
 
-/// Demi's MCP server for one process.
+/// Jush's MCP server for one process.
 struct Server {
     board: Rc<RefCell<Board>>,
     /// Tells the run of each call that opens.
@@ -368,7 +368,7 @@ struct Server {
 impl ServerHandler for Server {
     fn get_info(&self) -> ServerConfig {
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
-            .with_server_info(Implementation::new("demi", demi_shared_artifacts::BUILD_VERSION))
+            .with_server_info(Implementation::new("jush", jush_shared_artifacts::BUILD_VERSION))
     }
 
     async fn list_tools(

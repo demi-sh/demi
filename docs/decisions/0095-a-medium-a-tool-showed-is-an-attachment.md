@@ -7,14 +7,14 @@ status: proposed
 ## Problem
 
 An agent checks a change on the running product. It saves a screenshot,
-runs `demi file view shot.png` to look at it, and then wants to show the
+runs `jush file view shot.png` to look at it, and then wants to show the
 screenshot to Alex in its reply. The tool result says only
 `[image 1: image/png, 1200 × 1500 px, 133808 bytes]`, so the agent runs
-`demi attachment upload shot.png`, which reads the file from the Host and
+`jush attachment upload shot.png`, which reads the file from the Host and
 sends its bytes to the backend a second time, and only then has an id to
 write as `<attachment id="a9" />`.
 
-The backend already had those bytes. When `demi file view` ends, the runner
+The backend already had those bytes. When `jush file view` ends, the runner
 announces each medium by its SHA-256, and the backend reads its bytes from
 the Host, or from the conversation owner's blobs when they hold it, to build
 the tool result. Every upload of a file the agent has just viewed is a
@@ -37,7 +37,7 @@ of 2400 × 3000 px, not to the user; attachment_id: a13]
 * **Every medium gets an id**, shown to the model or not, so the agent can
   show any of them. An id the reply never writes shows nowhere: a reply shows
   only the attachments it names.
-* **The attachment is the original**: the bytes `demi file view` handed over,
+* **The attachment is the original**: the bytes `jush file view` handed over,
   never the copy fitted for the model.
 * **The same bytes keep one id**: a medium whose blob an attachment of the
   conversation already has takes that attachment's id, so viewing a file
@@ -54,13 +54,13 @@ of 2400 × 3000 px, not to the user; attachment_id: a13]
   its result tells of each medium, without its bytes, so a result that a
   backend started again reports names the same ids:
   `[image 1: not shown: not kept past the command's end; attachment_id: a12]`.
-* `demi attachment upload` stays for files no tool result showed. An upload,
+* `jush attachment upload` stays for files no tool result showed. An upload,
   and the picture a reply shows from a file, of bytes an attachment of the
   conversation has takes that attachment's id, so one file is one attachment.
 
 The design to build from:
 
-* `MediumFacts.name` carries the file's name for every medium `demi file
+* `MediumFacts.name` carries the file's name for every medium `jush file
   view` reads from a file, not only for a document. A medium read from stdin
   is named by its kind and number: `image-1.png`, `video-2.mp4`,
   `document-3.pdf`.
@@ -107,7 +107,7 @@ uploads those files as before.
 
 None: the bytes already reach the backend at the command's end
 (`backend-remote-host/src/shell_environment.rs`, `media`), and a row and
-its number are what `demi attachment upload` already writes.
+its number are what `jush attachment upload` already writes.
 
 ## Prior art
 
@@ -118,7 +118,7 @@ its number are what `demi attachment upload` already writes.
 * OpenAI's Assistants API gives each image its code interpreter makes a
   `file_id`, which the assistant's message names as an `image_file`.
 
-Demi gives every medium an id as both do, but shows it only where the reply
+Jush gives every medium an id as both do, but shows it only where the reply
 names it: most media an agent views are steps of its work, such as a
 screenshot it checks before it fixes a layout, not something to hand over.
 

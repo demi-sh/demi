@@ -77,7 +77,7 @@ None.
 * macOS's Stocks app: its range selector reads 1D, 1W, 1M, … ALL, in order
   of their span, and the range chosen applies to every ticker symbol
   ([Change the chart display](https://support.apple.com/guide/stocks/change-the-chart-display-stc4cfc704df/mac)).
-  Demi's choice applies to every conversation the same way.
+  Jush's choice applies to every conversation the same way.
 * Coinbase's price chart: 1H, 1D, 1W, 1M, 1Y, All
   ([an asset's page](https://www.coinbase.com/price/bitcoin)), the hour
   among them.

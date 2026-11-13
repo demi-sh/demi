@@ -3,11 +3,11 @@ import { t } from './locales/text'
 import { computed } from 'vue'
 import { TriangleAlert, Zap } from '@lucide/vue'
 import type { ModelInfo, ProviderInfo } from '../transport/protocol'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { useIconPx } from '@demicodes/web-ui/ui/icon-metrics'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { useIconPx } from '@jush-ai/web-ui/ui/icon-metrics'
 import IndeterminateSpinner from '../ui/IndeterminateSpinner.vue'
-import Dropdown from '@demicodes/web-ui/ui/Dropdown.vue'
-import Tooltip from '@demicodes/web-ui/ui/Tooltip.vue'
+import Dropdown from '@jush-ai/web-ui/ui/Dropdown.vue'
+import Tooltip from '@jush-ai/web-ui/ui/Tooltip.vue'
 import { isFastMode } from './fast-mode'
 import { composerModel, type ModelSettings, type ModelSettingsChange } from './model-selection'
 import type { ContextLimitChange } from './context-limit'
@@ -79,7 +79,7 @@ const labelText = computed(() => {
     level, the marks and the chevron stay.
 
     data-model-selector, data-model: the product checks find the chip and read
-    the model it shows by them, in any language (`demi.model`).
+    the model it shows by them, in any language (`jush.model`).
   -->
   <div class="flex min-w-0" data-model-selector :data-model="selected ? `${selected.providerId}:${selected.modelId}` : undefined">
     <span

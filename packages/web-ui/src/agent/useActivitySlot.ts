@@ -1,5 +1,5 @@
 import { computed, watch, type ComputedRef } from 'vue'
-import type { SessionPhase } from '@demicodes/protocol'
+import type { SessionPhase } from '@jush-ai/protocol'
 import { pageLog } from '../infra/log'
 import { activitySlotKind, type ActivityKind, type ActivitySlotInput } from './activity-slot'
 import { turnStartingMessage } from './send-way'
@@ -11,7 +11,7 @@ export interface ActivitySlotState {
   /**
    * When the server began the wait for the provider, as `Date.now()`, which
    * the row counts from; null while the page's own action has no answer yet,
-   * and while Demi resumes a turn, when the row shows no time.
+   * and while Jush resumes a turn, when the row shows no time.
    */
   since: number | null
 }
@@ -34,7 +34,7 @@ export interface ActivitySlotSources {
  * The transcript's tail row: why it waits, and since when.
  *
  * The row says Requesting while the server says the agent waits, or while an
- * action of this page's own is on its way, and Resuming while Demi takes up a
+ * action of this page's own is on its way, and Resuming while Jush takes up a
  * turn a restart interrupted, with no time (`activitySlotKind`). Only the
  * server counts: while the page's action has no answer, the row shows no
  * time, and once the server tells the wait, the row counts from the wait's

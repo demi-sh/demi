@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     media_catalog::Catalog,
     ErrorCode, HttpFailureRecord, ProviderFailure, Secret, model_words,
     images::{ImageMaker, ImageRequest, MadeImage},
@@ -18,7 +18,7 @@ use demi_provider_common::{
     },
     read_http_failure,
 };
-use demi_shared_types::{Clock, VendorTrace};
+use jush_shared_types::{Clock, VendorTrace};
 use futures_util::future::BoxFuture;
 use reqwest::{
     StatusCode, Url,
@@ -89,7 +89,7 @@ impl GeminiKey {
     /// their ID and the generation methods they list.
     pub(crate) async fn list(
         &self,
-        http: &demi_provider_common::ProviderHttp,
+        http: &jush_provider_common::ProviderHttp,
         keeps: fn(&[String], &[String]) -> bool,
     ) -> Result<Vec<MediaModelInfo>, MediaFailure> {
         let mut models = Vec::new();
@@ -142,7 +142,7 @@ impl MediaMaker for KeyImages {
 
     fn models<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(self.0.list(http, makes_images))
@@ -152,7 +152,7 @@ impl MediaMaker for KeyImages {
 impl ImageMaker for KeyImages {
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         request: ImageRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeImage>> {
@@ -168,11 +168,11 @@ impl ImageMaker for KeyImages {
 }
 
 impl Jobs<ImageRequest, MadeImage> for KeyImages {
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a Catalog, request: ImageRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a Catalog, request: ImageRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(interactions::create(&self.0, http, encode(&request)))
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeImage>>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeImage>>> {
         Box::pin(async move {
             interactions::get(&self.0, http, job.id).await.and_then(|interaction| match interaction.standing() {
                 Standing::Pending { running: false } => Ok(JobState::Queued),

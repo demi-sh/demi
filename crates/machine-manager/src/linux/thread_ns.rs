@@ -19,7 +19,7 @@ pub enum Namespace {
     /// lives there.
     HostMount,
     /// The network namespace bound at the path, such as a slot's
-    /// `/run/demi-machine-manager/netns/demi-3`.
+    /// `/run/jush-machine-manager/netns/jush-3`.
     Network(PathBuf),
     /// A new network namespace, which the job may bind to a path.
     NewNetwork,
@@ -31,7 +31,7 @@ pub async fn run<T: Send + 'static>(
     namespace: Namespace,
     job: impl FnOnce(&OffLoop) -> io::Result<T> + Send + 'static,
 ) -> io::Result<T> {
-    blocking::run_on_new_thread("demi-machine-manager-namespace", move |off| {
+    blocking::run_on_new_thread("jush-machine-manager-namespace", move |off| {
         enter(&namespace)?;
         job(off)
     })

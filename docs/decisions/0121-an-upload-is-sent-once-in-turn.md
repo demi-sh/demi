@@ -7,12 +7,12 @@ status: proposed
 ## Problem
 
 Alex's agent makes twenty variants of a sticker at once. It runs twenty
-`demi image edit` commands on Alex's laptop, each with the same two reference
+`jush image edit` commands on Alex's laptop, each with the same two reference
 images, `style.png` (0.7 MB) and `mascot.png` (1.4 MB):
 
 ```sh
 for n in $(seq 20); do
-  demi image edit "$prompt" style.png mascot.png --model example-image-2 > v$n.png &
+  jush image edit "$prompt" style.png mascot.png --model example-image-2 > v$n.png &
 done; wait
 ```
 
@@ -23,8 +23,8 @@ both files, 42 MB in all:
 
 - The proxy's tunnel stalls: an upload sends its first 64 KB and nothing more
   for 15 seconds, then its connection breaks. Nineteen commands of twenty
-  fail with `demi image edit: pipe failed: error sending request for url
-  (https://demi.example.com/api/pipes/…)`, and each leaves a 0-byte file.
+  fail with `jush image edit: pipe failed: error sending request for url
+  (https://jush.example.com/api/pipes/…)`, and each leaves a 0-byte file.
 - The runner's own connection gets nothing through for 60 seconds either, so
   the backend counts the laptop as gone. The laptop shows offline for two
   minutes, and the commands of every conversation on it wait.
@@ -53,8 +53,8 @@ and resumes an upload where its connection broke. What fails says why.
 - A failure names its cause, with every error beneath it:
 
   ```text
-  demi image edit: pipe failed: error sending request for url
-  (https://demi.example.com/api/pipes/…): client error (SendRequest):
+  jush image edit: pipe failed: error sending request for url
+  (https://jush.example.com/api/pipes/…): client error (SendRequest):
   http2 error: stream error received: unspecific protocol error detected
   ```
 
@@ -65,24 +65,24 @@ runner can send again from any offset:
 
 | What the backend reads                         | Example                                                          |
 | ---------------------------------------------- | ---------------------------------------------------------------- |
-| A file (`fs_readFile`)                         | the Files panel, a download, `demi attachment upload`, a command's input image |
+| A file (`fs_readFile`)                         | the Files panel, a download, `jush attachment upload`, a command's input image |
 | Several files (`fs_readFiles`)                 | an edit's copies, a workflow's file                              |
 | A file at a commit (`git_show`)                | the Changes panel                                                |
-| A command's kept output (`job_read`)           | `demi shell output`                                              |
-| The media a command returned (`job_media_read`) | the image `demi file view` shows the agent                      |
+| A command's kept output (`job_read`)           | `jush shell output`                                              |
+| The media a command returned (`job_media_read`) | the image `jush file view` shows the agent                      |
 
 The rest is not queued:
 
 - `fs_look`'s answers and `fs_search`'s results are small: a read by
   content looks with no bytes, and reads its file as above.
 - A stream goes as it is made: a command's standard input and output,
-  `demi host shell`'s pipes, a port forward, an exposed port, a plugin's
+  `jush host shell`'s pipes, a port forward, an exposed port, a plugin's
   stream. A queue would stall the program or the page that waits on it. The
   link shares itself among these as it does among any connections.
 
 ### Sent once
 
-`demi attachment upload` already copies a file by its content
+`jush attachment upload` already copies a file by its content
 (`crates/backend-host-access/src/attachment_commands.rs`): the Host hashes the
 file (`fs_hashFile`), and its bytes travel only when the user's blob store
 (`crates/backend-blobs/src/blobs.rs`) lacks them. A command's input image
@@ -90,7 +90,7 @@ goes the same way, and both now also wait for a read of the same content
 already under way:
 
 1. A plugin asks for a file by its content (`HostRead::content`), as
-   `demi image edit` and `demi video` ask for their images.
+   `jush image edit` and `jush video` ask for their images.
 2. The Host hashes it, and the backend reads it into the user's blob store
    only when the store lacks it and no read of the same SHA-256 is under way
    for the user (`UserBlobs::fetch_once`). A read that comes meanwhile waits
@@ -218,7 +218,7 @@ takes no chunks, and no backend a runner that sends no hashes.
 - Chrome sends a request the page needs to show first ahead of one it can
   defer.
 
-Demi departs in that the queue is the device's, whoever asks, since the link
+Jush departs in that the queue is the device's, whoever asks, since the link
 it guards is the device's. Its content store is the blob store it already
 has, with its day of grace, not a cache of its own.
 
@@ -232,7 +232,7 @@ has, with its day of grace, not a cache of its own.
   default with the computer and went back to a fixed one; none of the tools
   above adapts it.
 - **Keep the device's link alive by a longer silence.** Socket.IO counts a
-  peer gone after 45 seconds, SignalR after 30, Kubernetes after 50; Demi's
+  peer gone after 45 seconds, SignalR after 30, Kubernetes after 50; Jush's
   60 is among them. The silence was the runner's own uploads; queued, they
   leave the link room.
 

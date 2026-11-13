@@ -8,12 +8,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     DirectoryFile, DeviceDirectory, PluginError, PluginId, PluginPort, PortFailure, PortRefusal,
     StoredValue, Workspaces,
 };
-use demi_web_api_protocol::ids::{DeviceId, WorkspaceId};
-use demi_shared_types::{BlobRef, Timestamp};
+use jush_web_api_protocol::ids::{DeviceId, WorkspaceId};
+use jush_shared_types::{BlobRef, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -106,7 +106,7 @@ impl Places {
         workspace.is_none_or(|workspace| self.0.workspaces.iter().any(|each| each.id == *workspace))
     }
 
-    /// The place's name as Demi's commands say it.
+    /// The place's name as Jush's commands say it.
     pub(crate) fn name(&self, workspace: Option<&WorkspaceId>) -> &str {
         workspace
             .and_then(|workspace| self.0.workspaces.iter().find(|each| each.id == *workspace))

@@ -5,7 +5,7 @@
 //! video's from its container's header, MP4 and QuickTime or WebM.
 
 use bytes::Bytes;
-use demi_shared_types::PixelSize;
+use jush_shared_types::PixelSize;
 
 use crate::images;
 
@@ -32,13 +32,13 @@ pub fn has_pixel_size(media_type: &str) -> bool {
 /// The size a video's container header gives its video track, as a player
 /// shows it.
 ///
-/// An MP4 or QuickTime file is read by Demi's one MP4 reader, which turns a
+/// An MP4 or QuickTime file is read by Jush's one MP4 reader, which turns a
 /// portrait track's size by its matrix; any other container, as WebM, by a
 /// parser that walks its elements to the track header. Both find the header
 /// wherever it stands and never read the frames.
 fn video_size(bytes: Bytes, media_type: &str) -> Option<PixelSize> {
     if matches!(media_type, "video/mp4" | "video/quicktime" | "video/x-m4v") {
-        let facts = demi_shared_types::mp4::read(&bytes).ok()?;
+        let facts = jush_shared_types::mp4::read(&bytes).ok()?;
         return (facts.width > 0 && facts.height > 0).then_some(PixelSize { width: facts.width, height: facts.height });
     }
     let source = nom_exif::MediaSource::from_memory(bytes).ok()?;

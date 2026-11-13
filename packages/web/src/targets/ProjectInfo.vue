@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { keptComputed } from '@demicodes/web-ui/infra/keep-same'
+import { keptComputed } from '@jush-ai/web-ui/infra/keep-same'
 import { computed, ref } from 'vue'
-import ProjectDirectoryMenu from '@demicodes/web-ui/targets/ProjectDirectoryMenu.vue'
-import MoveConversationDialog from '@demicodes/web-ui/targets/MoveConversationDialog.vue'
-import { useMoveQuestion } from '@demicodes/web-ui/targets/move-question'
-import { homePath } from '@demicodes/web-ui/files/paths'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
+import ProjectDirectoryMenu from '@jush-ai/web-ui/targets/ProjectDirectoryMenu.vue'
+import MoveConversationDialog from '@jush-ai/web-ui/targets/MoveConversationDialog.vue'
+import { useMoveQuestion } from '@jush-ai/web-ui/targets/move-question'
+import { homePath } from '@jush-ai/web-ui/files/paths'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
 import type { ConversationTarget } from '../api/generated/web-api'
 import type { Conversation, Project } from '../state/types'
 import { useResources } from '../state/resources'
@@ -14,7 +14,7 @@ import { browserDevices, fileSourceFor, placesFor } from '../devices/files'
 import { useConversations } from '../conversation/store'
 import { executionFor, moveLock } from './execution'
 import DeviceMenu from './DeviceMenu.vue'
-import type { DeviceChoice } from '@demicodes/web-ui/targets/types'
+import type { DeviceChoice } from '@jush-ai/web-ui/targets/types'
 
 /**
  * The header's place: the device the conversation runs on and its directory.

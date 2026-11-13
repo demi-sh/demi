@@ -10,7 +10,7 @@ A workflow applies to a conversation only when the user picks it in the
 composer's Workflow menu, because a repository is often someone else's and
 must not choose how an agent works by holding a file. An agent that sees a
 task fits another way of working, or that the user asks to switch, has no
-way to pick one: `demi agent workflows` only lists and checks them.
+way to pick one: `jush agent workflows` only lists and checks them.
 
 ## Considered Options
 
@@ -24,7 +24,7 @@ Chosen option: an agent picks it with the user's permission, because the
 permission keeps the reason the choice was the user's: nothing a repository
 holds applies without the user agreeing in this conversation.
 
-* `demi agent workflows use <id>` picks a workflow of the conversation's
+* `jush agent workflows use <id>` picks a workflow of the conversation's
   directory for the conversation, and `use none` picks no workflow, exactly
   as the Workflow menu does. The menu shows the new choice at once.
 * It needs the user's permission in each conversation, as changing a

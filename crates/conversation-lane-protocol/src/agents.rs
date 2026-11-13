@@ -11,7 +11,7 @@
 //! pending steers, so a command that changes them settles on the entry, never
 //! on its answer.
 
-use demi_shared_types::{
+use jush_shared_types::{
     BlockId, ContextUsage, MAX_SAFE_INTEGER, MediaSource, NodeId, Nullable, PendingCall, PendingSteer, QueuedMessage,
     SessionPhase, Timestamp, UserContentBlock,
 };
@@ -74,7 +74,7 @@ pub struct AgentEntry {
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     #[garde(skip)]
     pub deleted: bool,
-    /// The root's turn a restart of the backend interrupted is one Demi
+    /// The root's turn a restart of the backend interrupted is one Jush
     /// resumes by itself, and the root has not run since: it changes with
     /// the root's phase, in the same entry. Absent otherwise.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
@@ -96,7 +96,7 @@ pub enum AgentRole {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, garde::Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct Subagent {
-    /// The number the model knows it by, which `demi agent spawn` printed
+    /// The number the model knows it by, which `jush agent spawn` printed
     /// and a message links it with as `agent:<number>`.
     #[garde(range(min = 1, max = MAX_SAFE_INTEGER))]
     pub number: u64,

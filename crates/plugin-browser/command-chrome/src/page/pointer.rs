@@ -6,7 +6,7 @@ use chromiumoxide::layout::Point;
 use serde_json::{Value, json};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use demi_shared_recording_protocol::InputBy;
+use jush_shared_recording_protocol::InputBy;
 
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Operation, Result, after_cleanup};
 use crate::live::inputs;

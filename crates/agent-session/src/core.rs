@@ -15,22 +15,22 @@ use std::{
     sync::Arc,
 };
 
-use demi_agent_store::{
+use jush_agent_store::{
     CheckpointState, CheckpointUpdate, CommandWatch, EditReceipt, PendingAgentInput, Watch,
     media::{self, HeldMedia, ModelView},
 };
-use demi_agent_transcript::{RequestTimes, 
+use jush_agent_transcript::{RequestTimes, 
     DirtyRows, INTERRUPTED_CODE, INTERRUPTED_TURN_MESSAGE, IdSource, REPLAY_CHARS, RequestView,
     TranscriptLog, kept, labelled_output,
     estimate::{OutputEstimate, anchor_tokens, blocks_tokens, context_anchor},
     replay,
 };
-use demi_conversation_lane_protocol::{AbortTarget, RequestOutput, TurnSpeed};
-use demi_provider_common::{
+use jush_conversation_lane_protocol::{AbortTarget, RequestOutput, TurnSpeed};
+use jush_provider_common::{
     Ahead, EntriesOf, InferenceRequest, PromptCache, ProviderEvent, ProviderFailure, RequestPurpose,
     ProviderRuntime, RequestBlock, RequestLimits, ToolDefinition,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     ScheduleMark, MessageComment,
     AgentAccount, AgentMessage, BlobRef, Block, BlockId, Clock, CommandId, CommandReport, FailureSource, ReportEvent,
     ModelSelection, NodeId, PendingCall, PendingSteer, ProviderErrorDiagnostics, QueuedMessage, SessionPhase,
@@ -163,7 +163,7 @@ pub(crate) fn log_interrupted(
     span: &tracing::Span,
     node: &NodeId,
     turn: Option<&TurnId>,
-    call: &demi_agent_transcript::PendingCall,
+    call: &jush_agent_transcript::PendingCall,
     end: &CallEnd<'_>,
     command: Option<&CommandId>,
 ) {
@@ -446,7 +446,7 @@ pub(super) enum ActionKind {
     /// messages: it opens a turn of its own, never shown in the queue.
     Continue,
     Retry,
-    /// Resumes the unfinished turn; `reason` says what made Demi resume it,
+    /// Resumes the unfinished turn; `reason` says what made Jush resume it,
     /// none when the user did.
     Resume {
         reason: Option<String>,
@@ -770,9 +770,9 @@ impl SessionCore {
     /// which the edit stops the turn for.
     pub(super) fn check_edit(
         &self,
-        operation: &demi_shared_types::OperationId,
+        operation: &jush_shared_types::OperationId,
         digest: &str,
-        version: &demi_conversation_lane_protocol::Version,
+        version: &jush_conversation_lane_protocol::Version,
         target: &BlockId,
     ) -> Result<EditCheck, EditError> {
         if let Some(receipt) = self
@@ -866,7 +866,7 @@ impl SessionCore {
     /// Whether the session admits a rewrite of its path made against the
     /// transcript `version`: settled, with nothing waiting, and nothing
     /// changed since.
-    fn check_settled(&self, version: &demi_conversation_lane_protocol::Version) -> Result<(), EditError> {
+    fn check_settled(&self, version: &jush_conversation_lane_protocol::Version) -> Result<(), EditError> {
         if self.disposing {
             return Err(EditError::Closed);
         }
@@ -888,7 +888,7 @@ impl SessionCore {
         &mut self,
         target: BlockId,
         to: u32,
-        version: &demi_conversation_lane_protocol::Version,
+        version: &jush_conversation_lane_protocol::Version,
     ) -> Result<ActionHandle, EditError> {
         // A target before the window is found by the switch, in the store.
         self.check_settled(version)?;
@@ -904,8 +904,8 @@ impl SessionCore {
     /// switch changed the path from a place before the window.
     pub(super) fn adopt_switch(
         &mut self,
-        switched: demi_agent_store::Switched,
-        before: Option<(usize, demi_agent_store::Rows, demi_agent_transcript::Earlier)>,
+        switched: jush_agent_store::Switched,
+        before: Option<(usize, jush_agent_store::Rows, jush_agent_transcript::Earlier)>,
     ) -> Vec<Box<dyn ProviderRuntime>> {
         let from = switched.from;
         let batch = match before {
@@ -1829,7 +1829,7 @@ impl SessionCore {
     }
 
     /// Says that a call's result is an interruption, and what ended it.
-    fn log_call_interrupted(&self, call: &demi_agent_transcript::PendingCall, end: &CallEnd<'_>, command: Option<&CommandId>) {
+    fn log_call_interrupted(&self, call: &jush_agent_transcript::PendingCall, end: &CallEnd<'_>, command: Option<&CommandId>) {
         if !self.one_request {
             log_interrupted(&self.span, &self.id, self.running_turn().as_ref(), call, end, command);
         }
@@ -2228,7 +2228,7 @@ impl SessionCore {
                 Input::Agent(input) => {
                     agent_message = true;
                     self.log_written(&turn, input.message.id.as_str(), "agent_message", boundary);
-                    // A message no agent sent is the user's or Demi's,
+                    // A message no agent sent is the user's or Jush's,
                     // which ends a run wherever it stands.
                     let sender_below = input
                         .message
@@ -2640,7 +2640,7 @@ impl SessionCore {
     /// Keeps a run's entries on the block they belong to: one that gives an
     /// item of the request, or one the run wrote. Entries that name no such
     /// block belong to nothing the session keeps.
-    pub(super) fn keep_entries(&mut self, of: EntriesOf, entries: Vec<demi_shared_types::Entry>) {
+    pub(super) fn keep_entries(&mut self, of: EntriesOf, entries: Vec<jush_shared_types::Entry>) {
         let blocks = &self.request_blocks;
         let block = match of {
             EntriesOf::Item(index) => blocks.items.get(index),
@@ -2667,7 +2667,7 @@ impl SessionCore {
         self.start_output_sent_at(request_id, sent_at, first_sent_at);
     }
 
-    /// Starts the output of a request that left Demi at `sent_at`.
+    /// Starts the output of a request that left Jush at `sent_at`.
     fn start_output_sent_at(&mut self, request_id: String, sent_at: Timestamp, first_sent_at: Option<Timestamp>) {
         self.add_to_turn_output();
         self.output = Some(StreamedOutput {
@@ -2694,7 +2694,7 @@ impl SessionCore {
         let output = self.output.as_ref()?;
         let lifetime = output.cache_lifetime?;
         let carried = output.carried?;
-        if window? < IDLE_COMPACTION_WINDOW || carried < demi_shared_types::IDLE_COMPACTION_CONTEXT_FLOOR {
+        if window? < IDLE_COMPACTION_WINDOW || carried < jush_shared_types::IDLE_COMPACTION_CONTEXT_FLOOR {
             return None;
         }
         let before_expiry = lifetime * IDLE_COMPACTION_SHARE.0 / IDLE_COMPACTION_SHARE.1;
@@ -2729,7 +2729,7 @@ impl SessionCore {
             && let Some(ended) = ended
         {
             // The provider sent this call itself, once the response before
-            // ended and Demi handed it the last result of that response's
+            // ended and Jush handed it the last result of that response's
             // calls.
             let sent_at = self.last_returned_of_response().map_or(ended, |returned| returned.max(ended));
             let request_id = self.ids.next_id();
@@ -3039,7 +3039,7 @@ impl SessionCore {
     }
 
     /// Keeps `files` with the complete text `id` (`AgentSession::keep_code_files`).
-    pub(super) fn keep_code_files(&mut self, id: &BlockId, files: Vec<demi_shared_types::CodeFile>) {
+    pub(super) fn keep_code_files(&mut self, id: &BlockId, files: Vec<jush_shared_types::CodeFile>) {
         if self.transcript.keep_code_files(id, files) {
             self.commit();
         }
@@ -3047,7 +3047,7 @@ impl SessionCore {
 
     /// Settles the picture of the text `id` named by `target`
     /// (`AgentSession::settle_picture`).
-    pub(super) fn settle_picture(&mut self, id: &BlockId, target: &str, copy: demi_shared_types::PictureCopy) {
+    pub(super) fn settle_picture(&mut self, id: &BlockId, target: &str, copy: jush_shared_types::PictureCopy) {
         if self.transcript.settle_picture(id, target, copy) {
             self.commit();
         }
@@ -3729,7 +3729,7 @@ fn replace_switch(
 /// Whether `report` tells an end a look showed the node since the report was
 /// made.
 ///
-/// A look is a `demi shell status` or a `shell` result. Such an end tells
+/// A look is a `jush shell status` or a `shell` result. Such an end tells
 /// nothing more
 /// (`crates/agent-session/src/reports.rs`).
 ///

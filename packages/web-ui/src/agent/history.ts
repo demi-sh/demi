@@ -1,4 +1,4 @@
-import { PAGE_BLOCKS } from '@demicodes/protocol'
+import { PAGE_BLOCKS } from '@jush-ai/protocol'
 import {
   boundedTranscript,
   latestWindow,
@@ -8,9 +8,9 @@ import {
   type HeldBlock,
   type HeldTranscript,
   type TranscriptWindow,
-} from '@demicodes/conversation-client'
+} from '@jush-ai/conversation-client'
 
-export type { HeldBlock } from '@demicodes/conversation-client'
+export type { HeldBlock } from '@jush-ai/conversation-client'
 
 /**
  * The blocks at the transcript's end, its latest window, which the stream

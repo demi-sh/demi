@@ -19,8 +19,8 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
-use demi_command_protocol::PackageArtifact;
-use demi_shared_artifacts::Digest;
+use jush_command_protocol::PackageArtifact;
+use jush_shared_artifacts::Digest;
 use object_store::ObjectStore;
 use tokio_util::sync::CancellationToken;
 
@@ -89,16 +89,16 @@ impl Sourcing {
         let encoded = wanted.encoded;
         tokio::task::spawn_blocking(move || {
             if encoded {
-                return demi_shared_artifacts::check_encoded_blocking(&checked, &expected);
+                return jush_shared_artifacts::check_encoded_blocking(&checked, &expected);
             }
-            let mut verifier = demi_shared_artifacts::Verifier::new(&expected);
+            let mut verifier = jush_shared_artifacts::Verifier::new(&expected);
             verifier.update(&checked)?;
             verifier.finish()
         })
         .await
         .map_err(|error| error.to_string())?
         .map_err(|error| format!("{}: {error}", wanted.file))?;
-        let coding = encoded.then_some(demi_shared_artifacts::CONTENT_CODING);
+        let coding = encoded.then_some(jush_shared_artifacts::CONTENT_CODING);
         put_immutable(&*self.store, &key, bytes, &wanted.artifact, coding, cancel)
             .await
             .map_err(|error| error.to_string())

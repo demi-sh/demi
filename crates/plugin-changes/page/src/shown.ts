@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue'
-import type { ConversationFileService, Repositories } from '@demicodes/plugin-sdk'
+import type { ConversationFileService, Repositories } from '@jush-ai/plugin-sdk'
 import { followsPreferred, viewDirectory, type ChangeData } from './data'
 
 /** The working tree the Change view shows, which its tab and its badge share. */

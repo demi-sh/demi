@@ -4,7 +4,7 @@
 //!   stops startup, so a misspelt setting is never ignored. The backend and the
 //!   machine manager read one configuration file
 //!   (`crates/backend/src/config/mod.rs`): the manager checks the names under
-//!   its own prefix, and the backend every other `DEMI_*` name.
+//!   its own prefix, and the backend every other `JUSH_*` name.
 //! - The panic hook every program installs at start
 //!   (`crates/xtask/src/native/build.rs`).
 //! - On a musl target, the memory allocator of the programs that run on a device
@@ -48,7 +48,7 @@ static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 /// The prefix of the machine manager's own settings, which the backend
 /// leaves to the manager's check.
-pub const MANAGED_PREFIX: &str = "DEMI_MANAGED_";
+pub const MANAGED_PREFIX: &str = "JUSH_MANAGED_";
 
 /// The first variable of `vars` whose name starts with `prefix` and that no
 /// argument of `command` reads; a name that is not Unicode is no setting's.

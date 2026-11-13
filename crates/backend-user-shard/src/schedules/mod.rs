@@ -1,5 +1,5 @@
 //! The schedules of the user's conversations in their shard: what a
-//! conversation's metadata lists and `demi schedule` reads and changes, the
+//! conversation's metadata lists and `jush schedule` reads and changes, the
 //! scheduler that owns every trigger, a run from its trigger to its turn's
 //! end, the change watches, and the calls of the URL triggers.
 //!
@@ -26,13 +26,13 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use base64::Engine;
-use demi_backend_database::StorageError;
-use demi_backend_database::schedules::{StoredRun, StoredSchedule};
-use demi_backend_page_sync::Part;
-use demi_backend_providers::vault::seal::Row;
-use demi_shared_types::{ScheduleId, Timestamp};
-use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::schedules::{
+use jush_backend_database::StorageError;
+use jush_backend_database::schedules::{StoredRun, StoredSchedule};
+use jush_backend_page_sync::Part;
+use jush_backend_providers::vault::seal::Row;
+use jush_shared_types::{ScheduleId, Timestamp};
+use jush_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::schedules::{
     ConversationSchedule, IfBusy, LastRun, MonthDay, NEW_NAME, RUNS_SHOWN, Repeat, RepeatUnit, ScheduleDto,
     SchedulePatch, ScheduleRunDto, Task, Timing, Trigger, Weekday,
 };
@@ -188,7 +188,7 @@ impl Shard {
         self.rearm_schedules();
     }
 
-    /// The conversation's schedules as `demi schedule list` shows them,
+    /// The conversation's schedules as `jush schedule list` shows them,
     /// newest first.
     pub async fn schedule_list(&self, conversation: &ConversationId) -> Result<Vec<ScheduleDto>, StorageError> {
         let stored = self.services().control.conversation_schedules(conversation.clone()).await?;
@@ -298,7 +298,7 @@ impl Shard {
         })
     }
 
-    /// `demi schedule create`: a new schedule of `conversation` from its
+    /// `jush schedule create`: a new schedule of `conversation` from its
     /// defaults, with `patch` over them.
     ///
     /// The defaults are *New Schedule*, paused, every day with one task at
@@ -325,7 +325,7 @@ impl Shard {
             })
             .find(|name| !names.contains(name))
             .expect("the numbers run out after the names");
-        let reported = demi_backend_runners::command_context::reported(control, self.user()).await?;
+        let reported = jush_backend_runners::command_context::reported(control, self.user()).await?;
         let defaults = StoredSchedule {
             id: new_schedule_id(),
             conversation: conversation.clone(),
@@ -358,7 +358,7 @@ impl Shard {
         self.save_schedule(defaults, patch, Save::Create).await
     }
 
-    /// `demi schedule edit`; with `new_secret`, a URL trigger's secret is
+    /// `jush schedule edit`; with `new_secret`, a URL trigger's secret is
     /// replaced, and the old one stops working at once.
     pub async fn change_schedule(
         &self,
@@ -502,7 +502,7 @@ impl Shard {
         String::from_utf8(bytes).map(Some).map_err(|error| corrupt(error.to_string()))
     }
 
-    /// `demi schedule delete`, and the user's Delete: the schedule goes with
+    /// `jush schedule delete`, and the user's Delete: the schedule goes with
     /// its runs' records.
     pub async fn delete_schedule(&self, conversation: &ConversationId, id: &ScheduleId) -> Result<(), ScheduleError> {
         let schedule = self.stored_schedule(conversation, id).await?;
@@ -547,7 +547,7 @@ impl Shard {
         self.rearm_schedules();
     }
 
-    /// `demi schedule run`: a run whatever the timing, the daily limit or
+    /// `jush schedule run`: a run whatever the timing, the daily limit or
     /// whether the schedule is paused, of the repeat's task `task`, which may
     /// be left out when the repeat has only one.
     pub async fn run_schedule_now(
@@ -564,14 +564,14 @@ impl Shard {
             (Some(_), None) => return Err(ScheduleError::TaskNeeded),
             (Some(tasks), Some(id)) => Some(tasks.iter().find(|each| each.id == id).ok_or(ScheduleError::NoTask(id))?),
         };
-        if task.is_some_and(|task| demi_shared_types::is_blank(&task.prompt)) {
+        if task.is_some_and(|task| jush_shared_types::is_blank(&task.prompt)) {
             return Err(ScheduleError::NoMessage);
         }
         let at = self.services().control.now();
         self.fire(
             &schedule,
             runs::Fired {
-                cause: demi_backend_database::schedules::RunCause::Now,
+                cause: jush_backend_database::schedules::RunCause::Now,
                 at,
                 task: task.map(|task| task.id.clone()),
                 payload: runs::Payload::None,
@@ -760,7 +760,7 @@ impl Shard {
             .await?
         {
             Some(mut run) => {
-                if let Some(demi_web_api_protocol::schedules::RunNote::Limit { calls: count, .. }) = &mut run.note {
+                if let Some(jush_web_api_protocol::schedules::RunNote::Limit { calls: count, .. }) = &mut run.note {
                     *count += calls;
                 }
                 control.update_schedule_run(run).await?;
@@ -771,7 +771,7 @@ impl Shard {
                         schedule,
                         runs::cause_of(&schedule.trigger),
                         now,
-                        demi_web_api_protocol::schedules::RunNote::Limit { limit, calls },
+                        jush_web_api_protocol::schedules::RunNote::Limit { limit, calls },
                     ))
                     .await?;
             }
@@ -785,7 +785,7 @@ impl Shard {
 /// then fires what a backend that was down missed and waits for the next
 /// times.
 pub async fn start_schedulers(
-    control: &demi_backend_database::control::ControlService,
+    control: &jush_backend_database::control::ControlService,
     shards: &crate::shard::Shards,
 ) -> Result<(), StorageError> {
     for user in control.users_with_schedules().await? {

@@ -27,7 +27,7 @@ use crate::{
 /// - Setuid programs for sudo.
 /// - Only the sidecar programs beside runsc. Without the strict policy runsc
 ///   downloads a missing one or falls back to a deprecated embedded copy, where
-///   a Cloud runs only the programs `demi-server` fetched and checked.
+///   a Cloud runs only the programs `jush-server` fetched and checked.
 ///
 /// The sandbox may connect to the host's Unix sockets its mounts show, of which
 /// there is one: the backend's runner socket.

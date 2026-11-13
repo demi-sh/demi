@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
 
 /** Activity marks under exploration. The product draws only ActivityMark's sweep. */
 export type ExploratoryMarkKind = 'pulse' | 'dots' | 'signal' | 'orbit' | 'cluster'

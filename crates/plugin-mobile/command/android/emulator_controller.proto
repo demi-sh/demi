@@ -13,10 +13,10 @@
 // limitations under the License.
 
 // The part of the Android Emulator's `emulator_controller.proto` (emulator
-// 36.6, `<sdk>/emulator/lib/`) that Demi's Android driver uses
+// 36.6, `<sdk>/emulator/lib/`) that Jush's Android driver uses
 // (`crates/plugin-mobile/command/src/android/mod.rs`): the service's name, its methods and their
 // messages keep the original's names and field numbers; the fields and
-// methods Demi does not use are left out, which protobuf's unknown fields
+// methods Jush does not use are left out, which protobuf's unknown fields
 // allow.
 
 syntax = "proto3";

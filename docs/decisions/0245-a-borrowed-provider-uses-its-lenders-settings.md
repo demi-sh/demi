@@ -4,12 +4,12 @@ status: accepted
 
 # A borrowed provider uses its lender's settings, which only the lender changes
 
-Supersedes: 0236 (A Demi relays its providers to another), the borrower's
+Supersedes: 0236 (A Jush relays its providers to another), the borrower's
 media switches and its copy of the lender's media shapes.
 
 ## Problem
 
-Alex lends Studio, an OpenAI key on `demi.example.com`, to a laptop's Demi.
+Alex lends Studio, an OpenAI key on `jush.example.com`, to a laptop's Jush.
 On the laptop, Studio sits among the API keys and its page looks like theirs:
 each model has a switch, Images, Videos and Audio each have one, and Test
 Connection sends a message. None of them is the laptop's to decide. Alex turns
@@ -30,7 +30,7 @@ a control to change it.
 Providers
   SUBSCRIPTIONS            Studio ✎                                  [on]
     Codex                  ┌──────────────────────────────────────────────┐
-  API KEYS               + │ Share Key   Shared by demi.example.com  [••••] │
+  API KEYS               + │ Share Key   Shared by jush.example.com  [••••] │
     Anthropic              └──────────────────────────────────────────────┘
   SHARED WITH YOU          Models
     Studio                   GPT-5                                       ⓘ
@@ -42,7 +42,7 @@ Providers
 ```
 
 - **Its own group**, Shared with You, below API Keys, shown once there is one.
-  Add Provider keeps its Another Demi row, and the new provider appears in
+  Add Provider keeps its Another Jush row, and the new provider appears in
   this group.
 - **What the borrower changes**: its name, its switch, and its share key,
   which a new key replaces when the old one is revoked, so the conversations
@@ -55,7 +55,7 @@ Providers
   off is not lent: the borrower no longer lists it, and a run of it fails as
   a model the provider no longer offers. A kind of media the lender turned off
   is not made. A provider the lender turned off lists nothing, and a run
-  fails with "Studio is turned off on demi.example.com." under the provider's
+  fails with "Studio is turned off on jush.example.com." under the provider's
   response.
 - **When the borrower sees a change.** A run or a media call is checked
   against the lender's settings as it is sent, so a change holds at once. The

@@ -34,7 +34,7 @@ Nothing changes on screen or in the API; turns and requests wait less.
   `.cargo/config.toml`, so every build, a developer's and the release's,
   compiles the same SQLite. Each connection then has a page cache of its own.
   The two functions this gives up, `sqlite3_release_memory` and
-  `sqlite3_memory_used`, are called nowhere in Demi.
+  `sqlite3_memory_used`, are called nowhere in Jush.
 - A conversation's writer stays open while its conversation is live on its
   shard, that is while its agent tree is in memory. The tree's store holds
   the writer and releases it when the tree is disposed, once no page has
@@ -101,7 +101,7 @@ those reads keep opening their own connection.
   object idle for ten seconds is shut down and its container dropped after
   seventy
   ([`src/workerd/server/server/actor.rs`](https://github.com/cloudflare/workerd/blob/main/src/workerd/server/server/actor.rs)).
-  Demi keeps the ten minutes it already gives an idle tree.
+  Jush keeps the ten minutes it already gives an idle tree.
 - SQLite's page cache (`pcache1.c`) gives each connection a cache of its own
   unless `SQLITE_ENABLE_MEMORY_MANAGEMENT` is defined, which shares one
   among all; the shared one exists so that `sqlite3_release_memory` can free

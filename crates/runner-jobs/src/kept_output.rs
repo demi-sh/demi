@@ -24,8 +24,8 @@ use bytes::Bytes;
 use tokio::io::AsyncWriteExt;
 use tokio_util::sync::CancellationToken;
 
-use demi_runner_process::pipes::UploadBody;
-use demi_runner_protocol::wire::{self, JOB_KEPT_PART_BYTES, KeptRecord, OutputStream, WireBytes};
+use jush_runner_process::pipes::UploadBody;
+use jush_runner_protocol::wire::{self, JOB_KEPT_PART_BYTES, KeptRecord, OutputStream, WireBytes};
 
 /// How many bytes of records one segment of the kept output's end holds
 /// before the next one begins: the granularity at which the end lets old
@@ -79,7 +79,7 @@ impl KeptOutput {
         let head = directory.join("head");
         // Out of open files, the output waits for one (`crates/command-sdk/src/descriptors.rs`).
         let file =
-            demi_command_sdk::descriptors::retry(cancel, || tokio::fs::File::create(&head)).await?;
+            jush_command_sdk::descriptors::retry(cancel, || tokio::fs::File::create(&head)).await?;
         Ok(Self {
             directory,
             head: Some(file),
@@ -318,7 +318,7 @@ pub struct Snapshot {
 impl Snapshot {
     /// The snapshot's records as an upload: the head, where output was left
     /// out the record that says how much, then the end
-    /// (`demi_runner_process::pipes`).
+    /// (`jush_runner_process::pipes`).
     pub fn into_upload(self) -> io::Result<UploadBody> {
         let (head, length) = self.head;
         let mut body = UploadBody::new().file(head, 0, length);

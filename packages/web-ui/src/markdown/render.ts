@@ -1,8 +1,8 @@
 import type { RendererObject, Token, Tokens } from 'marked'
 import { markdownReader } from './reader'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import type { AttachmentLookup, MarkdownRenderOptions, MessageAttachment, MessageFileTarget, MessageFiles } from './types'
-import type { PictureCopy, PictureFailure } from '@demicodes/protocol'
+import type { PictureCopy, PictureFailure } from '@jush-ai/protocol'
 import { codeBlockHtml } from './highlight'
 import { WEB_LINK_REL, commitFolder, isHttpUrl, linkedCommit, linkedConversation, messageFileTarget, messageImage } from './filePath'
 import { attachmentBlockAt, attachmentBlockStart } from './attachment-block'
@@ -194,7 +194,7 @@ function firstWord(html: string): string {
 }
 
 /**
- * The attribute of an attachment's image or video that holds the file as Demi's
+ * The attribute of an attachment's image or video that holds the file as Jush's
  * own form of a copy holds it, which a drag of the link into a composer carries
  * (`copied-message.ts` § `attachmentDrag`). /
  */
@@ -218,7 +218,7 @@ export function attachmentMedium(attachment: MessageAttachment): ShownMedium | n
   return { kind, name: attachment.name, size: declaredSize(attachment), bytes: attachment.size, src: attachment.url }
 }
 
-/** An attachment as Demi's own form of a copy holds a stored file. */
+/** An attachment as Jush's own form of a copy holds a stored file. */
 function attachmentFile(attachment: MessageAttachment): CopiedStoredFile {
   return { type: 'stored', name: attachment.name, sha256: attachment.sha256, mediaType: attachment.mediaType }
 }

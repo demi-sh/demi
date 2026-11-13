@@ -7,15 +7,15 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_page_sync::Part;
-use demi_backend_user_shard::provider_settings::CatalogError;
-use demi_web_api_protocol::providers::ModelSearchResults;
-use demi_web_api_protocol::query::ModelSearch;
+use jush_backend_page_sync::Part;
+use jush_backend_user_shard::provider_settings::CatalogError;
+use jush_web_api_protocol::providers::ModelSearchResults;
+use jush_web_api_protocol::query::ModelSearch;
 
 use super::error::ApiError;
 use super::gate::AuthUser;
 use super::query::QueryParams;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 /// `GET /api/models/search?q=&entry=`: the models.dev models the query
 /// matches, filled from the entry's vendor where it lists them, from the

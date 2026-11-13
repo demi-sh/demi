@@ -29,7 +29,7 @@ const ADVERTISING: Duration = Duration::from_secs(120);
 pub struct Installed {
     sdk: Option<PathBuf>,
     adb: Adb,
-    /// Where an emulator Demi starts writes what it prints.
+    /// Where an emulator Jush starts writes what it prints.
     logs: Option<PathBuf>,
     /// The devices' art.
     art: art::Store,
@@ -46,7 +46,7 @@ impl Installed {
     pub fn at(sdk: Option<PathBuf>, logs: Option<PathBuf>) -> Self {
         // Beside the logs, or, for a program without an installation, in
         // the system's temporary directory.
-        let art = logs.clone().unwrap_or_else(|| std::env::temp_dir().join("demi").join("android")).join("device-art");
+        let art = logs.clone().unwrap_or_else(|| std::env::temp_dir().join("jush").join("android")).join("device-art");
         Self {
             sdk,
             adb: Adb::from_environment(),

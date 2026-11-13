@@ -670,7 +670,7 @@ pub fn uu_app() -> Command {
                 .help(translate!("cp-help-reflink")),
         )
         .arg(
-            // Demi's: macOS cp's flag for a clone, which GNU cp leaves free.
+            // Jush's: macOS cp's flag for a clone, which GNU cp leaves free.
             Arg::new(options::CLONE)
                 .short('c')
                 .overrides_with_all(MODE_ARGS)

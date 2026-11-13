@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsAgent from '@demicodes/web-ui/settings/SettingsAgent.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsAgent from '@jush-ai/web-ui/settings/SettingsAgent.vue'
 import { demoProviders } from '../fixtures/catalog'
 import { galleryMessages } from '../fixtures/send-while-running'
 import {

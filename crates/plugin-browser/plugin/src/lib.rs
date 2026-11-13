@@ -2,8 +2,8 @@
 //!
 //! The plugin holds:
 //!
-//! - the `demi browser` group, every leaf bound to an operation of the
-//!   `demi.browser` command package, which runs it on the device;
+//! - the `jush browser` group, every leaf bound to an operation of the
+//!   `jush.browser` command package, which runs it on the device;
 //! - the `browser` user stream of the live view;
 //! - the tab list and tab methods of the work's `browser` kind;
 //! - the kind's tabs on the backend;
@@ -26,10 +26,10 @@ pub mod reason;
 
 use std::rc::Rc;
 
-use demi_command_declarations::NativeOperation;
-use demi_command_package_browser_protocol::browser::{BrowserMessage, TabsChange};
-use demi_command_package_browser_protocol::{PACKAGE, live};
-use demi_plugin_interface::{
+use jush_command_declarations::NativeOperation;
+use jush_command_package_browser_protocol::browser::{BrowserMessage, TabsChange};
+use jush_command_package_browser_protocol::{PACKAGE, live};
+use jush_plugin_interface::{
     CommandPlugin, Manifest, Placement, Plugin, PluginError, PluginFactory,
     PluginId, PluginPort, Reply, Request, Scope, Stream,
 };
@@ -48,7 +48,7 @@ impl Browser {
         let mut manifest = Manifest::new(
             PluginId::try_from("browser").expect("a valid plugin id"),
             "Browser",
-            "Gives the agent a browser on the conversation's device, which it drives with demi browser and you watch and use in its window.",
+            "Gives the agent a browser on the conversation's device, which it drives with jush browser and you watch and use in its window.",
         );
         manifest.commands = commands().manifest_commands();
         manifest.streams = vec![live_stream()];
@@ -119,9 +119,9 @@ fn live_stream() -> Stream {
         )
 }
 
-/// The plugin's `demi browser` group.
+/// The plugin's `jush browser` group.
 fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![browser::browser_group()])
+    CommandPlugin::new(Placement::Jush, vec![browser::browser_group()])
         .expect("the browser group is a valid declaration")
 }
 

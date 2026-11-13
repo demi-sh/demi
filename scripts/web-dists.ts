@@ -1,5 +1,5 @@
 // `vite build` of the web app reads the builds of the workspace packages
-// `@demicodes/protocol`, `conversation-client` and `utils`.
+// `@jush-ai/protocol`, `conversation-client` and `utils`.
 //
 // These packages export their sources under the `development` condition, which
 // Vite's development server sets, and their `dist` under `import`, which

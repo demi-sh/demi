@@ -1,4 +1,4 @@
-import { definePluginText } from '@demicodes/plugin-sdk'
+import { definePluginText } from '@jush-ai/plugin-sdk'
 import { PLUGIN } from '../generated/plugin'
 import de from './de.json'
 import en from './en.json'

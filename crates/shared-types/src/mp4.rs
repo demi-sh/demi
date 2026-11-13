@@ -1,5 +1,5 @@
 //! What an MP4 file holds, read from its header: the one reader of a
-//! generated video's file, which `demi video` checks the video against
+//! generated video's file, which `jush video` checks the video against
 //! what was asked with and the usage ledger takes its seconds from
 //! (`crates/backend-database/src/usage.rs`).
 

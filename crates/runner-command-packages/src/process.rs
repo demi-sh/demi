@@ -10,8 +10,8 @@ use std::{
     collections::BTreeMap, future::Future, path::Path, process::Stdio, sync::Arc, time::Duration,
 };
 
-use demi_command_protocol::{PackageDescriptor, ResidentInfo};
-use demi_command_sdk::{ArtifactsAsk, Client, MessagesAsk, NumbersAsk, RequestStream, ResidentError};
+use jush_command_protocol::{PackageDescriptor, ResidentInfo};
+use jush_command_sdk::{ArtifactsAsk, Client, MessagesAsk, NumbersAsk, RequestStream, ResidentError};
 use process_wrap::tokio::ChildWrapper;
 use tokio::{
     io::AsyncReadExt,
@@ -21,12 +21,12 @@ use tokio::{
 };
 use tokio_util::{sync::CancellationToken, task::AbortOnDropHandle};
 
-use demi_runner_process::{
+use jush_runner_process::{
     lines::LineSplitter,
     process::{ChildAttributes, start, wait_leader, wrap},
     tail::TailBuffer,
 };
-use demi_runner_protocol::wire;
+use jush_runner_protocol::wire;
 
 use crate::invocations::ResidentArtifacts;
 use crate::{ExitReason, ResidentBackend, RuntimeError, ResidentExit};
@@ -76,7 +76,7 @@ impl ResidentProcess {
     ) -> Result<Self, RuntimeError> {
         let mut command = Command::new(executable);
         command
-            .arg(demi_command_sdk::COMMAND_RESIDENT)
+            .arg(jush_command_sdk::COMMAND_RESIDENT)
             .current_dir(cwd)
             .env_clear()
             .envs(env)
@@ -84,7 +84,7 @@ impl ResidentProcess {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         let mut command = wrap(command, true, &ChildAttributes::default());
-        // A start that waits (`demi_runner_process::process::start`) ends
+        // A start that waits (`jush_runner_process::process::start`) ends
         // with `stop`.
         let mut child = tokio::select! {
             biased;
@@ -416,7 +416,7 @@ impl Stderr {
             Ok(0) => self.close(),
             Ok(count) => {
                 for line in self.lines.push(&buffer[..count]) {
-                    demi_runner_process::lines::log_line(&self.source, &line);
+                    jush_runner_process::lines::log_line(&self.source, &line);
                 }
                 self.tail.push(&buffer[..count]);
             }
@@ -430,7 +430,7 @@ impl Stderr {
     fn close(&mut self) {
         self.pipe = None;
         if let Some(line) = std::mem::take(&mut self.lines).finish() {
-            demi_runner_process::lines::log_line(&self.source, &line);
+            jush_runner_process::lines::log_line(&self.source, &line);
         }
     }
 

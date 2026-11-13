@@ -43,7 +43,7 @@ on release than on Nightly, which Mozilla shortened for Nightly so testers
 take each build soon after it lands
 ([bug 630880](https://bugzilla.mozilla.org/show_bug.cgi?id=630880),
 [Checking For Updates](https://wiki.mozilla.org/Software_Update:Checking_For_Updates)).
-Demi follows the per-channel cadence and keeps a channel's checks below
+Jush follows the per-channel cadence and keeps a channel's checks below
 GitHub's 60 unauthenticated requests an hour per address.
 
 ## Alternatives

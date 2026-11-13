@@ -22,7 +22,7 @@ archive.
 ```text
 Conversation "Fix the checkout total", a command of its agent:
 
-  $ demi conversation new --title "Stabilize the login test" <<'EOF'
+  $ jush conversation new --title "Stabilize the login test" <<'EOF'
     The login test fails about one run in five on main: the session
     cookie is read before the redirect sets it. Find why and fix it.
   EOF
@@ -42,14 +42,14 @@ Conversation "Stabilize the login test", its main agent's transcript:
   conversation's place and settings: its workspace, its Host and
   directory (its project, and the worktree it works in, when it has
   one), its model with its thinking and tier, and its workflow choice.
-  `--project <id>`, from `demi conversation projects`, starts it in
+  `--project <id>`, from `jush conversation projects`, starts it in
   another project's directory instead; a workflow is a file of its
   project, so another project's conversation takes the user's Subagents
   settings, unless subagents were off. Its agent can still move it with
-  `demi host move`.
+  `jush host move`.
 - **The brief.** The message comes on standard input, as `send` takes
   it, and is the conversation's first message: an agent's message from
-  the starting conversation, as `demi conversation send` delivers one,
+  the starting conversation, as `jush conversation send` delivers one,
   so the bubble names the conversation it came from and links to it,
   and the new agent can report back with `send` when the brief asks it
   to. Nothing reports back by itself.
@@ -81,7 +81,7 @@ learns the conversation from the list it already follows. The page that
 renders the link is the one the server serves, so no older page meets it.
 
 ```rust
-/// The input of `demi conversation new`.
+/// The input of `jush conversation new`.
 struct NewArgs {
     /// The brief, the conversation's first message.
     message: String,
@@ -109,10 +109,10 @@ command and answered.
   child's result is announced back to the requester. Its `session` mode
   keeps the child as a thread of the chat it came from, and the
   configuration caps how many children an agent has and how deep they
-  nest. Demi's conversation is the user's own, a peer in the sidebar
+  nest. Jush's conversation is the user's own, a peer in the sidebar
   rather than a child, it reports back only when the brief asks, through
-  `demi conversation send`, and nothing caps how many there are.
-- Demi's subagents (`demi agent spawn`) are that child: they work inside
+  `jush conversation send`, and nothing caps how many there are.
+- Jush's subagents (`jush agent spawn`) are that child: they work inside
   the conversation, and the user reads them in its view. A new
   conversation is for work the user wants to follow on its own.
 

@@ -47,12 +47,12 @@
 import { effectScope, reactive, ref, watch } from 'vue'
 import { z } from 'zod'
 import { defaultWindow } from '@vueuse/core'
-import { logStorageFailed, pageLog } from '@demicodes/web-ui/infra/log'
-import { browserOnline } from '@demicodes/web-ui/transport/liveness'
+import { logStorageFailed, pageLog } from '@jush-ai/web-ui/infra/log'
+import { browserOnline } from '@jush-ai/web-ui/transport/liveness'
 import { useConversations } from '../conversation/store'
 import { useProduct } from '../state/product'
 import { executionFor } from '../targets/execution'
-import { DEVICE_PATHS, statusPath, type DevicePath, type PathStatus, type DeviceRoute, type DirectStatus } from '@demicodes/web-ui/devices/direct'
+import { DEVICE_PATHS, statusPath, type DevicePath, type PathStatus, type DeviceRoute, type DirectStatus } from '@jush-ai/web-ui/devices/direct'
 import { DeviceDirect, directState, type DirectState, type Permission } from './device'
 import { DeviceLive } from './live'
 import { DeviceMeter, meterState, pageClock, type MeterState } from './meter'
@@ -136,7 +136,7 @@ export function directStatus(deviceId: string): DirectStatus {
 }
 
 /** Where this browser keeps the last measurement of paired device `deviceId`'s paths. */
-const measuredKey = (deviceId: string) => `demi.deviceMeasured.${deviceId}`
+const measuredKey = (deviceId: string) => `jush.deviceMeasured.${deviceId}`
 const pathFiguresSchema = z.object({ latencyMs: z.number(), loss: z.number().nullable() })
 const keptMeasurementSchema = z.object({
   figures: z.object({ direct: pathFiguresSchema.nullable(), relay: pathFiguresSchema.nullable() }),
@@ -199,7 +199,7 @@ function pathCause(state: DirectState): string {
 }
 
 /** Where this browser keeps the path it found to paired device `deviceId`. */
-const lastPathKey = (deviceId: string) => `demi.devicePath.${deviceId}`
+const lastPathKey = (deviceId: string) => `jush.devicePath.${deviceId}`
 const lastPathSchema = z.enum(DEVICE_PATHS)
 
 /**

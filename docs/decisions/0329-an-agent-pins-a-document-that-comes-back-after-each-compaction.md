@@ -33,11 +33,11 @@ each pinned document, and the user can unpin it.
   └──────────────────────────────────────────────────────────────┘
 ```
 
-* **The agent pins.** `demi pin add <path>` pins a text file of the device
-  the command runs on. `demi pin remove <path>` unpins it, and `demi pin
+* **The agent pins.** `jush pin add <path>` pins a text file of the device
+  the command runs on. `jush pin remove <path>` unpins it, and `jush pin
   list` lists what is pinned. Only the main agent pins: the composer shows
   its pins, and the user controls only what the user sees. In a subagent,
-  `demi pin add` and `demi pin remove` fail and say so.
+  `jush pin add` and `jush pin remove` fail and say so.
 * **A context source gives the text.** The pinned documents are a context
   source, as the execution context is. Before each request of the main
   agent, it compares the pins with what its blocks since the last compaction
@@ -78,7 +78,7 @@ each pinned document, and the user can unpin it.
   or the user's × changes them, on every page that shows the conversation.
 * **A limit.** The pinned documents together hold at most 25,000 tokens:
   each comes back after every compaction, and a compaction has to leave the
-  model most of its window. `demi pin add` refuses a document that would pass
+  model most of its window. `jush pin add` refuses a document that would pass
   it, and names how much is pinned. Documents that grew past the limit by the
   next compaction come back cut, with a line to read the rest from the file.
   The limit bounds the block, so replay sends it whole, as it sends the

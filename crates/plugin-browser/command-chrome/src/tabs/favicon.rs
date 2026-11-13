@@ -23,7 +23,7 @@ use chromiumoxide::cdp::browser_protocol::page::{
     CreateIsolatedWorldParams, EventFrameStoppedLoading, FrameId, GetFrameTreeParams,
 };
 use chromiumoxide::cdp::js_protocol::runtime::EvaluateParams;
-use demi_command_package_browser_protocol::browser::FAVICON_LENGTH;
+use jush_command_package_browser_protocol::browser::FAVICON_LENGTH;
 use futures_util::StreamExt;
 use image::{ImageFormat, ImageReader, Limits, RgbaImage, imageops::FilterType};
 use resvg::{tiny_skia, usvg};
@@ -77,7 +77,7 @@ impl Drop for OpenStream {
 async fn locate(page: &Page, frame: &FrameId) -> Result<Option<String>> {
     let world = CreateIsolatedWorldParams::builder()
         .frame_id(frame.clone())
-        .world_name("demi-favicon")
+        .world_name("jush-favicon")
         .build()
         .map_err(BrowserError::Configuration)?;
     let context = page.execute(world).await?.result.execution_context_id;

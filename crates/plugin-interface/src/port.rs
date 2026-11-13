@@ -6,12 +6,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 
-use demi_command_declarations::NativeOperation;
-use demi_device_interface::{DeviceFile, DeviceRead, PortError, PortRequest, PortResponse, PortTransport, RpcPort};
-use demi_shared_types::{B64Bytes, BlobRef, MediaKind};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{DeviceId, WorkspaceId};
-use demi_web_api_protocol::work::{CreateWorkTab, Work};
+use jush_command_declarations::NativeOperation;
+use jush_device_interface::{DeviceFile, DeviceRead, PortError, PortRequest, PortResponse, PortTransport, RpcPort};
+use jush_shared_types::{B64Bytes, BlobRef, MediaKind};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{DeviceId, WorkspaceId};
+use jush_web_api_protocol::work::{CreateWorkTab, Work};
 
 use crate::{
     AskedVideo, AudioAsk, AudioVoices, ImageAsk, MadeAudio, MadeImage, MediaListing, MediaRefusal, PluginId, Scope, SecretName, StoredSecret,
@@ -23,7 +23,7 @@ use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use tokio_util::sync::{CancellationToken, WaitForCancellationFuture};
 
-/// One operation a plugin asks of Demi.
+/// One operation a plugin asks of Jush.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(
     tag = "type",
@@ -468,7 +468,7 @@ pub enum GitRefusal {
     Failed { message: String },
 }
 
-/// A workspace and its name as Demi's commands say it.
+/// A workspace and its name as Jush's commands say it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct WorkspaceName {
@@ -500,7 +500,7 @@ impl DeviceDirectory {
     /// Its path on every device, below the device's home, in the directory of
     /// `plugin`.
     pub fn path(&self, plugin: &PluginId) -> String {
-        format!("~/.demi/plugins/{plugin}/{}", self.device_name())
+        format!("~/.jush/plugins/{plugin}/{}", self.device_name())
     }
 
     /// Refuses a set that names a directory twice, or a name or a file path
@@ -555,7 +555,7 @@ pub struct DirectoryFile {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DirectoryPath {
     pub name: String,
-    /// Below the device's home, as `~/.demi/plugins/skills/tdd-9f2c1a7b3e40`.
+    /// Below the device's home, as `~/.jush/plugins/skills/tdd-9f2c1a7b3e40`.
     pub path: String,
 }
 
@@ -577,7 +577,7 @@ pub enum CallKind {
     Looks,
 }
 
-/// Why Demi refused a port operation.
+/// Why Jush refused a port operation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, thiserror::Error)]
 #[serde(
     tag = "type",

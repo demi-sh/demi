@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Component } from 'vue'
 import { ArrowDownToLine, Download, File, FolderSearch, Monitor, Ruler, Smartphone } from '@lucide/vue'
-import { AddressBar } from '@demicodes/plugin-sdk'
-import { IconButton } from '@demicodes/plugin-sdk'
-import { Menu } from '@demicodes/plugin-sdk'
-import { MenuItem } from '@demicodes/plugin-sdk'
-import { Dropdown } from '@demicodes/plugin-sdk'
-import { ProgressLine } from '@demicodes/plugin-sdk'
-import { RegionStatus } from '@demicodes/plugin-sdk'
-import { Tooltip } from '@demicodes/plugin-sdk'
-import { PaneReading, downloadProgress, downloadUrl, formatByteRatio, formatBytes, usePage, usePaneReady, usePaneWaiting } from '@demicodes/plugin-sdk'
-import { clientPlatform } from '@demicodes/utils'
+import { AddressBar } from '@jush-ai/plugin-sdk'
+import { IconButton } from '@jush-ai/plugin-sdk'
+import { Menu } from '@jush-ai/plugin-sdk'
+import { MenuItem } from '@jush-ai/plugin-sdk'
+import { Dropdown } from '@jush-ai/plugin-sdk'
+import { ProgressLine } from '@jush-ai/plugin-sdk'
+import { RegionStatus } from '@jush-ai/plugin-sdk'
+import { Tooltip } from '@jush-ai/plugin-sdk'
+import { PaneReading, downloadProgress, downloadUrl, formatByteRatio, formatBytes, usePage, usePaneReady, usePaneWaiting } from '@jush-ai/plugin-sdk'
+import { clientPlatform } from '@jush-ai/utils'
 import type { LiveDownload } from '../generated/plugin'
 import LiveView from './LiveView.vue'
 import WaitingNote from './WaitingNote.vue'
@@ -26,7 +26,7 @@ import { BLANK_PAGE, deviceSnap, panelSize, viewportChoices, type PanelSize, typ
  *
  * - While the browser does not have the tab, as while a browser that starts
  *   again opens the tabs of the one before: the panel's own background, which
- *   says what Demi is doing.
+ *   says what Jush is doing.
  * - Then a blank page until the browser tab's first picture.
  * - An address the user submits shows at once, with the page loading over the
  *   picture the tab still shows.
@@ -66,7 +66,7 @@ const MODE_ICONS: Record<ViewportChoice['mode'], Component> = { web: Monitor, mo
 // a list that could not be read, says so in the area.
 const pane = usePaneWaiting()
 usePaneReady(() => props.session.list.value !== null || props.session.listError.value !== null || props.session.api.deviceStarting())
-/** What Demi does before the browser has the tab, if it does not have it yet. */
+/** What Jush does before the browser has the tab, if it does not have it yet. */
 const phase = computed(() => props.session.startingPhase(props.data))
 /** The tab loads: Stop, the strip's spinner and the progress line show it. */
 const busy = computed(() => props.session.busy(props.data))
@@ -173,7 +173,7 @@ function history(action: 'back' | 'forward' | 'reload'): void {
 /**
  * The browser's own shortcuts, with the focus anywhere in the tab's content:
  * they act here, never in the page, and never reach the page around the panel,
- * whose ⌘R would reload Demi itself.
+ * whose ⌘R would reload Jush itself.
  */
 function shortcut(event: KeyboardEvent): void {
   const action = browserShortcut(event, platform)
@@ -353,7 +353,7 @@ function stop(): void {
       >
         {{ t('region.noH264') }}
       </div>
-      <!-- While the browser does not have the tab: the panel's own background, which says what Demi does. -->
+      <!-- While the browser does not have the tab: the panel's own background, which says what Jush does. -->
       <RegionStatus
         v-else-if="phase !== null"
         class="min-h-0 flex-1"

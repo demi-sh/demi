@@ -7,7 +7,7 @@ status: proposed
 ## Problem
 
 Alex asks the agent to say when a long build ends, and walks away. The
-agent runs `demi notify status` and reads a warning: notifications are off
+agent runs `jush notify status` and reads a warning: notifications are off
 in every browser of Alex's. The agent can only write that in its reply,
 which Alex reads after coming back, too late. Alex never turned
 notifications on, or turned them on in one browser that was since cleared,
@@ -15,7 +15,7 @@ and nothing on the screen says so.
 
 ## Decision
 
-When `demi notify status` or `demi notify send` finds that no browser of
+When `jush notify status` or `jush notify send` finds that no browser of
 the user takes the agent's notifications, the conversation shows a card
 above the composer, where a permission request shows:
 
@@ -24,7 +24,7 @@ above the composer, where a permission request shows:
 | (bell) The agent can't notify you                          |
 |        None of your browsers has notifications on. Turn    |
 |        them on to hear when the agent finishes or needs    |
-|        you, even with Demi closed.                         |
+|        you, even with Jush closed.                         |
 |                          [ Dismiss ]  [ Turn On Notifications ] |
 +------------------------------------------------------------+
 ```
@@ -34,8 +34,8 @@ above the composer, where a permission request shows:
   Settings › Notifications do: the browser asks for its permission first
   when it has not been given.
   * In Safari on an iPhone outside the Home Screen, it opens the sheet that
-    shows how to add Demi there, as the settings do.
-  * In a browser that blocks Demi's notifications, the card says they are
+    shows how to add Jush there, as the settings do.
+  * In a browser that blocks Jush's notifications, the card says they are
     blocked in the browser's site settings and has no Turn On button, since
     the browser no longer asks. A browser that cannot notify at all says so
     the same way.
@@ -82,7 +82,7 @@ None.
   desktop notifications", with Enable notifications and Never ask on this
   computer, and hides it once permission is granted or denied
   ([`navbar_alerts.ts`](https://github.com/zulip/zulip/blob/main/web/src/navbar_alerts.ts)).
-  Demi asks only when an agent finds the user unreachable, in the
+  Jush asks only when an agent finds the user unreachable, in the
   conversation that wanted to notify, and its Dismiss holds for that
   conversation, since another may matter more.
 * Slack shows a banner at the top of the window until notifications are

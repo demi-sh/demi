@@ -1,7 +1,7 @@
 import type { MessageAgents } from '../agent/agent-links'
 import type { CommitHistorySource } from '../files/history'
 import type { FileContents } from '../files/types'
-import type { PictureCopy } from '@demicodes/protocol'
+import type { PictureCopy } from '@jush-ai/protocol'
 import type { VerificationHost } from '../auth/verification'
 import type { SettingsCredential } from '../settings/types'
 

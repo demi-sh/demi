@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Switch from '@demicodes/web-ui/ui/Switch.vue'
+import Switch from '@jush-ai/web-ui/ui/Switch.vue'
 import { t } from './locales/text'
 import SettingsGroup from './SettingsGroup.vue'
 import SettingsPage from './SettingsPage.vue'

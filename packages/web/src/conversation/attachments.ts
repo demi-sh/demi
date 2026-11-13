@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue'
-import type { AttachmentLookup, MessageAttachment } from '@demicodes/web-ui/markdown/types'
+import type { AttachmentLookup, MessageAttachment } from '@jush-ai/web-ui/markdown/types'
 import { apiRequest } from '../api/client'
 import { describedAttachment } from '../api/attachments'
 import { blobUrl } from '../api/uploads'

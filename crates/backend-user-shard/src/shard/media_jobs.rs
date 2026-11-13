@@ -1,5 +1,5 @@
 //! The media jobs vendors took, followed to their ends whatever happens to
-//! the calls that asked for them (`demi_backend_database::media_jobs`).
+//! the calls that asked for them (`jush_backend_database::media_jobs`).
 //!
 //! ```text
 //! make_video ---- ask ----> vendor          (the call)
@@ -34,20 +34,20 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_backend_database::media_jobs::{JobEnd, JobOfCall, Made, MediaJob, MediaJobStatus};
-use demi_backend_database::usage::{UsageRow, merge_windows};
-use demi_backend_device_access::DeviceShard;
-use demi_device_interface::PortError;
-use demi_plugin_host::{MediaCall, VideoJob};
-use demi_plugin_interface::{MadeAudio, MadeImage, MadeVideo, MediaRefusal, PcmShape, PortFailure, PortRefusal, VideoStep};
-use demi_provider_common::ProviderHttp;
-use demi_provider_common::media::jobs::{JobRef, JobState};
-use demi_provider_common::media::{MediaAnswer, MediaFailure, unreadable};
-use demi_provider_common::media_catalog::Catalog;
-use demi_provider_common::videos::{Done, DoneVideo};
-use demi_provider_registry::registry::MakerOf;
-use demi_provider_registry::store::StoreError;
-use demi_shared_types::{B64Bytes, MediaKind, QuotaWindow, mp4};
+use jush_backend_database::media_jobs::{JobEnd, JobOfCall, Made, MediaJob, MediaJobStatus};
+use jush_backend_database::usage::{UsageRow, merge_windows};
+use jush_backend_device_access::DeviceShard;
+use jush_device_interface::PortError;
+use jush_plugin_host::{MediaCall, VideoJob};
+use jush_plugin_interface::{MadeAudio, MadeImage, MadeVideo, MediaRefusal, PcmShape, PortFailure, PortRefusal, VideoStep};
+use jush_provider_common::ProviderHttp;
+use jush_provider_common::media::jobs::{JobRef, JobState};
+use jush_provider_common::media::{MediaAnswer, MediaFailure, unreadable};
+use jush_provider_common::media_catalog::Catalog;
+use jush_provider_common::videos::{Done, DoneVideo};
+use jush_provider_registry::registry::MakerOf;
+use jush_provider_registry::store::StoreError;
+use jush_shared_types::{B64Bytes, MediaKind, QuotaWindow, mp4};
 use futures_util::StreamExt as _;
 use futures_util::stream::LocalBoxStream;
 use sha2::{Digest as _, Sha256};
@@ -333,7 +333,7 @@ impl Shard {
                 // row keeps no seconds.
                 row.media_seconds = match audio.pcm {
                     Some(pcm) => Some(pcm.seconds(audio.bytes.len())),
-                    None => demi_shared_types::audio::read(&audio.bytes).ok().map(|facts| facts.seconds),
+                    None => jush_shared_types::audio::read(&audio.bytes).ok().map(|facts| facts.seconds),
                 };
                 answer.pcm = audio.pcm.map(|pcm| PcmShape { sample_rate: pcm.sample_rate(), channels: pcm.channels(), bits: pcm.bits() });
                 answer.cost = audio.cost;
@@ -512,8 +512,8 @@ pub(crate) enum Collected {
 /// A finished job's file as one read of it answers, by its kind.
 enum Finished {
     Video(Done),
-    Image(demi_provider_common::images::MadeImage),
-    Audio(demi_provider_common::audio::MadeAudio),
+    Image(jush_provider_common::images::MadeImage),
+    Audio(jush_provider_common::audio::MadeAudio),
 }
 
 /// One read of `job`, by its maker's role of the job's kind.
@@ -548,9 +548,9 @@ fn with_bytes(made: Made, bytes: B64Bytes) -> Made {
 /// Starts the shard of each user with a running job, whose start follows
 /// them.
 pub async fn start_media_followers(
-    control: &demi_backend_database::control::ControlService,
+    control: &jush_backend_database::control::ControlService,
     shards: &super::Shards,
-) -> Result<(), demi_backend_database::StorageError> {
+) -> Result<(), jush_backend_database::StorageError> {
     for user in control.media_job_owners().await? {
         // A shard that cannot be reached follows them at its next call.
         if let Err(error) = shards.of(&user).call(|_, _| async {}).await {

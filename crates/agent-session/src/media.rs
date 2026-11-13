@@ -2,8 +2,8 @@
 //! the session holds for their media, once the session read the blobs of
 //! those it holds nothing for.
 
-use demi_agent_store::media::{self, ModelView};
-use demi_shared_types::BlobRef;
+use jush_agent_store::media::{self, ModelView};
+use jush_shared_types::BlobRef;
 
 use super::{SessionShared, TurnError, cancel::TurnCancel, core::SessionCore};
 

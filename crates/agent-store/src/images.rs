@@ -7,7 +7,7 @@
 
 use std::io::Cursor;
 
-use demi_shared_types::{B64Bytes, PixelSize};
+use jush_shared_types::{B64Bytes, PixelSize};
 use image::{
     DynamicImage, ImageDecoder, ImageError, ImageFormat, ImageReader, Limits, Rgba, RgbaImage,
     metadata::Orientation,

@@ -12,14 +12,14 @@ proxy still hold.
 
 ## Problem
 
-Alex runs Demi on a server at home and wants the agents' Clouds to install
+Alex runs Jush on a server at home and wants the agents' Clouds to install
 packages from npm and PyPI and push to GitHub, and to reach nothing else, so
 that a prompt hidden in a web page an agent reads cannot have it fetch more
-instructions from, or post the code to, any site at all. Demi cannot do that:
+instructions from, or post the code to, any site at all. Jush cannot do that:
 the internet is always open to a Cloud,
 and the only setting, Private Network Access, decides what a Cloud reaches on
 the server's private network. Its description speaks to a company's network
-("If Demi runs on your company's network, turn this on…"), which reads as a
+("If Jush runs on your company's network, turn this on…"), which reads as a
 setting for one kind of server, not as what a Cloud may reach.
 
 ## Decision
@@ -86,7 +86,7 @@ Clouds reach each one: on every port, or only on the port after it.
   `git.example.internal` at `10.20.0.7` is reachable without listing the
   address. This replaces 0213's rule that a name opens nothing; a name
   opens only what its entry allows, and only the master writes entries.
-- **Developer Services** is a list Demi ships and each release may change,
+- **Developer Services** is a list Jush ships and each release may change,
   starting from the one Codex publishes for the same purpose. It is what
   builds download from, not a guard against data leaving: GitHub, which it
   allows, accepts pushes, and some of its domains, such as `google.com`,
@@ -124,7 +124,7 @@ Cilium's DNS proxy and dnsmasq's `nftset` do:
 
 ```text
 Cloud ── DNS to any address ──> redirected to the manager on the Cloud's
-                                gateway:53 ──> DEMI_MANAGED_DNS
+                                gateway:53 ──> JUSH_MANAGED_DNS
            │ a name the policy allows: before answering, adds each address
            │ of the answer to the set `named` (or `named_ports` with its
            ▼ port)
@@ -136,7 +136,7 @@ Cloud ── DNS to any address ──> redirected to the manager on the Cloud's
   manager answers on a port of its own, 25353: a resolver of the host's,
   such as dnsmasq on every address, may hold port 53, which the manager
   could then not listen on. A Cloud's `/etc/resolv.conf` keeps naming the
-  resolvers `DEMI_MANAGED_DNS` names, so a Cloud that was running before the upgrade
+  resolvers `JUSH_MANAGED_DNS` names, so a Cloud that was running before the upgrade
   goes on resolving, and none can go around the policy by asking another
   resolver. The manager forwards each question it does not refuse to those
   resolvers.
@@ -155,7 +155,7 @@ Cloud ── DNS to any address ──> redirected to the manager on the Cloud's
 - One lock orders every change of the sets and the table. An answer that
   was asked upstream while the rules changed is decided again under it, by
   the new rules, before it opens anything.
-- The Claude Code machine keeps asking `DEMI_MANAGED_DNS` itself and
+- The Claude Code machine keeps asking `JUSH_MANAGED_DNS` itself and
   reaching the internet, whatever the policy.
 
 ### The table
@@ -303,20 +303,20 @@ company's resolver answered `internal.example.test` with that address.
   GitHub, cloud SDKs), Full and Custom, whose list of domains can include
   Trusted's
   ([cloud environments](https://code.claude.com/docs/en/cloud-environments.md)).
-  Demi's menu is the same, and splits Full in two, since a Cloud runs on the
+  Jush's menu is the same, and splits Full in two, since a Cloud runs on the
   master's own network, which Anthropic's sandboxes do not.
 - **Codex cloud** turns access on or off and narrows it with a domain list
   that starts from None, Common dependencies or All
   ([agent internet access](https://developers.openai.com/codex/cloud/agent-internet)).
   Developer Services starts from its Common dependencies. Codex can also
-  allow only GET, HEAD and OPTIONS; Demi does not, since that needs a proxy
+  allow only GET, HEAD and OPTIONS; Jush does not, since that needs a proxy
   that reads every request.
 - **Cilium's DNS proxy** answers a pod's DNS, refuses the names a policy
   does not allow, and opens the addresses of those it does
   ([`pkg/fqdn`](https://github.com/cilium/cilium/blob/main/pkg/fqdn/doc.go)).
-  Demi does the same in the manager. Cilium keeps no floor on the TTL by
+  Jush does the same in the manager. Cilium keeps no floor on the TTL by
   default, because its floor cost memory across a cluster's pods; a server's
-  Clouds are few, so Demi keeps one.
+  Clouds are few, so Jush keeps one.
 - **dnsmasq's `nftset`** adds the addresses of the domains it lists to an
   nftables set as it answers, which the spike used.
 

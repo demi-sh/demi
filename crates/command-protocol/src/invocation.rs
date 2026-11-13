@@ -65,7 +65,7 @@ impl CommandCaller {
 /// The variable in which the runner names its scratch root, the directory
 /// that holds every conversation's scratch directory on its device, for the
 /// programs it starts (`crates/runner-jobs/src/scratch.rs`).
-pub const SCRATCH_ROOT_ENV: &str = "DEMI_SCRATCH_ROOT";
+pub const SCRATCH_ROOT_ENV: &str = "JUSH_SCRATCH_ROOT";
 
 /// The scratch root the runner named for this program; none for a program
 /// the runner did not start.
@@ -176,7 +176,7 @@ pub fn is_conversation_scope(name: &str) -> bool {
 /// a script can change variables, and every program a job runs inherits them.
 /// So only declared commands receive it; the job's environment carries just
 /// an opaque handle that leads the runner to the job's execution context. A
-/// job another device starts for `demi device shell` carries its invoking job's
+/// job another device starts for `jush device shell` carries its invoking job's
 /// context.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -200,7 +200,7 @@ pub struct Invocation {
     pub operation: String,
     #[garde(length(min = 1))]
     pub invocation_id: String,
-    /// The command's path, such as `demi file edit`, which a handler that
+    /// The command's path, such as `jush file edit`, which a handler that
     /// takes several values puts before each failure it reports
     /// (`crates/device-interface/src/rpc.rs`).
     #[garde(length(min = 1))]

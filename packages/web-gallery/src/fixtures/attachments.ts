@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import type { ReplyPicture } from '@demicodes/protocol'
-import type { AttachmentLookup, AttachmentOrigin } from '@demicodes/web-ui/markdown/types'
+import type { ReplyPicture } from '@jush-ai/protocol'
+import type { AttachmentLookup, AttachmentOrigin } from '@jush-ai/web-ui/markdown/types'
 import { galleryBlobSize, galleryBlobUrl, galleryBlobs } from './blobs'
 import { PROJECT_ROOT } from './project'
 
@@ -8,7 +8,7 @@ import { PROJECT_ROOT } from './project'
 export const GALLERY_DEVICE = 'device-1'
 
 /**
- * The attachments the gallery's conversation holds, as `demi attachment
+ * The attachments the gallery's conversation holds, as `jush attachment
  * upload` numbered them (`crates/backend-device-access/src/attachment_commands.rs`), over the
  * gallery's blobs, each with its file's size. The guide, the build, the demo
  * and the chart were uploaded from the project's files, the chart from a
@@ -88,7 +88,7 @@ export const devicePicturesKept: ReplyPicture[] = [
 /**
  * Whether the gallery's backend answers the bytes of a16, the screenshot of
  * `unloadedImageMarkdown`: while it does not, its address loads nothing, as a
- * blob the page asked for while Demi restarted.
+ * blob the page asked for while Jush restarted.
  */
 export const unloadedImageReached = ref(false)
 

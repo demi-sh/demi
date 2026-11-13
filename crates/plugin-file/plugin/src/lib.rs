@@ -1,12 +1,12 @@
-//! The `file` plugin: the `demi file`
-//! group, every leaf bound to an operation of the `demi.file` command
+//! The `file` plugin: the `jush file`
+//! group, every leaf bound to an operation of the `jush.file` command
 //! package, which runs it on the device.
 
 mod file;
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{CommandPlugin, Manifest, Placement, Plugin, PluginFactory, PluginId};
+use jush_plugin_interface::{CommandPlugin, Manifest, Placement, Plugin, PluginFactory, PluginId};
 
 /// The plugin's factory.
 pub struct File {
@@ -17,8 +17,8 @@ impl File {
     pub fn new() -> Self {
         let mut manifest = Manifest::new(
             PluginId::try_from("file").expect("a valid plugin id"),
-            "Demi File Commands",
-            "Reads, writes, edits and searches the conversation's files with demi file.",
+            "Jush File Commands",
+            "Reads, writes, edits and searches the conversation's files with jush file.",
         );
         manifest.commands = commands().manifest_commands();
         Self { manifest }
@@ -42,8 +42,8 @@ impl PluginFactory for File {
     }
 }
 
-/// The plugin's `demi file` group.
+/// The plugin's `jush file` group.
 fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![file::file_group()])
+    CommandPlugin::new(Placement::Jush, vec![file::file_group()])
         .expect("the file group is a valid declaration")
 }

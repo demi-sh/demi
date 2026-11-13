@@ -3,7 +3,7 @@
 export interface NotificationsCardView {
   /** What this browser allows: `default` until it is asked. */
   permission: NotificationPermission | 'unsupported'
-  /** Demi's icon, for the sheet that shows how to add it to the Home Screen; given only where that is what turns notifications on. */
+  /** Jush's icon, for the sheet that shows how to add it to the Home Screen; given only where that is what turns notifications on. */
   homeScreenIcon?: string
   /** Turning on is under way: the buttons wait for it. */
   turning?: boolean
@@ -26,7 +26,7 @@ import RequestFrame from './RequestFrame.vue'
  *
  * - Turn On Notifications turns them on in this browser, which asks for its
  *   permission first; in Safari outside the Home Screen it shows how to add
- *   Demi there instead.
+ *   Jush there instead.
  * - A browser that blocks them or cannot notify says so, without the button.
  * - Dismiss removes the card from this conversation for good.
  *

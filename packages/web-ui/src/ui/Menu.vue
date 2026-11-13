@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends import('./menu-context').MenuListItem">
 import { computed, inject, onBeforeUnmount, provide, ref, shallowRef, watch } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
-import { keepComposition } from '@demicodes/utils'
+import { keepComposition } from '@jush-ai/utils'
 import { Search, CircleX } from '@lucide/vue'
 import { revealRow, stepHighlight } from '../composables/list-highlight'
 import { useTypeSelect } from '../composables/useTypeSelect'

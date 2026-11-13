@@ -14,10 +14,10 @@
 
 use std::collections::BTreeMap;
 
-use demi_plugin_interface::{DirectoryFile, DeviceDirectory};
-use demi_plugin_host::store::{PluginValue, ValueWrite, Written};
-use demi_shared_types::BlobRef;
-use demi_web_api_protocol::ids::{UserId, WorkspaceId};
+use jush_plugin_interface::{DirectoryFile, DeviceDirectory};
+use jush_plugin_host::store::{PluginValue, ValueWrite, Written};
+use jush_shared_types::BlobRef;
+use jush_web_api_protocol::ids::{UserId, WorkspaceId};
 use rusqlite::{Connection, OptionalExtension, params};
 
 use super::StorageError;

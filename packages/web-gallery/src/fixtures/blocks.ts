@@ -1,7 +1,7 @@
-import type { AgentMessage, Block, ChangedFile, CommandReport, EditedFile, ModelSelection, SearchAction, ToolResultContentBlock, UserContentBlock } from '@demicodes/protocol'
-import { encodeRemoteReference } from '@demicodes/web-ui/agent/message-input/attachments'
-import type { ShellToolView as ShellView, ToolCallBlock } from '@demicodes/web-ui/agent/block-types'
-import type { ToolPicture } from '@demicodes/web-ui/agent/tool-media'
+import type { AgentMessage, Block, ChangedFile, CommandReport, EditedFile, ModelSelection, SearchAction, ToolResultContentBlock, UserContentBlock } from '@jush-ai/protocol'
+import { encodeRemoteReference } from '@jush-ai/web-ui/agent/message-input/attachments'
+import type { ShellToolView as ShellView, ToolCallBlock } from '@jush-ai/web-ui/agent/block-types'
+import type { ToolPicture } from '@jush-ai/web-ui/agent/tool-media'
 import { editCopies, galleryBlobSize, galleryBlobs, missingBlob } from './blobs'
 import { devicePictureCopies } from './attachments'
 import { agentReceiptMessages } from './subagents'
@@ -142,8 +142,8 @@ export const demoModel: ModelSelection = {
  * them: the user's allow and deny.
  */
 export const permissionReceiptMessages: AgentMessage[] = [
-  { outcome: 'allowed' as const, action: 'manage skills', categories: [], text: 'The user allowed this conversation to manage skills; the command `demi skills add vercel-labs/agent-skills --skill web-design-guidelines` can now run.' },
-  { outcome: 'denied' as const, action: 'manage skills', categories: [], text: 'The user denied this conversation permission to manage skills; the command `demi skills remove acme/tools` was not run.' },
+  { outcome: 'allowed' as const, action: 'manage skills', categories: [], text: 'The user allowed this conversation to manage skills; the command `jush skills add vercel-labs/agent-skills --skill web-design-guidelines` can now run.' },
+  { outcome: 'denied' as const, action: 'manage skills', categories: [], text: 'The user denied this conversation permission to manage skills; the command `jush skills remove acme/tools` was not run.' },
 ].map(({ outcome, action, categories, text }, index) => ({
   id: `permission:pr-${index}`,
   recipientId: 'gallery-parent',
@@ -157,17 +157,17 @@ export const movedReceiptMessage: AgentMessage = {
   id: 'moved:4',
   recipientId: 'gallery-parent',
   timestamp: '2026-09-12T12:08:00.000Z',
-  content: 'The user moved this conversation from Cloud (/home/demi/sessions/0f4e2a1c) to MacBook Pro (/Users/alex/code/photo-album). Files did not move. Check what this means for the work so far, and tell the user.',
+  content: 'The user moved this conversation from Cloud (/home/jush/sessions/0f4e2a1c) to MacBook Pro (/Users/alex/code/photo-album). Files did not move. Check what this means for the work so far, and tell the user.',
   event: { type: 'moved', device: 'MacBook Pro', path: '/Users/alex/code/photo-album', home: '/Users/alex' },
 }
-/** A decision on a request to reach a device, and Demi's notice that a move the agent asked for failed. */
+/** A decision on a request to reach a device, and Jush's notice that a move the agent asked for failed. */
 export const organizeReceiptMessages: AgentMessage[] = [
   {
     id: 'permission:pr-move',
     recipientId: 'gallery-parent',
     timestamp: '2026-09-12T12:06:00.000Z',
     content:
-      'The user allowed this conversation to reach build-box; the command `demi device move build-box /srv/photo-album` can now run.',
+      'The user allowed this conversation to reach build-box; the command `jush device move build-box /srv/photo-album` can now run.',
     event: {
       type: 'permission' as const,
       outcome: 'allowed' as const,
@@ -181,7 +181,7 @@ export const organizeReceiptMessages: AgentMessage[] = [
     recipientId: 'gallery-parent',
     timestamp: '2026-09-12T12:08:00.000Z',
     content:
-      "Demi could not make the move this conversation's agent asked for: the project no longer exists. The conversation still runs on Cloud (/home/demi/sessions/0f4e7597-e889-4baa-ac98-93fa61b68d28).",
+      "Jush could not make the move this conversation's agent asked for: the project no longer exists. The conversation still runs on Cloud (/home/jush/sessions/0f4e7597-e889-4baa-ac98-93fa61b68d28).",
     event: { type: 'move_failed' as const, reason: 'the project no longer exists' },
   },
 ]
@@ -334,7 +334,7 @@ export const returnedFailingShellTool = toolCall({
  * so the command shows two above the output, which scrolls under it.
  */
 export const RUNNING_SHELL_SCRIPT = [
-  'DEMI_LOG=auth=debug,cookie=debug,session=info bun test --watch --timeout 20000 --rerun-each 1 --bail 5 packages/web/src/auth.test.ts packages/web/src/cookie.test.ts packages/web/src/session.test.ts \\',
+  'JUSH_LOG=auth=debug,cookie=debug,session=info bun test --watch --timeout 20000 --rerun-each 1 --bail 5 packages/web/src/auth.test.ts packages/web/src/cookie.test.ts packages/web/src/session.test.ts \\',
   '  2>&1 | tee target/auth-watch.log',
 ].join('\n')
 export const RUNNING_SHELL_DESCRIPTION = 'Run the login test'
@@ -439,8 +439,8 @@ export const longLineShellTool = toolCall({
     script: [
       'cd "$(mktemp -d)" && sudo apt-get install -y --no-install-recommends libatk-bridge2.0-0t64 libgtk-3-0t64 libxkbcommon-x11-0;',
       'echo "exit=$?"; curl -fsSL',
-      'https://downloads.example.test/runner/demi-runner-aarch64-apple-darwin.tar.gz?expires=1791763200&signature=3q2-7wAAAAB1dGYtOC1lbmNvZGVkLXNpZ25hdHVyZS1mb3ItdGhlLWdhbGxlcnk',
-      '| tar -xz && ./demi-runner --version',
+      'https://downloads.example.test/runner/jush-runner-aarch64-apple-darwin.tar.gz?expires=1791763200&signature=3q2-7wAAAAB1dGYtOC1lbmNvZGVkLXNpZ25hdHVyZS1mb3ItdGhlLWdhbGxlcnk',
+      '| tar -xz && ./jush-runner --version',
     ].join(' '),
     description: 'Install the browser libraries and the runner',
   }),
@@ -453,10 +453,10 @@ export const longLineShellTool = toolCall({
           'Reading package lists... Done',
           'libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).',
           'exit=0',
-          'demi-runner 0.42.0',
+          'jush-runner 0.42.0',
           'Warning: the download location redirected to another device, so the runner archive was fetched from the new address; run the command again with the redirect option set to follow it to the end, and compare the checksum below.',
           'name\tstate\tsize',
-          'demi-runner\tready\t14.2 MB',
+          'jush-runner\tready\t14.2 MB',
           'sha256:3f2c9a1e7b5d4c8806fa12e9d3b7a45c0e8f1d26b9a374c5e0d18f6a2b7c93d4e1f05a68b2c7d93e4f1a0b8c5d62e7f93a1b4c8d05e6f2a7b19c3d8e4f60a5b7c2d1e9f38a40b6c5d7e2f1a9b83c40d6e5f7a2b1c98d3e04f6a5b7c',
           '',
         ].join('\n'),
@@ -489,7 +489,7 @@ function binaryLine(bytes: number): string {
 }
 
 /**
- * A shell call that viewed one image or video with `demi file view`
+ * A shell call that viewed one image or video with `jush file view`
  * (`crates/plugin-file/command/src/files.rs`): its output holds the medium's line,
  * which the runner wrote, and the result attaches the medium, or the part
  * that took its place, after it.
@@ -523,12 +523,12 @@ function blobImage(ref: string): ToolResultContentBlock {
 }
 
 const screenshotInput = JSON.stringify({
-  script: 'demi browser screenshot t1 | demi file view',
+  script: 'jush browser screenshot t1 | jush file view',
   description: 'Take a screenshot of the login page',
 })
 
 /**
- * One screenshot piped into `demi file view`: what it captured, which the
+ * One screenshot piped into `jush file view`: what it captured, which the
  * screenshot writes to stderr, its bytes, and the part the result holds for
  * it, its image or the part that says it is gone.
  */
@@ -540,7 +540,7 @@ interface Capture {
   medium: ToolResultContentBlock
 }
 
-/** What a screenshot writes to stderr, as `demi browser screenshot` writes it. */
+/** What a screenshot writes to stderr, as `jush browser screenshot` writes it. */
 function captureText(capture: Capture): string {
   return `Screenshot of ${capture.tab}\nImage: ${capture.width} × ${capture.height} px, one pixel per CSS pixel\nViewport: ${capture.width} × ${capture.height} CSS px, device pixel ratio 2, web\n`
 }
@@ -597,7 +597,7 @@ export const screenshotsTool = screenshotsCall(
     id: 'tool-screenshots',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'for t in t1 t2 t3; do demi browser screenshot "$t" | demi file view; done; demi file view mock.webp',
+      script: 'for t in t1 t2 t3; do jush browser screenshot "$t" | jush file view; done; jush file view mock.webp',
       description: 'Compare the login page in three tabs and the mock',
     }),
   },
@@ -637,7 +637,7 @@ export const fourScreenshotsTool = screenshotsCall(
     id: 'tool-four-screenshots',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'for t in t1 t2 t3 t4; do demi browser screenshot "$t" | demi file view; done',
+      script: 'for t in t1 t2 t3 t4; do jush browser screenshot "$t" | jush file view; done',
       description: 'Take screenshots of the login page in four tabs',
     }),
   },
@@ -655,7 +655,7 @@ export const twelveScreenshotsTool = screenshotsCall(
     id: 'tool-twelve-screenshots',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'for i in $(seq 12); do demi browser screenshot t1 | demi file view; demi browser scroll t1 --by 600; done',
+      script: 'for i in $(seq 12); do jush browser screenshot t1 | jush file view; jush browser scroll t1 --by 600; done',
       description: 'Take a screenshot of every screenful of the sign-in flow as it scrolls down the page',
     }),
   },
@@ -673,7 +673,7 @@ export function screenshotRunBlocks(): Block[] {
     createdAt: iso(590_000),
     toolName: 'shell',
     status: 'completed',
-    input: JSON.stringify({ script: 'demi browser tab new && demi browser open t1 http://localhost:5173/login', description: 'Open the sign-in page' }),
+    input: JSON.stringify({ script: 'jush browser tab new && jush browser open t1 http://localhost:5173/login', description: 'Open the sign-in page' }),
     output: [{ type: 'text', text: 'status: exited\nexitCode: 0\ncommandId: 71\noutput:\nt1\nOpened http://localhost:5173/login.\nTitle: Sign in\n' }],
     view: shellView({ commandId: '71', chunks: [{ stream: 'stdout', text: 't1\nOpened http://localhost:5173/login.\nTitle: Sign in\n' }] }),
   })
@@ -728,7 +728,7 @@ export const fullPageTool = viewedCall(
     id: 'tool-full-page',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'demi browser screenshot t1 --full-page 2>/dev/null | convert - -strip png:- | demi file view',
+      script: 'jush browser screenshot t1 --full-page 2>/dev/null | convert - -strip png:- | jush file view',
       description: 'Capture the whole login page',
     }),
   },
@@ -743,7 +743,7 @@ export const wideImageTool = viewedCall(
     id: 'tool-wide-image',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'demi file view out/timeline.png',
+      script: 'jush file view out/timeline.png',
       description: 'Show the timeline of the run',
     }),
   },
@@ -758,7 +758,7 @@ export const smallImageTool = viewedCall(
     id: 'tool-small-image',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'demi file view public/favicon.png',
+      script: 'jush file view public/favicon.png',
       description: 'Show the favicon',
     }),
   },
@@ -779,7 +779,7 @@ export const shortFramesTool = (() => {
     id: 'tool-short-frames',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'for f in out/progress-*.png; do demi file view "$f"; done',
+      script: 'for f in out/progress-*.png; do jush file view "$f"; done',
       description: 'Show the frames of the progress strip',
     }),
     status: 'completed',
@@ -800,7 +800,7 @@ export const recordingTool = viewedCall(
     id: 'tool-recording',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'demi file view out/checkout.webm',
+      script: 'jush file view out/checkout.webm',
       description: 'Show the recording of the checkout flow',
     }),
   },
@@ -818,7 +818,7 @@ export const unsizedRecordingTool = viewedCall(
     id: 'tool-recording-unsized',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'demi file view out/demo.mp4',
+      script: 'jush file view out/demo.mp4',
       description: 'Show the demo of the checkout',
     }),
   },
@@ -829,13 +829,13 @@ export const unsizedRecordingTool = viewedCall(
 
 /**
  * A command that exited after its call returned: the look that saw the end,
- * a `shell` call that runs `demi shell status`, carries the picture it viewed.
+ * a `shell` call that runs `jush shell status`, carries the picture it viewed.
  */
 export const statusImageTool = toolCall({
   id: 'tool-status-image',
   toolName: 'shell',
   status: 'completed',
-  input: JSON.stringify({ script: 'demi shell status 24', description: 'Check the latency chart' }),
+  input: JSON.stringify({ script: 'jush shell status 24', description: 'Check the latency chart' }),
   output: [
     { type: 'text', text: `status: exited\nexitCode: 0\ncommandId: 25\noutput:\nstatus: exited\nexitCode: 0\ncommandId: 24\noutput:\n${imageLine(1, 480, 300, 16_078)}\n` },
     blobImage(galleryBlobs.chart),
@@ -852,7 +852,7 @@ export const notStoredVideoTool = viewedCall(
     id: 'tool-recording-not-stored',
     toolName: 'shell',
     input: JSON.stringify({
-      script: 'demi file view out/checkout.webm',
+      script: 'jush file view out/checkout.webm',
       description: 'Show the recording of the checkout flow',
     }),
   },
@@ -887,7 +887,7 @@ export const binaryStdoutTool = toolCall({
     { type: 'text', text: `status: exited\nexitCode: 0\ncommandId: cmd-printed\noutput:\n${binaryLine(5_883)}` },
     {
       type: 'text',
-      text: '[binary stdout, 5883 bytes: not shown; to look at an image, a video or a PDF, pipe it into demi file view; to keep it, redirect it to a file]',
+      text: '[binary stdout, 5883 bytes: not shown; to look at an image, a video or a PDF, pipe it into jush file view; to keep it, redirect it to a file]',
     },
   ],
   view: shellView({ commandId: 'cmd-printed', chunks: [{ stream: 'stdout', text: binaryLine(5_883) }] }),
@@ -920,7 +920,7 @@ function fileChangeCase(
     id: `tool-files-${id}`,
     toolName: 'shell',
     status,
-    input: JSON.stringify({ script: `demi-edit ${id}`, description }),
+    input: JSON.stringify({ script: `jush-edit ${id}`, description }),
     view: shellView({
       commandId: `cmd-files-${id}`,
       chunks: [{ stream: 'stdout', text: 'done\n' }],
@@ -1036,7 +1036,7 @@ export function changesDemoBlocks(): Block[] {
       id: 'changes-snapshot-diff',
       toolName: 'shell',
       input: JSON.stringify({
-        script: 'bun scripts/snapshot-diff.ts login && demi file view out/login-diff.png',
+        script: 'bun scripts/snapshot-diff.ts login && jush file view out/login-diff.png',
         description: 'Compare the login snapshot before and after',
       }),
     },
@@ -1110,7 +1110,7 @@ export function changesDemoBlocks(): Block[] {
 }
 
 /**
- * What `demi shell status <commandId>` prints of a command, as a look's own
+ * What `jush shell status <commandId>` prints of a command, as a look's own
  * command shows it in its output.
  */
 function statusText(commandId: string, status: 'running' | 'exited', output: string): string {
@@ -1120,7 +1120,7 @@ function statusText(commandId: string, status: 'running' | 'exited', output: str
 }
 
 /**
- * A `shell` call whose script only looks at a command with `demi shell
+ * A `shell` call whose script only looks at a command with `jush shell
  * status`: a call of its own, titled by its description, whose command
  * printed what it saw.
  */
@@ -1137,12 +1137,12 @@ function lookCall(
     createdAt: iso(at),
     toolName: 'shell',
     status: 'completed',
-    input: JSON.stringify({ script: `demi shell status ${looked}`, description }),
+    input: JSON.stringify({ script: `jush shell status ${looked}`, description }),
     view: shellView({ commandId: ownCommandId, chunks: [{ stream: 'stdout', text: seen }] }),
   })
 }
 
-/** A look at the login test: the script only runs `demi shell status 17`. */
+/** A look at the login test: the script only runs `jush shell status 17`. */
 export const lookTool = lookCall(
   'tool-look',
   'Check the login test',
@@ -1157,7 +1157,7 @@ export const stopTool = toolCall({
   toolName: 'shell',
   status: 'completed',
   input: JSON.stringify({
-    script: 'demi shell stop 17',
+    script: 'jush shell stop 17',
     description: 'Stop the login test',
   }),
   view: shellView({
@@ -1174,12 +1174,12 @@ export const errorTool = toolCall({
   id: 'tool-error',
   toolName: 'shell',
   status: 'error',
-  input: JSON.stringify({ script: 'rm /tmp/demi.lock', description: 'Remove the stale lock file' }),
-  output: [{ type: 'text', text: "status: exited\nexitCode: 1\ncommandId: 23\noutput:\nrm: cannot remove '/tmp/demi.lock': Permission denied\n" }],
+  input: JSON.stringify({ script: 'rm /tmp/jush.lock', description: 'Remove the stale lock file' }),
+  output: [{ type: 'text', text: "status: exited\nexitCode: 1\ncommandId: 23\noutput:\nrm: cannot remove '/tmp/jush.lock': Permission denied\n" }],
   view: shellView({
     commandId: '23',
     exitCode: 1,
-    chunks: [{ stream: 'stderr', text: "rm: cannot remove '/tmp/demi.lock': Permission denied\n" }],
+    chunks: [{ stream: 'stderr', text: "rm: cannot remove '/tmp/jush.lock': Permission denied\n" }],
   }),
 })
 
@@ -1210,16 +1210,16 @@ export function commandEndBlocks(): ToolCallBlock[] {
     run('end-long', '32', 'Run the whole test suite and collect coverage for every package in the project', { status: 'running' }),
     run('end-failed', '33', 'Run the login test', { status: 'exited', exitCode: 1 }),
     run('end-stopped', '34', 'Start the dev server', { status: 'aborted' }),
-    run('end-lost', '37', 'Run the deploy', { status: 'lost', lostReason: 'Demi was upgraded and the device\'s runner replaced itself' }),
+    run('end-lost', '37', 'Run the deploy', { status: 'lost', lostReason: 'Jush was upgraded and the device\'s runner replaced itself' }),
     lookCall('end-look', 'Check the first short sleep', '31', '35', statusText('31', 'exited', 'slept 2 s\n')),
     lookCall('end-look-several', 'Check the test suite and the dev server', '32 34', '36', statusText('32', 'running', '[412/980] packages/web\n')),
     toolCall({
       id: 'end-repeated',
       toolName: 'shell',
       status: 'error',
-      input: JSON.stringify({ script: 'demi shell status 32', description: 'Check the test suite again' }),
+      input: JSON.stringify({ script: 'jush shell status 32', description: 'Check the test suite again' }),
       output: [{ type: 'text', text: 'Repeated identical shell call suppressed.\nThe same script has been run 7 consecutive times in this agent session.\nInspect the previous output, use a different command, or provide the final answer instead of repeating it.' }],
-      view: { kind: 'repeated_shell', script: 'demi shell status 32', count: 7 },
+      view: { kind: 'repeated_shell', script: 'jush shell status 32', count: 7 },
     }),
     toolCall({
       id: 'end-refused',
@@ -1747,7 +1747,7 @@ export function commandLookBlocks(): Block[] {
 }
 
 /**
- * Steps a vendor ran on its side, of a kind Demi does not know: one that
+ * Steps a vendor ran on its side, of a kind Jush does not know: one that
  * ended, one that failed beside a command, and one still running.
  */
 export function vendorStepBlocks(): Block[] {
@@ -1953,7 +1953,7 @@ export function leftRunningBlocks(): Block[] {
           createdAt: iso(137_000),
           toolName: 'shell',
           input: JSON.stringify({
-            script: 'for t in t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12; do demi browser screenshot "$t" | demi file view; done',
+            script: 'for t in t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12; do jush browser screenshot "$t" | jush file view; done',
             description: 'Take a screenshot of each screen the suite covers',
           }),
         },
@@ -1991,7 +1991,7 @@ export function viewedMediaBlocks(): Block[] {
     createdAt: iso(590_000),
     toolName: 'shell',
     status: 'completed',
-    input: JSON.stringify({ script: 'demi browser tab new && demi browser open t1 https://example.com', description: 'Open example.com' }),
+    input: JSON.stringify({ script: 'jush browser tab new && jush browser open t1 https://example.com', description: 'Open example.com' }),
     output: [{ type: 'text', text: 'status: exited\nexitCode: 0\ncommandId: 61\noutput:\nt1\nOpened https://example.com/.\nTitle: Example Domain\n' }],
     view: shellView({ commandId: '61', chunks: [{ stream: 'stdout', text: 't1\nOpened https://example.com/.\nTitle: Example Domain\n' }] }),
   })
@@ -2001,7 +2001,7 @@ export function viewedMediaBlocks(): Block[] {
       createdAt: iso(585_000),
       toolName: 'shell',
       input: JSON.stringify({
-        script: 'for i in 1 2; do demi browser screenshot t1 | demi file view; done',
+        script: 'for i in 1 2; do jush browser screenshot t1 | jush file view; done',
         description: 'Take two screenshots of example.com',
       }),
     },

@@ -15,7 +15,7 @@ import {
   type InjectionKey,
   type PropType,
 } from 'vue'
-import { schemaRefusal } from '@demicodes/protocol'
+import { schemaRefusal } from '@jush-ai/protocol'
 import type { Pinia } from 'pinia'
 import { z } from 'zod'
 import type { BoundTabKind, WindowKind, TabCommand } from '../agent/tab-kinds/kind'

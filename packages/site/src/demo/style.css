@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "@demicodes/web-ui/styles/base.css";
-@import "@demicodes/web-ui/styles/product-appearance.css";
+@import "@jush-ai/web-ui/styles/base.css";
+@import "@jush-ai/web-ui/styles/product-appearance.css";
 
 @source "../../../web-ui/src";
 @source ".";

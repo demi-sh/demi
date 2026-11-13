@@ -1523,7 +1523,7 @@ html[data-theme="light"] .file-pill {
    No rule sets the standard scrollbar properties globally: setting them makes
    Chrome trade the system's overlay bars for classic ones that take room. Only a
    scroller meant to have no bar at all hides its native one. */
-.os-theme-demi {
+.os-theme-jush {
   --os-size: 10px;
   --os-padding-perpendicular: 2px;
   --os-padding-axis: 2px;
@@ -1769,7 +1769,7 @@ html[data-theme="light"] .file-pill {
    and below), as a link does in a browser's reading view.
 
    A link around a picture or a video is a tile, not text, and keeps the ring.
-   `demi.focusRings` reads a text link's look as its indicator. */
+   `jush.focusRings` reads a text link's look as its indicator. */
 :is(.markdown-body a:not(:has(> :is(img, video))), .agent-link):focus-visible {
   outline: none;
 }
@@ -1839,7 +1839,7 @@ html[data-theme="light"] .file-pill {
    drawn inside its control (`--focus-ring-offset`, which the descendants inherit):
    every `overflow` utility sets it, and a box that clips by its own CSS carries
    `.focus-ring-inset`. The gallery's Primitives page shows both; `bun browse`
-   finds the rest (`demi.focusRings`). */
+   finds the rest (`jush.focusRings`). */
 @layer base {
   :focus-visible {
     outline: 2px solid var(--line-focus);

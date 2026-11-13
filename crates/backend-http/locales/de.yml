@@ -5,13 +5,13 @@ oauth:
     text: "Bei %{vendor} angemeldet. Du kannst diesen Tab schließen."
   unknown_plugin:
     title: "Anmeldung nicht gefunden"
-    text: "Nichts in Demi meldet sich hier an. Schließe diesen Tab."
+    text: "Nichts in Jush meldet sich hier an. Schließe diesen Tab."
   unknown_state:
     title: "Anmeldung abgelaufen"
-    text: "Diese Anmeldung ist abgelaufen, wurde bereits verwendet oder von einem anderen Konto gestartet. Schließe diesen Tab und melde dich in Demi erneut an."
+    text: "Diese Anmeldung ist abgelaufen, wurde bereits verwendet oder von einem anderen Konto gestartet. Schließe diesen Tab und melde dich in Jush erneut an."
   denied:
     title: "Nicht bei %{vendor} angemeldet"
-    text: "%{vendor} hat dich nicht angemeldet (%{error}). Schließe diesen Tab und versuche es in Demi erneut."
+    text: "%{vendor} hat dich nicht angemeldet (%{error}). Schließe diesen Tab und versuche es in Jush erneut."
   exchange_failed:
     title: "Nicht bei %{vendor} angemeldet"
-    text: "%{vendor} hat die Anmeldung nicht abgeschlossen: %{failure}. Schließe diesen Tab und versuche es in Demi erneut."
+    text: "%{vendor} hat die Anmeldung nicht abgeschlossen: %{failure}. Schließe diesen Tab und versuche es in Jush erneut."

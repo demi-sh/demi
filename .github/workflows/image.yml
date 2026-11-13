@@ -1,4 +1,4 @@
-# Publishes Demi's container image, ghcr.io/demi-sh/demi, for a published
+# Publishes Jush's container image, ghcr.io/jush-ai/jush, for a published
 # release, from the release's own assets (deploy/image/Dockerfile), for
 # linux/amd64 and linux/arm64. The image's update channel, which a new
 # server starts on in Settings › Updates, is the channel whose releases
@@ -75,10 +75,10 @@ jobs:
           context="$RUNNER_TEMP/context"
           downloads="$RUNNER_TEMP/downloads"
           gh release download "v$VERSION" --repo "$GITHUB_REPOSITORY" --dir "$downloads" \
-            --pattern SHA256SUMS --pattern "demi-$VERSION-*-linux-*.tar*" --pattern "demi-server-*-unknown-linux-musl"
+            --pattern SHA256SUMS --pattern "jush-$VERSION-*-linux-*.tar*" --pattern "jush-server-*-unknown-linux-musl"
           for arch in amd64 arm64; do
             target=$([ "$arch" = amd64 ] && echo x86_64 || echo aarch64)-unknown-linux-musl
-            files=("demi-$VERSION-server-linux-$arch.tar.zst" "demi-$VERSION-image-linux-$arch.tar" "demi-server-$target")
+            files=("jush-$VERSION-server-linux-$arch.tar.zst" "jush-$VERSION-image-linux-$arch.tar" "jush-server-$target")
             for file in "${files[@]}"; do
               sum=$(awk -v file="$file" '$2 == file' "$downloads/SHA256SUMS")
               [ -n "$sum" ] || { echo "SHA256SUMS names no $file" >&2; exit 1; }
@@ -90,7 +90,7 @@ jobs:
             mv "$downloads/${files[0]}" "$downloads/${files[1]}" "$context/assets/$arch/"
             awk -v server="${files[0]}" -v image="${files[1]}" '$2 == server || $2 == image' \
               "$downloads/SHA256SUMS" > "$context/assets/$arch/SHA256SUMS"
-            mv "$downloads/${files[2]}" "$context/bin/$arch/demi-server"
+            mv "$downloads/${files[2]}" "$context/bin/$arch/jush-server"
           done
           cp deploy/image/Dockerfile "$context/"
           echo "CONTEXT=$context" >> "$GITHUB_ENV"

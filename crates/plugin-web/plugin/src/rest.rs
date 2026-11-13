@@ -2,7 +2,7 @@
 
 use std::time::Instant;
 
-use demi_plugin_interface::{PluginPort, WebMethod, WebRequest};
+use jush_plugin_interface::{PluginPort, WebMethod, WebRequest};
 use serde::Deserialize;
 use serde_json::{Value, json};
 

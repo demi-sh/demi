@@ -9,13 +9,13 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_agent_server::ProviderResolver as _;
-use demi_agent_server::small_request::{SmallRequest, SmallRequestError, run_small_request};
-use demi_backend_database::StorageError;
-use demi_backend_device_access::root_of;
-use demi_provider_registry::small_model::small_model;
-use demi_shared_types::ModelSelection;
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_agent_server::ProviderResolver as _;
+use jush_agent_server::small_request::{SmallRequest, SmallRequestError, run_small_request};
+use jush_backend_database::StorageError;
+use jush_backend_device_access::root_of;
+use jush_provider_registry::small_model::small_model;
+use jush_shared_types::ModelSelection;
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 use tokio_util::sync::CancellationToken;
 
 use super::providers::ConversationProviders;
@@ -32,7 +32,7 @@ pub(crate) struct SmallRequests {
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum SmallRequestFailure {
     #[error(transparent)]
-    Provider(#[from] demi_agent_server::ResolveError),
+    Provider(#[from] jush_agent_server::ResolveError),
     #[error(transparent)]
     Request(#[from] SmallRequestError),
     #[error(transparent)]

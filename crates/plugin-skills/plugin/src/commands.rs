@@ -1,4 +1,4 @@
-//! `demi skills`: the agent's only way to manage the user's skills, acting as
+//! `jush skills`: the agent's only way to manage the user's skills, acting as
 //! the page's methods do and failing as they would.
 //!
 //! Every command but `list` names the category Manage Skills, so the backend's
@@ -8,9 +8,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 
-use demi_device_interface::{GroupBuilder, LeafBuilder, RpcInvocation};
-use demi_shared_types::output::{Cell, Table, warning};
-use demi_plugin_interface::{
+use jush_device_interface::{GroupBuilder, LeafBuilder, RpcInvocation};
+use jush_shared_types::output::{Cell, Table, warning};
+use jush_plugin_interface::{
     CommandPlugin, Placement, PluginError, PluginPort, PortHandled,
 };
 use schemars::JsonSchema;
@@ -25,7 +25,7 @@ use crate::{Fetched, State};
 /// The group's category: what the user allows a conversation.
 const MANAGE: &str = "skills.manage";
 
-const SUMMARY: &str = "The user's skills: list, add, update, remove, enable, disable. A source is Global, whose skills every conversation receives, or a workspace's, whose skills that workspace's conversations receive; these commands see Global's and this conversation's workspace's. Demi sees only the skills these commands install; one another tool installs reaches no other device and no other conversation. Name a source by its repository, owner/repo for GitHub or an https URL; any spelling of one repository names the same source.";
+const SUMMARY: &str = "The user's skills: list, add, update, remove, enable, disable. A source is Global, whose skills every conversation receives, or a workspace's, whose skills that workspace's conversations receive; these commands see Global's and this conversation's workspace's. Jush sees only the skills these commands install; one another tool installs reaches no other device and no other conversation. Name a source by its repository, owner/repo for GitHub or an https URL; any spelling of one repository names the same source.";
 
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "The user's skills: list, add, update, remove, enable, disable; a skill is installed only this way.";
@@ -35,12 +35,12 @@ const MANAGE_DESCRIPTION: &str = "Manage Skills lets the agents of this conversa
 const REFUSED_OUTPUT: &str =
     "writes the reason to stderr and exits non-zero, having changed nothing the reason does not name";
 
-/// The input of `demi skills list`.
+/// The input of `jush skills list`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ListArgs {}
 
-/// The input of `demi skills add`.
+/// The input of `jush skills add`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 struct AddArgs {
@@ -54,7 +54,7 @@ struct AddArgs {
     fetch_with: Option<String>,
 }
 
-/// The input of `demi skills enable` and `disable`.
+/// The input of `jush skills enable` and `disable`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct SkillsArgs {
@@ -64,7 +64,7 @@ struct SkillsArgs {
     skill: Option<Vec<String>>,
 }
 
-/// The input of `demi skills update` and `remove`.
+/// The input of `jush skills update` and `remove`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct RepositoryArgs {
@@ -132,7 +132,7 @@ pub(crate) fn commands() -> CommandPlugin {
                 .failure_output(format!("a repository neither Global nor this conversation's workspace has, or a skill the source lacks; {REFUSED_OUTPUT}"))
                 .bind(PortHandled),
         );
-    CommandPlugin::new(Placement::Demi, vec![group])
+    CommandPlugin::new(Placement::Jush, vec![group])
         .expect("the skills group is a valid declaration")
 }
 

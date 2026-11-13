@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use demi_runner_protocol::wire;
+use jush_runner_protocol::wire;
 use sysinfo::{CpuRefreshKind, Disks, MemoryRefreshKind, RefreshKind, System};
 use tokio::sync::watch;
 

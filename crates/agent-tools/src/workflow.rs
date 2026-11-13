@@ -1,22 +1,22 @@
-//! A project's workflows: the format of `.demi/workflows/<id>.yaml`, the one
+//! A project's workflows: the format of `.jush/workflows/<id>.yaml`, the one
 //! parser that reads it, and the help that teaches the format.
 //!
 //! They are kept together so they never disagree. The help is the only place
 //! the format is written, since no skill or prompt teaches it: a model asked to
-//! write a workflow reads `demi agent workflows --help` and checks its file
-//! with `demi agent workflows check`, which uses this parser.
+//! write a workflow reads `jush agent workflows --help` and checks its file
+//! with `jush agent workflows check`, which uses this parser.
 //!
 //! A workflow's name is a menu item's in the composer's Workflow menu, so it
 //! names the way of working and never the task at hand. `check` warns of one
 //! that is not, and the workflow works whatever its name.
 
-use demi_shared_types::ContextChoice;
+use jush_shared_types::ContextChoice;
 use garde::Validate;
 use serde::Deserialize;
 
 /// Where a project keeps its workflows, under the nearest directory from
 /// the project's directory up to the repository's root that has it.
-pub const WORKFLOWS_DIRECTORY: [&str; 2] = [".demi", "workflows"];
+pub const WORKFLOWS_DIRECTORY: [&str; 2] = [".jush", "workflows"];
 
 /// The extension of a workflow file; the file's name without it is the
 /// workflow's id.
@@ -34,31 +34,31 @@ const MENU_NAME_MARKS: &[char] = &[
     '｛', '｝', '＜', '＞', '【', '】', '「', '」', '『', '』', '《', '》', '〈', '〉', '〔', '〕',
 ];
 
-/// The help of `demi agent workflows`: where workflow files live, each
+/// The help of `jush agent workflows`: where workflow files live, each
 /// field, and a whole example (`crates/backend-user-shard/src/conversation/workflows.rs`).
-pub const WORKFLOWS_HELP: &str = r#"A workflow is a group of subagent profiles with instructions on how to split the work between them, kept in the project's repository so a team shares it. The user picks one for a conversation in the composer's Workflow menu, or lets an agent pick one with demi agent workflows use; nothing applies until one is picked. With a workflow picked, the conversation spawns its profiles and the user's own from Settings > Subagents, unless user_profiles turns the user's off, and its instructions and profiles reach the agent leading the conversation with the project's instructions.
+pub const WORKFLOWS_HELP: &str = r#"A workflow is a group of subagent profiles with instructions on how to split the work between them, kept in the project's repository so a team shares it. The user picks one for a conversation in the composer's Workflow menu, or lets an agent pick one with jush agent workflows use; nothing applies until one is picked. With a workflow picked, the conversation spawns its profiles and the user's own from Settings > Subagents, unless user_profiles turns the user's off, and its instructions and profiles reach the agent leading the conversation with the project's instructions.
 
-Where: .demi/workflows/<id>.yaml in the nearest directory, from the project's directory up to the git repository's root, that has a .demi/workflows/ directory. The file's name without .yaml is the workflow's id. A conversation that works in a linked git worktree of the project reads the project's files, so a branch's change to a workflow applies once the project's checkout holds it; list shows the worktree's own beside them while they differ, and use --worktree picks one.
+Where: .jush/workflows/<id>.yaml in the nearest directory, from the project's directory up to the git repository's root, that has a .jush/workflows/ directory. The file's name without .yaml is the workflow's id. A conversation that works in a linked git worktree of the project reads the project's files, so a branch's change to a workflow applies once the project's checkout holds it; list shows the worktree's own beside them while they differ, and use --worktree picks one.
 
 Fields:
   name          What the Workflow menu shows, so name it as a menu item: the way of working in a few words, never the task at hand, in English Title Case or as the user's language writes a menu item. With no colon, plus sign or brackets; check warns of a name that has. Good: Review Team, Parallel Development, 并行开发. Bad: Payments refactor: lead + 2 workers, Review (strict), 支付重构：主管 + 两个 worker. Required.
   instructions  For the agent leading the conversation: when to use which profile and how to split the work. Optional.
-  subagent_instructions  For every subagent of the conversation, the user's profiles' included, added to its system prompt after Demi's own and before its profile's instructions: what all of them share, such as when to message the lead. Optional.
+  subagent_instructions  For every subagent of the conversation, the user's profiles' included, added to its system prompt after Jush's own and before its profile's instructions: what all of them share, such as when to message the lead. Optional.
   user_profiles  false keeps the user's own profiles out, so the conversation spawns only the workflow's. Optional, true by default; a profile of the workflow's takes the place of a user's of the same id.
   profiles      The workflow's profiles, a list. Required. Each has:
-    id            The --profile value of demi agent spawn: 1 to 40 lowercase letters, digits and hyphens, starting with a letter; not default; unique in the list. Required.
-    description   When an agent should use it: one line, which demi agent profiles list shows. Required.
-    instructions  Added to the child's system prompt after Demi's own: what this kind of subagent is for and how it works. Optional.
+    id            The --profile value of jush agent spawn: 1 to 40 lowercase letters, digits and hyphens, starting with a letter; not default; unique in the list. Required.
+    description   When an agent should use it: one line, which jush agent profiles list shows. Required.
+    instructions  Added to the child's system prompt after Jush's own: what this kind of subagent is for and how it works. Optional.
     spawning      true lets its children spawn children of their own. Optional, false by default.
-    model         A model id of an entry demi providers show shows. Optional: without it, the child runs on its parent's model.
-    provider      The provider entry that serves the model, by its name as demi providers list shows it, or its id when several share the name. Optional: without it, the first of the user's entries that offers the model serves it; needs model.
+    model         A model id of an entry jush providers show shows. Optional: without it, the child runs on its parent's model.
+    provider      The provider entry that serves the model, by its name as jush providers list shows it, or its id when several share the name. Optional: without it, the first of the user's entries that offers the model serves it; needs model.
     effort        An effort the model lists, or off for no thinking. Optional, the model's first effort by default; needs model.
     tier          A service tier the model offers, such as fast. Optional, the vendor's default tier by default; needs model.
     context       The context window its children use: full, a size up to the model's window such as 350K, 1M or 272000, or default for the user's context limit on the model. Optional, default by default; any but default needs model.
 
-A workflow sets no limits: how many subagents run at once and how deep they go stay the user's Settings > Subagents. Check a file you wrote or changed with demi agent workflows check <file> before you report it.
+A workflow sets no limits: how many subagents run at once and how deep they go stay the user's Settings > Subagents. Check a file you wrote or changed with jush agent workflows check <file> before you report it.
 
-Example, .demi/workflows/review.yaml:
+Example, .jush/workflows/review.yaml:
 
 name: Review Team
 instructions: |

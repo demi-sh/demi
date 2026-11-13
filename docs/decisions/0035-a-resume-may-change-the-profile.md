@@ -11,7 +11,7 @@ work. To go on with another model, the agent forks it onto another profile:
 a new child, with a new number, a copy of the history up to the source's
 last completed answer, and the source left behind as failed. When the
 source never completed an answer, the fork starts with nothing at all.
-`demi agent resume` keeps the child and its whole history, but only on the
+`jush agent resume` keeps the child and its whole history, but only on the
 profile it ran on.
 
 ## Considered Options
@@ -24,7 +24,7 @@ profile it ran on.
 Chosen option: a resume may name a profile, because going on with the same
 work on another model is the same child going on, not a new one.
 
-* `demi agent resume <id> --profile <name>` gives the archived child its next
+* `jush agent resume <id> --profile <name>` gives the archived child its next
   round on that profile: its model, effort, context limit and instructions.
   It keeps its number, its description and its whole history, the steps of a
   round that failed included. Without `--profile` it runs on its own profile,
@@ -52,9 +52,9 @@ work on another model is the same child going on, not a new one.
   a spawn does.
 * The history goes to the new model as a fork's does: what one vendor's
   model wrote is replayed as the other's can read it.
-* The child's row and `demi agent show` name the profile it now runs on; its
+* The child's row and `jush agent show` name the profile it now runs on; its
   earlier rounds keep the model they ran on.
-* `demi agent fork` stays for a second child from what one knows, the source
+* `jush agent fork` stays for a second child from what one knows, the source
   going on or kept as it was.
 
 ### Performance

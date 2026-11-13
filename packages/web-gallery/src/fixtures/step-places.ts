@@ -1,5 +1,5 @@
-import type { Block } from '@demicodes/protocol'
-import type { WorkStep } from '@demicodes/web-ui/agent/work-groups'
+import type { Block } from '@jush-ai/protocol'
+import type { WorkStep } from '@jush-ai/web-ui/agent/work-groups'
 import { agentReceiptMessages } from './subagents'
 import { commandEndBlocks, demoModel, editingShellTool, removedToolBlocks, runningShellTool, screenshotTool, shellTool, thinkingText } from './blocks'
 import { ago } from './time'

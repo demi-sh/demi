@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import StreamedMarkdown from '@demicodes/web-ui/ui/StreamedMarkdown.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import ScrollArea from '@demicodes/web-ui/ui/ScrollArea.vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
+import StreamedMarkdown from '@jush-ai/web-ui/ui/StreamedMarkdown.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import ScrollArea from '@jush-ai/web-ui/ui/ScrollArea.vue'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
 import GallerySection from './GallerySection.vue'
 import GallerySpecimen from './GallerySpecimen.vue'
 

@@ -1,10 +1,10 @@
 import { t } from './locales/text'
 import { computed } from 'vue'
 import { defineStore } from 'pinia'
-import { SerialQueue } from '@demicodes/utils'
-import { errorCode, reportError } from '@demicodes/web-ui/infra/errors'
-import type { HeadlineText } from '@demicodes/web-ui/ui/ui-text'
-import type { SettingsSubagentDraft } from '@demicodes/web-ui/settings/types'
+import { SerialQueue } from '@jush-ai/utils'
+import { errorCode, reportError } from '@jush-ai/web-ui/infra/errors'
+import type { HeadlineText } from '@jush-ai/web-ui/ui/ui-text'
+import type { SettingsSubagentDraft } from '@jush-ai/web-ui/settings/types'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   profileAnswerSchema,

@@ -25,7 +25,7 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_provider_common::{InferenceItem, InferenceRequest};
+use jush_provider_common::{InferenceItem, InferenceRequest};
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 
@@ -167,7 +167,7 @@ async fn wait(
     let started = async {
         let mut live = LiveCli::start(&shared, &*placement, &request, written, Took::Prepared).await?;
         live.prepare(&request).await?;
-        Ok::<_, demi_provider_common::ProviderFailure>(live)
+        Ok::<_, jush_provider_common::ProviderFailure>(live)
     };
     tokio::pin!(started);
     // A request that asks for the process while it starts waits for it.

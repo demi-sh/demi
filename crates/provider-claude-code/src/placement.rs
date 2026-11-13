@@ -1,4 +1,4 @@
-//! Where the CLI runs: the backend chooses the machine and readies Demi's CLI
+//! Where the CLI runs: the backend chooses the machine and readies Jush's CLI
 //! there, and the provider builds the spawn request from what the placement
 //! found.
 //!
@@ -50,8 +50,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_device_interface::{DeviceError, Process, SpawnRequest};
-use demi_shared_types::DownloadProgress;
+use jush_device_interface::{DeviceError, Process, SpawnRequest};
+use jush_shared_types::DownloadProgress;
 use futures_util::future::{BoxFuture, LocalBoxFuture};
 use tokio_util::sync::CancellationToken;
 
@@ -62,7 +62,7 @@ use crate::quota::FlagRefreshes;
 /// Where a new CLI process runs on the machine the placement chose.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CliSite {
-    /// The absolute path of Demi's CLI executable there.
+    /// The absolute path of Jush's CLI executable there.
     pub executable: String,
     /// The process's working directory, `~/run`.
     pub run_dir: String,
@@ -131,7 +131,7 @@ pub struct Handover {
 }
 
 /// Why a CLI process could not be started: the machine could not be reached,
-/// Demi's CLI could not be installed there, or the device refused the start.
+/// Jush's CLI could not be installed there, or the device refused the start.
 ///
 /// The message says why, with the version when an install failed, and is the
 /// request's failure as it is.
@@ -147,7 +147,7 @@ pub enum StartStage {
     /// The machine: its access acquired, a stopped one woken, a runner
     /// that reconnects awaited.
     Machine,
-    /// Demi's CLI installed on the machine.
+    /// Jush's CLI installed on the machine.
     Install,
     /// How far the CLI's download came while it installs, as the machine's
     /// runner reports it.
@@ -181,7 +181,7 @@ impl WorkLease {
 pub trait Placement {
     /// Starts a new CLI process for `work`.
     ///
-    /// 1. The placement readies the machine, Demi's CLI, the configuration
+    /// 1. The placement readies the machine, Jush's CLI, the configuration
     ///    directory (the account's, with its handover, or a sign-in's new one)
     ///    and the process's own directory under it.
     /// 2. `start` says what to start at the site it found.
@@ -220,7 +220,7 @@ pub struct Placed {
 pub struct StartSteps {
     /// Waking or admitting the machine.
     pub admit: Duration,
-    /// Finding Demi's CLI there, installing it first when the machine has
+    /// Finding Jush's CLI there, installing it first when the machine has
     /// none.
     pub executable: Duration,
     /// Making the run directory and the process's configuration directory.

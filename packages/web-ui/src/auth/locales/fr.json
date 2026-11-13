@@ -23,9 +23,9 @@
     "locked": "Trop de connexions ont échoué. Réessayez dans {time}."
   },
   "setup": {
-    "title": "Configurer Demi",
-    "message": "Créez le compte principal qui gère Demi.",
-    "taken": "Demi est déjà configuré. Connectez-vous avec son compte principal.",
+    "title": "Configurer Jush",
+    "message": "Créez le compte principal qui gère Jush.",
+    "taken": "Jush est déjà configuré. Connectez-vous avec son compte principal.",
     "name": "Nom",
     "email": "E-mail",
     "password": "Mot de passe",
@@ -53,7 +53,7 @@
     "passwordMessage": "Confirmez votre identité pour ajouter la clé d’accès.",
     "password": "Mot de passe",
     "readyTitle": "Clé d’accès prête",
-    "readyMessage": "Votre gestionnaire de mots de passe a déjà une clé d’accès pour Demi."
+    "readyMessage": "Votre gestionnaire de mots de passe a déjà une clé d’accès pour Jush."
   },
   "unlock": {
     "ios": "Connectez-vous avec Face ID ou Touch ID au lieu de votre mot de passe.",

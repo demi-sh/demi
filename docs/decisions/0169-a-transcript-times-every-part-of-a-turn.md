@@ -7,7 +7,7 @@ status: accepted
 ## Problem
 
 Alex's turn took 2 minutes 14 seconds, and Alex wants to know where the time
-went: waiting for the model, its thinking, the commands, or Demi itself
+went: waiting for the model, its thinking, the commands, or Jush itself
 between them. The transcript cannot say.
 
 Each block keeps one time, `created_at`, when it entered the transcript, and
@@ -15,7 +15,7 @@ only a tool call also keeps when it returned (`ended_at`):
 
 - A thinking or text block keeps when its first piece came, not its last.
   The page guesses the end of thinking from the start of the block after it.
-- A request keeps neither when Demi sent it nor when the model's first output
+- A request keeps neither when Jush sent it nor when the model's first output
   came. The session measures both while the request streams (`StreamedOutput`
   in `agent-session`) and drops them when it ends.
 - A tool call enters the transcript when its input is complete, so the time
@@ -37,7 +37,7 @@ derived from them, never stored.
 | `thinking`    | `created_at`, first piece | `ended_at`, last piece (new)  |
 | `text`        | `created_at`, first piece | `ended_at`, last piece (new)  |
 | `tool_call`   | `writing_started_at` (new), the model began writing it; `created_at`, its input was complete | `ended_at`, it returned |
-| `response`    | `first_sent_at` (new), its first attempt left, when it was tried again; `sent_at` (new), the request left Demi; `first_output_at` (new), the first thinking, text or call came | `created_at`, the response ended |
+| `response`    | `first_sent_at` (new), its first attempt left, when it was tried again; `sent_at` (new), the request left Jush; `first_output_at` (new), the first thinking, text or call came | `created_at`, the response ended |
 | `compaction_marker` | `started_at` (new), the pass began | `created_at`, the pass ended |
 
 `ended_at` of thinking and text moves with each piece that comes, so it is
@@ -47,18 +47,18 @@ call runs once its response ended, so its run counts from the later of its
 again leaves no block, so the response that answered keeps when the first
 attempt left.
 
-`demi conversation history timing <range>` prints where the time of each turn
+`jush conversation history timing <range>` prints where the time of each turn
 that starts in the range went, one row per turn, in milliseconds, as every
-`demi` command prints a list (`crates/shared-types/src/output.rs`), and
+`jush` command prints a list (`crates/shared-types/src/output.rs`), and
 `--json` prints the same rows:
 
 ```text
-$ demi conversation history timing 4213..
+$ jush conversation history timing 4213..
 TURN  STARTED               TIME(MS)  REQUESTS  PREPARING(MS)  WAITING(MS)  THINKING(MS)  TEXT(MS)  CALLS(MS)  TOOLS(MS)  COMPACTING(MS)  RETRYING(MS)  OTHER(MS)
 4213  2026-10-14T09:12:03Z  134200    6         2100           9800         31000         18200     6500       62300      0               4100          200
 ```
 
-- **preparing:** Demi's own time before a request left, after what ended
+- **preparing:** Jush's own time before a request left, after what ended
   last.
 - **waiting:** from a request leaving to its first output.
 - **thinking**, **text** and **calls:** the model writing each.
@@ -97,13 +97,13 @@ and a run says its time, from `ended_at` instead of the next block's start.
   tool call of format 16 entered the transcript when it ran, as today, so its
   times mean what they did. The conversation schema names format 17, by a step that
   changes no row.
-- `backend-user-shard`: the `timing` command of `demi conversation history`
+- `backend-user-shard`: the `timing` command of `jush conversation history`
   derives the parts from a range of blocks.
 - `web-ui`: `ThinkingFace` and `runTime` read `ended_at`; a thinking block
   that does not record its end says Thought, with no time.
 
-A request Demi did not send itself, such as a later model call Claude Code
-makes within one run, left once the response before it ended and Demi handed
+A request Jush did not send itself, such as a later model call Claude Code
+makes within one run, left once the response before it ended and Jush handed
 the CLI the last result of that response's calls: that is its `sent_at`.
 
 Steps inside a request that only one provider has, such as starting the
@@ -134,7 +134,7 @@ None.
   ([metrics](https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-metrics/)).
   The Vercel AI SDK records `msToFirstChunk` and `msToFinish`.
 
-Demi keeps the times on the blocks it has, as opencode and Codex keep them on
+Jush keeps the times on the blocks it has, as opencode and Codex keep them on
 their items, rather than adding a container per model call: the `response`
 block closes a request and takes that request's times. Unlike opencode it
 also times text, and unlike Claude Code's `thinkingDurationMs` it stores
@@ -148,7 +148,7 @@ timestamps, from which the gaps between parts can be derived too.
 - **The log only, as today.** It rotates, and joining a turn's lines is a
   search, not a reading.
 - **Durations instead of timestamps.** A duration loses where a part sits, so
-  the gaps between parts, Demi's own time among them, cannot be found.
+  the gaps between parts, Jush's own time among them, cannot be found.
 - **A `response` block for a failed or stopped request too.** It would time
   those requests, but change what a response block means to every reader. A
   failed request keeps its failure's time on its `error` block, and the rest

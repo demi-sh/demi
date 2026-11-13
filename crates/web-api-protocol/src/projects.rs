@@ -2,7 +2,7 @@
 //! can target and the page calls a project, named by the directory. A
 //! project is a pointer: deleting it touches no file.
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Timestamp, WorkflowChoice};
+use jush_shared_types::{MAX_SAFE_INTEGER, Timestamp, WorkflowChoice};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

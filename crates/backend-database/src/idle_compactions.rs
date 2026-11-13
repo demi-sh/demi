@@ -8,8 +8,8 @@
 
 use std::time::Duration;
 
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 use rusqlite::OptionalExtension;
 
 use super::StorageError;

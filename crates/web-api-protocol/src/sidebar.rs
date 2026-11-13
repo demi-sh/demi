@@ -1,7 +1,7 @@
 //! The sidebar's explicit order: a move of one row before another, or to the
 //! end.
 
-use demi_shared_types::Nullable;
+use jush_shared_types::Nullable;
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::Deserialize;

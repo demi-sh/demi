@@ -5,12 +5,12 @@
 
 use std::sync::Arc;
 
-use demi_backend_database::providers::CredentialRow;
-use demi_provider_common::credentials::CredentialPool;
-use demi_provider_registry::entry::ProviderEntry;
-use demi_provider_registry::store::{RegistryStore, StoreError, StoredAccount};
-use demi_shared_types::{CatalogRecord, QuotaSnapshot, Timestamp};
-use demi_web_api_protocol::ids::{CredentialId, ProviderId};
+use jush_backend_database::providers::CredentialRow;
+use jush_provider_common::credentials::CredentialPool;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_provider_registry::store::{RegistryStore, StoreError, StoredAccount};
+use jush_shared_types::{CatalogRecord, QuotaSnapshot, Timestamp};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId};
 use futures_util::FutureExt;
 use futures_util::future::BoxFuture;
 

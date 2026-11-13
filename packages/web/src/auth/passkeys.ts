@@ -1,10 +1,10 @@
 import { t } from './locales/text'
 import { computed, watch } from 'vue'
-import { shownError } from '@demicodes/web-ui/infra/errors'
+import { shownError } from '@jush-ai/web-ui/infra/errors'
 import { defineStore } from 'pinia'
-import { SerialQueue } from '@demicodes/utils'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import type { PasskeyAddOutcome, PasskeyOfferOutcome, SettingsPasskey } from '@demicodes/web-ui/settings/types'
+import { SerialQueue } from '@jush-ai/utils'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import type { PasskeyAddOutcome, PasskeyOfferOutcome, SettingsPasskey } from '@jush-ai/web-ui/settings/types'
 import { apiRequest, ApiError, jsonBody, readResponse } from '../api/client'
 import {
   creationChallengeSchema,

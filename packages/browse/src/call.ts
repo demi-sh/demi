@@ -11,7 +11,7 @@ import { inspect } from 'node:util'
 import type { BrowserContext, Page } from 'playwright'
 import { expect } from 'playwright/test'
 import type { Browser } from './browser'
-import { createDemi } from './demi'
+import { createJush } from './jush'
 import { describeFailure } from './failure'
 import { composeFooter, readPageState, type PageState } from './footer'
 import type { Keep } from './keep'
@@ -40,8 +40,8 @@ export interface Outcome {
    * What the server does once the call has answered:
    *
    * - `stay`: the server stays for the next call.
-   * - `end`: the server ends with the browser, as `demi.stop` and
-   *   `demi.down` ask and a browser that hung needs.
+   * - `end`: the server ends with the browser, as `jush.stop` and
+   *   `jush.down` ask and a browser that hung needs.
    * - `leave`: the server ends and leaves the browser to a new server,
    *   since a script that ran into the call's time limit still runs, and
    *   only the end of the server's process stops it.
@@ -51,7 +51,7 @@ export interface Outcome {
 
 /**
  * Names that make a script need the page. A script that uses none of them,
- * such as `demi.down()`, starts no browser for nothing. A helper that needs
+ * such as `jush.down()`, starts no browser for nothing. A helper that needs
  * the page starts the browser itself.
  */
 const USES_PAGE = /\b(page|context|cdp)\b/
@@ -196,7 +196,7 @@ async function scopeOf(tool: Tool, source: string, keep: Keep): Promise<ScriptSc
     context: undefined,
     cdp: undefined,
     expect,
-    demi: createDemi(tool),
+    jush: createJush(tool),
     keep,
     console: scriptConsole(tool.print),
   }

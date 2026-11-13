@@ -35,11 +35,11 @@ use std::{
     rc::Rc,
 };
 
-use demi_agent_store::{NodeRecord, Placement, SideOf};
-use demi_conversation_lane_protocol::{
+use jush_agent_store::{NodeRecord, Placement, SideOf};
+use jush_conversation_lane_protocol::{
     AgentCost, AgentEntry, AgentRole, CacheChart, JobModel, ServerFrame, SideQuestion, Version,
 };
-use demi_shared_types::{NodeId, SessionPhase};
+use jush_shared_types::{NodeId, SessionPhase};
 
 use super::FrameSink;
 

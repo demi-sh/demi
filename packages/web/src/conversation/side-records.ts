@@ -1,5 +1,5 @@
-import { EMPTY_TRANSCRIPT } from '@demicodes/web-ui/transport/protocol'
-import type { AgentActivity } from '@demicodes/web-ui/agent/agent-activity'
+import { EMPTY_TRANSCRIPT } from '@jush-ai/web-ui/transport/protocol'
+import type { AgentActivity } from '@jush-ai/web-ui/agent/agent-activity'
 import type { SideRecord } from '../state/types'
 
 /** A side question, with nothing of its transcript held yet. */

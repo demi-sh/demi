@@ -11,15 +11,15 @@
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use bytes::Bytes;
-use demi_backend_blobs::ObjectError;
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_attachments::{AttachmentNumber, AttachmentRow};
-use demi_backend_database::shares::{self, Added, ShareCounts, ShareRecord};
-use demi_backend_database::tree::{self, BlockRead, PageQuery, PageRead, Transcript};
-use demi_backend_page_sync::Part;
-use demi_shared_types::{BlobRef, BlockId};
-use demi_web_api_protocol::ids::{ConversationId, ShareToken};
-use demi_web_api_protocol::shares::{ShareTarget, ShareTranscriptQuery};
+use jush_backend_blobs::ObjectError;
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_attachments::{AttachmentNumber, AttachmentRow};
+use jush_backend_database::shares::{self, Added, ShareCounts, ShareRecord};
+use jush_backend_database::tree::{self, BlockRead, PageQuery, PageRead, Transcript};
+use jush_backend_page_sync::Part;
+use jush_shared_types::{BlobRef, BlockId};
+use jush_web_api_protocol::ids::{ConversationId, ShareToken};
+use jush_web_api_protocol::shares::{ShareTarget, ShareTranscriptQuery};
 use rand::TryRngCore as _;
 use rand::rngs::OsRng;
 

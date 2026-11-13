@@ -22,7 +22,7 @@ pub fn value(result: impl serde::Serialize) -> Result<Value> {
 /// The absolute path of `path`, a path a command names, against `cwd`; an
 /// empty path or one with a NUL byte is invalid input.
 pub fn resolve(cwd: &str, path: &str) -> Result<std::path::PathBuf> {
-    demi_command_sdk::paths::resolve(cwd, path)
+    jush_command_sdk::paths::resolve(cwd, path)
         .map_err(|error| BrowserError::Configuration(error.to_string()))
 }
 
@@ -83,16 +83,16 @@ async fn publish(
     deadline: tokio::time::Instant,
 ) -> Result<String> {
     let copying = cancel.child_token();
-    let publication = demi_shared_artifacts::Publication {
+    let publication = jush_shared_artifacts::Publication {
         mode: if overwrite {
-            demi_shared_artifacts::Mode::Replace
+            jush_shared_artifacts::Mode::Replace
         } else {
-            demi_shared_artifacts::Mode::CreateNew
+            jush_shared_artifacts::Mode::CreateNew
         },
-        permissions: demi_shared_artifacts::Permissions::Default,
+        permissions: jush_shared_artifacts::Permissions::Default,
         durable: false,
     };
-    let published = demi_shared_artifacts::publish(&path, source, publication, &copying);
+    let published = jush_shared_artifacts::publish(&path, source, publication, &copying);
     tokio::pin!(published);
     let result = tokio::select! {
         result = &mut published => result,
@@ -103,16 +103,16 @@ async fn publish(
     };
     match result {
         Ok(()) => Ok(path.to_string_lossy().into_owned()),
-        Err(demi_shared_artifacts::Error::Cancelled) if cancel.is_cancelled() => {
+        Err(jush_shared_artifacts::Error::Cancelled) if cancel.is_cancelled() => {
             Err(BrowserError::Cancelled)
         }
-        Err(demi_shared_artifacts::Error::Cancelled) => Err(BrowserError::Timeout),
-        Err(demi_shared_artifacts::Error::Io(error))
+        Err(jush_shared_artifacts::Error::Cancelled) => Err(BrowserError::Timeout),
+        Err(jush_shared_artifacts::Error::Io(error))
             if error.kind() == std::io::ErrorKind::AlreadyExists =>
         {
             Err(BrowserError::OutputExists(path.display().to_string()))
         }
-        Err(demi_shared_artifacts::Error::Io(error)) => Err(BrowserError::Io(error)),
+        Err(jush_shared_artifacts::Error::Io(error)) => Err(BrowserError::Io(error)),
         Err(error) => Err(BrowserError::Io(std::io::Error::other(error))),
     }
 }

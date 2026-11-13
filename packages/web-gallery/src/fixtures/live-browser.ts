@@ -3,8 +3,8 @@
  * draws a page, encodes it as the device's capture would, and speaks the live
  * protocol, so the view's pictures, input, controls and dialogs show here.
  */
-import { LIVE_CAPTURE_STOPPED, LIVE_CAPTURE_UNAVAILABLE } from '@demicodes/plugin-browser/generated/plugin'
-import { LIVE_CONTROL_FRAME, LIVE_VIDEO_CODEC, type ViewerInput } from '@demicodes/protocol'
+import { LIVE_CAPTURE_STOPPED, LIVE_CAPTURE_UNAVAILABLE } from '@jush-ai/plugin-browser/generated/plugin'
+import { LIVE_CONTROL_FRAME, LIVE_VIDEO_CODEC, type ViewerInput } from '@jush-ai/protocol'
 import type {
   BrowserTab,
   BrowserViewport,
@@ -14,14 +14,14 @@ import type {
   LiveModuleMessage,
   LiveTab,
   LiveViewerMessage,
-} from '@demicodes/plugin-browser/generated/plugin'
+} from '@jush-ai/plugin-browser/generated/plugin'
 import { shallowRef, type ShallowRef } from 'vue'
-import { encodeControl, encodeVideo } from '@demicodes/web-ui/live/frames'
-import type { OpenUserStream, UserStreamHandlers } from '@demicodes/web-ui/plugins/streams'
-import { CONTROL, META } from '@demicodes/web-ui/live/input'
-import { BrowserTabsError, type BrowserTabList, type StartingPhase } from '@demicodes/plugin-browser/live/tabs'
-import type { DeviceDownload } from '@demicodes/web-ui/devices/installed'
-import type { ControlReason } from '@demicodes/plugin-browser/generated/plugin'
+import { encodeControl, encodeVideo } from '@jush-ai/web-ui/live/frames'
+import type { OpenUserStream, UserStreamHandlers } from '@jush-ai/web-ui/plugins/streams'
+import { CONTROL, META } from '@jush-ai/web-ui/live/input'
+import { BrowserTabsError, type BrowserTabList, type StartingPhase } from '@jush-ai/plugin-browser/live/tabs'
+import type { DeviceDownload } from '@jush-ai/web-ui/devices/installed'
+import type { ControlReason } from '@jush-ai/plugin-browser/generated/plugin'
 import { PROJECT_ROOT } from './project'
 
 /** How often the drawn page is painted and sent: a still page needs few frames. */
@@ -123,7 +123,7 @@ const CLOUD_START_MS = 2500
 const BROWSER_START_MS = 1500
 /** Chrome as the device downloads it, of a typical size. */
 const CHROME_DOWNLOAD: DeviceDownload = {
-  package: 'demi.browser',
+  package: 'jush.browser',
   name: 'chrome',
   version: '140.0.7339.80',
   received: 0,
@@ -637,7 +637,7 @@ export interface GalleryBrowser {
   history(tab: string, action: 'back' | 'forward' | 'reload'): Promise<number>
   /** Stops loading the tab's page; answers as `navigate` does. */
   stop(tab: string): Promise<number>
-  /** The tab closes on the device, as the agent's `demi browser tab close` closes it. */
+  /** The tab closes on the device, as the agent's `jush browser tab close` closes it. */
   closeOnDevice(tab: string): void
   /** The browser ends on the device and takes its tabs with it, as a release or a crash of the browser does. */
   end(): void
@@ -649,9 +649,9 @@ export interface GalleryBrowser {
   restart(): void
   /** The next tab the browser opens fails with `failure`, as an offline device or a browser that cannot start fails it. */
   failNextOpen(failure: BrowserTabsError): void
-  /** The agent shows the tab to the user, as `demi browser show` does: its count of showings rises. */
+  /** The agent shows the tab to the user, as `jush browser show` does: its count of showings rises. */
   show(tab: string): void
-  /** The agent makes a tab and opens `url` in it, as `demi browser tab new` and `open` do, and shows it with `show`, as `--show` does. */
+  /** The agent makes a tab and opens `url` in it, as `jush browser tab new` and `open` do, and shows it with `show`, as `--show` does. */
   agentOpens(url: string, options: { show: boolean }): void
   /** The device fails what a viewer asked, such as its input, and tells every view, as the module's notice does. */
   fail(reason: ControlReason, message: string): void

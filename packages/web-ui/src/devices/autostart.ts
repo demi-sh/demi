@@ -3,7 +3,7 @@ import { homePath } from '../files/paths'
 import type { SentenceText } from '../ui/ui-text'
 
 /**
- * Why a device will not start Demi by itself after a restart, as its runner
+ * Why a device will not start Jush by itself after a restart, as its runner
  * last reported it (`crates/runner/src/autostart.rs`): its cause,
  * with what the system said.
  */

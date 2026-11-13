@@ -1,12 +1,12 @@
 //! The H.264 encoder and decoder of the device's pictures: Cisco's own build of
 //! OpenH264, which Cisco pays the patent royalties for, as Firefox uses it.
 //!
-//! Cisco pays for its binary only, not for a build Demi would make and ship
-//! from the source, so Demi does not ship it. The first use on a device
+//! Cisco pays for its binary only, not for a build Jush would make and ship
+//! from the source, so Jush does not ship it. The first use on a device
 //! downloads it from Cisco and checks it against its pinned hash before the
 //! program loads it, and keeps it for the next.
 //!
-//! It is the software H.264 coder: `demi-shared-h264` codes with the device's
+//! It is the software H.264 coder: `jush-shared-h264` codes with the device's
 //! hardware encoder where there is one, and with this where there is none, and
 //! the decoder of every recording's export is this one, so that an exported
 //! frame is the same on every device.
@@ -94,11 +94,11 @@ impl Cisco {
         Self::from_origin(directory, CISCO.to_owned())
     }
 
-    /// Cisco's build as the installation `home`, `DEMI_HOME`, keeps it, one
+    /// Cisco's build as the installation `home`, `JUSH_HOME`, keeps it, one
     /// copy for every program of the device; the system's temporary directory
     /// stands in for a program without an installation.
     pub fn in_installation(home: Option<&Path>) -> Self {
-        let directory = home.map_or_else(|| std::env::temp_dir().join("demi"), Path::to_owned).join("openh264");
+        let directory = home.map_or_else(|| std::env::temp_dir().join("jush"), Path::to_owned).join("openh264");
         Self::new(directory)
     }
 
@@ -129,14 +129,14 @@ impl Cisco {
         };
         // The library is checked against its pinned hash once unpacked, so
         // neither plain HTTP nor a redirect can change what is kept.
-        let client = demi_shared_artifacts::download_client_allowing_http().map_err(|error| failed(&error))?;
-        let request = demi_shared_artifacts::Download {
+        let client = jush_shared_artifacts::download_client_allowing_http().map_err(|error| failed(&error))?;
+        let request = jush_shared_artifacts::Download {
             redirects: 10,
-            ..demi_shared_artifacts::Download::new(&url)
+            ..jush_shared_artifacts::Download::new(&url)
         };
         // Nothing cancels the fetch but the call that awaits it going away.
         let (received, compressed) =
-            demi_shared_artifacts::download_bytes(&client, request, &tokio_util::sync::CancellationToken::new())
+            jush_shared_artifacts::download_bytes(&client, request, &tokio_util::sync::CancellationToken::new())
                 .await
                 .map_err(|error| failed(&error))?;
         received.plain().map_err(|error| failed(&error))?;

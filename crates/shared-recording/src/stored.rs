@@ -23,7 +23,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_shared_recording_protocol::{Area, EndReason, FrameRow, FrameSize, Gap, Input, InputRow, RecordingId, RecordingInfo};
+use jush_shared_recording_protocol::{Area, EndReason, FrameRow, FrameSize, Gap, Input, InputRow, RecordingId, RecordingInfo};
 use serde::{Deserialize, Serialize};
 
 use crate::Error;
@@ -32,7 +32,7 @@ pub(crate) const META: &str = "recording.json";
 pub(crate) const INDEX: &str = "frames.jsonl";
 pub(crate) const VIDEO: &str = "video.h264";
 pub(crate) const INPUTS: &str = "inputs.jsonl";
-pub(crate) use demi_shared_recording_protocol::{WRITING, written};
+pub(crate) use jush_shared_recording_protocol::{WRITING, written};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

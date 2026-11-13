@@ -9,7 +9,7 @@
 use rusqlite::Transaction;
 
 use crate::providers::ResealSealed;
-use demi_web_api_protocol::ids::ProviderId;
+use jush_web_api_protocol::ids::ProviderId;
 use super::super::{Migration, corrupt, corrupt_text};
 
 pub(super) const MIGRATION: Migration = Migration::Reseal(control_sealed_config_format_2);

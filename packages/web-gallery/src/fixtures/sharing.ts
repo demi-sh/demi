@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { holdsTarget, type ExistingShare, type ShareService, type ShareTarget } from '@demicodes/web-ui/agent/sharing'
+import { holdsTarget, type ExistingShare, type ShareService, type ShareTarget } from '@jush-ai/web-ui/agent/sharing'
 import { productWould } from '../product-would'
 import { simulatedRequestId } from './request-failures'
 import { slow } from './slow'
@@ -15,7 +15,7 @@ import { slow } from './slow'
 export function useGalleryShares(initial: readonly ExistingShare[] = [], options: { failFirst?: boolean } = {}) {
   let failing = options.failFirst ?? false
   const shares = ref<ExistingShare[]>([...initial])
-  const link = (token: string) => `https://demi.example.com/s/${token}`
+  const link = (token: string) => `https://jush.example.com/s/${token}`
   const service: ShareService = {
     link,
     async list() {

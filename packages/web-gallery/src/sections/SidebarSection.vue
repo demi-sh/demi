@@ -1,49 +1,49 @@
 <script setup lang="ts">
 import { GALLERY_MARKS } from '../fixtures/device-marks'
 import { refusal, simulatedRequestId } from '../fixtures/request-failures'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import { t as sidebarText } from '@demicodes/web-ui/sidebar/locales/text'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import { t as sidebarText } from '@jush-ai/web-ui/sidebar/locales/text'
 import { computed, onBeforeUnmount, ref, watchEffect, type Ref } from 'vue'
-import { moveBefore } from '@demicodes/utils'
-import type { SidebarConversation, SidebarProject, SidebarProjectDevice, SidebarReorder, UnreadEnd } from '@demicodes/web-ui/sidebar/types'
-import { isRunning } from '@demicodes/web-ui/agent/conversation-status'
-import { conversationTitle } from '@demicodes/web-ui/agent/conversation-title'
-import type { SidebarGroup } from '@demicodes/web-ui/sidebar/list-model'
+import { moveBefore } from '@jush-ai/utils'
+import type { SidebarConversation, SidebarProject, SidebarProjectDevice, SidebarReorder, UnreadEnd } from '@jush-ai/web-ui/sidebar/types'
+import { isRunning } from '@jush-ai/web-ui/agent/conversation-status'
+import { conversationTitle } from '@jush-ai/web-ui/agent/conversation-title'
+import type { SidebarGroup } from '@jush-ai/web-ui/sidebar/list-model'
 import { RestoreSweep } from '../fixtures/restore-sweep'
-import type { ListLoad } from '@demicodes/web-ui/agent/session-status'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import type { ListLoad } from '@jush-ai/web-ui/agent/session-status'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import GalleryOverlayWell from '../components/GalleryOverlayWell.vue'
 import GallerySection from '../components/GallerySection.vue'
 import GallerySettingsFull from '../components/GallerySettingsFull.vue'
 import GallerySpecimen from '../components/GallerySpecimen.vue'
-import AppSidebar from '@demicodes/web-ui/sidebar/AppSidebar.vue'
-import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
-import { useMessageFiles } from '@demicodes/web-ui/markdown/message-files'
+import AppSidebar from '@jush-ai/web-ui/sidebar/AppSidebar.vue'
+import ChatSession from '@jush-ai/web-ui/agent/ChatSession.vue'
+import { useMessageFiles } from '@jush-ai/web-ui/markdown/message-files'
 import GalleryComposer from '../components/GalleryComposer.vue'
 import { transcriptDemoBlocks } from '../fixtures/blocks'
 import { PROJECT_ROOT } from '../fixtures/project'
 import { useTurnFlow } from '../turn-flow'
 import { useAgentContext } from '../agent-context'
-import SidebarLayout from '@demicodes/web-ui/sidebar/SidebarLayout.vue'
-import { SIDEBAR_WIDTH } from '@demicodes/web-ui/sidebar/sidebar-width'
-import SettingsDialog from '@demicodes/web-ui/settings/SettingsDialog.vue'
-import { settingsSections as productSections, withUpdatesSection } from '@demicodes/web-ui/settings/sections'
-import { showArchived, updateArchived } from '@demicodes/web-ui/sidebar/archived-toast'
-import { showRefused } from '@demicodes/web-ui/sidebar/refused-toast'
-import { dismissToast } from '@demicodes/web-ui/infra/toast'
-import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
-import { useAppShortcuts } from '@demicodes/web-ui/composables/useAppShortcuts'
-import type { SettingsTab } from '@demicodes/web-ui/settings/types'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { providePageHost, sidebarEntries, withPluginSections } from '@demicodes/web-ui/plugins/page'
+import SidebarLayout from '@jush-ai/web-ui/sidebar/SidebarLayout.vue'
+import { SIDEBAR_WIDTH } from '@jush-ai/web-ui/sidebar/sidebar-width'
+import SettingsDialog from '@jush-ai/web-ui/settings/SettingsDialog.vue'
+import { settingsSections as productSections, withUpdatesSection } from '@jush-ai/web-ui/settings/sections'
+import { showArchived, updateArchived } from '@jush-ai/web-ui/sidebar/archived-toast'
+import { showRefused } from '@jush-ai/web-ui/sidebar/refused-toast'
+import { dismissToast } from '@jush-ai/web-ui/infra/toast'
+import { appShortcuts } from '@jush-ai/web-ui/settings/shortcuts'
+import { useAppShortcuts } from '@jush-ai/web-ui/composables/useAppShortcuts'
+import type { SettingsTab } from '@jush-ai/web-ui/settings/types'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { providePageHost, sidebarEntries, withPluginSections } from '@jush-ai/web-ui/plugins/page'
 import { PLUGIN_PAGES } from '../generated/pages'
 import { createSettingsState } from '../fixtures/settings'
 import { galleryPageHost, openExaSignIn, skillsPlugin, webPlugin } from '../fixtures/plugins'
 import { productWould } from '../product-would'
-import WorkspaceSwitcher from '@demicodes/web-ui/workspaces/WorkspaceSwitcher.vue'
-import { groupDot, type DotSource } from '@demicodes/web-ui/sidebar/conversation-dot'
-import type { WorkspaceView } from '@demicodes/web-ui/workspaces/workspaces'
-import HandoffDialog from '@demicodes/web-ui/auth/HandoffDialog.vue'
+import WorkspaceSwitcher from '@jush-ai/web-ui/workspaces/WorkspaceSwitcher.vue'
+import { groupDot, type DotSource } from '@jush-ai/web-ui/sidebar/conversation-dot'
+import type { WorkspaceView } from '@jush-ai/web-ui/workspaces/workspaces'
+import HandoffDialog from '@jush-ai/web-ui/auth/HandoffDialog.vue'
 import { galleryHandoff } from '../fixtures/handoff'
 import { slow } from '../fixtures/slow'
 import { demoAccount, demoConversations, demoProjects, savedScopeSwitched, emailOnlyAccount, longEmailAccount } from '../sidebar/sidebar-data'
@@ -471,8 +471,8 @@ function markProjects(): SidebarProject[] {
   })
   return [
     project('m-chromium', 'chromium', { targetKind: 'device', device: mac }),
-    project('m-demi-mac', 'demi', { targetKind: 'device', device: mac }),
-    project('m-demi-mini', 'demi', { targetKind: 'device', device: { kind: 'paired', name: 'Mac mini', state: 'online', mark: GALLERY_MARKS.macMini } }),
+    project('m-jush-mac', 'jush', { targetKind: 'device', device: mac }),
+    project('m-jush-mini', 'jush', { targetKind: 'device', device: { kind: 'paired', name: 'Mac mini', state: 'online', mark: GALLERY_MARKS.macMini } }),
     project('m-dotfiles-mac', 'dotfiles-and-machine-setup-scripts', { targetKind: 'device', device: { kind: 'paired', name: 'Alexs-MacBook-Pro.local', state: 'updating', mark: GALLERY_MARKS.macPro } }),
     project('m-dotfiles-build', 'dotfiles-and-machine-setup-scripts', { targetKind: 'device', device: { kind: 'paired', name: 'build-01', state: 'offline', mark: GALLERY_MARKS.ubuntu } }),
     project('m-old', 'old-experiments', { targetKind: 'device', device: { kind: 'removed' } }),
@@ -489,8 +489,8 @@ function markRows(): SidebarConversation[] {
     row('m-removed', 'Regex for fenced code lines', null, false, { kind: 'removed' }),
     row('m-cloud', 'How does limitShift differ from shift?', null, false),
     row('m-chromium-1', 'Takeover handoff', 'm-chromium', false),
-    row('m-demi-1', 'New file icons look wrong', 'm-demi-mac', false),
-    row('m-demi-2', 'Build the release on the mini', 'm-demi-mini', false),
+    row('m-jush-1', 'New file icons look wrong', 'm-jush-mac', false),
+    row('m-jush-2', 'Build the release on the mini', 'm-jush-mini', false),
     row('m-dotfiles-1', 'zsh prompt shows the worktree branch', 'm-dotfiles-mac', false),
     row('m-dotfiles-2', 'Copy the SSH config to the build box', 'm-dotfiles-build', false),
     row('m-old-1', 'Try a hand-written parser', 'm-old', false),
@@ -547,7 +547,7 @@ function statusRows(): SidebarConversation[] {
 /**
  * The folded specimen's rows: in the projects only dotfiles' finished
  * conversation is new, so the folded label starts green, and a request comes
- * only from Ask for Permission in a Project. Demi's conversations only run, so
+ * only from Ask for Permission in a Project. Jush's conversations only run, so
  * its folded row carries no dot.
  */
 function foldRows(): SidebarConversation[] {
@@ -562,7 +562,7 @@ const FOLD_ASKER = 'c-thumbs'
 const foldConversations = ref(foldRows())
 const foldActive = ref<string | null>('c-cookie')
 const foldGroups = ref<SidebarGroup[]>(['projects'])
-const foldProjects = ref<string[]>(['p-dotfiles', 'p-demi'])
+const foldProjects = ref<string[]>(['p-dotfiles', 'p-jush'])
 const foldAsking = computed(() => foldConversations.value.some((c) => c.id === FOLD_ASKER && c.needsYou))
 
 /** Asks for a permission in a project conversation, or answers it, as a subagent's request and the user's decision would. */
@@ -574,7 +574,7 @@ function resetFold(): void {
   foldConversations.value = foldRows()
   foldActive.value = 'c-cookie'
   foldGroups.value = ['projects']
-  foldProjects.value = ['p-dotfiles', 'p-demi']
+  foldProjects.value = ['p-dotfiles', 'p-jush']
 }
 
 /** Opening a row reads it: its dot settles, and its request still waits for the user's decision. */
@@ -702,7 +702,7 @@ const recoveredConversations = ref<SidebarConversation[]>([])
 
 function recoveredRows(): SidebarConversation[] {
   return demoConversations().filter(
-    (conversation) => conversation.projectId === 'p-demi'
+    (conversation) => conversation.projectId === 'p-jush'
   ).slice(
     0,
     5
@@ -863,7 +863,7 @@ onBeforeUnmount(() => {
 
     <GallerySection
       title="Folded Groups"
-      note="Conversations and Projects each fold under their label, as Finder’s sidebar sections do. Click a label, or the chevron after it, which shows while the pointer is over the label and always on a phone: it points down while the group is open and right while it is folded. A folded group shows its label alone, but keeps the open conversation under it, in Projects with its project’s row above it so its place still shows, and while a conversation the fold hides has news, the label carries the dot of the most urgent, red for a failure, then yellow for a request, then green for a finished turn not read yet, between the label and the chevron, so whatever the tab’s title counts has a dot to find; with no news it carries none, however many of them run, since a dot there says that going there is worth it; the open conversation shows its own dot. A folded project's row carries the same dot after its name, as dotfiles does once Projects is unfolded, and none while its conversations only run, as Demi. Here Projects starts folded with Cookie helper refactor open, its label green for dotfiles’ finished conversation; Ask for Permission in a Project makes Resize the product photos for the shop wait, and the label turns yellow, until Answer the Request or until it is opened and read, which settles its dot. The product keeps the folded groups per browser, across reloads. Reset gives the specimen its rows and folds again."
+      note="Conversations and Projects each fold under their label, as Finder’s sidebar sections do. Click a label, or the chevron after it, which shows while the pointer is over the label and always on a phone: it points down while the group is open and right while it is folded. A folded group shows its label alone, but keeps the open conversation under it, in Projects with its project’s row above it so its place still shows, and while a conversation the fold hides has news, the label carries the dot of the most urgent, red for a failure, then yellow for a request, then green for a finished turn not read yet, between the label and the chevron, so whatever the tab’s title counts has a dot to find; with no news it carries none, however many of them run, since a dot there says that going there is worth it; the open conversation shows its own dot. A folded project's row carries the same dot after its name, as dotfiles does once Projects is unfolded, and none while its conversations only run, as Jush. Here Projects starts folded with Cookie helper refactor open, its label green for dotfiles’ finished conversation; Ask for Permission in a Project makes Resize the product photos for the shop wait, and the label turns yellow, until Answer the Request or until it is opened and read, which settles its dot. The product keeps the folded groups per browser, across reloads. Reset gives the specimen its rows and folds again."
     >
       <div class="specimen-row specimen-row-wide items-start">
         <GallerySpecimen variant="projects folded · live">
@@ -969,7 +969,7 @@ onBeforeUnmount(() => {
 
     <GallerySection
       title="Device Marks"
-      note="A conversation’s row and a project’s row end in the same mark, in the same column down both groups: the device’s system’s logo with a dot for its state, green online, amber while its runner updates itself, faint offline, and a number while another of the user’s devices has the same logo (the three Macs read 1, 2 and 3); a device since removed is the plain computer without a dot. Its tip, and its accessible label, name the device and its state, MacBook Pro · Online, or say Removed device. A project’s row names its device in words only beside a project of the same name on another device (demi on MacBook Pro and Mac mini; the two dotfiles projects, whose long names are cut at their ends); chromium alone shows the mark. A project on the Cloud shows the Cloud’s icon in the same place; a conversation on the Cloud shows none. The mark rests in the same grey as the row’s buttons and stays on hover: New conversation and Archive appear to its left, and on a project the device’s name, when it shows, disappears while the pointer is over the row, giving New conversation its place; on a phone, where the button always shows, the name does not show at all. Both frames share their rows: Reset gives them back."
+      note="A conversation’s row and a project’s row end in the same mark, in the same column down both groups: the device’s system’s logo with a dot for its state, green online, amber while its runner updates itself, faint offline, and a number while another of the user’s devices has the same logo (the three Macs read 1, 2 and 3); a device since removed is the plain computer without a dot. Its tip, and its accessible label, name the device and its state, MacBook Pro · Online, or say Removed device. A project’s row names its device in words only beside a project of the same name on another device (jush on MacBook Pro and Mac mini; the two dotfiles projects, whose long names are cut at their ends); chromium alone shows the mark. A project on the Cloud shows the Cloud’s icon in the same place; a conversation on the Cloud shows none. The mark rests in the same grey as the row’s buttons and stays on hover: New conversation and Archive appear to its left, and on a project the device’s name, when it shows, disappears while the pointer is over the row, giving New conversation its place; on a phone, where the button always shows, the name does not show at all. Both frames share their rows: Reset gives them back."
     >
       <div class="flex flex-col gap-2">
         <div>

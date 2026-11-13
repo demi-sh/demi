@@ -1,5 +1,5 @@
 //! A maker's calls as they cross a channel, such as the relay that lends an
-//! entry of one Demi server to another (`crates/provider-relay`).
+//! entry of one Jush server to another (`crates/provider-relay`).
 //!
 //! The makers' traits are defined once, and so is how they cross: a [`Call`]
 //! of each of their methods that sends a request, the one [`Reply`] it is
@@ -32,7 +32,7 @@
 use std::sync::{Arc, OnceLock, RwLock};
 
 use bytes::Bytes;
-use demi_shared_types::{AudioKind, MediaKind};
+use jush_shared_types::{AudioKind, MediaKind};
 use futures_util::future::BoxFuture;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};

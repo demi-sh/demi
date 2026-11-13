@@ -9,8 +9,8 @@
 
 use std::collections::{HashMap, HashSet};
 
-use demi_provider_common::{MediaBytes, ResultPart};
-use demi_shared_types::{
+use jush_provider_common::{MediaBytes, ResultPart};
+use jush_shared_types::{
     B64Bytes, BlobRef, Block, DocumentSource, GoneCause, MediaSource, ModelMediaKind,
     MessageComment, ToolCallBlock, ToolMediaSource, ToolResultContentBlock, ToolView, UserContentBlock,
 };

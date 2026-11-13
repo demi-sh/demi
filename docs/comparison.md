@@ -1,8 +1,8 @@
-# Demi compared
+# Jush compared
 
 **English** · [Deutsch](comparison.de.md) · [Español](comparison.es.md) · [Français](comparison.fr.md) · [Português](comparison.pt-BR.md) · [简体中文](comparison.zh-CN.md) · [繁體中文](comparison.zh-TW.md) · [日本語](comparison.ja.md) · [한국어](comparison.ko.md)
 
-How Demi differs from agent apps of its kind, as of October 2026, from each product's documentation and source code. The table lists a row only where the products differ, and one capability that none of them has yet. Its columns go from the product closest to Demi to the furthest.
+How Jush differs from agent apps of its kind, as of October 2026, from each product's documentation and source code. The table lists a row only where the products differ, and one capability that none of them has yet. Its columns go from the product closest to Jush to the furthest.
 
 The table uses these symbols and labels:
 
@@ -14,7 +14,7 @@ The table uses these symbols and labels:
 
 The following table compares the products feature by feature:
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Models and subscriptions** | | | | | | | | |
 | Claude subscription | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@ The table's rows mean the following:
 - **Line comments on diffs**: a comment on one line of a change, which goes to the agent.
 - **Own agent**: the product's own agent drives the model, rather than running Claude Code, Codex or other agents.
 - **Shell-only tools**: the model gets one tool, a shell, and every capability is a command in it.
-- **Third-party plugins**: code from someone else that the user installs to add tools or screens to the product, beyond skills and MCP servers. Demi's own features are plugins, but it loads no one else's.
+- **Third-party plugins**: code from someone else that the user installs to add tools or screens to the product, beyond skills and MCP servers. Jush's own features are plugins, but it loads no one else's.
 - **Secrets for the agent**: secrets the user saves by name, which the agent uses in its commands.
 - **Live browser view and control**: the user watches the agent's browser as it works and can operate it.
 - **Computer use**: the agent works the desktop with screenshots, mouse and keyboard, beyond a browser.

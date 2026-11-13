@@ -1,5 +1,5 @@
 import { apiRequest, jsonBody, readResponse } from './client'
-import type { ClientContent, SideQuestion } from '@demicodes/protocol'
+import type { ClientContent, SideQuestion } from '@jush-ai/protocol'
 import {
   askRequestSchema,
   sideFollowUpSchema,

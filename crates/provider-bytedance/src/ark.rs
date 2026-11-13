@@ -8,12 +8,12 @@
 //! - An account whose balance is overdue is refused with HTTP 403, which is a
 //!   used-up key, not a refused one.
 
-use demi_provider_common::{
+use jush_provider_common::{
     ErrorCode, HttpFailureRecord, ProviderFailure, Secret,
     media::{MediaCall, MediaCredential},
     read_http_failure,
 };
-use demi_shared_types::Clock;
+use jush_shared_types::Clock;
 use reqwest::{
     StatusCode,
     header::{AUTHORIZATION, HeaderMap},

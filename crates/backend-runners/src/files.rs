@@ -4,13 +4,13 @@
 //! file the runner counted lines for is one the web app shows.
 
 use bytes::BytesMut;
-use demi_command_protocol::EDIT_FILE_BYTES;
-pub use demi_command_protocol::{TextRefusal, text_of};
-use demi_runner_client::RemoteDevice;
-use demi_device_interface::{ByteRange, ByteStream, FileKind, DeviceError, LinkTarget};
-use demi_runner_protocol::wire::{self, ReadAt};
+use jush_command_protocol::EDIT_FILE_BYTES;
+pub use jush_command_protocol::{TextRefusal, text_of};
+use jush_runner_client::RemoteDevice;
+use jush_device_interface::{ByteRange, ByteStream, FileKind, DeviceError, LinkTarget};
+use jush_runner_protocol::wire::{self, ReadAt};
 use futures_util::StreamExt as _;
-use demi_web_api_protocol::files::DirectoryEntry;
+use jush_web_api_protocol::files::DirectoryEntry;
 
 /// Why a file's text could not be read.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]

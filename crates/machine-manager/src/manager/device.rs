@@ -21,7 +21,7 @@ use std::{
     rc::Rc,
 };
 
-use demi_machine_manager_protocol::{BaseVersion, DeviceId, Download, Isolation, MoveStatus, Offer, RuntimeOffer};
+use jush_machine_manager_protocol::{BaseVersion, DeviceId, Download, Isolation, MoveStatus, Offer, RuntimeOffer};
 use tokio::sync::{mpsc, oneshot, watch};
 use tokio_util::sync::CancellationToken;
 

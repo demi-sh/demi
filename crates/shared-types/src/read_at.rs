@@ -24,7 +24,7 @@ pub struct ReadAt {
 }
 
 impl fmt::Display for ReadAt {
-    /// `<epoch>.<number>`, as `X-Demi-Read-At` carries it.
+    /// `<epoch>.<number>`, as `X-Jush-Read-At` carries it.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}.{}", self.epoch, self.number)
     }

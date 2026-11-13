@@ -135,7 +135,7 @@ Licensed under either of these:
 - [rust-headless-chrome](https://github.com/atroche/rust-headless-chrome) which the launch config, `KeyDefinition` and typing support among others is taken from.
 - [puppeteer](https://github.com/puppeteer/puppeteer)
 
-### Demi's pinned protocol generation
+### Jush's pinned protocol generation
 
 The checked-in PDL owns both Rust bindings and `pdl/protocol.json`, the raw CDP
 command validation catalog. Regenerate both with:

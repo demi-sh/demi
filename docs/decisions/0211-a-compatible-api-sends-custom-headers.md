@@ -10,7 +10,7 @@ Alex points a compatible API entry at a gateway, `https://llm.example.com/v1`,
 that routes each request to one of several upstream accounts. The gateway
 keeps a conversation's requests on one account, so the upstream prompt cache
 holds, only when each request names its conversation in an `x-session-id`
-header. It also wants `User-Agent: alex-agent/1.0` to tell Demi's traffic
+header. It also wants `User-Agent: alex-agent/1.0` to tell Jush's traffic
 apart, and its Anthropic upstream turns on a beta only with
 `anthropic-beta: context-1m-2025-08-07`. An entry sends no header of the
 user's, so the gateway spreads one conversation over several accounts, each
@@ -49,11 +49,11 @@ Headers     Sent with every request. {conversation} is replaced     [Add Header]
   conversation, such as Test Connection, a model list or a generated image,
   leaves out every header whose value names `{conversation}`. Any other text
   in braces is sent as written.
-- The headers go after Demi's own and replace any of the same name, so
+- The headers go after Jush's own and replace any of the same name, so
   `User-Agent` or `Authorization` the user sets is the one sent.
 - Through a device (0199), the device's runner sends them as it sends the
   rest of the request.
-- `demi providers show` lists them. The command line changes them as it
+- `jush providers show` lists them. The command line changes them as it
   changes the entry's other settings, by the entry's patch (0219).
 
 The design to build from:
@@ -95,7 +95,7 @@ None.
   The leaving out of a `{conversation}` header without a conversation
   follows the latter.
 - OpenCode: `provider.<id>.options.headers`, whose values take `{env:NAME}`
-  and `{file:path}`; Demi's `{conversation}` takes the brace form
+  and `{file:path}`; Jush's `{conversation}` takes the brace form
   ([Providers](https://opencode.ai/docs/providers/)).
 - Claude Code: `ANTHROPIC_CUSTOM_HEADERS`, one `Name: Value` per line, and its
   own `X-Claude-Code-Session-Id` on every request, so a gateway groups a
@@ -106,7 +106,7 @@ None.
 - Postman and Insomnia edit a request's headers as a table of names and
   values, a row added with a button.
 
-Where Demi departs: the headers are set in Settings rather than a file, and
+Where Jush departs: the headers are set in Settings rather than a file, and
 the only value they fill in is the conversation's ID, since the backend's
 environment is not the user's.
 
@@ -119,7 +119,7 @@ environment is not the user's.
 - A JSON object in one text field, as a configuration file holds it: no
   field of the page is edited as JSON, and a typo would lose every header.
 - Headers on every entry: a vendor's API takes the headers its vendor
-  documents, which Demi sends already; the user's own ones are a gateway's.
+  documents, which Jush sends already; the user's own ones are a gateway's.
 
 ## Open questions
 

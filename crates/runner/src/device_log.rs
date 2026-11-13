@@ -17,7 +17,7 @@
 //! writes them as lines, so no module holds a handle to the files, and a
 //! resident's standard error enters the same way, as `stderr` lines,
 //! except a line the resident wrote as a `LogLine` itself
-//! (`demi_command_sdk::log_to_stderr`), which is kept as it is.
+//! (`jush_command_sdk::log_to_stderr`), which is kept as it is.
 //! An event names what happened in its `event` field, `noun.verb` in the past
 //! tense, and its IDs (`conversation`, `turn`, `request_id`) go to the line's
 //! own fields; the backend adds the device's ID.
@@ -41,7 +41,7 @@
 //! one.
 //!
 //! A paired device keeps the files in `log/` of its installation state. A
-//! managed guest's state is temporary, so it keeps them in `/var/log/demi` on
+//! managed guest's state is temporary, so it keeps them in `/var/log/jush` on
 //! the system layer, which outlives a stop.
 //!
 //! # What goes in
@@ -71,9 +71,9 @@ use tracing::{
 };
 use tracing_subscriber::layer::{Context, Layer};
 
-use demi_runner_process::private_files::chmod;
-use demi_shared_types::log_layer::LineLayer;
-use demi_runner_protocol::wire::{
+use jush_runner_process::private_files::chmod;
+use jush_shared_types::log_layer::LineLayer;
+use jush_runner_protocol::wire::{
     self, DeviceLogLine, LOG_FRAME_BYTES, LogLevel, LogLine, LogOrigin,
 };
 
@@ -215,7 +215,7 @@ impl DeviceLogWriter {
         let thread = self.thread;
         let joined = tokio::task::spawn_blocking(move || thread.join()).await;
         if !matches!(joined, Ok(Ok(()))) {
-            crate::console::line("demi-runner: the device log writer failed");
+            crate::console::line("jush-runner: the device log writer failed");
         }
     }
 }
@@ -378,7 +378,7 @@ impl Files {
             Err(error) => {
                 self.newer = None;
                 if !self.failing {
-                    crate::console::line(format_args!("demi-runner: device log write failed: {error}"));
+                    crate::console::line(format_args!("jush-runner: device log write failed: {error}"));
                 }
                 self.failing = true;
             }

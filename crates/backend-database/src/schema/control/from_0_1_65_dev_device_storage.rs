@@ -1,5 +1,5 @@
 //! From the control schema where a device keeps the machine its runner
-//! reports: a device keeps what Demi keeps on it, as its runner last measured,
+//! reports: a device keeps what Jush keeps on it, as its runner last measured,
 //! and the server's settings keep how long and how much of its log it keeps.
 
 use super::super::Migration;

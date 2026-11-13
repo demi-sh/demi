@@ -5,7 +5,7 @@ use brush_core::{
     CommandArg, ExecutionContext, ExecutionResult, Shell, SourceInfo, builtins,
     execution_host::FileControl, openfiles::OpenFile,
 };
-use demi_runner_process::command_client::CONTEXT_ENV;
+use jush_runner_process::command_client::CONTEXT_ENV;
 use std::{
     collections::{BTreeMap, HashMap},
     fs::File,
@@ -41,7 +41,7 @@ pub async fn execute(
     // runner's.
     if !options.cwd.try_exists()? {
         let line = format!(
-            "demi: cannot start in {}: No such file or directory\n",
+            "jush: cannot start in {}: No such file or directory\n",
             options.cwd.display()
         );
         (&options.stderr).write_all(line.as_bytes())?;
@@ -173,14 +173,14 @@ pub(crate) fn scope(shell: &Shell) -> io::Result<Scope> {
 }
 
 /// Login profiles configure user tools; the runner's own variables, its
-/// `DEMI_*` names, stay authoritative. `TMPDIR` is the device's, which a
+/// `JUSH_*` names, stay authoritative. `TMPDIR` is the device's, which a
 /// profile may set as for any other program (`crates/runner-shell/src/lib.rs`).
 pub(crate) fn restore_execution_context(
     shell: &mut Shell,
     env: &BTreeMap<String, String>,
 ) -> Result<(), brush_core::Error> {
     for (name, value) in env {
-        if name.starts_with("DEMI_") {
+        if name.starts_with("JUSH_") {
             let mut variable = brush_core::ShellVariable::new(value.clone());
             variable.export();
             shell.env_mut().set_global(name, variable)?;
@@ -235,10 +235,10 @@ fn execute_utility(
             .shell
             .child_attributes()
             .umask
-            .unwrap_or_else(demi_runner_process::process::umask);
+            .unwrap_or_else(jush_runner_process::process::umask);
         // Windows has no mask: a job's own applies to nothing there.
         #[cfg(windows)]
-        let umask = demi_runner_process::process::umask();
+        let umask = jush_runner_process::process::umask();
         let invocation = uucore::context::Context {
             name,
             descriptors: context

@@ -1,4 +1,4 @@
-//! Demi's Claude Code CLI on the Claude Code machine
+//! Jush's Claude Code CLI on the Claude Code machine
 //! (`crates/command-package-claude-code/src/lib.rs`,
 //! `crates/provider-claude-code/src/placement.rs`,
 //! `crates/provider-claude-code/src/account.rs`;
@@ -7,7 +7,7 @@
 //! The module covers:
 //!
 //! - the versions the machine has and the install of the vendor's newest,
-//!   through the `demi.claude-code` package;
+//!   through the `jush.claude-code` package;
 //! - the placement that starts a provider's process there, in its account's
 //!   directory with a directory of its own for its session, or a sign-in's new
 //!   directory;
@@ -47,39 +47,39 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_backend_cloud::access::MachineAccess;
-use demi_backend_database::control::ControlService;
-use demi_backend_page_sync::Part;
-use demi_plugin_host::Lost;
-use demi_provider_claude_code::releases::ReleaseError;
-use demi_provider_common::ProviderRuntime;
-use demi_provider_registry::entry::ProviderEntry;
-use demi_provider_registry::registry::ProviderRegistry;
-use demi_web_api_protocol::ids::CredentialId;
-use demi_runner_client::{
+use jush_backend_cloud::access::MachineAccess;
+use jush_backend_database::control::ControlService;
+use jush_backend_page_sync::Part;
+use jush_plugin_host::Lost;
+use jush_provider_claude_code::releases::ReleaseError;
+use jush_provider_common::ProviderRuntime;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_provider_registry::registry::ProviderRegistry;
+use jush_web_api_protocol::ids::CredentialId;
+use jush_runner_client::{
     AttachedArtifact, Link, RemoteDevice, ResidentCallError, ResidentRequest, WeakLink,
 };
-use demi_backend_runners::command_context::{command_context, provider_context};
-use demi_command_package_claude_code_protocol::{
+use jush_backend_runners::command_context::{command_context, provider_context};
+use jush_command_package_claude_code_protocol::{
     Installed, Operation, PACKAGE, Release, Reply, Status,
 };
-use demi_command_protocol::{
+use jush_command_protocol::{
     ArtifactLocation, ArtifactUrl, CommandCaller, CommandContext, PackageArtifact,
 };
-use demi_device_interface::{
+use jush_device_interface::{
     FileContents, Device as _, DeviceError, DeviceErrorKind, MkdirOptions, Process, ProcessControl,
     ProcessEnd, ProcessOutput, RmOptions, Signal, SpawnError, SpawnErrorKind, WhenExists,
     WriteOptions,
 };
-use demi_provider_claude_code::{
+use jush_provider_claude_code::{
     AccountMachine, AccountWork, ClaudeCodeProvider, CliSite, CliStart, CliStarter, CliSystem, CliWork, ConfigDir,
     IdleProcesses, MachineState, Placed, Placement, StartError, StartStage, StartSteps, WorkLease,
     close_process,
 };
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProviderId, UserId};
-use demi_runner_protocol::wire::DeviceDownload;
-use demi_shared_types::DownloadProgress;
-use demi_web_api_protocol::providers::CliInstall;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProviderId, UserId};
+use jush_runner_protocol::wire::DeviceDownload;
+use jush_shared_types::DownloadProgress;
+use jush_web_api_protocol::providers::CliInstall;
 use futures_util::future::{BoxFuture, LocalBoxFuture, Shared};
 use futures_util::{FutureExt as _, StreamExt as _};
 use serde::de::DeserializeOwned;
@@ -312,7 +312,7 @@ impl CrossPlacement {
         let provider: Arc<dyn Any + Send + Sync> = registry.own_provider(entry, account).await.map_err(|error| error.to_string())?;
         let provider = provider
             .downcast::<ClaudeCodeProvider>()
-            .map_err(|_| format!("The provider family {} runs no process Demi places", entry.family))?;
+            .map_err(|_| format!("The provider family {} runs no process Jush places", entry.family))?;
         Ok(provider.process_runtime(Self::placement(shard, work)))
     }
 
@@ -861,7 +861,7 @@ impl MachinePlacement {
                         .await
                         .map_err(|error| made("sign-in's directory", error))?;
                     let dir = MachineDir::new(&self.shard, &access.remote, path.clone(), Some(accounts));
-                    (path, "demi".to_owned(), dir, None)
+                    (path, "jush".to_owned(), dir, None)
                 }
             };
             lap(&mut steps.directories);
@@ -1761,7 +1761,7 @@ async fn call<T: DeserializeOwned>(
         .filter(|_| services.native.serves(PACKAGE, &served))
     else {
         return Err(failed(
-            "this deployment does not carry the demi.claude-code package, which installs it".into(),
+            "this deployment does not carry the jush.claude-code package, which installs it".into(),
         ));
     };
     let request = ResidentRequest {

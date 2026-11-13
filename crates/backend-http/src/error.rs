@@ -1,37 +1,37 @@
 //! The edge's error answer: an HTTP status with a JSON `ErrorBody`, and the
 //! mapping of each domain error to it.
 
-use demi_web_api_protocol::projects::ProjectDto;
+use jush_web_api_protocol::projects::ProjectDto;
 use axum::Json;
 use axum::http::{HeaderName, HeaderValue, Method, StatusCode};
 use axum::response::{IntoResponse, Response};
 use std::collections::BTreeMap;
 
-use demi_web_api_protocol::error::{ErrorBody, ErrorCode};
-use demi_web_api_protocol::ids::LoginId;
-use demi_web_api_protocol::passkeys::PasskeyId;
+use jush_web_api_protocol::error::{ErrorBody, ErrorCode};
+use jush_web_api_protocol::ids::LoginId;
+use jush_web_api_protocol::passkeys::PasskeyId;
 
 use crate::request_id;
 
-use demi_backend_accounts::email_change::EmailChangeError;
-use demi_backend_accounts::passkeys::PasskeyError;
-use demi_backend_accounts::passwords::HashError;
-use demi_backend_blobs::ObjectError;
-use demi_backend_cloud::machine::CloudError;
-use demi_backend_database::StorageError;
-use demi_provider_registry::registry::RegistryError;
-use demi_backend_providers::vault::accounts::AccountRefusal;
-use demi_backend_providers::vault::logins::LoginRefusal;
-use demi_backend_runners::files::{TextError, TextRefusal};
-use demi_device_interface::DeviceError;
-use demi_shared_types::ReadAt;
+use jush_backend_accounts::email_change::EmailChangeError;
+use jush_backend_accounts::passkeys::PasskeyError;
+use jush_backend_accounts::passwords::HashError;
+use jush_backend_blobs::ObjectError;
+use jush_backend_cloud::machine::CloudError;
+use jush_backend_database::StorageError;
+use jush_provider_registry::registry::RegistryError;
+use jush_backend_providers::vault::accounts::AccountRefusal;
+use jush_backend_providers::vault::logins::LoginRefusal;
+use jush_backend_runners::files::{TextError, TextRefusal};
+use jush_device_interface::DeviceError;
+use jush_shared_types::ReadAt;
 
-use demi_backend_device_access::access::{DeviceAccessError, device_error_code};
-use demi_backend_device_access::stream::StreamError;
-use demi_backend_user_shard::shard::ShardUnavailable;
+use jush_backend_device_access::access::{DeviceAccessError, device_error_code};
+use jush_backend_device_access::stream::StreamError;
+use jush_backend_user_shard::shard::ShardUnavailable;
 
 /// The header that carries the device's number a read answer was read at.
-pub(crate) const READ_AT: HeaderName = HeaderName::from_static("x-demi-read-at");
+pub(crate) const READ_AT: HeaderName = HeaderName::from_static("x-jush-read-at");
 
 /// `<epoch>.<number>`, as [`READ_AT`] carries it; none for an epoch a
 /// header cannot carry, which no runner sends.
@@ -61,7 +61,7 @@ pub(crate) struct ApiError {
     /// that is binary.
     etag: Option<String>,
     /// The device's number before the read the failure answers, which the
-    /// answer carries as `X-Demi-Read-At`.
+    /// answer carries as `X-Jush-Read-At`.
     read_at: Option<ReadAt>,
 }
 
@@ -409,14 +409,14 @@ impl From<StorageError> for ApiError {
     }
 }
 
-impl From<demi_plugin_host::store::StoreError> for ApiError {
-    fn from(error: demi_plugin_host::store::StoreError) -> Self {
+impl From<jush_plugin_host::store::StoreError> for ApiError {
+    fn from(error: jush_plugin_host::store::StoreError) -> Self {
         Self::internal(&error)
     }
 }
 
-impl From<demi_provider_registry::store::StoreError> for ApiError {
-    fn from(error: demi_provider_registry::store::StoreError) -> Self {
+impl From<jush_provider_registry::store::StoreError> for ApiError {
+    fn from(error: jush_provider_registry::store::StoreError) -> Self {
         Self::internal(&error)
     }
 }

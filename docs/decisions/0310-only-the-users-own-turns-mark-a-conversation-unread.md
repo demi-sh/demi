@@ -10,7 +10,7 @@ sentence that the sidebar's dots and the tab are unchanged.
 ## Problem
 
 Alex's conversation *Coordinate the release* sends a task to the
-conversation *Fix the flaky test* with `demi conversation send`. Alex never
+conversation *Fix the flaky test* with `jush conversation send`. Alex never
 wrote in *Fix the flaky test*, but each time its agent finishes the task
 and reports back, its sidebar dot turns green, its title turns bold and the
 browser tab counts it as done. With a few conversations talking to each
@@ -33,7 +33,7 @@ request.
 * A turn that another conversation's message or a schedule's message
   started marks nothing when it ends, green or red: no dot, no bold title,
   no count in the tab, the badge or the workspace switcher. Its agent
-  tells what is worth telling with `demi notify send`, as for
+  tells what is worth telling with `jush notify send`, as for
   notifications.
 * An answer the user has not read yet stays unread while other turns
   follow it, and its dot keeps its own color: the user's turn that
@@ -92,7 +92,7 @@ upgrade, and marks from then on follow this rule.
 
 ## Prior art
 
-None of the AI apps Demi compares with lets one conversation start turns in
+None of the AI apps Jush compares with lets one conversation start turns in
 another, so none has this case. The rule follows 0137, so a dot and a
 notification never disagree.
 

@@ -14,8 +14,8 @@
 
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use demi_provider_common::{EntriesOf, InferenceItem, InferenceRequest, ProviderEvent};
-use demi_shared_types::Entry;
+use jush_provider_common::{EntriesOf, InferenceItem, InferenceRequest, ProviderEvent};
+use jush_shared_types::Entry;
 use serde_json::Value;
 use uuid::Uuid;
 

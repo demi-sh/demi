@@ -1,6 +1,6 @@
 //! A tab's recording: the capture extension codes every frame the tab draws
 //! (`driver/capture/offscreen.js`), and this task hands the pictures to the
-//! recording's sink (`demi-shared-recording`).
+//! recording's sink (`jush-shared-recording`).
 //!
 //! ```text
 //! tab --capture--> extension: encodes every frame --pictures--> this task
@@ -32,8 +32,8 @@ use std::time::Duration;
 use tokio::time::Instant;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_shared_recording::{Handover, Live, Picture, Sink};
-use demi_shared_recording_protocol::{Area, EndReason};
+use jush_shared_recording::{Handover, Live, Picture, Sink};
+use jush_shared_recording_protocol::{Area, EndReason};
 
 use crate::driver::capture::{CaptureChannel, RecordEvent};
 use crate::driver::operation::BrowserError;

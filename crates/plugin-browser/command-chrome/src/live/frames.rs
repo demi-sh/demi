@@ -4,11 +4,11 @@
 
 use bytes::Bytes;
 
-use demi_command_package_browser_protocol::live::{FILE_FRAME, FileHeader, LiveViewerMessage};
-use demi_command_sdk::{Input, ResidentError};
-use demi_live_view::frames::{Frame, Reader as FrameReader};
-use demi_live_view_protocol::{ACK_FRAME, CONTROL_FRAME, ChunkAck};
-use demi_shared_types::DecodeError;
+use jush_command_package_browser_protocol::live::{FILE_FRAME, FileHeader, LiveViewerMessage};
+use jush_command_sdk::{Input, ResidentError};
+use jush_live_view::frames::{Frame, Reader as FrameReader};
+use jush_live_view_protocol::{ACK_FRAME, CONTROL_FRAME, ChunkAck};
+use jush_shared_types::DecodeError;
 
 /// What the page sends.
 #[derive(Debug)]

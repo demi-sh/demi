@@ -4,12 +4,12 @@ import { formatBytes } from '../files/format'
 
 /**
  * A disk's use as macOS's Storage draws it: one bar, a color for each kind of
- * what Demi keeps, then what other programs take in grey, then the free room,
+ * what Jush keeps, then what other programs take in grey, then the free room,
  * with a legend under it. A kind's dot in the legend is the color of its part
  * of the bar and of its row's dot below.
  */
 const props = defineProps<{
-  /** Demi's kinds, each with the series color it is drawn in. */
+  /** Jush's kinds, each with the series color it is drawn in. */
   parts: readonly { label: string; bytes: number; color: string }[]
   /** The volume's size; null draws the parts against their sum. */
   total: number | null

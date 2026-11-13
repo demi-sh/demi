@@ -20,8 +20,8 @@ Supersedes:
 
 Alex asks the agent to check a page, and it opens `https://example.com` in
 the conversation's browser. Later the runner updates and the browser ends
-with it, or an hour passes and Demi releases the idle conversation. The
-page's tab stays in the panel, marked lost. When Alex clicks it, Demi starts
+with it, or an hour passes and Jush releases the idle conversation. The
+page's tab stays in the panel, marked lost. When Alex clicks it, Jush starts
 Chrome again, shows *Starting browser…* and loads the page anew. A tab that
 looks open is not, and showing it starts work Alex never asked for.
 
@@ -60,7 +60,7 @@ open on the device:
   closes the page or the simulator when it can.
 - The browser window's + and a link's *Open in Browser Window* ask the
   device for a tab. Until the tab comes, the window shows it as it will look:
-  the address bar on what it opens, and under it what Demi does, as
+  the address bar on what it opens, and under it what Jush does, as
   *Starting the browser…*. The tab then comes selected. With the device
   offline they say so in a toast and open nothing.
 - When the browser's resident ends and the browser did not end by itself,
@@ -77,7 +77,7 @@ open on the device:
  the user, the agent               the device
  -------------------               ----------
  close, +, a link's   --- call -->  browser or mobile package
- Open, demi browser                     |
+ Open, jush browser                     |
                                         | the conversation's
                                         | tabs, numbered
                                         v
@@ -240,10 +240,10 @@ Estimated, not measured:
 - Chromium's session service writes the open tabs as they change and opens
   them again when the browser relaunches
   ([`session_service.h`](https://source.chromium.org/chromium/chromium/src/+/main:chrome/browser/sessions/session_service.h)).
-  Chrome offers to restore after a crash; Demi does not reopen a browser
+  Chrome offers to restore after a crash; Jush does not reopen a browser
   that crashed, so a page that crashes Chrome is not opened into the next
   crash.
-- Demi's simulators already keep a record of their devices and take them
+- Jush's simulators already keep a record of their devices and take them
   back when the next resident starts (0031).
 
 ## Alternatives

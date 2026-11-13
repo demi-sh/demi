@@ -2,8 +2,8 @@
 //!
 //! The plugin holds:
 //!
-//! - the `demi mobile` group, every leaf bound to an operation of the
-//!   `demi.mobile` command package, which runs it on the device;
+//! - the `jush mobile` group, every leaf bound to an operation of the
+//!   `jush.mobile` command package, which runs it on the device;
 //! - the `mobile` user stream of the live view, one per device a page shows;
 //! - the methods behind the window's controls, each the operation of the command
 //!   that does the same;
@@ -20,10 +20,10 @@ pub mod reason;
 
 use std::rc::Rc;
 
-use demi_command_declarations::NativeOperation;
-use demi_command_package_mobile_protocol::mobile::{DevicesChange, MobileMessage};
-use demi_command_package_mobile_protocol::{PACKAGE, live};
-use demi_plugin_interface::{
+use jush_command_declarations::NativeOperation;
+use jush_command_package_mobile_protocol::mobile::{DevicesChange, MobileMessage};
+use jush_command_package_mobile_protocol::{PACKAGE, live};
+use jush_plugin_interface::{
     CommandPlugin, Manifest, Placement, Plugin, PluginError, PluginFactory,
     PluginId, PluginPort, Reply, Request, Scope, Stream,
 };
@@ -44,7 +44,7 @@ impl Mobile {
         let mut manifest = Manifest::new(
             PluginId::try_from("mobile").expect("a valid plugin id"),
             "Simulators",
-            "Gives the agent the iOS simulators of the conversation's device, which it drives with demi mobile and you watch and use in its window.",
+            "Gives the agent the iOS simulators of the conversation's device, which it drives with jush mobile and you watch and use in its window.",
         );
         manifest.commands = commands().manifest_commands();
         manifest.streams = vec![live_stream()];
@@ -102,9 +102,9 @@ fn live_stream() -> Stream {
         )
 }
 
-/// The plugin's `demi mobile` group.
+/// The plugin's `jush mobile` group.
 fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![commands::mobile_group()])
+    CommandPlugin::new(Placement::Jush, vec![commands::mobile_group()])
         .expect("the mobile group is a valid declaration")
 }
 

@@ -15,19 +15,19 @@
 
 use std::{future::Future, mem, rc::Rc, sync::Arc};
 
-use demi_agent_store::{
+use jush_agent_store::{
     Checkpoint, CheckpointUpdate, EarlierRows, Kind, Rows, SessionStore, StoreError, Switched,
     media::{BlobStore, HeldMedia},
 };
-use demi_agent_transcript::{
+use jush_agent_transcript::{
     Replay, RequestView, TranscriptLog, compaction_window,
     estimate::{block_tokens, context_tokens, text_tokens},
     kept_messages, last_assistant_text,
 };
-use demi_conversation_lane_protocol::{AgentCode, Refusal};
-use demi_provider_common::{ErrorCode, InferenceItem, RequestLimits, ToolDefinition, UserPart};
-use demi_shared_gates::{ActivityGate, GateLease, Purpose, Reservation};
-use demi_shared_types::{Timestamp, 
+use jush_conversation_lane_protocol::{AgentCode, Refusal};
+use jush_provider_common::{ErrorCode, InferenceItem, RequestLimits, ToolDefinition, UserPart};
+use jush_shared_gates::{ActivityGate, GateLease, Purpose, Reservation};
+use jush_shared_types::{Timestamp, 
     B64Bytes, BlobRef, Block, ContextUsage, EXECUTION_SOURCE, Model, ModelSelection, NodeId, TokenUsage,
     TurnId, UserContentBlock, kept_words_budget,
 };
@@ -80,7 +80,7 @@ const MAX_FIT_PASSES: usize = 8;
 /// compact: below it there is too little to summarize for a summary to free
 /// much, and each pass loses detail.
 ///
-/// A threshold of when a summary frees something, not a bound on what Demi
+/// A threshold of when a summary frees something, not a bound on what Jush
 /// holds.
 const MANUAL_COMPACTION_PERCENT: u8 = 50;
 
@@ -1128,7 +1128,7 @@ impl SessionStore for NoStore {
         Box::pin(async { Err(StoreError::Failed("a summary's session stores no blocks".to_owned())) })
     }
 
-    fn position<'a>(&'a self, _id: &'a demi_shared_types::BlockId) -> LocalBoxFuture<'a, Result<Option<usize>, StoreError>> {
+    fn position<'a>(&'a self, _id: &'a jush_shared_types::BlockId) -> LocalBoxFuture<'a, Result<Option<usize>, StoreError>> {
         Box::pin(async { Ok(None) })
     }
 
@@ -1144,11 +1144,11 @@ impl SessionStore for NoStore {
         &self,
         _kinds: Vec<Kind>,
         _range: std::ops::Range<usize>,
-    ) -> LocalBoxFuture<'_, Result<Vec<(usize, demi_shared_types::Block)>, StoreError>> {
+    ) -> LocalBoxFuture<'_, Result<Vec<(usize, jush_shared_types::Block)>, StoreError>> {
         Box::pin(async { Ok(Vec::new()) })
     }
 
-    fn turn_position<'a>(&'a self, _turn: &'a demi_shared_types::TurnId) -> LocalBoxFuture<'a, Result<Option<usize>, StoreError>> {
+    fn turn_position<'a>(&'a self, _turn: &'a jush_shared_types::TurnId) -> LocalBoxFuture<'a, Result<Option<usize>, StoreError>> {
         Box::pin(async { Ok(None) })
     }
 
@@ -1156,7 +1156,7 @@ impl SessionStore for NoStore {
         Box::pin(async { Ok(EarlierRows::default()) })
     }
 
-    fn prefix(&self, _length: usize) -> LocalBoxFuture<'_, Result<Option<demi_agent_store::StoredPrefix>, StoreError>> {
+    fn prefix(&self, _length: usize) -> LocalBoxFuture<'_, Result<Option<jush_agent_store::StoredPrefix>, StoreError>> {
         Box::pin(async { Err(StoreError::Failed("a summary's session stores no rows".to_owned())) })
     }
 

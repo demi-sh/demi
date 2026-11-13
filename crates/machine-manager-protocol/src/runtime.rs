@@ -1,7 +1,7 @@
 //! The gVisor runtime a release's machine manager runs: no release carries
 //! it. The manager is built against the one runsc version
 //! `crates/machine-manager/runtime/release.json` pins, which the manager
-//! requires and `demi-server` fetches onto a server, and where a server keeps
+//! requires and `jush-server` fetches onto a server, and where a server keeps
 //! it.
 
 use std::path::PathBuf;
@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 /// The directory of a server's gVisor versions, one directory each, named by
 /// the version runsc reports.
-pub const GVISOR_PATH: &str = "/opt/demi/gvisor";
+pub const GVISOR_PATH: &str = "/opt/jush/gvisor";
 
 /// The programs of a gVisor distribution the manager runs: runsc and the
 /// sidecar programs runsc starts from `gvisor-bin/` beside it.

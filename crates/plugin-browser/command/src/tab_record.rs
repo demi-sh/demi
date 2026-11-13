@@ -20,7 +20,7 @@
 //!   open again, there is no record.
 //! - The owner removes it when the browser ends by itself. The runner removes
 //!   it at the conversation's release too, which reaches only the residents
-//!   that run (`demi_command_protocol::browser_tab_record`).
+//!   that run (`jush_command_protocol::browser_tab_record`).
 //! - While a record waits for the next resident, the resident that left it
 //!   reports nothing of the conversation's tabs: the plugin keeps showing
 //!   them until the next resident lists them.
@@ -28,9 +28,9 @@
 
 use std::path::{Path, PathBuf};
 
-use demi_command_package_browser_chrome::tabs::registry::Snapshot;
-use demi_command_package_browser_protocol::browser::{BrowserCreatedBy, TabId};
-use demi_command_protocol::{ColorScheme, CommandLocale};
+use jush_command_package_browser_chrome::tabs::registry::Snapshot;
+use jush_command_package_browser_protocol::browser::{BrowserCreatedBy, TabId};
+use jush_command_protocol::{ColorScheme, CommandLocale};
 use serde::{Deserialize, Serialize};
 
 /// A conversation browser's open tabs, in the order it made them, and how

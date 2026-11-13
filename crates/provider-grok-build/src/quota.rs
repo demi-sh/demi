@@ -4,14 +4,14 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     quota::{
         Observation, ObservedWindows, ProbeCost, ProbeReading, QuotaError, QuotaSource,
         clamp_used_percent, header_number, rfc3339, severity, used_percent_from_ratio,
     },
     wire::{Reported, ReportedString},
 };
-use demi_shared_types::{QuotaKind, QuotaPlan, QuotaUnit, QuotaWindow, Timestamp};
+use jush_shared_types::{QuotaKind, QuotaPlan, QuotaUnit, QuotaWindow, Timestamp};
 use futures_util::future::BoxFuture;
 use http::{HeaderMap, HeaderValue, header::ACCEPT};
 use reqwest::Url;
@@ -25,7 +25,7 @@ const WEEKLY_PERIOD: &str = "USAGE_PERIOD_TYPE_WEEKLY";
 /// The quota source of one Grok Build account.
 pub(crate) struct GrokQuota {
     pub(crate) auth: Arc<GrokAuth>,
-    pub(crate) http: demi_provider_common::ProviderHttp,
+    pub(crate) http: jush_provider_common::ProviderHttp,
     pub(crate) releases: GrokReleases,
     pub(crate) user_url: Url,
     pub(crate) billing_url: Url,
@@ -65,7 +65,7 @@ impl QuotaSource for GrokQuota {
 
 impl GrokQuota {
     async fn fetch(&self, url: &Url, headers: &HeaderMap) -> Result<String, QuotaError> {
-        let failed = |error: demi_provider_common::SendError| {
+        let failed = |error: jush_provider_common::SendError| {
             QuotaError::Unavailable(format!(
                 "Grok quota request failed: {}",
                 error.without_url()
@@ -91,8 +91,8 @@ impl GrokQuota {
     }
 }
 
-/// The account's subscription, as far as Demi shows it. Quota is a display,
-/// so a field in a shape Demi does not know is left out and the rest still
+/// The account's subscription, as far as Jush shows it. Quota is a display,
+/// so a field in a shape Jush does not know is left out and the rest still
 /// shows.
 #[derive(Default, Deserialize)]
 #[serde(rename_all = "camelCase", default)]

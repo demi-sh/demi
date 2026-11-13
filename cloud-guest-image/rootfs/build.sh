@@ -7,7 +7,7 @@
 # - Ubuntu 26.04 from Ubuntu's container root filesystem that ubuntu.json pins,
 #   with its packages brought up to date.
 # - The packages of packages.txt and tini.
-# - The guest user `demi` (uid 1000) with passwordless sudo.
+# - The guest user `jush` (uid 1000) with passwordless sudo.
 # - The file overlay.
 #
 # The steps of this stage drive a package manager inside the tree, which is why
@@ -74,7 +74,7 @@ here="$(cd "$(dirname "$0")/.." && pwd)"
 xtask=""
 release=""
 output=""
-work=/var/tmp/demi-cloud-root
+work=/var/tmp/jush-cloud-root
 packages=""
 mirror=""
 ca=""
@@ -122,7 +122,7 @@ esac
 mirror="${mirror:-$ubuntu_archive}"
 # The Ubuntu release of the image, 26.04; the manifest records it.
 suite=resolute
-# What the build creates is readable by `demi`, whatever the caller's umask.
+# What the build creates is readable by `jush`, whatever the caller's umask.
 umask 022
 
 rm -rf "$work"
@@ -169,7 +169,7 @@ in_chroot() {
 # Where apt inside the tree keeps the packages it downloads. Not apt's default,
 # /var/cache/apt/archives: the container image's docker-clean setting deletes
 # every package there after each dpkg run.
-archives=/var/cache/demi-packages
+archives=/var/cache/jush-packages
 apt_options=(-o "Dir::Cache::Archives=$archives")
 mkdir -p "$work$archives/partial"
 if [ -n "$packages" ]; then
@@ -222,26 +222,26 @@ rm -rf "$work/var/lib/apt/lists/"*
 # The guest user, its sudo, its shell. The container image's own user,
 # `ubuntu`, holds uid and gid 1000, which are the guest user's.
 in_chroot userdel --remove ubuntu
-in_chroot groupadd -g 1000 demi
-in_chroot useradd -m -u 1000 -g 1000 -s /bin/bash demi
+in_chroot groupadd -g 1000 jush
+in_chroot useradd -m -u 1000 -g 1000 -s /bin/bash jush
 # The runner's device log, its job output and the temporary directory its TMPDIR
 # names live on the system layer, so the log outlives a stop and a wake, and a
 # build's temporary files do not fill /tmp's memory
 # (`crates/runner/src/host_log.rs`,
 # `crates/machine-manager/src/storage/mod.rs`). The runner makes its job root
-# and temporary directory in /var/lib/demi itself, as a Cloud on an earlier base
+# and temporary directory in /var/lib/jush itself, as a Cloud on an earlier base
 # needs.
 #
-# Made inside the tree, where `demi` is a name: uutils' install on the build
+# Made inside the tree, where `jush` is a name: uutils' install on the build
 # host refuses a numeric owner.
-in_chroot install -d -m 0700 -o demi -g demi /var/log/demi /var/lib/demi
+in_chroot install -d -m 0700 -o jush -g jush /var/log/jush /var/lib/jush
 cp -a --no-preserve=ownership "$here/rootfs/overlay/." "$work/"
-chmod 0440 "$work/etc/sudoers.d/demi"
-echo demi > "$work/etc/hostname"
+chmod 0440 "$work/etc/sudoers.d/jush"
+echo jush > "$work/etc/hostname"
 # Programs see the sandbox mount table.
 ln -sf /proc/self/mounts "$work/etc/mtab"
 # /home is the owner's image; the rootfs carries only the mount point.
-rm -rf "$work/home/demi"
+rm -rf "$work/home/jush"
 mkdir -p "$work/home"
 umount "$work/dev" "$work/sys" "$work/proc"
 trap - EXIT

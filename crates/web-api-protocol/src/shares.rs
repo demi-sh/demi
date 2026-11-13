@@ -4,7 +4,7 @@
 
 use std::borrow::Cow;
 
-use demi_shared_types::{Block, BlockId, InstructionEntry, MAX_SAFE_INTEGER, Nullable, Timestamp, client_block};
+use jush_shared_types::{Block, BlockId, InstructionEntry, MAX_SAFE_INTEGER, Nullable, Timestamp, client_block};
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -149,7 +149,7 @@ pub struct SharedConversation {
     /// answers them while it is on, and null facts otherwise, which the page
     /// shows as missing.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub reply_block: Option<demi_conversation_lane_protocol::ReplyBlockFacts>,
+    pub reply_block: Option<jush_conversation_lane_protocol::ReplyBlockFacts>,
 }
 
 /// `GET /shares/:token/transcript`: a page of what the share holds, as a
@@ -167,7 +167,7 @@ pub struct SharedTranscriptPage {
     pub summaries: Vec<CompactionSummary>,
     /// The reply blocks its texts name.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub reply_blocks: Vec<demi_conversation_lane_protocol::ReplyBlockFacts>,
+    pub reply_blocks: Vec<jush_conversation_lane_protocol::ReplyBlockFacts>,
 }
 
 /// What a share's page holds at an index: a message or a text, as a page sends

@@ -7,8 +7,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use demi_runner_process::pipes::PipeClient;
-use demi_runner_protocol::wire::{self, Inbound, Outbound};
+use jush_runner_process::pipes::PipeClient;
+use jush_runner_protocol::wire::{self, Inbound, Outbound};
 use tokio::sync::{Semaphore, mpsc};
 use tokio_util::{
     sync::CancellationToken,

@@ -7,13 +7,13 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::extract::State;
-use demi_web_api_protocol::auth::Role;
-use demi_web_api_protocol::settings::InstanceMode;
-use demi_web_api_protocol::usage::{InstanceUsage, UsageTotals};
+use jush_web_api_protocol::auth::Role;
+use jush_web_api_protocol::settings::InstanceMode;
+use jush_web_api_protocol::usage::{InstanceUsage, UsageTotals};
 
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 pub(super) async fn totals(
     State(services): State<Arc<Services>>,

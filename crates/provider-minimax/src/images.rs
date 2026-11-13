@@ -13,14 +13,14 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret, endpoint_url,
     images::{ImageMaker, ImageRequest, MadeImage},
     json_body,
     media::{Ask, MediaAnswer, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor, catalog_models, unreadable},
     media_catalog::{Catalog, MediaKind},
 };
-use demi_shared_types::{B64Bytes, Clock};
+use jush_shared_types::{B64Bytes, Clock};
 use futures_util::future::BoxFuture;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
@@ -52,7 +52,7 @@ impl MediaMaker for MinimaxImages {
 
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(catalog_models(catalog, self.vendor, MediaKind::Image))))
@@ -62,7 +62,7 @@ impl MediaMaker for MinimaxImages {
 impl ImageMaker for MinimaxImages {
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
         request: ImageRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeImage>> {

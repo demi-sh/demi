@@ -41,14 +41,14 @@ use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::driver::operation::{BrowserError, Result};
 use crate::tabs::tab::BrowserTab;
-use demi_command_package_browser_protocol::live::{
+use jush_command_package_browser_protocol::live::{
     ControlToken, CursorRegion, LiveControl, LiveDownload, LiveMenu, MAX_CURSOR_REGIONS,
 };
 use crate::traced::SpawnTraced as _;
 
 /// The isolated world's name, shared by its script and its binding.
-const WORLD: &str = "demi-live";
-const BINDING: &str = "demiLiveReport";
+const WORLD: &str = "jush-live";
+const BINDING: &str = "jushLiveReport";
 const SOURCE: &str = include_str!("observer.js");
 /// How long the place of a frame in the tab may take to read.
 const PLACE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
@@ -257,7 +257,7 @@ pub(crate) async fn start(
                     if let Some((x, y)) = pointer {
                         let tab = observing.clone();
                         spawner.spawn_traced(async move {
-                            let expression = format!("globalThis.demiLive.pointer({x}, {y})");
+                            let expression = format!("globalThis.jushLive.pointer({x}, {y})");
                             let told = call(&tab, &expression, true);
                             // A document replaced again meanwhile waits for its own pointer events.
                             tokio::select! {
@@ -571,7 +571,7 @@ pub(crate) async fn choose(
     indices: &[u32],
 ) -> Result<bool> {
     let message = json!({"token": token, "revision": revision, "value": value, "indices": indices});
-    let result = call(tab, &format!("globalThis.demiLive.commit({message})"), true).await?;
+    let result = call(tab, &format!("globalThis.jushLive.commit({message})"), true).await?;
     Ok(result.value == Some(Value::Bool(true)))
 }
 
@@ -586,7 +586,7 @@ pub(crate) async fn attach(
     let control = json!({"token": token, "revision": revision});
     let element = call(
         tab,
-        &format!("globalThis.demiLive.element({control})"),
+        &format!("globalThis.jushLive.element({control})"),
         false,
     )
     .await?;
@@ -618,7 +618,7 @@ pub(crate) async fn attach(
             .await?;
         call(
             tab,
-            &format!("globalThis.demiLive.committed({control})"),
+            &format!("globalThis.jushLive.committed({control})"),
             true,
         )
         .await?;

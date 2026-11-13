@@ -1,0 +1,74 @@
+# One native Linux VM; systrap requires no nested virtualization.
+minimumLimaVersion: "2.0.0"
+vmType: vz
+cpus: 4
+memory: 8GiB
+disk: 40GiB
+base: template:ubuntu-26.04
+mounts:
+  - location: "~"
+# A new named disk. Lima formats only a blank disk and preserves existing data:
+# on each boot it looks the disk up by the label lima-<name>, so the name
+# stays within 11 characters; ext4 cuts a label to 16, and with a longer name
+# Lima finds no disk and formats it again on every boot.
+additionalDisks:
+  - name: "jush-cloud"
+    format: true
+    fsType: ext4
+portForwards:
+  - guestSocket: "/run/user/{{.UID}}/jush-machine-manager.sock"
+    hostSocket: "{{.Dir}}/sock/jush-machine-manager.sock"
+  # The other way: the backend on the Mac serves its Clouds' runners on this
+  # socket. Lima's SSH makes it as soon as SSH is up, before any provisioning,
+  # so it lies in the user's runtime directory, which exists by then, and
+  # only the user may open it. The relay below serves it to the Clouds.
+  - guestSocket: "/run/user/{{.UID}}/jush-backend-runners.sock"
+    hostSocket: "{{.Dir}}/sock/runners.sock"
+    reverse: true
+provision:
+  # The relay: systemd listens at the runner socket's path, whose directory
+  # the manager mounts into each Cloud (`crates/backend-http/src/lib.rs`),
+  # open to every user as the backend makes it on Linux, and passes each
+  # connection to the forwarded socket.
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      cat > /etc/systemd/system/jush-backend-runners.socket <<'UNIT'
+      [Socket]
+      ListenStream=/run/jush-backend/runners.sock
+      SocketMode=0666
+
+      [Install]
+      WantedBy=sockets.target
+      UNIT
+      cat > /etc/systemd/system/jush-backend-runners.service <<'UNIT'
+      [Service]
+      ExecStart=/usr/lib/systemd/systemd-socket-proxyd /run/user/{{.UID}}/jush-backend-runners.sock
+      UNIT
+      systemctl daemon-reload
+      systemctl enable --now jush-backend-runners.socket
+  # Lima mounts the data disk in cloud-init's final stage, after
+  # multi-user.target, and runs these scripts on every boot after that. The
+  # manager's unit waits for the mount (lima-machines.sh) and starts here.
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      if systemctl is-enabled --quiet jush-machine-manager.service; then
+        systemctl start --no-block jush-machine-manager.service
+      fi
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -qq
+      apt-get install -y -qq e2fsprogs xfsprogs util-linux nftables iproute2 jq curl unzip bzip2 libarchive-tools zstd python3 build-essential crossbuild-essential-amd64 clang git python-is-python3 python3-setuptools python3-build python3-wheel python3-venv pkg-config libffi-dev libssl-dev libnuma-dev libbpf-dev
+probes:
+  - description: "the Linux Cloud data disk is mounted"
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      findmnt /mnt/lima-jush-cloud
+      test -f /sys/fs/cgroup/cgroup.controllers

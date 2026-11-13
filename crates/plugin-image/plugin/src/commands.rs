@@ -1,9 +1,9 @@
-//! The `demi image` group, whose leaves the plugin answers itself with
+//! The `jush image` group, whose leaves the plugin answers itself with
 //! the request's whole port.
 
-use demi_device_interface::{GroupBuilder, LeafBuilder};
-use demi_plugin_interface::{CommandPlugin, Placement, PortHandled};
-use demi_plugin_media::ModelsOutput;
+use jush_device_interface::{GroupBuilder, LeafBuilder};
+use jush_plugin_interface::{CommandPlugin, Placement, PortHandled};
+use jush_plugin_media::ModelsOutput;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -20,7 +20,7 @@ const MODELS_SUMMARY: &str = "List the image models the user's provider entries 
 
 const PROMPT: &str = "What to make, or how to change the images; - reads it from stdin.";
 const IMAGE: &str = "The images to edit, relative to the current directory or absolute.";
-const MODEL: &str = "The image model, required: one `demi image models` lists.";
+const MODEL: &str = "The image model, required: one `jush image models` lists.";
 const PROVIDER: &str = "The entry to make it through, by its name in Settings or its id, when the user asked for one; without it, the first that can make the model now, subscriptions before API keys, each in the order of Settings > Providers.";
 const ASPECT: &str = "The shape to ask for, as W:H, such as 16:9.";
 const TRANSPARENT: &str = "Ask for a transparent background, which needs PNG or WebP.";
@@ -74,9 +74,9 @@ pub(crate) struct ModelsArgs {
     pub(crate) model: Option<String>,
 }
 
-/// The plugin's commands: the `demi image` group.
+/// The plugin's commands: the `jush image` group.
 pub(crate) fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![image_group()])
+    CommandPlugin::new(Placement::Jush, vec![image_group()])
         .expect("the image group is a valid declaration")
 }
 

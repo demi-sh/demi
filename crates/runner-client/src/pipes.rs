@@ -50,8 +50,8 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_runner_protocol::pairs::PairRoute;
-use demi_runner_protocol::wire::{self, PipePath, PipeRef, PipeSink};
+use jush_runner_protocol::pairs::PairRoute;
+use jush_runner_protocol::wire::{self, PipePath, PipeRef, PipeSink};
 use futures_util::{Stream, StreamExt, stream::BoxStream};
 use tokio::{
     sync::{mpsc, watch},

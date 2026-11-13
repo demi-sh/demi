@@ -4,10 +4,10 @@
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_cloud::machine::CloudError;
-use demi_backend_cloud::status::operation_dto;
-use demi_web_api_protocol::cloud::{CloudReset, CloudResetAnswer, CloudStatus};
-use demi_web_api_protocol::error::ErrorCode;
+use jush_backend_cloud::machine::CloudError;
+use jush_backend_cloud::status::operation_dto;
+use jush_web_api_protocol::cloud::{CloudReset, CloudResetAnswer, CloudStatus};
+use jush_web_api_protocol::error::ErrorCode;
 
 use super::AppState;
 use super::body::JsonBody;

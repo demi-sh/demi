@@ -1,6 +1,6 @@
 # Localization
 
-Demi is available in English, German, Latin American Spanish, French,
+Jush is available in English, German, Latin American Spanish, French,
 Brazilian Portuguese, Simplified Chinese, Traditional Chinese, Japanese and
 Korean, each complete. A user who picks 简体中文 in Settings › General sees every
 control, message and email in Chinese at once, without a reload. What a model
@@ -46,7 +46,7 @@ better choice found later replaces it everywhere.
 
 ## What is translated
 
-Demi translates every text that it shows a person itself, in these places:
+Jush translates every text that it shows a person itself, in these places:
 
 - The web app
 - Every plugin's pages
@@ -55,10 +55,10 @@ Demi translates every text that it shows a person itself, in these places:
 - Emails
 - The pages the backend renders itself, such as the sign-in callback
 
-Demi never translates the following:
+Jush never translates the following:
 
 - What a model reads: the agent's guide and system prompt, tool results,
-  `demi` command help and output. It stays English in every language, so
+  `jush` command help and output. It stays English in every language, so
   the agent's behavior does not depend on the user's.
 - What people and models wrote: messages, replies, summaries and the titles
   a model gives conversations, which follow the language the user writes in
@@ -66,28 +66,28 @@ Demi never translates the following:
 - Names: files, paths, commands, models, vendors, branches, accounts, and
   the product's own. See [The product's name](#the-products-name).
 - The gallery's notes, which document a section for the people building
-  Demi, and the content of its fixtures, such as a specimen conversation's
+  Jush, and the content of its fixtures, such as a specimen conversation's
   messages, which stand for what users write.
 - A vendor's or a system's own words quoted as they came, such as a
   provider's response, git's output or an operating system's error. They
-  show under their disclosure, below a headline Demi words in the user's
+  show under their disclosure, below a headline Jush words in the user's
   language from the failure's code.
 
 ### The product's name
 
-In a sentence, the name is *Demi*, as in *Demi needs permission* and *Add Demi
-to Your Home Screen*. The copyright holder's name, *The Demi Authors*, is
+In a sentence, the name is *Jush*, as in *Jush needs permission* and *Add Jush
+to Your Home Screen*. The copyright holder's name, *The Jush Authors*, is
 written the same way.
 
-Where the name stands alone as the product's mark, it is the wordmark *demi*,
+Where the name stands alone as the product's mark, it is the wordmark *jush*,
 in lowercase in every language. Amazon's and Intel's logos work the same way,
 while their sentences say Amazon and Intel. The wordmark appears in these
 places:
 
 - The sidebar's header
-- The end of the page's title, as in *整理季度报告 · demi*
+- The end of the page's title, as in *整理季度报告 · jush*
 - The installed app's name under its icon and in the Dock
 - The name beside the logo on the sign-in page
 - A notification's title when it has none of its own
 - The name a passkey shows for the site
-- The name of the certificate that signs the Mac runner, *demi Code Signing*
+- The name of the certificate that signs the Mac runner, *jush Code Signing*

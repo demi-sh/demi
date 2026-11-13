@@ -13,7 +13,7 @@
 use std::{collections::BTreeMap, io, path::PathBuf};
 
 use bytes::{BufMut, Bytes, BytesMut};
-use demi_runner_protocol::wire::{OutputStream, Signal};
+use jush_runner_protocol::wire::{OutputStream, Signal};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tokio::io::{AsyncRead, AsyncReadExt};
 
@@ -82,7 +82,7 @@ pub(super) struct Commands {
     pub endpoint: String,
 }
 
-/// Where the job's edits are recorded (`demi_command_protocol::EditContext`).
+/// Where the job's edits are recorded (`jush_command_protocol::EditContext`).
 #[derive(Debug, Serialize, Deserialize)]
 pub(super) struct Edits {
     pub directory: String,
@@ -124,7 +124,7 @@ pub(super) enum FromShell {
     },
     /// What the job left running has ended.
     Released,
-    /// A line for the device's log (`demi_command_sdk::log_lines_to`).
+    /// A line for the device's log (`jush_command_sdk::log_lines_to`).
     Log { line: String },
     /// Signal background task `task`, which this shell's job's `kill` names
     /// and another job started: the runner asks every other shell.

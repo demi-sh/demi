@@ -20,12 +20,12 @@ use axum::http::header::{
     X_CONTENT_TYPE_OPTIONS,
 };
 use axum::response::{IntoResponse, Response};
-use demi_plugin_host::{PageCall, PageCallError, SwitchError};
-use demi_backend_user_shard::shard::ReloadRefusal;
-use demi_plugin_interface::{PluginError, PortRefusal};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::plugins::{PluginStateAnswer, PluginSwitch};
+use jush_plugin_host::{PageCall, PageCallError, SwitchError};
+use jush_backend_user_shard::shard::ReloadRefusal;
+use jush_plugin_interface::{PluginError, PortRefusal};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::plugins::{PluginStateAnswer, PluginSwitch};
 use serde_json::Value;
 
 use super::AppState;

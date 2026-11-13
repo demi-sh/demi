@@ -29,7 +29,7 @@ Chosen option: an attachment keeps its source, because the agent then gives
 files one way, and the user always opens the file as it is now while it can
 be read.
 
-* An upload by `demi attachment upload` records the Host it ran on and the
+* An upload by `jush attachment upload` records the Host it ran on and the
   file's full path with the copy. The agent does nothing more.
 * Opening an attachment whose Host is the conversation's Host, online, and
   whose file is still there, opens the file in the work panel, as a link to
@@ -54,6 +54,6 @@ reply:  [▣ report.pdf]          ← the attachment, as today
   an outdated copy while the file can be read.
 * Bad, because one attachment can open different content at different times.
 * Modules touched: the attachments' storage in `backend-database`, which
-  gains a source; the upload route and `demi attachment upload`; the
+  gains a source; the upload route and `jush attachment upload`; the
   attachment's protocol; and opening an attachment in `web` and `web-ui`.
   Data to migrate: none; attachments without a source open their copy.

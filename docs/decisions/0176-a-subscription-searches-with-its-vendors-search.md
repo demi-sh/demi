@@ -7,10 +7,10 @@ status: accepted
 ## Problem
 
 Alex asks a Grok Build agent what developers say on X about a release. Each
-of Demi's three subscriptions has a search of its own: Codex has OpenAI's
+of Jush's three subscriptions has a search of its own: Codex has OpenAI's
 web search, Claude Code has Anthropic's, and Grok Build has xAI's web search
-and X search. Demi turns all of them off. The agent can only call
-`demi web search`, which cannot see X, and which needs an Exa account or
+and X search. Jush turns all of them off. The agent can only call
+`jush web search`, which cannot see X, and which needs an Exa account or
 shares an anonymous limit, though Alex already pays for a search with each
 subscription.
 
@@ -52,7 +52,7 @@ Built-in Tools
   search watches their videos, which xAI leaves off unless asked. A switch
   whose searches are off stays in its place, disabled.
 - The vendor's other built-in tools, such as xAI's code execution and image
-  generation, stay off: Demi has its own.
+  generation, stay off: Jush has its own.
 - The search goes with every request of the entry's models, as the Codex
   CLI sends it: every model each catalog lists today can search.
 - An agent picks up a change at its next request, since a session builds its
@@ -85,7 +85,7 @@ v Searched the web 2 times, ran 1 command, for 6 s
   2 times*, *opened 1 page*, *searched X 3 times*.
 - A source without a title, as an X post comes, shows its address.
 - The vendor's citations are in the answer's text already, as Markdown links
-  that each vendor writes; Demi adds none.
+  that each vendor writes; Jush adds none.
 
 ### What a model reads afterwards
 
@@ -123,7 +123,7 @@ v Searched the web 2 times, ran 1 command, for 6 s
     `x_thread_fetch` to search steps. The encrypted reasoning the proxy
     writes for each server call is an entry of that call's step, matched by
     id (`tco_<id>` for `ws_<id>` or `ctc_<id>`), not thinking; a reasoning
-    item that matches no call is the model's. None of these is a call Demi
+    item that matches no call is the model's. None of these is a call Jush
     runs.
   - `ResponsesDialect.searches`: a recorded search of a kind the request
     does not declare is left out.
@@ -138,7 +138,7 @@ v Searched the web 2 times, ran 1 command, for 6 s
   `WebSearch` call to a running step and its result's `tool_use_result`
   (the query, and each result's title and URL) to its end, and the session
   mirror keeps both the call's line and the result's on the step's block.
-  - A search the model called beside Demi's tools ends in a later request
+  - A search the model called beside Jush's tools ends in a later request
     of the turn, so a step is found by its call id across the turn's
     requests, and one still running when a request ends without its
     response ends as failed.
@@ -173,7 +173,7 @@ v Searched the web 2 times, ran 1 command, for 6 s
   `x_*` server calls so that a client never runs them
   ([`xai_executor_response.go`](https://github.com/router-for-me/CLIProxyAPI/blob/90c447d3a8727d115aa7552ec93ce023736ed492/internal/runtime/executor/xai_executor_response.go#L110-L175)).
 
-Demi searches by default, as the Codex CLI and Claude Code do: each search
+Jush searches by default, as the Codex CLI and Claude Code do: each search
 spends the subscription the user pays for, and a user who wants an agent not
 to spend it turns the entry's switch off.
 
@@ -186,7 +186,7 @@ to spend it turns the entry's switch off.
 - **One switch in Settings › Web Search** for all three. The searches belong
   to different subscriptions, with different quotas and capabilities; the
   provider's page is where the user decides what an entry spends.
-- **A `demi x search` command** that asks Grok once. A model of another
+- **A `jush x search` command** that asks Grok once. A model of another
   vendor reaches X search through a Grok subagent instead.
 
 ## Open questions

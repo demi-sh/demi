@@ -18,7 +18,7 @@ use crate::tabs::{
     session::{Asset, AssetSource, Inventory},
     tab::BrowserTab,
 };
-use demi_command_sdk::InvocationContext;
+use jush_command_sdk::InvocationContext;
 
 use crate::page::protocol::{
     AssetKind, AssetsExportResult, AssetsListResult, BrowserFailure, BrowserOperation,

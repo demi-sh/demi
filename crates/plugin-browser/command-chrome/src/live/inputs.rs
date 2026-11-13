@@ -15,8 +15,8 @@ use std::sync::{Arc, Mutex};
 use chromiumoxide::cdp::browser_protocol::input::{
     DispatchKeyEventParams, DispatchKeyEventType, DispatchMouseEventParams, DispatchMouseEventType, MouseButton,
 };
-use demi_shared_recording::Sink;
-use demi_shared_recording_protocol::{Input, InputBy, InputButton, InputPhase};
+use jush_shared_recording::Sink;
+use jush_shared_recording_protocol::{Input, InputBy, InputButton, InputPhase};
 use tokio::time::Instant;
 
 use crate::tabs::tab::BrowserTab;

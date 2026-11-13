@@ -16,7 +16,7 @@ runs:
       shell: bash
       run: |
         cd .cache/native-target
-        find . -maxdepth 3 -type f -path '*/release/demi-*' \
+        find . -maxdepth 3 -type f -path '*/release/jush-*' \
           ! -name '*.d' ! -name '*.pdb' ! -name '*.debug' -print > built.txt
         tar -cf "../../${{ inputs.name }}.tar" -T built.txt
     - uses: actions/upload-artifact@v7

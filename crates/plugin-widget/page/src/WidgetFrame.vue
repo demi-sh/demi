@@ -20,7 +20,7 @@
  *   the frame's parent cannot read an opaque origin.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { HTML_SANDBOX, IndeterminateSpinner, usePage } from '@demicodes/plugin-sdk'
+import { HTML_SANDBOX, IndeterminateSpinner, usePage } from '@jush-ai/plugin-sdk'
 import { useLook } from './look'
 import { t } from './locales/text'
 

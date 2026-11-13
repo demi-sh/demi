@@ -7,7 +7,7 @@ import SettingsRow from './SettingsRow.vue'
 import type { AcknowledgementsState } from './types'
 
 /**
- * Settings › About: the Demi version, and Acknowledgements.
+ * Settings › About: the Jush version, and Acknowledgements.
  *
  * Acknowledgements is a page of its own with a back button to About, as a row of
  * System Settings opens one. It shows the third-party notices of the release, the

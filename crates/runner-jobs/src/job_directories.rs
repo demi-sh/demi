@@ -3,8 +3,8 @@
 //! its user.
 //!
 //! The job root is `jobs/` of a paired device's installation state. A Cloud's
-//! is `/var/lib/demi/jobs` on its system image, since its installation state is
-//! in `/run/demi`, which every boot makes anew and whose memory the kept output
+//! is `/var/lib/jush/jobs` on its system image, since its installation state is
+//! in `/run/jush`, which every boot makes anew and whose memory the kept output
 //! of a few busy jobs could outgrow.
 //!
 //! # Lifetime
@@ -29,7 +29,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-use demi_runner_protocol::wire;
+use jush_runner_protocol::wire;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 

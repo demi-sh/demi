@@ -22,7 +22,7 @@
 //! No crate the project uses reads cron expressions over `jiff`'s time zones,
 //! so the five fields are read here.
 
-use demi_web_api_protocol::schedules::{FirstOrLast, MonthDay, Repeat, RepeatUnit, Timing, Task, WeekOfMonth, Weekday};
+use jush_web_api_protocol::schedules::{FirstOrLast, MonthDay, Repeat, RepeatUnit, Timing, Task, WeekOfMonth, Weekday};
 use jiff::civil::{Date, DateTime, Time};
 use jiff::tz::{AmbiguousOffset, TimeZone};
 use jiff::{Timestamp, ToSpan};
@@ -110,7 +110,7 @@ impl Plan {
             Timing::Repeat { repeat, tasks } => Kind::Repeat(
                 tasks
                     .iter()
-                    .filter(|task| !demi_shared_types::is_blank(&task.prompt))
+                    .filter(|task| !jush_shared_types::is_blank(&task.prompt))
                     .map(|task| TaskPlan::new(repeat, task))
                     .collect::<Result<_, _>>()?,
             ),

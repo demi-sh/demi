@@ -5,12 +5,12 @@
 use bytes::{BufMut, Bytes, BytesMut};
 use serde::Serialize;
 
-use demi_command_sdk::{Input, ResidentError};
-use demi_live_view_protocol::{CONTROL_FRAME, FrameSplitter, SourceId, VIDEO_FRAME, VideoHeader};
+use jush_command_sdk::{Input, ResidentError};
+use jush_live_view_protocol::{CONTROL_FRAME, FrameSplitter, SourceId, VIDEO_FRAME, VideoHeader};
 
 use crate::stream::EncodedFrame;
 
-pub use demi_live_view_protocol::Frame;
+pub use jush_live_view_protocol::Frame;
 
 /// A stream the page ended inside a frame: a defect of the page, which ends
 /// the view.
@@ -109,7 +109,7 @@ pub fn chunks(source: &SourceId, generation: u32, frame: &EncodedFrame) -> Optio
 
 /// A padding chunk of `source` to the page, in the viewer's stream
 /// generation: chunk `chunk` of probe `probe`'s `chunks`, `bytes` long on
-/// the wire, at most [`CHUNK_BYTES`](demi_live_view_protocol::CHUNK_BYTES).
+/// the wire, at most [`CHUNK_BYTES`](jush_live_view_protocol::CHUNK_BYTES).
 pub fn padding(source: &SourceId, generation: u32, probe: u32, chunk: u16, chunks: u16, bytes: usize) -> Bytes {
     let mut head = Vec::with_capacity(VideoHeader::BYTES);
     VideoHeader {

@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
-use demi_shared_types::{
+use jush_shared_types::{
     Clock, ModelCost, ModelWire, ProviderModel, ProviderModelList, ThinkingForm, Timestamp, modality_extensions,
 };
 use futures_util::FutureExt;
@@ -450,7 +450,7 @@ impl Listing<'_> {
     }
 }
 
-/// The document: vendors by id. Only the fields Demi reads are declared, and
+/// The document: vendors by id. Only the fields Jush reads are declared, and
 /// a vendor or model that does not match them makes the document unreadable.
 #[derive(Debug, Deserialize)]
 struct ModelsDevDocument(IndexMap<String, ModelsDevVendor>);
@@ -645,7 +645,7 @@ impl ModelsDevModel {
     ///   (`takes_effort`) and the record lists an `effort` option, and as a
     ///   budget otherwise.
     /// - Its thinking goes back when `interleaved` is `true` or names
-    ///   `reasoning_content`, the one field Demi reads thinking from.
+    ///   `reasoning_content`, the one field Jush reads thinking from.
     fn wire(&self, takes_effort: bool) -> ModelWire {
         let takes_effort = takes_effort
             && self

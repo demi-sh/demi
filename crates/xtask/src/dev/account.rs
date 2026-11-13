@@ -1,12 +1,12 @@
-//! The master account `xtask dev` seeds: the one `DEMI_DEV_EMAIL` and
-//! `DEMI_DEV_PASSWORD` name, the same pair the web app's sign-in page fills
+//! The master account `xtask dev` seeds: the one `JUSH_DEV_EMAIL` and
+//! `JUSH_DEV_PASSWORD` name, the same pair the web app's sign-in page fills
 //! in from the repository's `.env`, or a fixed account when neither is set.
 //! A run on a new data directory seeds it as the database's first user; a
 //! later run on a data directory `--data` kept finds it there.
 
 /// The variables, which the page reads from `.env` as well.
-const EMAIL: &str = "DEMI_DEV_EMAIL";
-const PASSWORD: &str = "DEMI_DEV_PASSWORD";
+const EMAIL: &str = "JUSH_DEV_EMAIL";
+const PASSWORD: &str = "JUSH_DEV_PASSWORD";
 
 /// The account seeded when neither variable is set.
 const DEFAULT_EMAIL: &str = "developer@example.test";

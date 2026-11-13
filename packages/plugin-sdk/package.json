@@ -1,5 +1,5 @@
 {
-  "name": "@demicodes/plugin-sdk",
+  "name": "@jush-ai/plugin-sdk",
   "description": "The plugin page API: slots, the plugin client, services and the public components a plugin page is built from.",
   "version": "4.0.0",
   "private": true,
@@ -8,7 +8,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@demicodes/web-ui": "workspace:^",
+    "@jush-ai/web-ui": "workspace:^",
     "vue": "^3.5.38"
   },
   "license": "Apache-2.0",

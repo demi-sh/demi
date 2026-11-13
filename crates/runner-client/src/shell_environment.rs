@@ -40,19 +40,19 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_command_protocol::{CommandContext, EditKind as JobEditKind};
-use demi_device_interface::{
+use jush_command_protocol::{CommandContext, EditKind as JobEditKind};
+use jush_device_interface::{
     BinaryOutput, CommandMedium, CommandRecord, CommandSet, CommandStatus, DEFAULT_BINARY_LIMIT_BYTES,
     DEFAULT_OUTPUT_LIMIT_BYTES, EditedFiles, Ending, ExecRequest, Device, DeviceError, DeviceErrorKind, DeviceKey,
     JobCaller, Missing, Numbers, OutputRecord, PageFeed, PageView, ProcessEnd, Seen,
     ShellEnvironment, ShellError, SpawnErrorKind, Streams, TakenUp, Unreachable, UnsentStart, WholeOutput,
     binary_line,
 };
-use demi_runner_protocol::{
+use jush_runner_protocol::{
     manifest::ManifestError,
     wire::{self, JobFileChange},
 };
-use demi_shared_types::{
+use jush_shared_types::{
     BlobRef, CommandEnd, CommandId, EditCopies, EditKind, EditSegment, EditedFile, PathChange,
     Sequence, StreamKind,
 };

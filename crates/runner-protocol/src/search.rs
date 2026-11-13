@@ -16,7 +16,7 @@ use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use demi_command_protocol::without_nul;
+use jush_command_protocol::without_nul;
 
 /// The search stops once this many files matched, as Zed's does: a list
 /// longer than that is no longer read, and more text narrows it.

@@ -80,12 +80,12 @@ export function reportControlSizes(root?: ParentNode): number {
 
 declare global {
   interface Window {
-    demiAuditControlSizes: (root?: ParentNode) => SizeFinding[]
+    jushAuditControlSizes: (root?: ParentNode) => SizeFinding[]
   }
 }
 
 export function installSizeAudit(afterNavigation: (run: () => void) => void): void {
-  window.demiAuditControlSizes = auditControlSizes
+  window.jushAuditControlSizes = auditControlSizes
   if (import.meta.env.DEV)
     afterNavigation(() => window.setTimeout(() => reportControlSizes(), 1500))
 }

@@ -1,4 +1,4 @@
-//! The `demi agent profiles` group
+//! The `jush agent profiles` group
 //! (`crates/agent-server/src/server/tree/profiles.rs`).
 //!
 //! It lists, shows, creates, edits and deletes the user's profiles through the
@@ -7,9 +7,9 @@
 
 use std::rc::Weak;
 
-use demi_agent_tools::{DeviceResolver, ModelChoice, ModelEdit, NewProfileDraft, ProfileEdit};
-use demi_device_interface::{GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
-use demi_shared_types::{ContextChoice, output::warning, trim};
+use jush_agent_tools::{DeviceResolver, ModelChoice, ModelEdit, NewProfileDraft, ProfileEdit};
+use jush_device_interface::{GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
+use jush_shared_types::{ContextChoice, output::warning, trim};
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -46,15 +46,15 @@ const EDIT_SUMMARY: &str = "Change the fields the options name and keep the othe
 const DELETE_SUMMARY: &str = "Delete a subagent profile; a child already running on it goes on. Needs the user's permission.";
 
 const NAME: &str = "The profile's name, the --profile value of spawn: 1 to 40 lowercase letters, digits and hyphens, starting with a letter; not default.";
-const DESCRIPTION: &str = "When an agent should use the profile: one line of 1 to 500 characters, which `demi agent profiles list` shows.";
-const MODEL: &str = "A model id of an entry `demi providers show` shows.";
+const DESCRIPTION: &str = "When an agent should use the profile: one line of 1 to 500 characters, which `jush agent profiles list` shows.";
+const MODEL: &str = "A model id of an entry `jush providers show` shows.";
 const PROVIDER: &str = "The provider entry offering --model, by its name or id; needed only when more than one entry offers that id.";
 const EFFORT: &str = "An effort the model lists, or off to turn thinking off; without it the model's default effort.";
 const TIER: &str = "A service tier the model offers, such as fast, or default for the vendor's default tier.";
-const CONTEXT: &str = "The context window the profile's children use: full, a size up to the model's window such as 350K, 1M or 272000 (`demi providers show` gives each model's window), or default for the user's context limit on the model. Needs a model of the profile's own.";
-const INSTRUCTIONS: &str = "Text added to a child's system prompt after Demi's, which it never replaces: what this kind of subagent is for and how it works.";
+const CONTEXT: &str = "The context window the profile's children use: full, a size up to the model's window such as 350K, 1M or 272000 (`jush providers show` gives each model's window), or default for the user's context limit on the model. Needs a model of the profile's own.";
+const INSTRUCTIONS: &str = "Text added to a child's system prompt after Jush's, which it never replaces: what this kind of subagent is for and how it works.";
 
-/// The input of `demi agent profiles list`, which takes none.
+/// The input of `jush agent profiles list`, which takes none.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ListArgs {}
@@ -66,7 +66,7 @@ struct NameArgs {
     name: String,
 }
 
-/// The input of `demi agent profiles create`.
+/// The input of `jush agent profiles create`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 struct CreateArgs {
@@ -85,7 +85,7 @@ struct CreateArgs {
     instructions: Option<String>,
 }
 
-/// The input of `demi agent profiles edit`.
+/// The input of `jush agent profiles edit`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 struct EditArgs {

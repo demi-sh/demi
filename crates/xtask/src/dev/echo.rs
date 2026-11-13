@@ -25,7 +25,7 @@ pub struct Echo {
 }
 
 /// The variable that turns the echo model on: `1`, or unset for off.
-const ECHO: &str = "DEMI_DEV_ECHO";
+const ECHO: &str = "JUSH_DEV_ECHO";
 
 /// Whether `var` turns the echo model on, or what is wrong with its value.
 pub fn enabled(var: impl Fn(&str) -> Option<String>) -> Result<bool, String> {

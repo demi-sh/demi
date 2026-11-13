@@ -17,16 +17,16 @@
 //! ```
 //!
 //! A boot copies, never binds, what the device must not change into its
-//! system: Demi's programs from the configured base's `/opt/demi`, the boot
+//! system: Jush's programs from the configured base's `/opt/jush`, the boot
 //! record, the resolver and hosts files. A bound directory is writable
 //! through proot, so `rm -rf /` would reach it. The runner reaches the
 //! backend on an abstract socket, which has no file to remove
-//! (`demi_runner_protocol::boot::abstract_socket`).
+//! (`jush_runner_protocol::boot::abstract_socket`).
 //!
 //! The first process is `tini`, which starts the runner, as on gVisor. The
-//! processes run as a faked root with `/home/demi` as their home: proot fakes
-//! every file's owner as the user it runs as, so `sudo` under a faked `demi`
-//! would find its configuration owned by `demi` and refuse.
+//! processes run as a faked root with `/home/jush` as their home: proot fakes
+//! every file's owner as the user it runs as, so `sudo` under a faked `jush`
+//! would find its configuration owned by `jush` and refuse.
 //!
 //! A stop signals the first process, `SIGTERM` and then `SIGKILL`. When it
 //! ends, `--kill-on-exit` makes proot end every process it traced and exit.
@@ -61,11 +61,11 @@ use std::{
     time::Duration,
 };
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     BaseVersion, DeviceId, LeftSimple, SandboxMachine,
     image::{INIT_PATH, PROGRAMS_PATH, RUNNER_PATH},
 };
-use demi_runner_protocol::{
+use jush_runner_protocol::{
     boot::{ManagedBoot, TEMPORARY_DIRECTORY, abstract_socket},
     release::RELEASE_ENV,
 };
@@ -73,7 +73,7 @@ use serde::{Deserialize, Serialize};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use demi_shared_processes as process;
+use jush_shared_processes as process;
 
 use super::DeviceOp;
 use crate::{
@@ -177,7 +177,7 @@ impl Trees {
 /// What a new tree is made of.
 pub enum Contents {
     /// A copy of the base's root as its system, and the base's `/etc/skel`
-    /// as `/home/demi`: a new device's.
+    /// as `/home/jush`: a new device's.
     Base,
     /// A copy of these directories, the system as a gVisor sandbox saw it
     /// and the root of its home filesystem: a device that moves here. The
@@ -439,7 +439,7 @@ impl Simple {
             match &contents {
                 Contents::Base => {
                     tree::copy(off, &rootfs, &stage.system(), user, None)?;
-                    tree::copy(off, &rootfs.join("etc/skel"), &stage.home().join("demi"), user, None)?;
+                    tree::copy(off, &rootfs.join("etc/skel"), &stage.home().join("jush"), user, None)?;
                 }
                 Contents::Moved { system, home, stop } => {
                     tree::copy(off, system, &stage.system(), user, Some(stop))?;
@@ -784,12 +784,21 @@ impl Device {
         if self.process.is_some() {
             return Ok(());
         }
-        let record = match self.record().await? {
+        let mut record = match self.record().await? {
             Some(record) => record,
             None => self.initialize(&self.base.clone()).await?,
         };
+        // A system on a base of before Jush's names goes, and the home takes
+        // the new name (`crate::renamed`).
+        if crate::renamed::is_earlier_base(&self.core.bases().join(&record.base_version)) {
+            let base = self.base.clone();
+            self.reset(crate::renamed::RESET, &base).await?;
+            record = self.record().await?.ok_or(OpError::MissingBase(base))?;
+        }
+        let home = self.tree().home();
+        blocking::run(move |_| crate::renamed::move_home(&home)).await?;
         self.simple().fence(&self.device, record.user).await?;
-        // Demi's own programs come from the configured base, whatever base
+        // Jush's own programs come from the configured base, whatever base
         // the device is pinned to.
         let configured = self.core.bases().join(&self.base);
         let runner_release = base::runner_release(&configured).await?;
@@ -871,9 +880,9 @@ impl Device {
             // tini is not the first process here, as it is on gVisor, so it
             // registers as a subreaper (`-s`) to reap what the Cloud's
             // programs leave.
-            .args(["-w", "/home/demi", INIT_PATH, "-s", "--", RUNNER_PATH, "run", "--managed-boot", BOOT_RECORD])
+            .args(["-w", "/home/jush", INIT_PATH, "-s", "--", RUNNER_PATH, "run", "--managed-boot", BOOT_RECORD])
             .env_clear()
-            .env("HOME", "/home/demi")
+            .env("HOME", "/home/jush")
             .env("USER", "root")
             .env("LOGNAME", "root")
             .env("LANG", "C.UTF-8")

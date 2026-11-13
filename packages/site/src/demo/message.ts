@@ -4,12 +4,12 @@
 import { isDemoId, type DemoId } from '@/features'
 
 interface PlayMessage {
-  demi: 'play'
+  jush: 'play'
   demo: DemoId
 }
 
 interface PauseMessage {
-  demi: 'pause'
+  jush: 'pause'
   paused: boolean
 }
 
@@ -22,9 +22,9 @@ export function readPlay(play: (demo: DemoId) => void, pause?: (paused: boolean)
     if (event.origin !== location.origin)
       return
     const data = event.data as Partial<PlayMessage> | Partial<PauseMessage> | null
-    if (data?.demi === 'play' && 'demo' in data && typeof data.demo === 'string' && isDemoId(data.demo))
+    if (data?.jush === 'play' && 'demo' in data && typeof data.demo === 'string' && isDemoId(data.demo))
       play(data.demo)
-    if (data?.demi === 'pause' && 'paused' in data && typeof data.paused === 'boolean')
+    if (data?.jush === 'pause' && 'paused' in data && typeof data.paused === 'boolean')
       pause?.(data.paused)
   }
   window.addEventListener('message', listen)
@@ -33,7 +33,7 @@ export function readPlay(play: (demo: DemoId) => void, pause?: (paused: boolean)
 
 /** Tells the page the frame can play. */
 export function tellReady(): void {
-  window.parent.postMessage({ demi: 'ready' }, location.origin)
+  window.parent.postMessage({ jush: 'ready' }, location.origin)
 }
 
 /** A part of a frame's screen, in the screen's CSS pixels. */
@@ -55,13 +55,13 @@ export interface CameraShot {
 
 /** Tells the page where the camera points. */
 export function tellCamera(rect: CameraRect | null, cut = false): void {
-  window.parent.postMessage({ demi: 'camera', rect, cut } satisfies CameraShot & { demi: string }, location.origin)
+  window.parent.postMessage({ jush: 'camera', rect, cut } satisfies CameraShot & { jush: string }, location.origin)
 }
 
 /** Answers where a `camera` message points, `undefined` for another message. */
 export function cameraOf(data: unknown): CameraShot | undefined {
-  const message = data as { demi?: string; rect?: CameraRect | null; cut?: boolean } | null
-  if (message?.demi !== 'camera')
+  const message = data as { jush?: string; rect?: CameraRect | null; cut?: boolean } | null
+  if (message?.jush !== 'camera')
     return undefined
   return { rect: message.rect ?? null, cut: message.cut === true }
 }
@@ -109,20 +109,20 @@ export type DeviceShot =
 
 /** Tells the page what the stage shows beside the app; none for the app alone. */
 export function tellShot(shot: DeviceShot | null): void {
-  window.parent.postMessage({ demi: 'shot', shot }, location.origin)
+  window.parent.postMessage({ jush: 'shot', shot }, location.origin)
 }
 
 /** Answers what a `shot` message shows, `undefined` for another message. */
 export function shotOf(data: unknown): DeviceShot | null | undefined {
-  const message = data as { demi?: string; shot?: DeviceShot | null } | null
-  if (message?.demi !== 'shot')
+  const message = data as { jush?: string; shot?: DeviceShot | null } | null
+  if (message?.jush !== 'shot')
     return undefined
   return message.shot ?? null
 }
 
 /**
- * A part of Demi's runtime, as the stage's card draws it: the programs the
- * model's one tool, the shell, runs; the `demi` commands it runs for the
+ * A part of Jush's runtime, as the stage's card draws it: the programs the
+ * model's one tool, the shell, runs; the `jush` commands it runs for the
  * browser, other machines and other agents; and the compaction of the
  * context the model reads.
  */
@@ -149,13 +149,13 @@ export interface PieceRecipe {
 
 /**
  * What the stage shows around the app, drawing what the app cannot show:
- * Demi's runtime on a card at the browser's corner, with the part the agent
+ * Jush's runtime on a card at the browser's corner, with the part the agent
  * uses now, none between steps, and how full its context is, 0 to 1; how
  * the stage of several devices frames them, with the machines the
  * conversation has reached and the one its work runs on now; or how many of
  * a short film's production stages are done (the storyboard, the voiceover
  * and the music, a clip from each shot, the cut), and whether the next runs;
- * or the pieces of Demi's abilities and the recipes requests snapped them
+ * or the pieces of Jush's abilities and the recipes requests snapped them
  * into, with the piece of the first recipe that runs now.
  */
 export type StageCard =
@@ -166,23 +166,23 @@ export type StageCard =
 
 /** Tells the page what the corner card shows; none takes the card away. */
 export function tellCard(card: StageCard | null): void {
-  window.parent.postMessage({ demi: 'card', card }, location.origin)
+  window.parent.postMessage({ jush: 'card', card }, location.origin)
 }
 
 /** Answers what a `card` message shows, `undefined` for another message. */
 export function cardOf(data: unknown): StageCard | null | undefined {
-  const message = data as { demi?: string; card?: StageCard | null } | null
-  if (message?.demi !== 'card')
+  const message = data as { jush?: string; card?: StageCard | null } | null
+  if (message?.jush !== 'card')
     return undefined
   return message.card ?? null
 }
 
 /** Asks `frame` to play `demo`. */
 export function askToPlay(frame: Window, demo: DemoId): void {
-  frame.postMessage({ demi: 'play', demo } satisfies PlayMessage, location.origin)
+  frame.postMessage({ jush: 'play', demo } satisfies PlayMessage, location.origin)
 }
 
 /** Asks `frame` to pause its play where it is, or to go on from there. */
 export function askToPause(frame: Window, paused: boolean): void {
-  frame.postMessage({ demi: 'pause', paused } satisfies PauseMessage, location.origin)
+  frame.postMessage({ jush: 'pause', paused } satisfies PauseMessage, location.origin)
 }

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsCredentials from '@demicodes/web-ui/settings/SettingsCredentials.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsCredentials from '@jush-ai/web-ui/settings/SettingsCredentials.vue'
 import type {
   SettingsCredential,
   SettingsCredentialDraft,
   SettingsCredentialPatch,
-} from '@demicodes/web-ui/settings/types'
+} from '@jush-ai/web-ui/settings/types'
 import type { CredentialState } from '../fixtures/credentials'
 
 /**

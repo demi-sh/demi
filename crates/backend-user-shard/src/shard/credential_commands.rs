@@ -1,4 +1,4 @@
-//! The product's `demi credentials` group.
+//! The product's `jush credentials` group.
 //!
 //! An agent can:
 //!
@@ -22,14 +22,14 @@
 //! A save, a replacement of a saved one's values included, asks nothing
 //! beyond the group's grant: an agent can already use any value it can pipe.
 //!
-//! `read` writes the value to its standard output, wherever that goes: Demi
+//! `read` writes the value to its standard output, wherever that goes: Jush
 //! refuses and masks nothing, and how the value is passed on is the agent's
 //! choice. A field's kind is advice, not a rule: the command's help recommends
 //! passing a secret where the model does not read it, into a pipe, a file or a
 //! `$(…)`, since a value the job prints joins the transcript.
 //!
 //! The command line the model wrote, which the transcript keeps, holds the
-//! `$(…)` as written, never its value. Demi writes no value into the transcript,
+//! `$(…)` as written, never its value. Jush writes no value into the transcript,
 //! a log or a frame to the page, but a visible field's in Settings' list. A
 //! value enters the transcript only when an agent's command prints it.
 //!
@@ -46,20 +46,20 @@
 use std::collections::BTreeMap;
 use std::rc::{Rc, Weak};
 
-use demi_backend_database::credentials::StoredCredential;
-use demi_backend_database::permissions::CredentialAsk;
-use demi_backend_permissions::{Answer, ask_credential, read_credential, save_credential};
-use demi_device_interface::{
+use jush_backend_database::credentials::StoredCredential;
+use jush_backend_database::permissions::CredentialAsk;
+use jush_backend_permissions::{Answer, ask_credential, read_credential, save_credential};
+use jush_device_interface::{
     Call, GroupBuilder, LeafBuilder, RpcError, RpcInvocation, RpcPort, TypedRpc,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     Nullable, Timestamp,
     output::{Cell, Fields, Table},
 };
-use demi_web_api_protocol::credentials::{
+use jush_web_api_protocol::credentials::{
     CredentialField, FieldKind, Keep, distinct,
 };
-use demi_web_api_protocol::text::Trimmed;
+use jush_web_api_protocol::text::Trimmed;
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -90,7 +90,7 @@ const SAVE_SUMMARY: &str = "Save a credential from values piped on standard inpu
 
 const VALUES: &str = "Piped from a file or a command, never written in the command, which the transcript keeps: for one field, its value as it is, without one trailing newline; for several, one <field>=<value> line each.";
 
-const READ_SUMMARY: &str = "Write one field's value to standard output, exactly as saved, without a newline. A value you print is sent to the model's vendor and stays in the transcript; to avoid that, pipe it into a command (`demi credentials read \"GitHub token\" token | gh auth login --with-token`), redirect it into a file (`… > token.txt`), or substitute it (`TOKEN=$(demi credentials read \"GitHub token\" token) git push`).";
+const READ_SUMMARY: &str = "Write one field's value to standard output, exactly as saved, without a newline. A value you print is sent to the model's vendor and stays in the transcript; to avoid that, pipe it into a command (`jush credentials read \"GitHub token\" token | gh auth login --with-token`), redirect it into a file (`… > token.txt`), or substitute it (`TOKEN=$(jush credentials read \"GitHub token\" token) git push`).";
 
 const REMOVE_SUMMARY: &str = "Remove a credential and its values. Only when the user asks for it.";
 

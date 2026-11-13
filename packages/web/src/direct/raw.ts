@@ -3,8 +3,8 @@
  * worker serves over a direct channel (`packages/web/src/direct/raw-bridge.ts`): the part a `Range` asks for, and the headers that keep the
  * bytes inert, name their version and say how long they may be kept.
  */
-import { IMAGE_CONTENT_POLICY, previewMediaType, showsInPlace } from '@demicodes/protocol'
-import { baseName } from '@demicodes/utils'
+import { IMAGE_CONTENT_POLICY, previewMediaType, showsInPlace } from '@jush-ai/protocol'
+import { baseName } from '@jush-ai/utils'
 
 /** The part of a file of `size` bytes an answer sends (RFC 9110 § 14), as the relay's `RangeAnswer`. */
 export type RangeAnswer =

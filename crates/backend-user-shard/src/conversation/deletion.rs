@@ -16,12 +16,12 @@
 //!
 //! The owner's blob namespace is collected after it (`lifecycle::collection`).
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_device_access::access::Leaving;
-use demi_backend_device_access::root_of;
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::ids::{ConversationId, WorkspaceId};
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_device_access::access::Leaving;
+use jush_backend_device_access::root_of;
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::ids::{ConversationId, WorkspaceId};
 
 use crate::shard::{Shard, Shards};
 

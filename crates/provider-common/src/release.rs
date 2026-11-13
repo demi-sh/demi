@@ -10,7 +10,7 @@
 
 use std::{fmt, sync::Arc, time::Duration};
 
-use demi_shared_types::Clock;
+use jush_shared_types::Clock;
 use http::header::ACCEPT;
 use jiff::SignedDuration;
 use reqwest::Url;

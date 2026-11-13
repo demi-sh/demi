@@ -5,7 +5,7 @@
 //! immediate download.
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     credentials::AuthFailure,
     images::{ImageMaker, ImageRequest, MadeImage, read_data_answer, xai},
@@ -37,7 +37,7 @@ impl Shared {
     /// the token a request was refused with, and the token they carry.
     pub(crate) async fn media_headers(
         &self,
-        http: &demi_provider_common::ProviderHttp,
+        http: &jush_provider_common::ProviderHttp,
         refused: Option<Secret>,
     ) -> Result<(HeaderMap, Option<Secret>), AuthFailure> {
         let credentials = self.auth.credentials(http, refused.as_ref()).await?;
@@ -97,7 +97,7 @@ impl MediaMaker for GrokImages {
     /// proxy's listing answers 404.
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(subscription_models(catalog, Subscription::Grok, MediaKind::Image))))
@@ -109,7 +109,7 @@ impl MediaMaker for GrokImages {
 impl ImageMaker for GrokImages {
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
         request: ImageRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeImage>> {

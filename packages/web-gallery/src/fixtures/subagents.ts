@@ -1,9 +1,9 @@
-import { NO_COST } from '@demicodes/web-ui/agent/context-cost'
-import type { AgentMessage, Block, JobModel } from '@demicodes/protocol'
-import type { AgentRun, SubagentRecord } from '@demicodes/web-ui/agent/subagents'
-import type { DeviceName } from '@demicodes/web-ui/agent/device-names'
+import { NO_COST } from '@jush-ai/web-ui/agent/context-cost'
+import type { AgentMessage, Block, JobModel } from '@jush-ai/protocol'
+import type { AgentRun, SubagentRecord } from '@jush-ai/web-ui/agent/subagents'
+import type { DeviceName } from '@jush-ai/web-ui/agent/device-names'
 import { demoModel, inRequests, inRun, screenshotTool, shellView, thinkingText, withEnd } from './blocks'
-import { wholeHistory } from '@demicodes/web-ui/agent/history'
+import { wholeHistory } from '@jush-ai/web-ui/agent/history'
 import { usageAt } from './catalog'
 import { ago } from './time'
 import { SLOT_NODE, slotBlocks } from './request-changes'
@@ -265,7 +265,7 @@ export function workSubagent(): SubagentRecord {
         'Tell the parent where the old suite paths are',
         'sent to 0\n',
         'completed',
-        `demi agent send parent <<'EOF'\n${SUITE_PATHS_UPDATE}\nEOF`,
+        `jush agent send parent <<'EOF'\n${SUITE_PATHS_UPDATE}\nEOF`,
       )),
     ]),
   }
@@ -360,7 +360,7 @@ export function gallerySubagents(): SubagentRecord[] {
           'Tell the parent where logout clears the cookie',
           'sent to 0\n',
           'completed',
-          `demi agent send parent <<'EOF'\n${LOGOUT_UPDATE}\nEOF`,
+          `jush agent send parent <<'EOF'\n${LOGOUT_UPDATE}\nEOF`,
         )),
       ]),
     },
@@ -537,7 +537,7 @@ Read the login suite and find what makes it fail about one run in ten. Do not ed
 | Its cause | One sentence |
 | A fix | The smallest change that holds |
 
-Send the report with \`demi agent send parent\` as soon as you have the cause.`
+Send the report with \`jush agent send parent\` as soon as you have the cause.`
 
 /** A child at work on a brief written in full Markdown. */
 export function briefSubagent(): SubagentRecord {
@@ -645,7 +645,7 @@ function notesBlocks(report: boolean): Block[] {
     ...inRun(
       shell('ag-notes-read', ago(230_000), 'Read the release notes', '# Release notes\n## 2.4.0\n…', 'completed', 'cat docs/RELEASE.md'),
       shell('ag-notes-sort', ago(220_000), 'List the version headings', '## 2.4.0\n## 2.2.0\n## 2.3.0', 'completed', "grep -n '^## ' docs/RELEASE.md"),
-      shell('ag-notes-spawn', ago(210_000), 'Start a check of the links', 'Spawned agent 5', 'completed', 'demi agent spawn --description "Check the links"'),
+      shell('ag-notes-spawn', ago(210_000), 'Start a check of the links', 'Spawned agent 5', 'completed', 'jush agent spawn --description "Check the links"'),
     ),
     agentSays('ag-notes-main', MAIN, NOTES.id, ago(200_000), 'Also keep the old **Upgrading** heading; other pages link to it.', 'gallery-bubbles-send'),
     text('ag-notes-ack', ago(190_000), 'I will keep the Upgrading heading and move the versions under it.'),
@@ -704,7 +704,7 @@ export function bubbleAgents(report: boolean): SubagentRecord[] {
     bubbleAgent(NOTES, notesBlocks(report)),
     bubbleAgent(REVIEW, [
       user('ag-review-user', ago(220_000), 'Review `docs/RELEASE.md` and tell whoever tidies it what is wrong.'),
-      ...inRun(shell('ag-review-send', ago(150_000), 'Tell Tidy the release notes of the broken table', 'Sent', 'completed', 'demi agent send 3')),
+      ...inRun(shell('ag-review-send', ago(150_000), 'Tell Tidy the release notes of the broken table', 'Sent', 'completed', 'jush agent send 3')),
       text('ag-review-text', ago(140_000), 'I told agent 3 about the broken table.'),
     ]),
     bubbleAgent(LINKS, [
@@ -724,8 +724,8 @@ export function bubblesMainBlocks(): Block[] {
   return inRequests([
     user('bubbles-user', ago(260_000), 'Tidy the release notes and have someone review them.'),
     ...inRun(
-      shell('bubbles-spawn', ago(250_000), 'Start the tidy and the review', 'Spawned agents 3 and 4', 'completed', 'demi agent spawn'),
-      shell('gallery-bubbles-send', ago(200_000), 'Ask Tidy the release notes to keep the old heading', 'Sent', 'completed', 'demi agent send 3'),
+      shell('bubbles-spawn', ago(250_000), 'Start the tidy and the review', 'Spawned agents 3 and 4', 'completed', 'jush agent spawn'),
+      shell('gallery-bubbles-send', ago(200_000), 'Ask Tidy the release notes to keep the old heading', 'Sent', 'completed', 'jush agent send 3'),
     ),
     text('bubbles-started', ago(195_000), 'Tidy the release notes and Review the notes are at work. I asked the tidy to keep the Upgrading heading.'),
     ...inRun(agentSays('bubbles-from-notes', NOTES, BUBBLES_ROOT, ago(180_000), 'I will keep the Upgrading heading.', 'ag-notes-ack')),
@@ -739,7 +739,7 @@ export function bubblesMainBlocks(): Block[] {
       'coordinate-send',
     ),
     ...inRun(
-      shell('bubbles-answer', ago(40_000), 'Tell Coordinate the release the notes mention the fix', 'Sent to “Coordinate the release”', 'completed', 'demi conversation send gallery-coordinate'),
+      shell('bubbles-answer', ago(40_000), 'Tell Coordinate the release the notes mention the fix', 'Sent to “Coordinate the release”', 'completed', 'jush conversation send gallery-coordinate'),
     ),
     text('bubbles-answered', ago(35_000), 'The notes already mention the checkout fix; I told Coordinate the release.'),
   ])

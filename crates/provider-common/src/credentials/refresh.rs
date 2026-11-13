@@ -11,7 +11,7 @@ use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio_util::task::TaskTracker;
 
-use demi_shared_gates::{KeyedPermit, KeyedSerialGate};
+use jush_shared_gates::{KeyedPermit, KeyedSerialGate};
 use serde::{Serialize, de::DeserializeOwned};
 
 use crate::credentials::{AccountDocument, PoolError};

@@ -8,7 +8,7 @@ status: accepted, superseded in part by 0044
 
 [Agent sessions, and one way to keep their data in sync](0009-agent-sessions-and-sync.md)
 keeps each agent's transcript as runs with holes between them, on the page
-and on disk, and Demi already follows Telegram's clients in most of how it
+and on disk, and Jush already follows Telegram's clients in most of how it
 reads, merges and validates them. Compared with Telegram's iOS and Android
 clients item by item, four things differ:
 

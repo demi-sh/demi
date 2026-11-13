@@ -83,7 +83,7 @@ None.
 * Codex's terminal interface counts every background command in one line,
   "{count} background terminals running · /ps to view · /stop to close"
   ([unified_exec_footer.rs](https://github.com/openai/codex/blob/main/codex-rs/tui/src/bottom_pane/unified_exec_footer.rs)).
-  Demi counts services apart, because a server that runs for hours would
+  Jush counts services apart, because a server that runs for hours would
   keep that count above zero, and keeps the conversation running, because
   the command's end wakes the agent.
 

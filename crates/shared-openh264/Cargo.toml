@@ -1,5 +1,5 @@
 [package]
-name = "demi-shared-openh264"
+name = "jush-shared-openh264"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -16,7 +16,7 @@ bench = false
 # from bzip2 and loaded at run time (`libloading`).
 aws-lc-rs = "1"
 bzip2 = "0.6"
-demi-shared-artifacts = { path = "../shared-artifacts" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
 futures-util.workspace = true
 openh264 = { version = "0.9", default-features = false, features = ["libloading"] }
 thiserror.workspace = true

@@ -73,15 +73,15 @@
 //! attachment set. A move of directory on the same device adds no duplicate.
 //! Files do not move, and a path keeps referring to its original device.
 
-use demi_backend_database::conversation_index::{
+use jush_backend_database::conversation_index::{
     ChangeOutcome, ConversationRecord, RecordChange, SwitchEnds, SwitchWrite, TargetSwitch,
 };
-use demi_backend_database::projects::ProjectRecord;
-use demi_backend_database::{Selection, StorageError, Unselectable};
-use demi_shared_gates::Reservation;
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_backend_database::projects::ProjectRecord;
+use jush_backend_database::{Selection, StorageError, Unselectable};
+use jush_shared_gates::Reservation;
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 
 use crate::DeviceShard;
 use crate::access::DeviceAccessError;
@@ -104,7 +104,7 @@ pub enum ChangeRefusal {
     #[error("The provider does not list that model")]
     ModelNotFound,
     #[error(transparent)]
-    SettingUnavailable(#[from] demi_shared_types::UnavailableSetting),
+    SettingUnavailable(#[from] jush_shared_types::UnavailableSetting),
     /// An effort or a tier for a conversation without a model.
     #[error("Choose a model for the conversation first")]
     ModelNotSelected,

@@ -2,7 +2,7 @@
 //! devices start it with.
 //!
 //! Nothing resolves a moving channel. A release names each platform's archive,
-//! and the runtime's archives, by URL, size and digest, which `demi browser
+//! and the runtime's archives, by URL, size and digest, which `jush browser
 //! install` downloads (`crates/xtask/src/browser.rs`,
 //! `crates/plugin-browser/command-chrome/src/driver/installation.rs`).
 
@@ -10,7 +10,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 
 /// The artifact line the pinned release is installed as on a device, which
 /// its installed artifacts name (`crates/runner-command-packages/src/cache.rs`).
@@ -45,10 +45,10 @@ pub struct BrowserRelease {
 impl BrowserRelease {
     /// Decodes a release record.
     pub fn parse(json: &str) -> Result<Self, DecodeError> {
-        demi_shared_types::decode_slice(json.as_bytes())
+        jush_shared_types::decode_slice(json.as_bytes())
     }
 
-    /// The release this build of Demi pins, whose record is
+    /// The release this build of Jush pins, whose record is
     /// `release/chrome.json` beside this module.
     pub fn pinned() -> Result<Self, DecodeError> {
         Self::parse(include_str!("release/chrome.json"))

@@ -6,7 +6,7 @@ status: proposed
 
 ## Problem
 
-Alex leaves Demi on the conversation *Draft the release notes* and works in
+Alex leaves Jush on the conversation *Draft the release notes* and works in
 another app. Its turn finishes: the sidebar's dot turns green, the browser
 tab's title says `(1 done)` and its icon wears a dot. Alex comes back to
 the browser, and the moment the page is visible again every mark is gone:
@@ -99,7 +99,7 @@ Nothing changes on the backend or in what is stored.
 * Slack marks the channel in view read when its window regains the focus
   and keeps a *New* divider in the channel.
 
-Demi has no line in the transcript where the unread part begins, so the
+Jush has no line in the transcript where the unread part begins, so the
 sidebar's dot and the tab are what tell the user where to look. Like
 Gmail's tab, which counts the unread mail whatever was read in another
 tab, the tab counts what is unread rather than what happened while away.

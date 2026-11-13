@@ -29,14 +29,14 @@
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::passkeys::{
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::passkeys::{
     ChallengeLimits, ChallengeState, PasskeyRecord, credential_id,
 };
-use demi_web_api_protocol::auth::UserDto;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::passkeys::{
+use jush_web_api_protocol::auth::UserDto;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::passkeys::{
     CreationChallenge, PasskeyChallengeId, PasskeyId, PasskeyList, SignInChallenge,
 };
 use jiff::SignedDuration;
@@ -85,7 +85,7 @@ impl RelyingParty {
         let mut builder = WebauthnBuilder::new(id, &origin)
             .inspect_err(|error| tracing::warn!(event = "passkeys.relying_party_refused", %error, "the public URL is no relying party"))
             .ok()?
-            .rp_name("demi");
+            .rp_name("jush");
         if let Some(page) = page.filter(|page| page.origin() != origin.origin()) {
             builder = builder.append_allowed_origin(page);
         }

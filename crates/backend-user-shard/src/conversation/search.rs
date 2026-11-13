@@ -41,16 +41,16 @@ use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::rc::Rc;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::conversation_index::ConversationRecord;
-use demi_backend_database::search::{HistoryQuery, IndexedConversation, SearchKind, TranscriptChange, match_line, title_ranges};
-use demi_backend_database::tree;
-use demi_web_api_protocol::ids::WorkspaceId;
-use demi_backend_page_sync::{Part, Registration};
-use demi_shared_gates::KeyedSerialGate;
-use demi_web_api_protocol::ids::{ConversationId, UserId};
-use demi_web_api_protocol::search::{
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::conversation_index::ConversationRecord;
+use jush_backend_database::search::{HistoryQuery, IndexedConversation, SearchKind, TranscriptChange, match_line, title_ranges};
+use jush_backend_database::tree;
+use jush_web_api_protocol::ids::WorkspaceId;
+use jush_backend_page_sync::{Part, Registration};
+use jush_shared_gates::KeyedSerialGate;
+use jush_web_api_protocol::ids::{ConversationId, UserId};
+use jush_web_api_protocol::search::{
     MessageAuthor, MessageResult, MessageResults, RESULTS_MAX, SearchMatch, SearchResult, SearchText,
 };
 use tokio::sync::broadcast::{self, error::RecvError};

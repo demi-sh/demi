@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RegionStatus, type DeviceDownload } from '@demicodes/plugin-sdk'
+import { RegionStatus, type DeviceDownload } from '@jush-ai/plugin-sdk'
 import { deviceStatus, type ShownPictures } from './status'
 import { t } from '../locales/text'
 

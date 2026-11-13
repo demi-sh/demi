@@ -2,11 +2,11 @@
 //! from, the output each belongs to, and what the web app does with each. Every type they refer to is
 //! emitted with them.
 
-use demi_conversation_lane_protocol as frames;
-use demi_live_view_protocol as live;
-use demi_shared_types as core;
-use demi_runner_protocol::direct;
-use demi_web_api_protocol as api;
+use jush_conversation_lane_protocol as frames;
+use jush_live_view_protocol as live;
+use jush_shared_types as core;
+use jush_runner_protocol::direct;
+use jush_web_api_protocol as api;
 use schemars::{JsonSchema, Schema, SchemaGenerator};
 
 /// What the web app does with a type, which decides whether its schema is a
@@ -64,7 +64,7 @@ fn sends<T: JsonSchema>() -> Root {
     }
 }
 
-/// `@demicodes/protocol`: core's types, the conversation lane's frames
+/// `@jush-ai/protocol`: core's types, the conversation lane's frames
 /// and the live view's own messages. Core's types are listed whether or not a
 /// frame refers to them, so that they are declared here and `web` imports
 /// them.

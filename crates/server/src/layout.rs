@@ -5,18 +5,18 @@
 //! upgrade in a directory of its own.
 //!
 //! ```text
-//! /opt/demi/
+//! /opt/jush/
 //!   releases/0.1.0/            a server release root, unpacked, never changed
 //!   releases/0.2.0/
 //!   current -> releases/0.2.0  the release the services run
 //!   gvisor/<runsc version>/    the gVisor runtime a release's manager pins
-//!   config/demi.env            the configuration, shared by both services
+//!   config/jush.env            the configuration, shared by both services
 //!   data/backend/              the backend's data directory, with snapshots/
 //!   data/cloud/                the machine manager's state directory
 //!   server/                    the lock, an upgrade's journal, a setup's marker
 //! ```
 //!
-//! Everything of Demi's lies under `/opt/demi`, so an operator finds it in one
+//! Everything of Jush's lies under `/opt/jush`, so an operator finds it in one
 //! place.
 //!
 //! It lies under `/opt` for one more reason: SELinux, which the dnf
@@ -37,7 +37,7 @@
 //! - `current` is replaced atomically by renaming a new link over it.
 //! - Both services take their release root from the real path of their own
 //!   executable, so they always run one release and the configuration file
-//!   never sets `DEMI_RELEASE`.
+//!   never sets `JUSH_RELEASE`.
 //! - Each release carries its units, which a move copies into place, so a
 //!   release that changes how a service runs brings that change itself.
 //! - The configuration and the data directories belong to the installation: no
@@ -49,20 +49,20 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_machine_manager_protocol::{MANAGER_UNIT, runtime::GVISOR_PATH};
+use jush_machine_manager_protocol::{MANAGER_UNIT, runtime::GVISOR_PATH};
 use semver::Version;
 
 /// The services, in the order they start; they stop in the reverse order.
 pub const UNITS: [&str; 2] = [MANAGER_UNIT, BACKEND];
-pub const BACKEND: &str = "demi-backend.service";
+pub const BACKEND: &str = "jush-backend.service";
 
 /// The units of the server's updates: those that run an administrator's
 /// update and those that get the newest release ready ahead of it, each a
 /// path unit, which runs beside the services, and the service it starts. A
 /// release without one, as one before it, removes it.
-pub const UPGRADE_UNITS: [&str; 4] = [UPGRADE_PATH, "demi-upgrade.service", PREPARE_PATH, "demi-prepare.service"];
-pub const UPGRADE_PATH: &str = "demi-upgrade.path";
-pub const PREPARE_PATH: &str = "demi-prepare.path";
+pub const UPGRADE_UNITS: [&str; 4] = [UPGRADE_PATH, "jush-upgrade.service", PREPARE_PATH, "jush-prepare.service"];
+pub const UPGRADE_PATH: &str = "jush-upgrade.path";
+pub const PREPARE_PATH: &str = "jush-prepare.path";
 /// The path units of the updates.
 pub const PATH_UNITS: [&str; 2] = [UPGRADE_PATH, PREPARE_PATH];
 
@@ -86,7 +86,7 @@ impl Layout {
 
     /// Each release's root, by its version.
     pub fn releases(&self) -> PathBuf {
-        self.at("/opt/demi/releases")
+        self.at("/opt/jush/releases")
     }
 
     pub fn release(&self, version: &Version) -> PathBuf {
@@ -95,7 +95,7 @@ impl Layout {
 
     /// The link to the release the services run.
     pub fn current(&self) -> PathBuf {
-        self.at("/opt/demi/current")
+        self.at("/opt/jush/current")
     }
 
     /// The gVisor versions the releases' managers pin, one directory each.
@@ -105,7 +105,7 @@ impl Layout {
 
     /// The installation's configuration, which both services load.
     pub fn config(&self) -> PathBuf {
-        self.at("/opt/demi/config/demi.env")
+        self.at("/opt/jush/config/jush.env")
     }
 
     /// Where systemd, or a container's supervisor, reads the services'
@@ -122,19 +122,19 @@ impl Layout {
 
     /// The socket of the supervisor that runs the services in a container.
     pub fn supervisor_socket(&self) -> PathBuf {
-        self.at(demi_supervisor_protocol::SOCKET)
+        self.at(jush_supervisor_protocol::SOCKET)
     }
 
-    /// `demi-server`'s own state: its lock, an upgrade's journal and a
+    /// `jush-server`'s own state: its lock, an upgrade's journal and a
     /// setup's marker.
     pub fn state(&self) -> PathBuf {
-        self.at("/opt/demi/server")
+        self.at("/opt/jush/server")
     }
 
     /// The backend's management socket where the configuration names
     /// none.
     pub fn manage_socket(&self) -> PathBuf {
-        self.at(demi_runner_protocol::release::MANAGE_SOCKET)
+        self.at(jush_runner_protocol::release::MANAGE_SOCKET)
     }
 
     pub fn journal(&self) -> PathBuf {
@@ -143,14 +143,14 @@ impl Layout {
 
     /// The file the backend writes an administrator's update to.
     pub fn upgrade_request(&self) -> PathBuf {
-        self.at(demi_runner_protocol::release::UPGRADE_REQUEST)
+        self.at(jush_runner_protocol::release::UPGRADE_REQUEST)
     }
 
     /// The file the backend writes the newest release to, which the server
     /// gets ready ahead of an update.
     pub fn prepare_request(&self) -> PathBuf {
         self.upgrade_request()
-            .with_file_name(demi_runner_protocol::release::PREPARE_REQUEST_NAME)
+            .with_file_name(jush_runner_protocol::release::PREPARE_REQUEST_NAME)
     }
 
     /// The version of the release `current` names.

@@ -2,8 +2,8 @@
 //! before it codes a picture, so that a screen that drew the same pixels again
 //! costs nothing.
 
-use demi_shared_h264::Raw;
-use demi_shared_recording_protocol::Area;
+use jush_shared_h264::Raw;
+use jush_shared_recording_protocol::Area;
 
 /// The smallest area holding every pixel of `now` that differs from `before`;
 /// none when the two are the same picture. A picture of another size or order

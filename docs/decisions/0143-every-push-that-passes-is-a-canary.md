@@ -14,7 +14,7 @@ says, gets every build first. At 10:00 a fix for a bug Alex hit is merged into
 `main`. The push builds, and nothing more happens: a build becomes a release
 only when a developer deploys to their own server, which publishes it as a
 pre-release on the way. If nobody deploys that day, Alex's Settings › Updates
-says *Demi is up to date* until someone does, though thirty merges may be
+says *Jush is up to date* until someone does, though thirty merges may be
 waiting. Canary gets the builds a developer happened to deploy, not every
 build.
 
@@ -104,7 +104,7 @@ result.
 * **Chrome** Canary ships a build of the trunk every day, and Beta takes a
   build that has been on Canary.
 
-Demi does as Bun and Deno, and adds the condition that the commit's checks
+Jush does as Bun and Deno, and adds the condition that the commit's checks
 passed, since its build runs none.
 
 ## Alternatives

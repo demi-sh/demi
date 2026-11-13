@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
-import { IDLE_COMPACTION_CONTEXT } from '@demicodes/protocol'
-import { DEFAULT_SEND_WHILE_RUNNING, type SendWhileRunning } from '@demicodes/web-ui/agent/send-way'
-import type { IdleLifetime } from '@demicodes/web-ui/settings/types'
+import { IDLE_COMPACTION_CONTEXT } from '@jush-ai/protocol'
+import { DEFAULT_SEND_WHILE_RUNNING, type SendWhileRunning } from '@jush-ai/web-ui/agent/send-way'
+import type { IdleLifetime } from '@jush-ai/web-ui/settings/types'
 
 /**
  * The gallery's stand-in for the user's message preferences:
@@ -9,7 +9,7 @@ import type { IdleLifetime } from '@demicodes/web-ui/settings/types'
  * - What Enter does while the agent works.
  * - Whether a turn its offline device stopped resumes by itself once the
  *   device is back.
- * - Whether a turn a restart of Demi stopped resumes by itself once Demi is
+ * - Whether a turn a restart of Jush stopped resumes by itself once Jush is
  *   back.
  * - Whether a turn a usage limit stopped resumes by itself once the limit
  *   resets.

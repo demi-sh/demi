@@ -6,7 +6,7 @@
  * its screen, or the frame the view draws around the picture. Neither shows the screen larger
  * than its points, as Simulator's Point Accurate size shows it.
  */
-import { DRAWN_FRAME_ROOM } from '@demicodes/plugin-sdk'
+import { DRAWN_FRAME_ROOM } from '@jush-ai/plugin-sdk'
 import type { LiveRect } from '../generated/plugin'
 
 /** The margin around the device, in CSS pixels. */

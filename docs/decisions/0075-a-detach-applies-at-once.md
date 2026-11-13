@@ -10,7 +10,7 @@ the part that a detach keeps its hold on the conversation.
 ## Problem
 
 An agent runs a check on an attached Host, the user sees it is the wrong
-machine and the agent calls `demi host detach` on it. The command answers
+machine and the agent calls `jush host detach` on it. The command answers
 "detached when this conversation's work ends; until then commands can
 still run there", so subagents go on running there for as long as anything
 in the conversation works. On the page, Detach on a conversation that is
@@ -20,13 +20,13 @@ idle, which the command that asks for the detach keeps busy itself.
 ## Decision
 
 **A detach is made when it is asked for, by the page or by
-`demi host detach`, whatever the conversation is doing, and waits for no
+`jush host detach`, whatever the conversation is doing, and waits for no
 Host:**
 
-* The Host leaves `demi host list` and the attached Hosts of the
+* The Host leaves `jush host list` and the attached Hosts of the
   conversation, and each agent's next request says so.
-* A `demi host shell --host` to it fails as for a Host the conversation
-  never had, and a command or a `demi host shell` that had not started
+* A `jush host shell --host` to it fails as for a Host the conversation
+  never had, and a command or a `jush host shell` that had not started
   there yet never starts.
 * Every command of the conversation that runs on it is stopped, as an
   abort stops a command: it ends as Stopped when that Host reports the
@@ -34,24 +34,24 @@ Host:**
   conversation`; on a Host that cannot be reached then, it ends at once as
   lost, with the same reason.
 * Work started there with `&` or `nohup` (0061) runs on, as it does after
-  an ssh session ends, but a `demi` call from it is refused: the Host is
+  an ssh session ends, but a `jush` call from it is refused: the Host is
   no longer the conversation's.
 * That Host's file transfers and live views end; the other Hosts' go on.
 * The Host is told to release the conversation once its commands ended,
   so it closes what it opened for it, such as Chrome.
-* `demi host detach` answers as soon as the Host has left: "alex-linux is
+* `jush host detach` answers as soon as the Host has left: "alex-linux is
   detached." A command on that Host that asks for its detach ends with
   the others.
 
 The design to build from:
 
-* `demi host detach` and the page's Detach make the same change in one
+* `jush host detach` and the page's Detach make the same change in one
   step, as a move does, with no idle tree reserved, no file gate held and
   nothing stored to make later: end that Host's transfers and streams,
   commit, withdraw its jobs, answer.
 * The jobs to stop are the conversation's on that device, which host
   access registers per device, a command adopted after a restart
-  included: an agent's command and a `demi host shell` that runs there.
+  included: an agent's command and a `jush host shell` that runs there.
   A job that registers after the commit, or is withdrawn before it starts,
   ends at whichever step it is, without starting.
 * The release follows once those jobs ended, and only when the commit

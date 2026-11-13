@@ -248,7 +248,7 @@ impl AudioShape {
 serde_plain::derive_display_from_serialize!(AudioShape);
 serde_plain::derive_fromstr_from_deserialize!(AudioShape);
 
-/// What an audio model makes, and what a call of `demi audio` asks for.
+/// What an audio model makes, and what a call of `jush audio` asks for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum AudioKind {

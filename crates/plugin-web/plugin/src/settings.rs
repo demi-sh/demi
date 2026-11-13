@@ -3,7 +3,7 @@
 //! remove the API key.
 
 use base64::Engine;
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     Method, Page, PluginError, PluginPort, Scope, State,
 };
 use schemars::JsonSchema;
@@ -100,7 +100,7 @@ impl WebReason {
 }
 
 pub(crate) fn page() -> Page {
-    Page::new("@demicodes/plugin-web")
+    Page::new("@jush-ai/plugin-web")
         .user_state(State::new::<WebState>())
         .method(Method::new::<SignIn, SignInStarted>("sign_in", Scope::User))
         .method(Method::new::<SignOut, ()>("sign_out", Scope::User))

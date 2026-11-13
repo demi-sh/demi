@@ -1,0 +1,10 @@
+# Moves the server to the release an administrator's Update Now asked for.
+# It runs as root and apart from the backend, which the upgrade stops
+# (crates/server/src/main.rs).
+[Unit]
+Description=Jush update
+
+[Service]
+Type=oneshot
+ExecStart=/opt/jush/current/bin/jush-server upgrade --requested
+TimeoutStartSec=infinity

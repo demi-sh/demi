@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import Segmented, { type SegmentedOption } from '@demicodes/web-ui/ui/Segmented.vue'
-import StreamedMarkdown from '@demicodes/web-ui/ui/StreamedMarkdown.vue'
-import FileIcon from '@demicodes/web-ui/files/FileIcon.vue'
-import { reportSyntaxColorsUnavailable } from '@demicodes/web-ui/editor/load'
-import { provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
-import { pinRegionForms, type RegionForm } from '@demicodes/web-ui/infra/region-wait'
-import { renderAgain } from '@demicodes/web-ui/markdown/render-version'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import Segmented, { type SegmentedOption } from '@jush-ai/web-ui/ui/Segmented.vue'
+import StreamedMarkdown from '@jush-ai/web-ui/ui/StreamedMarkdown.vue'
+import FileIcon from '@jush-ai/web-ui/files/FileIcon.vue'
+import { reportSyntaxColorsUnavailable } from '@jush-ai/web-ui/editor/load'
+import { provideMediaViewer } from '@jush-ai/web-ui/files/media-viewer'
+import { pinRegionForms, type RegionForm } from '@jush-ai/web-ui/infra/region-wait'
+import { renderAgain } from '@jush-ai/web-ui/markdown/render-version'
 import GallerySpecimen from './GallerySpecimen.vue'
 
 /**

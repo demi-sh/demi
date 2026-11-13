@@ -61,7 +61,7 @@ pub(crate) struct Counted(Vec<Arc<Mutex<Totals>>>);
 
 impl Counted {
     /// Adds the processor time of the process, which has ended.
-    pub(crate) fn add(&self, time: demi_runner_process::process::ProcessorTime) {
+    pub(crate) fn add(&self, time: jush_runner_process::process::ProcessorTime) {
         for totals in &self.0 {
             let mut totals = totals.lock().unwrap_or_else(PoisonError::into_inner);
             totals.time.user += time.user;

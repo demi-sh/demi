@@ -1,7 +1,7 @@
 import type { DeviceDto, DeviceKind } from '../api/generated/web-api'
-import { shownMark, type DeviceMark } from '@demicodes/web-ui/devices/mark'
-import type { TargetKind } from '@demicodes/web-ui/targets/types'
-import { t as shared } from '@demicodes/web-ui/locales/text'
+import { shownMark, type DeviceMark } from '@jush-ai/web-ui/devices/mark'
+import type { TargetKind } from '@jush-ai/web-ui/targets/types'
+import { t as shared } from '@jush-ai/web-ui/locales/text'
 import { t } from './locales/text'
 
 /**

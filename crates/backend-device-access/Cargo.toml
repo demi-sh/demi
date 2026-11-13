@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-device-access"
+name = "jush-backend-device-access"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,22 +12,22 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-agent-store = { path = "../agent-store" }
-demi-agent-tools = { path = "../agent-tools" }
-demi-backend-cloud = { path = "../backend-cloud" }
-demi-backend-blobs = { path = "../backend-blobs" }
-demi-backend-runners = { path = "../backend-runners" }
-demi-backend-database = { path = "../backend-database" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-declarations = { path = "../command-declarations" }
-demi-shared-types = { path = "../shared-types" }
-demi-shared-gates = { path = "../shared-gates" }
-demi-runner-client = { path = "../runner-client" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-device-interface = { path = "../device-interface" }
-demi-device-paths = { path = "../device-paths" }
-demi-plugin-interface = { path = "../plugin-interface" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-agent-store = { path = "../agent-store" }
+jush-agent-tools = { path = "../agent-tools" }
+jush-backend-cloud = { path = "../backend-cloud" }
+jush-backend-blobs = { path = "../backend-blobs" }
+jush-backend-runners = { path = "../backend-runners" }
+jush-backend-database = { path = "../backend-database" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-declarations = { path = "../command-declarations" }
+jush-shared-types = { path = "../shared-types" }
+jush-shared-gates = { path = "../shared-gates" }
+jush-runner-client = { path = "../runner-client" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-device-interface = { path = "../device-interface" }
+jush-device-paths = { path = "../device-paths" }
+jush-plugin-interface = { path = "../plugin-interface" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 bytes.workspace = true
 futures-util.workspace = true
 http.workspace = true

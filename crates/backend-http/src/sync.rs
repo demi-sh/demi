@@ -11,9 +11,9 @@ use axum::extract::ws::rejection::WebSocketUpgradeRejection;
 use axum::extract::ws::{CloseFrame, Message, Utf8Bytes, WebSocketUpgrade, close_code};
 use axum::http::StatusCode;
 use axum::response::Response;
-use demi_backend_user_shard::shard::lane::PageSession;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::state::{SyncEvent, SyncFollowed};
+use jush_backend_user_shard::shard::lane::PageSession;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::state::{SyncEvent, SyncFollowed};
 
 use super::AppState;
 use super::connection::Opened;

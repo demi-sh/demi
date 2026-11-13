@@ -36,18 +36,18 @@
 //!
 //! # What it starts
 //!
-//! The backend is `target/debug/demi-backend` in isolated mode with the public
+//! The backend is `target/debug/jush-backend` in isolated mode with the public
 //! URL `http://127.0.0.1:<port>`. The command passes on none of its own
-//! `DEMI_*` variables, which the backend and the runner would refuse, except
-//! `DEMI_LOG`, which the backend takes, so that a development build can select
+//! `JUSH_*` variables, which the backend and the runner would refuse, except
+//! `JUSH_LOG`, which the backend takes, so that a development build can select
 //! the levels the log keeps.
 //!
 //! The server release beside the data directory is assembled anew on each run
 //! and holds only `commands/` and `files/`, with a release of each
 //! command program the build made for this machine's target only. They make the
-//! operations of `demi.file`, `demi.browser` and the others available on the
+//! operations of `jush.file`, `jush.browser` and the others available on the
 //! Cloud and on a paired device of this target (the conversation browser works
-//! once the agent has run `demi browser install`).
+//! once the agent has run `jush browser install`).
 //!
 //! The manager gives its Cloud's runners the artifact cache
 //! `.cache/dev-artifacts` in the repository, which outlives every run, so a
@@ -76,10 +76,10 @@
 //!
 //!    ```sh
 //!    bun xtask native build --target x86_64-unknown-linux-musl \
-//!      --package demi-runner --package demi-file --package demi-fetch \
-//!      --package demi-browser --package demi-claude-code --package demi-mobile \
-//!      --package demi-backend --package demi-machine-manager
-//!    bun xtask server-release --output /opt/demi/dev-<build> \
+//!      --package jush-runner --package jush-file --package jush-fetch \
+//!      --package jush-browser --package jush-claude-code --package jush-mobile \
+//!      --package jush-backend --package jush-machine-manager
+//!    bun xtask server-release --output /opt/jush/dev-<build> \
 //!      --target x86_64-unknown-linux-musl --server x86_64-unknown-linux-musl
 //!    ```
 //!
@@ -87,7 +87,7 @@
 //!    and install the machine manager from the root
 //!    (`crates/machine-manager/scripts/install-managed-hosts.sh`). The Cloud's
 //!    runner reaches the backend through its runner socket, which the backend makes
-//!    in `/run/demi-backend/`: create that directory, mode 0755, owned by the user
+//!    in `/run/jush-backend/`: create that directory, mode 0755, owned by the user
 //!    who runs the backend. The runner comes from the Cloud image, so a runner
 //!    change reaches the Cloud through an image refresh (`docs/cloud/images.md`);
 //!    a command program's change reaches it through the object store.
@@ -97,10 +97,10 @@
 //!
 //!    ```sh
 //!    cargo build --workspace --all-targets
-//!    DEMI_RELEASE=/opt/demi/dev-<build> \
-//!    DEMI_BACKEND_DATA=~/.demi/development \
-//!    DEMI_BACKEND_PUBLIC_URL=http://<address the guest reaches>:3271 \
-//!    target/debug/demi-backend
+//!    JUSH_RELEASE=/opt/jush/dev-<build> \
+//!    JUSH_BACKEND_DATA=~/.jush/development \
+//!    JUSH_BACKEND_PUBLIC_URL=http://<address the guest reaches>:3271 \
+//!    target/debug/jush-backend
 //!    ```
 //!
 //! 4. Run the web application, create the first account, and pair the machine with
@@ -127,10 +127,10 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
 
-use demi_command_protocol::testing::built_program;
-use demi_runner_protocol::release::FILES;
-use demi_web_api_protocol::auth::SetupStatus;
-use demi_web_api_protocol::providers::ProviderAnswer;
+use jush_command_protocol::testing::built_program;
+use jush_runner_protocol::release::FILES;
+use jush_web_api_protocol::auth::SetupStatus;
+use jush_web_api_protocol::providers::ProviderAnswer;
 use process_wrap::tokio::{ChildWrapper, CommandWrap, KillOnDrop, ProcessGroup};
 use reqwest::header::{CONTENT_TYPE, COOKIE, SET_COOKIE};
 use serde_json::json;
@@ -148,7 +148,7 @@ const MODEL: &str = "echo";
 /// The prefix of every program setting, which no program the command starts
 /// may inherit from this one: each names its own settings, and the backend
 /// and the runner refuse a variable that names none of them.
-const SETTINGS: &[u8] = b"DEMI_";
+const SETTINGS: &[u8] = b"JUSH_";
 
 /// How long the manager may take to print its socket, and the backend to
 /// answer.
@@ -188,7 +188,7 @@ pub struct Options {
     /// Offer Settings › Updates, as a server's backend does: Update
     /// Now writes its request to `version` in this directory, and the
     /// management socket, `manage.sock` there, hears what an upgrade would
-    /// tell, which a check writes itself as `demi-server` would.
+    /// tell, which a check writes itself as `jush-server` would.
     #[arg(long, value_name = "DIRECTORY")]
     offer_updates: Option<PathBuf>,
 }
@@ -251,7 +251,7 @@ async fn develop(
         let data = std::path::absolute(data)?;
         return serve(&options, &seed, &data, &cancel).await;
     }
-    let root = tempfile::Builder::new().prefix("demi-dev-").tempdir()?;
+    let root = tempfile::Builder::new().prefix("jush-dev-").tempdir()?;
     let served = serve(&options, &seed, root.path(), &cancel).await;
     let removed = if options.keep {
         println!("Kept the data directory {}", root.keep().display());
@@ -384,11 +384,11 @@ async fn session(
          {models}\
          \x20 Data:    {}{kept}\n\
          Start the page in another terminal:\n\
-         \x20 DEMI_BACKEND_URL={origin} {}bun run web:dev\n\
+         \x20 JUSH_BACKEND_URL={origin} {}bun run web:dev\n\
          Ctrl-C stops the backend.\n",
         match account {
             Some(account) if account.from_env => {
-                format!("{}, password from DEMI_DEV_PASSWORD", account.email)
+                format!("{}, password from JUSH_DEV_PASSWORD", account.email)
             }
             Some(account) => format!("{}, password {}", account.email, account.password),
             None => "none yet; the page opens on the setup".to_owned(),
@@ -453,7 +453,7 @@ async fn seed_data(
     }
     if models.is_empty() {
         models.push_str(
-            "\x20 Model:   none; set DEMI_DEV_PROVIDER_*, DEMI_DEV_CODEX_AUTH or DEMI_DEV_ECHO=1 in\n\
+            "\x20 Model:   none; set JUSH_DEV_PROVIDER_*, JUSH_DEV_CODEX_AUTH or JUSH_DEV_ECHO=1 in\n\
              \x20          .env to add one\n",
         );
     }
@@ -572,26 +572,26 @@ fn spawn_backend(
     codex: Option<&CodexSignIn>,
     updates: Option<&Path>,
 ) -> Result<Box<dyn ChildWrapper>, Error> {
-    let mut command = program("demi-backend");
+    let mut command = program("jush-backend");
     command
         .command_mut()
-        .env("DEMI_RELEASE", release)
-        .env("DEMI_BACKEND_DATA", data)
-        .env("DEMI_BACKEND_LISTEN", format!("127.0.0.1:{port}"))
-        .env("DEMI_BACKEND_PUBLIC_URL", public)
-        .env("DEMI_MACHINE_MANAGER_SOCKET", socket)
+        .env("JUSH_RELEASE", release)
+        .env("JUSH_BACKEND_DATA", data)
+        .env("JUSH_BACKEND_LISTEN", format!("127.0.0.1:{port}"))
+        .env("JUSH_BACKEND_PUBLIC_URL", public)
+        .env("JUSH_MACHINE_MANAGER_SOCKET", socket)
         .stdin(Stdio::null());
-    if let Some(log) = std::env::var_os("DEMI_LOG") {
-        command.command_mut().env("DEMI_LOG", log);
+    if let Some(log) = std::env::var_os("JUSH_LOG") {
+        command.command_mut().env("JUSH_LOG", log);
     }
     if let Some(updates) = updates {
         std::fs::create_dir_all(updates)?;
         command
             .command_mut()
-            .env(demi_runner_protocol::release::UPGRADE_REQUEST_ENV, updates.join("version"))
-            .env(demi_runner_protocol::release::MANAGE_SOCKET_ENV, updates.join("manage.sock"))
+            .env(jush_runner_protocol::release::UPGRADE_REQUEST_ENV, updates.join("version"))
+            .env(jush_runner_protocol::release::MANAGE_SOCKET_ENV, updates.join("manage.sock"))
             // A development build is a pre-release.
-            .env("DEMI_UPGRADE_CHANNEL", "canary");
+            .env("JUSH_UPGRADE_CHANNEL", "canary");
     }
     if let Some(codex) = codex {
         command
@@ -655,7 +655,7 @@ fn page_account(account: &Account) -> String {
         return String::new();
     }
     format!(
-        "DEMI_DEV_EMAIL={} DEMI_DEV_PASSWORD={} ",
+        "JUSH_DEV_EMAIL={} JUSH_DEV_PASSWORD={} ",
         account.email, account.password
     )
 }

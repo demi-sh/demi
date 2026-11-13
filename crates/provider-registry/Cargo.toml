@@ -1,5 +1,5 @@
 [package]
-name = "demi-provider-registry"
+name = "jush-provider-registry"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,11 +12,11 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-types = { path = "../shared-types" }
-demi-provider-common = { path = "../provider-common" }
-demi-provider-anthropic-api = { path = "../provider-anthropic-api" }
-demi-provider-openai-api = { path = "../provider-openai-api" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-shared-types = { path = "../shared-types" }
+jush-provider-common = { path = "../provider-common" }
+jush-provider-anthropic-api = { path = "../provider-anthropic-api" }
+jush-provider-openai-api = { path = "../provider-openai-api" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 futures-util.workspace = true
 garde.workspace = true
 hex = "0.4"

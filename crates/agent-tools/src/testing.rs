@@ -3,7 +3,7 @@
 
 use std::rc::Rc;
 
-use demi_device_interface::{
+use jush_device_interface::{
     Device, DeviceError, DeviceFs, DeviceIdentity, DeviceKey, DeviceProcess, ShellEnvironment,
 };
 use futures_util::future::LocalBoxFuture;

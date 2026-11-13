@@ -34,10 +34,10 @@ use std::hash::Hash;
 use std::rc::{Rc, Weak};
 use std::time::Duration;
 
-use demi_runner_client::{DeviceEvent, DeviceSubscriber};
-use demi_runner_protocol::files::Subject;
-use demi_runner_protocol::wire::SUBSCRIPTION_LEASE;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_runner_client::{DeviceEvent, DeviceSubscriber};
+use jush_runner_protocol::files::Subject;
+use jush_runner_protocol::wire::SUBSCRIPTION_LEASE;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::LocalBoxFuture;
 use tokio::sync::{Notify, watch};
 use tokio::task::AbortHandle;

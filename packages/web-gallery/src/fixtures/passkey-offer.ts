@@ -1,4 +1,4 @@
-import type { PasskeyOfferOutcome } from '@demicodes/web-ui/settings/types'
+import type { PasskeyOfferOutcome } from '@jush-ai/web-ui/settings/types'
 import { productWould } from '../product-would'
 
 /** How the stand-in browser answers Add Passkey in a specimen of the offer. */

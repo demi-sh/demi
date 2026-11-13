@@ -30,17 +30,17 @@ use std::rc::{Rc, Weak};
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_runner_client::{
+use jush_runner_client::{
     Pipe, PipeReader, PipeWriter, ResidentCallError, ResidentRequest, ResidentStream,
 };
-use demi_backend_runners::command_context::command_context;
-use demi_backend_runners::native::NativeCatalog;
-use demi_command_declarations::NativeOperation;
-use demi_command_protocol::CommandCaller;
-use demi_device_interface::DeviceErrorKind;
-use demi_shared_gates::{ActivityGate, GateLease, Purpose};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_backend_runners::command_context::command_context;
+use jush_backend_runners::native::NativeCatalog;
+use jush_command_declarations::NativeOperation;
+use jush_command_protocol::CommandCaller;
+use jush_device_interface::DeviceErrorKind;
+use jush_shared_gates::{ActivityGate, GateLease, Purpose};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use serde_json::{Map, Value};
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
@@ -52,7 +52,7 @@ use crate::transfer::OpenTransfer;
 
 /// The native operation a user stream or a one-shot user call runs, as a
 /// direct channel's introduction carries it too.
-pub use demi_runner_protocol::direct::ResidentBinding;
+pub use jush_runner_protocol::direct::ResidentBinding;
 
 /// The user streams a page may open, by name. Each binds an operation of a
 /// published package; the plugins declare them, fixed for the backend's

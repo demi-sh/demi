@@ -63,24 +63,24 @@ const WEIGHTS: Record<RestartStepKind, number> = {
 }
 
 /**
- * Kept Clouds take as long as stopping Demi: the manager only records the
+ * Kept Clouds take as long as stopping Jush: the manager only records the
  * Clouds it leaves running, while saving them stops each one.
  */
 const KEPT_WEIGHT = WEIGHTS.stopDemi
 
 /**
- * The screen over the whole app from the moment Demi restarts for an update
- * until the user opens Demi again: every step of the rest of the update, each
+ * The screen over the whole app from the moment Jush restarts for an update
+ * until the user opens Jush again: every step of the rest of the update, each
  * with what it did or how far it is, and a bar of the whole. It shows counts
- * and sizes, never a name: it shows before anyone signs in. While Demi cannot
+ * and sizes, never a name: it shows before anyone signs in. While Jush cannot
  * be reached it keeps the list it last read, so it never empties or changes
- * size; before Demi first says how far it is, the bar moves. Once the update
- * ended, Open Demi loads the page; nothing loads it by itself, so the user
+ * size; before Jush first says how far it is, the bar moves. Once the update
+ * ended, Open Jush loads the page; nothing loads it by itself, so the user
  * sees every step end. The line under the list and the button keep their
  * room in every state.
  */
 const props = defineProps<{
-  /** How far the update is; null until Demi says, which shows the bar moving. */
+  /** How far the update is; null until Jush says, which shows the bar moving. */
   progress: UpdateProgress | null
   /** How the update ended; none while it runs. */
   ended?: UpdateEnd | null
@@ -122,7 +122,7 @@ function detail(state: StepState): string {
 
 /**
  * How a step shows once the update ended, from what the screen last read:
- * done every one once Demi is updated, as when the backend that serves
+ * done every one once Jush is updated, as when the backend that serves
  * started again since and no longer says what each did; and the one still
  * running failed once the server returned, as when the screen did not hear
  * which step failed. Such a step says nothing more.
@@ -152,7 +152,7 @@ const failed = computed(() => props.progress !== null && !props.progress.returni
 const title = computed(() => {
   const progress = props.progress
   if (props.ended === 'updated')
-    return progress ? t('updating.updated', { version: progress.to }) : t('updating.updatedDemi')
+    return progress ? t('updating.updated', { version: progress.to }) : t('updating.updatedJush')
   if (progress === null)
     return t('updating.title')
   if (props.ended === 'returned')
@@ -193,7 +193,7 @@ const body = computed(() => {
         <div class="updating-moving absolute inset-y-0 w-1/3 rounded-full bg-accent-fill" />
       </div>
     </div>
-    <!-- The list's room is every step's, before Demi first says how far it is too. -->
+    <!-- The list's room is every step's, before Jush first says how far it is too. -->
     <div class="h-56 w-full max-w-xl phone:h-96">
       <UpdateSteps :lines="lines" />
     </div>

@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use demi_shared_types::MAX_SAFE_INTEGER;
+use jush_shared_types::MAX_SAFE_INTEGER;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +22,7 @@ pub struct PluginEntry {
     /// (`crates/plugin-host/src/features.rs`).
     pub features: BTreeMap<String, bool>,
     /// The command packages its commands, user streams and page methods
-    /// bind that the backend's catalog serves, such as `demi.browser`.
+    /// bind that the backend's catalog serves, such as `jush.browser`.
     pub packages: Vec<String>,
 }
 
@@ -77,5 +77,5 @@ pub struct ReplyBlocksRead {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplyBlocksAnswer {
-    pub reply_blocks: Vec<demi_conversation_lane_protocol::ReplyBlockFacts>,
+    pub reply_blocks: Vec<jush_conversation_lane_protocol::ReplyBlockFacts>,
 }

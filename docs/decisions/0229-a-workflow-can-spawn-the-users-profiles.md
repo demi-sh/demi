@@ -13,7 +13,7 @@ has no inherit profile.
 
 Alex keeps a `translate` profile in Settings > Subagents, on a cheap model,
 for every project. A project's Review Team workflow declares `review` and
-`research`. Once Alex picks Review Team for a conversation, `demi agent
+`research`. Once Alex picks Review Team for a conversation, `jush agent
 spawn --profile translate` fails: the workflow's profiles replace the
 user's. Alex either copies `translate` into the project's file, where the
 whole team gets it, or switches the conversation back to Global Workflow
@@ -46,7 +46,7 @@ profiles:
   it takes, the workflow's first:
 
   ```text
-  $ demi agent spawn < brief.md
+  $ jush agent spawn < brief.md
   error: workflow Review Team spawns only named profiles: review, research,
   translate; do other work in this session.
   ```
@@ -55,19 +55,19 @@ profiles:
   `subagent_instructions` before its profile's own, as the workflow's
   children do: they say how every subagent of the conversation works with
   its lead. The field's help says "every subagent of the conversation".
-- `demi agent profiles list` lists the workflow's profiles first, in the
+- `jush agent profiles list` lists the workflow's profiles first, in the
   file's order, then the user's in name order; its SOURCE column says
-  which is which, as it already does. `demi agent workflows check` adds a
+  which is which, as it already does. `jush agent workflows check` adds a
   `User profiles: yes` or `no` line.
 - The workflow's element of the instructions block lists the workflow's
   profiles, and with `user_profiles` on adds one line, never the user's
   names, which stay out of every prompt as 0112's module comment says:
 
   ```text
-  The subagents you can spawn, with demi agent spawn --profile <id>:
+  The subagents you can spawn, with jush agent spawn --profile <id>:
   - review: Use to review a change before it is committed.
   - research: Use only when the user assigns a question to it.
-  - The user's own profiles, which demi agent profiles list shows.
+  - The user's own profiles, which jush agent profiles list shows.
   ```
 
   A workflow with no profiles of its own lists only the last line; with
@@ -75,7 +75,7 @@ profiles:
   workflow with no profiles says "You can spawn no subagents." as now.
 - With the Subagents switch off, a spawn that names one of the user's
   profiles fails saying the switch is off, never that the name is unknown,
-  and `demi agent profiles list` says on stderr that the user's profiles are
+  and `jush agent profiles list` says on stderr that the user's profiles are
   off; a resume takes them, as under Global Workflow.
 - The composer's context indicator, which counts the cost of the profiles
   the conversation can spawn, counts the user's too.
@@ -124,6 +124,6 @@ call time.
 
 ## Open questions
 
-- Whether this repository's own workflows, `.demi/workflows/parallel.yaml`
+- Whether this repository's own workflows, `.jush/workflows/parallel.yaml`
   and `slots.yaml`, turn the user's profiles off to keep their current
   behavior.

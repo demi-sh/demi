@@ -4,7 +4,7 @@
  * The plugin's bytes are binary messages, and the stream's own word on
  * whether it is watched a text message.
  */
-import type { StreamWatched } from '@demicodes/protocol'
+import type { StreamWatched } from '@jush-ai/protocol'
 import type { OpenUserStream, StreamBytes } from '../plugins/streams'
 import { Lane, openLane } from './page-connection'
 

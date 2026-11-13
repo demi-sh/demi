@@ -4,7 +4,7 @@
 
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use demi_shared_types::{Clock, Model, Timestamp, TokenUsage};
+use jush_shared_types::{Clock, Model, Timestamp, TokenUsage};
 use futures_util::{
     StreamExt,
     future::LocalBoxFuture,

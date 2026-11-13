@@ -1,12 +1,12 @@
 //! What the plugin host asks of a plugin, and what the plugin answers. Each request names its user,
 //! since a plugin process would serve every user.
 
-use demi_device_interface::{PortError, RpcError, RpcInvocation};
-use demi_device_paths::DevicePaths;
-use demi_shared_types::{NodeId, TurnId};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
-use demi_web_api_protocol::work::WorkTab;
-use demi_web_api_protocol::workflows::WatchSubject;
+use jush_device_interface::{PortError, RpcError, RpcInvocation};
+use jush_device_paths::DevicePaths;
+use jush_shared_types::{NodeId, TurnId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_web_api_protocol::work::WorkTab;
+use jush_web_api_protocol::workflows::WatchSubject;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -22,7 +22,7 @@ use crate::{PortFailure, PortRefusal};
 pub enum Request {
     /// The model ran an `rpc` leaf of the plugin's commands. The
     /// invocation's path starts at the plugin's own tree: a group the plugin
-    /// placed under `demi` arrives without the `demi` before it.
+    /// placed under `jush` arrives without the `jush` before it.
     Command {
         user: UserId,
         invocation: Box<RpcInvocation>,

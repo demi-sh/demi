@@ -23,10 +23,10 @@
 
 use std::{fmt, io, process::Command};
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     DRAIN_RECORD, DrainRecord, LEAVE_REQUEST, LEFT_RECORD, MANAGER_UNIT, STATE_FORMAT, runtime::RuntimeRelease,
 };
-use demi_runner_protocol::release::{
+use jush_runner_protocol::release::{
     RestartStepKind, SkipReason, StepProgress, StepState, StepSummary, UpgradeStepKind,
 };
 use semver::Version;
@@ -138,8 +138,8 @@ fn prepare(
     runners::start_prefetch(&socket, &layout.release(to))?;
     let bin = layout.release(to).join("bin");
     notices.start(UpgradeStepKind::CheckConfiguration);
-    run(settings.command(&bin.join("demi-backend")).arg("--check-config"))?;
-    let manager = bin.join("demi-machine-manager");
+    run(settings.command(&bin.join("jush-backend")).arg("--check-config"))?;
+    let manager = bin.join("jush-machine-manager");
     run(settings.command(&manager).arg("--check-config"))?;
     store::require_tools(&settings.manager_data()?)?;
     let format = manager_format(&settings.manager_data()?)?;
@@ -193,7 +193,7 @@ pub fn install(layout: &Layout, settings: &Settings, to: &Version, notices: &mut
         gvisor::of_release(layout, to)?;
         notices.done(UpgradeStepKind::DownloadGvisor, StepSummary::None);
     }
-    let manager = layout.release(to).join("bin").join("demi-machine-manager");
+    let manager = layout.release(to).join("bin").join("jush-machine-manager");
     install_image(layout, settings, to, &manager, notices)
 }
 
@@ -254,7 +254,7 @@ pub fn carry_out(
     let settings = Settings::read(&layout.config())?;
     let backend = settings.backend_data()?;
     let screen = Screen {
-        program: layout.release(&journal.to).join("bin/demi-backend"),
+        program: layout.release(&journal.to).join("bin/jush-backend"),
         config: layout.config(),
         record: notices.record_path(),
     };
@@ -303,10 +303,10 @@ fn take_steps(
                 // Every page shows the update's screen from here; the backend
                 // answers once they had the time to hear it.
                 notices.start(UpgradeStepKind::Restart);
-                notices.start_restart(RestartStepKind::StopDemi);
+                notices.start_restart(RestartStepKind::StopJush);
                 services.stop(BACKEND)?;
                 *stopped = true;
-                notices.done_restart(RestartStepKind::StopDemi, StepSummary::None);
+                notices.done_restart(RestartStepKind::StopJush, StepSummary::None);
                 screen.up(services);
                 let keep = keeps_clouds(&settings.manager_data()?)?;
                 save_clouds(services, notices, keep)?;
@@ -386,8 +386,10 @@ fn take_steps(
                 if let Err((unit, reason)) = started {
                     let log = services.log(unit);
                     // A rollback that does not start stays, for the next run
-                    // to try again: its release is the one to return to.
-                    if journal.to < journal.from {
+                    // to try again: its release is the one to return to. So
+                    // does a release whose move left a release of before
+                    // Jush's names, which cannot run here (`renamed`).
+                    if journal.to < journal.from || !crate::renamed::runs_here(layout, &journal.from) {
                         return Err(Failure::Failed(reason));
                     }
                     notices.failed_step(&format!("{} did not start", journal.to), true);
@@ -534,7 +536,7 @@ fn start_all(
     notices.done_restart(RestartStepKind::StartManager, StepSummary::None);
     screen.down(services);
     // The backend takes its start, and its data's steps, from here.
-    notices.start_restart(RestartStepKind::StartDemi);
+    notices.start_restart(RestartStepKind::StartJush);
     services.start(BACKEND).map_err(|error| (BACKEND, error))?;
     Ok(())
 }
@@ -566,7 +568,7 @@ fn return_to_from(
         });
     started.map_err(|error| {
         io::Error::other(format!(
-            "{} did not start again either: {error}; the next demi-server command switches to {} again",
+            "{} did not start again either: {error}; the next jush-server command switches to {} again",
             journal.from, journal.to
         ))
     })

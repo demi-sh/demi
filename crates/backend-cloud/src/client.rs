@@ -34,11 +34,11 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     Capacity, DeviceId, Enforces, Isolation, MAX_LINE_BYTES, MachineCall, MachineRequest, MachineResponse,
     ManagerEvent, MoveStatus, Operation, RuntimeOffer, WIRE_VERSION, decode_response, encode_line,
 };
-use demi_backend_database::server_log::ServerLog;
+use jush_backend_database::server_log::ServerLog;
 use futures_util::StreamExt as _;
 use tokio::io::AsyncWriteExt as _;
 use tokio::net::UnixStream;

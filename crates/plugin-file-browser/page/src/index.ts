@@ -5,7 +5,7 @@
 // one Media tab of the conversation's pictures and videos.
 import { defineComponent, h, type PropType } from 'vue'
 import { File, FolderOpen } from '@lucide/vue'
-import { FileIcon, ICON_PX, baseName, definePage, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
+import { FileIcon, ICON_PX, baseName, definePage, type TabKind, type WindowKind } from '@jush-ai/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import { t } from './locales/text'
 import FileTab from './FileTab.vue'

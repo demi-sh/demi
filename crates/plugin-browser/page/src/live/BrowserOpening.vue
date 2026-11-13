@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import { AddressBar, RegionStatus, downloadProgress } from '@demicodes/plugin-sdk'
+import { AddressBar, RegionStatus, downloadProgress } from '@jush-ai/plugin-sdk'
 import { t } from '../locales/text'
 import { BLANK_URL, startingLabel, type BrowserTabsController } from './tabs'
 import { BLANK_PAGE } from './view'
@@ -8,7 +8,7 @@ import { BLANK_PAGE } from './view'
 /**
  * What the browser window shows over its tabs while a tab the user opens
  * comes, the latest one asked: the tab as it will look, an address bar on
- * what it opens and below it what Demi does, or a blank page for a blank
+ * what it opens and below it what Jush does, or a blank page for a blank
  * tab the browser opens now, so the tab that comes moves nothing. An
  * address typed meanwhile is where the tab goes once it opens. An opening
  * that ends without a tab, refused or closed before the work showed it,

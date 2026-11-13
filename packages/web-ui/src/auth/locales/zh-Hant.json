@@ -23,9 +23,9 @@
     "locked": "登入失敗次數過多。請在 {time} 後重試。"
   },
   "setup": {
-    "title": "設定 Demi",
-    "message": "建立用於管理 Demi 的擁有者帳號。",
-    "taken": "Demi 已完成設定。請使用其擁有者帳號登入。",
+    "title": "設定 Jush",
+    "message": "建立用於管理 Jush 的擁有者帳號。",
+    "taken": "Jush 已完成設定。請使用其擁有者帳號登入。",
     "name": "名稱",
     "email": "電子郵件",
     "password": "密碼",
@@ -53,7 +53,7 @@
     "passwordMessage": "請確認是你本人，以新增通行密鑰。",
     "password": "密碼",
     "readyTitle": "通行密鑰已就緒",
-    "readyMessage": "你的密碼管理工具中已有 Demi 的通行密鑰。"
+    "readyMessage": "你的密碼管理工具中已有 Jush 的通行密鑰。"
   },
   "unlock": {
     "ios": "使用 Face ID 或 Touch ID 取代密碼登入。",

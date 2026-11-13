@@ -183,7 +183,7 @@ until an action.
 * On phones, Google Docs opens a comment in a sheet from the bottom of the
   screen; Apple Maps keeps its sheet open without a scrim while the map
   above it takes touches.
-* Demi departs in opening the field at once and taking the first key into
+* Jush departs in opening the field at once and taking the first key into
   it; no mainstream product does this, which the user chose for the
   commonest act.
 

@@ -1,5 +1,5 @@
-import { errorMessage } from '@demicodes/web-ui/infra/errors'
-import { PluginCallError } from '@demicodes/web-ui/plugins/page'
+import { errorMessage } from '@jush-ai/web-ui/infra/errors'
+import { PluginCallError } from '@jush-ai/web-ui/plugins/page'
 import { ApiError, UnreadableResponse } from '../api/client'
 
 /**

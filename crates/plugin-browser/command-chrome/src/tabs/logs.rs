@@ -8,7 +8,7 @@ use serde_json::Value;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_shared_types::buffer::Buffer;
+use jush_shared_types::buffer::Buffer;
 
 use crate::driver::operation::{BrowserError, Result};
 

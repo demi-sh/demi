@@ -6,13 +6,13 @@ status: accepted
 
 ## Problem
 
-Alex runs a conversation on a Grok Build subscription. Demi sends each request
+Alex runs a conversation on a Grok Build subscription. Jush sends each request
 to the Grok CLI's chat proxy as Chat Completions, and three things are lost on
 the way:
 
 - **Search.** xAI's web search and X search run only as tools of the Responses
   API. Alex asks what developers say on X about a new release, and the model
-  can only call `demi web search`, which cannot see X.
+  can only call `jush web search`, which cannot see X.
 - **Reasoning.** Chat Completions streams the model's reasoning as text and
   takes none of it back, so every request starts the model's thinking afresh.
   The proxy's catalog names Responses as every model's backend
@@ -86,12 +86,12 @@ Every point ran against the proxy with a subscription account:
 - CLIProxyAPI sends a Grok account's requests to the proxy's `/v1/responses`
   ([`xai_executor_request.go`](https://github.com/router-for-me/CLIProxyAPI/blob/90c447d3a8727d115aa7552ec93ce023736ed492/internal/runtime/executor/xai_executor_request.go#L232-L391)).
   It also rewrites tools, caps them at 200 and folds namespaces, for clients
-  it does not control; Demi sends its own tools and needs none of that.
+  it does not control; Jush sends its own tools and needs none of that.
 
 ## Alternatives
 
 - **Keep Chat Completions and run search as a second request**, a
-  `demi x search` command that asks the proxy once with only `x_search`. It
+  `jush x search` command that asks the proxy once with only `x_search`. It
   works for any model, but it costs a second model call per search, keeps the
   other two losses, and a model other than Grok can reach X search through a
   Grok subagent.

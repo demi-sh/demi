@@ -1,4 +1,4 @@
-import { clamp } from '@demicodes/utils'
+import { clamp } from '@jush-ai/utils'
 import type { PixelSize } from '../files/thumbnail'
 
 /** A window's box on the page, in CSS px from the page's top-left corner. */

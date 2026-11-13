@@ -7,7 +7,7 @@ status: proposed
 ## Problem
 
 Alex works with Claude Opus in a conversation whose context has grown to
-400,000 tokens, then leaves for lunch. Demi asks Anthropic to keep the
+400,000 tokens, then leaves for lunch. Jush asks Anthropic to keep the
 conversation's prompt cache for an hour. Alex comes back after 90 minutes and
 sends one line:
 
@@ -21,7 +21,7 @@ A summary written before the cache expired would have read the history from
 the cache, at a twentieth of the input price on Opus, and the next message
 would have sent the summary instead of the history.
 
-Two things keep Demi from doing that today:
+Two things keep Jush from doing that today:
 
 * It compacts only when the context nears the model's window, or when the
   user asks.
@@ -58,7 +58,7 @@ Context
 An API-key entry whose protocol has a parameter for the cache's lifetime
 gets a **Prompt cache lifetime** row in its settings card, under API key. A
 subscription gets none: its vendor's own client chooses the lifetime, and
-Demi does not override it.
+Jush does not override it.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -70,17 +70,17 @@ Demi does not override it.
 
 The menu lists Unspecified, then the presets the protocol knows, then
 Custom…. Custom shows a field for any lifetime written
-as whole minutes or hours, such as `2h` or `90m`. Demi sends it as written,
+as whole minutes or hours, such as `2h` or `90m`. Jush sends it as written,
 in the protocol's own field.
 
-| Provider                     | Field Demi sends             | Presets              | Default     |
+| Provider                     | Field Jush sends             | Presets              | Default     |
 | ---------------------------- | ---------------------------- | -------------------- | ----------- |
 | Anthropic Messages           | `cache_control.ttl`          | 5 minutes, 1 hour    | 1 hour      |
 | OpenAI Responses             | `prompt_cache_options.ttl`   | 30 minutes, 12 hours | Unspecified |
 | OpenAI Chat Completions      | `prompt_cache_options.ttl`   | 5 minutes, 1 hour    | Unspecified |
 | Gemini and every subscription | none                        | no row               |             |
 
-* An Anthropic entry, its own or a compatible one, keeps the hour Demi
+* An Anthropic entry, its own or a compatible one, keeps the hour Jush
   sends today.
 * A compatible entry offers the presets of its protocol. Kimi takes
   `prompt_cache_options.ttl` on Chat Completions with 5 minutes and 1 hour.
@@ -239,7 +239,7 @@ cache expired*. Its VS Code panel and desktop app write the summary then,
 and use it only if the next message comes after the hour.
 `promptCacheTtl` chooses `5m` or `1h` for the main conversation.
 
-Demi departs in these ways:
+Jush departs in these ways:
 
 * It is off by default.
 * A minimum of 30 minutes may be chosen, so an OpenAI conversation on its
@@ -268,7 +268,7 @@ Demi departs in these ways:
   lifetime its user chose.
 * **The lifetime the vendor reports writing, for every provider.** Only
   Anthropic's usage and OpenAI's GPT-5.6 and later report it, so every other
-  vendor would never compact. Demi uses it only for Claude Code, which
+  vendor would never compact. Jush uses it only for Claude Code, which
   chooses for itself.
 
 ## Open questions

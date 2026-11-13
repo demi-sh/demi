@@ -1,4 +1,4 @@
-//! The `image` plugin: the `demi image` group.
+//! The `image` plugin: the `jush image` group.
 //!
 //! The group makes and edits images through the port's Providers service, reads
 //! an edit's images with the port's file reads, writes the image's bytes to
@@ -15,7 +15,7 @@ mod image;
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     CommandPlugin, Manifest, Plugin, PluginError, PluginFactory, PluginId, PluginPort, Reply,
     Request,
 };
@@ -30,7 +30,7 @@ impl Image {
         let mut manifest = Manifest::new(
             PluginId::try_from("image").expect("a valid plugin id"),
             "Image Generation",
-            "Makes and edits images through your ChatGPT or Grok subscription with demi image.",
+            "Makes and edits images through your ChatGPT or Grok subscription with jush image.",
         );
         manifest.commands = commands::commands().manifest_commands();
         Self { manifest }

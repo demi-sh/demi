@@ -1,5 +1,5 @@
 //! The developer's Codex CLI sign-in `xtask dev` makes the master account's
-//! Codex entry hold at each start: `DEMI_DEV_CODEX_AUTH` names its `auth.json`, whose
+//! Codex entry hold at each start: `JUSH_DEV_CODEX_AUTH` names its `auth.json`, whose
 //! access token, ID token and account ID, never its refresh token, go to the
 //! backend in a file of this run's that only this user can read, named by
 //! the backend's development flag. No token is ever printed.
@@ -11,7 +11,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 /// The variable.
-const AUTH: &str = "DEMI_DEV_CODEX_AUTH";
+const AUTH: &str = "JUSH_DEV_CODEX_AUTH";
 
 /// The Codex CLI's `auth.json`, as far as it is read: its other fields,
 /// the refresh token among them, are left unread.
@@ -60,7 +60,7 @@ impl CodexSignIn {
             .map_err(|error| format!("{AUTH} names {}, which cannot be read: {error}", path.display()))?;
         let document = backend_document(&path, &text)?;
         let written = (|| {
-            let mut file = tempfile::Builder::new().prefix("demi-dev-codex-").tempfile()?;
+            let mut file = tempfile::Builder::new().prefix("jush-dev-codex-").tempfile()?;
             file.write_all(document.to_string().as_bytes())?;
             file.flush()?;
             Ok::<_, std::io::Error>(file)

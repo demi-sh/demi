@@ -1,7 +1,7 @@
 //! The user's subagent settings: the Subagents switch, the limits and the
 //! profiles.
 //!
-//! They are written here for the settings page and for `demi agent profiles`
+//! They are written here for the settings page and for `jush agent profiles`
 //! alike, after the same checks:
 //!
 //! - A profile's name and texts follow the accounts service's rules.
@@ -12,14 +12,14 @@
 //! spawn of every conversation reads it, since a spawn reads the settings each
 //! time.
 
-use demi_backend_accounts::subagents::{self, ContextRefusal, ProfileTextError};
-use demi_backend_database::StorageError;
-use demi_backend_database::subagents::ProfileRefusal as Stored;
-use demi_backend_device_access::transition::ChangeRefusal;
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::conversations::ModelSettings;
-use demi_web_api_protocol::ids::ProfileId;
-use demi_web_api_protocol::subagents::{NewProfile, ProfilePatch, SubagentProfile, SubagentsPatch};
+use jush_backend_accounts::subagents::{self, ContextRefusal, ProfileTextError};
+use jush_backend_database::StorageError;
+use jush_backend_database::subagents::ProfileRefusal as Stored;
+use jush_backend_device_access::transition::ChangeRefusal;
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::conversations::ModelSettings;
+use jush_web_api_protocol::ids::ProfileId;
+use jush_web_api_protocol::subagents::{NewProfile, ProfilePatch, SubagentProfile, SubagentsPatch};
 
 use super::Shard;
 

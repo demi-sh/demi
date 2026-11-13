@@ -31,7 +31,7 @@
 //! # What counts as a change
 //!
 //! - A folder subscription with a suffix counts only the entries whose names
-//!   end with it: a `notes.txt` beside `.demi/workflows/review.yaml` changes
+//!   end with it: a `notes.txt` beside `.jush/workflows/review.yaml` changes
 //!   nothing of a subscription to that folder's `.yaml` entries.
 //! - An ignored path changes no `worktree` subscription (`crate::ignore`), but
 //!   a `file` or `folder` subscription inside an ignored folder, such as a log
@@ -54,9 +54,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use demi_command_sdk::paths::resolve;
-use demi_runner_protocol::files::SubscriptionKind;
-use demi_runner_protocol::wire::{CHANGES_PER_MESSAGE, SUBSCRIPTION_LEASE, WATCH_GATHER};
+use jush_command_sdk::paths::resolve;
+use jush_runner_protocol::files::SubscriptionKind;
+use jush_runner_protocol::wire::{CHANGES_PER_MESSAGE, SUBSCRIPTION_LEASE, WATCH_GATHER};
 use tokio::sync::{Notify, OwnedSemaphorePermit, Semaphore, mpsc};
 use tokio::time::Instant;
 use tokio_util::task::AbortOnDropHandle;
@@ -522,7 +522,7 @@ impl Owner {
     }
 
     async fn subscribe(&mut self, id: String, kind: SubscriptionKind, path: String, suffix: Option<String>) -> bool {
-        let _step = demi_runner_process::steps::step("subscribe", id.as_str());
+        let _step = jush_runner_process::steps::step("subscribe", id.as_str());
         let lease = Instant::now() + SUBSCRIPTION_LEASE;
         let resolved = resolve(&self.default_cwd, &path);
         let subject = match resolved {
@@ -640,7 +640,7 @@ impl Owner {
         let empty = index.is_empty();
         drop(index);
         if empty {
-            let _step = demi_runner_process::steps::step("watch_teardown", id);
+            let _step = jush_runner_process::steps::step("watch_teardown", id);
             self.bound.remove(key);
         }
     }

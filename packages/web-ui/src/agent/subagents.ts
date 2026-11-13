@@ -1,6 +1,6 @@
-import type { AgentCost, AgentEntry, ContextUsage, JobModel, JobPhase, PendingCall, ProviderFailureFacts, SessionPhase, Subagent } from '@demicodes/protocol'
+import type { AgentCost, AgentEntry, ContextUsage, JobModel, JobPhase, PendingCall, ProviderFailureFacts, SessionPhase, Subagent } from '@jush-ai/protocol'
 import type { AgentActivity } from './agent-activity'
-import type { HeldTranscript } from '@demicodes/conversation-client'
+import type { HeldTranscript } from '@jush-ai/conversation-client'
 import type { ConversationStatus } from './conversation-status'
 import { sessionWorks } from './session-status'
 import type { MessageEditContent } from './message-editing'

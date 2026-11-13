@@ -6,7 +6,7 @@
 //!   `git ls-remote <url> HEAD`.
 //! - A fetch reads the default branch's newest commit, bare and without
 //!   the files' contents where the remote can leave them out, into a
-//!   directory of the device's own under `~/.demi/tmp/`. It lists the
+//!   directory of the device's own under `~/.jush/tmp/`. It lists the
 //!   commit's tree, fetches the objects of the files of every directory a
 //!   file named `marker` marks in one request, and reads them in runs of at
 //!   most [`READ_MAX_BYTES`], each run's objects stored in the user's blobs
@@ -28,12 +28,12 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use bytes::Bytes;
 use futures_util::StreamExt;
-use demi_backend_blobs::blobs::UserBlobs;
-use demi_device_interface::{FileKind, Device as _, ProcessEnd, RmOptions, SpawnEnv, SpawnRequest};
-use demi_runner_client::RemoteDevice;
-use demi_shared_types::{BlobRef, StreamKind};
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::ids::DeviceId;
+use jush_backend_blobs::blobs::UserBlobs;
+use jush_device_interface::{FileKind, Device as _, ProcessEnd, RmOptions, SpawnEnv, SpawnRequest};
+use jush_runner_client::RemoteDevice;
+use jush_shared_types::{BlobRef, StreamKind};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::ids::DeviceId;
 
 use crate::DeviceShard;
 
@@ -135,7 +135,7 @@ impl dyn DeviceShard + '_ {
     pub async fn device_git_fetch(&self, device: &DeviceId, url: &str, marker: &str) -> Result<GitTree, DeviceGitError> {
         let remote = self.git_device(device).await?;
         let paths = remote.identity().paths;
-        let base = paths.join(&remote.identity().home_dir, ".demi/tmp");
+        let base = paths.join(&remote.identity().home_dir, ".jush/tmp");
         let base = remote
             .fs()
             .directory(&base, true)
@@ -191,7 +191,7 @@ impl dyn DeviceShard + '_ {
 /// time; a mark that fails leaves the next one to make.
 async fn mark(device: &RemoteDevice, directory: &str) {
     let since = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |since| since.as_millis());
-    let Ok(now) = demi_shared_types::Timestamp::from_millisecond(i64::try_from(since).unwrap_or(i64::MAX)) else {
+    let Ok(now) = jush_shared_types::Timestamp::from_millisecond(i64::try_from(since).unwrap_or(i64::MAX)) else {
         return;
     };
     let _ = device.fs().utimes(directory, now, now).await;

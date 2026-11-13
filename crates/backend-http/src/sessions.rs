@@ -12,14 +12,14 @@ use axum::http::header::USER_AGENT;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::CookieJar;
-use demi_backend_accounts::passkeys;
-use demi_backend_accounts::sessions::{DeviceSession, SignOut, Spend};
-use demi_backend_page_sync::Part;
-use demi_backend_user_shard::services::Services;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::passkeys::{PasskeySignIn, SignInChallenge};
-use demi_web_api_protocol::sessions::{
+use jush_backend_accounts::passkeys;
+use jush_backend_accounts::sessions::{DeviceSession, SignOut, Spend};
+use jush_backend_page_sync::Part;
+use jush_backend_user_shard::services::Services;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::passkeys::{PasskeySignIn, SignInChallenge};
+use jush_web_api_protocol::sessions::{
     HandoffAnswer, HandoffCode, HandoffRequest, HandoffSpend, ProductPath, SessionId, SessionList,
     VerifyPassword,
 };

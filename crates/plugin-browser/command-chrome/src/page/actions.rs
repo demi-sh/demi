@@ -25,7 +25,7 @@ use chromiumoxide::{
     },
     layout::Point,
 };
-use demi_shared_recording_protocol::InputBy;
+use jush_shared_recording_protocol::InputBy;
 use serde::Serialize;
 use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
@@ -170,7 +170,7 @@ pub async fn recorded<T>(
     let _forget = crate::live::inputs::Forget(tab, &under_way);
     let result = work.await;
     let failed = result.as_ref().err().map(|error| {
-        if demi_shared_recording_protocol::text::keeps_failure(command.name()) {
+        if jush_shared_recording_protocol::text::keeps_failure(command.name()) {
             error.to_string()
         } else {
             "its message names the text it typed, which a recording does not keep".to_owned()
@@ -182,8 +182,8 @@ pub async fn recorded<T>(
         &under_way,
         began,
         || {
-            let positionals = demi_command_package_browser_protocol::browser::positionals(command.name(), true);
-            let mut text = demi_shared_recording_protocol::text::command(command.name(), &command.arguments(), &positionals);
+            let positionals = jush_command_package_browser_protocol::browser::positionals(command.name(), true);
+            let mut text = jush_shared_recording_protocol::text::command(command.name(), &command.arguments(), &positionals);
             if let Some(acted_on) = acted_on {
                 text.push_str(&format!(" → {acted_on}"));
             }

@@ -1,10 +1,10 @@
 //! The manager's configuration (`setup.md` § Configuration):
 //!
 //! - Its command line.
-//! - Its own `DEMI_MANAGED_*` variables.
-//! - The backend's settings it shares (`DEMI_RELEASE`,
-//!   `DEMI_BACKEND_PUBLIC_URL`, `DEMI_MACHINE_MANAGER_SOCKET`,
-//!   `DEMI_BACKEND_RUNNER_SOCKET`).
+//! - Its own `JUSH_MANAGED_*` variables.
+//! - The backend's settings it shares (`JUSH_RELEASE`,
+//!   `JUSH_BACKEND_PUBLIC_URL`, `JUSH_MACHINE_MANAGER_SOCKET`,
+//!   `JUSH_BACKEND_RUNNER_SOCKET`).
 //!
 //! All are read from the deployment's one configuration file and validated at
 //! startup. An invalid or unknown setting stops the manager with an error that
@@ -19,20 +19,20 @@ use std::{
 };
 
 use clap::{CommandFactory, FromArgMatches, parser::ValueSource};
-use demi_machine_manager_protocol::SandboxMachine;
-use demi_machine_manager_protocol::runtime::RuntimeRelease;
+use jush_machine_manager_protocol::SandboxMachine;
+use jush_machine_manager_protocol::runtime::RuntimeRelease;
 use ipnet::Ipv4Net;
 
 /// Where the manager keeps its runtime bundles, locks and namespace handle.
-pub const RUNTIME_DIRECTORY: &str = "/run/demi-machine-manager";
+pub const RUNTIME_DIRECTORY: &str = "/run/jush-machine-manager";
 
-/// The socket the manager listens on unless `DEMI_MACHINE_MANAGER_SOCKET`
+/// The socket the manager listens on unless `JUSH_MACHINE_MANAGER_SOCKET`
 /// names another, the backend's default too.
-const SOCKET: &str = "/run/demi-cloud/machines.sock";
+const SOCKET: &str = "/run/jush-cloud/machines.sock";
 
-/// The backend's runner socket unless `DEMI_BACKEND_RUNNER_SOCKET` names
+/// The backend's runner socket unless `JUSH_BACKEND_RUNNER_SOCKET` names
 /// another, the backend's default too.
-const RUNNER_SOCKET: &str = "/run/demi-backend/runners.sock";
+const RUNNER_SOCKET: &str = "/run/jush-backend/runners.sock";
 
 /// Where the host's own resolvers are named: systemd-resolved's upstream
 /// file, which a host running it has, else the classic one.
@@ -41,7 +41,7 @@ const RESOLVER_FILES: [&str; 2] = ["/run/systemd/resolve/resolv.conf", "/etc/res
 /// The Cloud machine manager: runs users' Cloud machines as gVisor
 /// sandboxes and serves the backend over a Unix socket.
 #[derive(Debug, clap::Parser)]
-#[command(name = "demi-machine-manager", version = demi_shared_artifacts::BUILD_VERSION)]
+#[command(name = "jush-machine-manager", version = jush_shared_artifacts::BUILD_VERSION)]
 struct Cli {
     /// Fence and save what a stopped manager left behind, then exit (the
     /// service's stop-post command).
@@ -64,7 +64,7 @@ struct Cli {
     import: bool,
     /// Fetch the gVisor release this manager pins into DIRECTORY, which
     /// holds a directory for each version, print the version's directory
-    /// and exit, as `demi-server runtime` does for a setup or an upgrade;
+    /// and exit, as `jush-server runtime` does for a setup or an upgrade;
     /// it reads no other setting.
     #[arg(
         long,
@@ -75,13 +75,13 @@ struct Cli {
     fetch_gvisor: Option<PathBuf>,
     /// The server release root, whose image/ holds the Cloud image [default:
     /// the directory above the one that holds this executable].
-    #[arg(long, env = "DEMI_RELEASE", value_name = "DEMI_RELEASE", value_parser = absolute)]
+    #[arg(long, env = "JUSH_RELEASE", value_name = "JUSH_RELEASE", value_parser = absolute)]
     release: Option<PathBuf>,
     /// The socket the backend connects to.
     #[arg(
         long,
-        env = "DEMI_MACHINE_MANAGER_SOCKET",
-        value_name = "DEMI_MACHINE_MANAGER_SOCKET",
+        env = "JUSH_MACHINE_MANAGER_SOCKET",
+        value_name = "JUSH_MACHINE_MANAGER_SOCKET",
         default_value = SOCKET,
         value_parser = absolute
     )]
@@ -91,8 +91,8 @@ struct Cli {
     /// for.
     #[arg(
         long,
-        env = "DEMI_BACKEND_RUNNER_SOCKET",
-        value_name = "DEMI_BACKEND_RUNNER_SOCKET",
+        env = "JUSH_BACKEND_RUNNER_SOCKET",
+        value_name = "JUSH_BACKEND_RUNNER_SOCKET",
         default_value = RUNNER_SOCKET,
         value_parser = runner_socket
     )]
@@ -100,26 +100,26 @@ struct Cli {
     /// The persistent state directory, on one filesystem.
     #[arg(
         long,
-        env = "DEMI_MANAGED_DATA",
-        value_name = "DEMI_MANAGED_DATA",
-        default_value = "/opt/demi/data/cloud",
+        env = "JUSH_MANAGED_DATA",
+        value_name = "JUSH_MANAGED_DATA",
+        default_value = "/opt/jush/data/cloud",
         value_parser = absolute
     )]
     data: PathBuf,
     /// The pinned runsc executable [default: the pinned version's runsc in
-    /// /opt/demi/gvisor].
-    #[arg(long, env = "DEMI_MANAGED_RUNSC", value_name = "DEMI_MANAGED_RUNSC", value_parser = absolute)]
+    /// /opt/jush/gvisor].
+    #[arg(long, env = "JUSH_MANAGED_RUNSC", value_name = "JUSH_MANAGED_RUNSC", value_parser = absolute)]
     runsc: Option<PathBuf>,
     /// The proot executable, which runs Simple Isolation Clouds [default:
     /// bin/proot in the server release].
-    #[arg(long, env = "DEMI_MANAGED_PROOT", value_name = "DEMI_MANAGED_PROOT", value_parser = absolute)]
+    #[arg(long, env = "JUSH_MANAGED_PROOT", value_name = "JUSH_MANAGED_PROOT", value_parser = absolute)]
     proot: Option<PathBuf>,
     /// The backend's public URL: the only backend a sandbox's runner may
     /// connect to.
     #[arg(
         long,
-        env = "DEMI_BACKEND_PUBLIC_URL",
-        value_name = "DEMI_BACKEND_PUBLIC_URL",
+        env = "JUSH_BACKEND_PUBLIC_URL",
+        value_name = "JUSH_BACKEND_PUBLIC_URL",
         value_parser = backend_url,
         required_unless_present = "fetch_gvisor"
     )]
@@ -127,35 +127,35 @@ struct Cli {
     /// Whether sandboxes run under cgroup CPU, memory and PID limits.
     #[arg(
         long,
-        env = "DEMI_MANAGED_LIMITS",
-        value_name = "DEMI_MANAGED_LIMITS",
+        env = "JUSH_MANAGED_LIMITS",
+        value_name = "JUSH_MANAGED_LIMITS",
         default_value = "on"
     )]
     limits: Switch,
     /// The CPU budget of one sandbox, with the limits on.
-    #[arg(long, env = "DEMI_MANAGED_CPUS", value_name = "DEMI_MANAGED_CPUS", default_value = "2", value_parser = decimal::<NonZeroU32>)]
+    #[arg(long, env = "JUSH_MANAGED_CPUS", value_name = "JUSH_MANAGED_CPUS", default_value = "2", value_parser = decimal::<NonZeroU32>)]
     cpus: NonZeroU32,
     /// The memory limit of one sandbox, in MiB, with the limits on.
-    #[arg(long, env = "DEMI_MANAGED_MEM_MIB", value_name = "DEMI_MANAGED_MEM_MIB", default_value = "2048", value_parser = decimal::<NonZeroU32>)]
+    #[arg(long, env = "JUSH_MANAGED_MEM_MIB", value_name = "JUSH_MANAGED_MEM_MIB", default_value = "2048", value_parser = decimal::<NonZeroU32>)]
     mem_mib: NonZeroU32,
     /// The memory limit of the Claude Code machine's sandbox, in MiB, with
     /// the limits on: every user's CLI processes share it
     /// (`crates/backend-cloud/src/lib.rs`).
-    #[arg(long, env = "DEMI_MANAGED_CLAUDE_CODE_MEM_MIB", value_name = "DEMI_MANAGED_CLAUDE_CODE_MEM_MIB", default_value = "4096", value_parser = decimal::<NonZeroU32>)]
+    #[arg(long, env = "JUSH_MANAGED_CLAUDE_CODE_MEM_MIB", value_name = "JUSH_MANAGED_CLAUDE_CODE_MEM_MIB", default_value = "4096", value_parser = decimal::<NonZeroU32>)]
     claude_code_mem_mib: NonZeroU32,
     /// The IPv4 pool the sandboxes' networks come from.
-    #[arg(long, env = "DEMI_MANAGED_SUBNET", value_name = "DEMI_MANAGED_SUBNET", default_value = "172.30.0.0/16", value_parser = subnet)]
+    #[arg(long, env = "JUSH_MANAGED_SUBNET", value_name = "JUSH_MANAGED_SUBNET", default_value = "172.30.0.0/16", value_parser = subnet)]
     subnet: Ipv4Net,
     /// How many sandboxes may run at once; each takes four addresses.
-    #[arg(long, env = "DEMI_MANAGED_SLOTS", value_name = "DEMI_MANAGED_SLOTS", default_value = "256", value_parser = slots)]
+    #[arg(long, env = "JUSH_MANAGED_SLOTS", value_name = "JUSH_MANAGED_SLOTS", default_value = "256", value_parser = slots)]
     slots: u16,
     /// The resolvers a Cloud uses, separated by commas [default: on gVisor,
     /// the host's own upstream resolvers; on Simple Isolation, which shares
     /// the host's network, the host's resolver file as it is].
     #[arg(
         long,
-        env = "DEMI_MANAGED_DNS",
-        value_name = "DEMI_MANAGED_DNS",
+        env = "JUSH_MANAGED_DNS",
+        value_name = "JUSH_MANAGED_DNS",
         value_delimiter = ',',
         value_parser = resolver
     )]
@@ -209,19 +209,19 @@ pub struct Config {
     pub backend_url: url::Url,
     /// The backend's runner socket (`crates/backend-http/src/lib.rs`).
     pub runner_socket: PathBuf,
-    /// Each sandbox's cgroup limits; `None` with `DEMI_MANAGED_LIMITS=off`,
+    /// Each sandbox's cgroup limits; `None` with `JUSH_MANAGED_LIMITS=off`,
     /// which runs sandboxes without cgroups.
     pub limits: Option<Limits>,
     pub subnet: Ipv4Net,
     pub slots: u16,
-    /// The resolvers `DEMI_MANAGED_DNS` names, if it names any.
+    /// The resolvers `JUSH_MANAGED_DNS` names, if it names any.
     pub dns: Option<Vec<Ipv4Addr>>,
 }
 
 /// One sandbox's cgroup limits.
 ///
 /// They are a capability the operator turns on or off with one setting,
-/// `DEMI_MANAGED_LIMITS`: the choice belongs to the execution host, not to the
+/// `JUSH_MANAGED_LIMITS`: the choice belongs to the execution host, not to the
 /// kind of deployment, so a production host without the cgroup controllers
 /// runs with them off and a development VM that has them runs with them on.
 /// Only the setting decides, and the manager never falls back from one mode to
@@ -290,11 +290,11 @@ pub enum ConfigError {
     Invalid(#[from] clap::Error),
     #[error("{0} is not a Cloud manager setting")]
     Unknown(String),
-    #[error("DEMI_MANAGED_SLOTS exceeds DEMI_MANAGED_SUBNET capacity")]
+    #[error("JUSH_MANAGED_SLOTS exceeds JUSH_MANAGED_SUBNET capacity")]
     SlotsExceedSubnet,
-    #[error("DEMI_RELEASE is not set and the executable's directory is unknown: {0}")]
+    #[error("JUSH_RELEASE is not set and the executable's directory is unknown: {0}")]
     NoRelease(std::io::Error),
-    #[error("{0} applies only with DEMI_MANAGED_LIMITS=on")]
+    #[error("{0} applies only with JUSH_MANAGED_LIMITS=on")]
     LimitsOff(&'static str),
 }
 
@@ -313,7 +313,7 @@ impl Invocation {
     ) -> Result<Self, ConfigError> {
         let command = Cli::command();
         if let Some(name) =
-            demi_shared_cli::unknown_variable(&command, demi_shared_cli::MANAGED_PREFIX, vars)
+            jush_shared_cli::unknown_variable(&command, jush_shared_cli::MANAGED_PREFIX, vars)
         {
             return Err(ConfigError::Unknown(name));
         }
@@ -356,9 +356,9 @@ impl Invocation {
             Switch::Off => {
                 // A budget nothing would apply is refused, not ignored.
                 for (id, variable) in [
-                    ("cpus", "DEMI_MANAGED_CPUS"),
-                    ("mem_mib", "DEMI_MANAGED_MEM_MIB"),
-                    ("claude_code_mem_mib", "DEMI_MANAGED_CLAUDE_CODE_MEM_MIB"),
+                    ("cpus", "JUSH_MANAGED_CPUS"),
+                    ("mem_mib", "JUSH_MANAGED_MEM_MIB"),
+                    ("claude_code_mem_mib", "JUSH_MANAGED_CLAUDE_CODE_MEM_MIB"),
                 ] {
                     if matches.value_source(id) != Some(ValueSource::DefaultValue) {
                         return Err(ConfigError::LimitsOff(variable));
@@ -395,7 +395,7 @@ impl Config {
         self.data.join("images")
     }
 
-    /// The runtime directory: `/run/demi-machine-manager`.
+    /// The runtime directory: `/run/jush-machine-manager`.
     pub fn runtime(&self) -> &Path {
         Path::new(RUNTIME_DIRECTORY)
     }
@@ -414,7 +414,7 @@ impl Config {
 }
 
 /// The server release root this executable lies in: the directory above
-/// its own, as `<root>/bin/demi-machine-manager`.
+/// its own, as `<root>/bin/jush-machine-manager`.
 fn release_of_executable() -> Result<PathBuf, ConfigError> {
     let executable = std::env::current_exe().map_err(ConfigError::NoRelease)?;
     executable
@@ -431,7 +431,7 @@ fn release_of_executable() -> Result<PathBuf, ConfigError> {
 
 impl Config {
     /// The resolvers a gVisor Cloud, on a network of its own, uses: those
-    /// `DEMI_MANAGED_DNS` names, or else those the host itself forwards to,
+    /// `JUSH_MANAGED_DNS` names, or else those the host itself forwards to,
     /// from the first of [`RESOLVER_FILES`] that exists; or why there are
     /// none, which leaves gVisor unavailable.
     pub fn gvisor_resolvers(&self) -> Result<Vec<Ipv4Addr>, String> {
@@ -440,7 +440,7 @@ impl Config {
         }
         let none = || {
             format!(
-                "DEMI_MANAGED_DNS is not set and the host names no resolver a gVisor Cloud can use in {}",
+                "JUSH_MANAGED_DNS is not set and the host names no resolver a gVisor Cloud can use in {}",
                 RESOLVER_FILES.join(" or ")
             )
         };
@@ -484,7 +484,7 @@ fn mebibytes(value: NonZeroU32) -> NonZeroU64 {
         .expect("a u32 count of MiB fits in u64 bytes")
 }
 
-/// Refuses a `DEMI_MANAGED_*` variable the command does not declare. The
+/// Refuses a `JUSH_MANAGED_*` variable the command does not declare. The
 /// declared names come from the command itself, so they are listed once.
 fn absolute(value: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(value);
@@ -498,7 +498,7 @@ fn absolute(value: &str) -> Result<PathBuf, String> {
 /// looks for it.
 fn runner_socket(value: &str) -> Result<PathBuf, String> {
     let path = absolute(value)?;
-    let expected = Path::new(demi_runner_protocol::boot::BACKEND_SOCKET);
+    let expected = Path::new(jush_runner_protocol::boot::BACKEND_SOCKET);
     if path.file_name() != expected.file_name() || path.parent() == Some(Path::new("/")) {
         return Err(format!(
             "must be a file named {} in a directory of its own",

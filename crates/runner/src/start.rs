@@ -21,7 +21,7 @@ use std::{
     time::Duration,
 };
 
-use demi_runner_protocol::console::{HANDED_OVER, PAIRING_CODE};
+use jush_runner_protocol::console::{HANDED_OVER, PAIRING_CODE};
 use tokio::io::{AsyncReadExt as _, AsyncSeekExt as _};
 
 use crate::{autostart::Registration, console, management, state::RunnerState};
@@ -50,12 +50,12 @@ enum Started {
 
 /// The line the runner writes to its output when an attempt to connect
 /// fails, followed by why; it tries again.
-const FAILURE: &str = "demi-runner: connection ended: ";
+const FAILURE: &str = "jush-runner: connection ended: ";
 
 /// The line the runner writes when its backend refused its hello, followed
 /// by the code and why; it ends, unless the code says the device is
 /// connected already, which it waits out.
-const REFUSAL: &str = "demi-runner: registration refused ";
+const REFUSAL: &str = "jush-runner: registration refused ";
 const ALREADY_CONNECTED: &str = "(already_connected)";
 
 /// Starts the runner of the installation in `directory` with `arguments`,
@@ -322,7 +322,7 @@ fn spawn(directory: &Path, arguments: Vec<String>) -> io::Result<tokio::process:
         command.as_std_mut().inherit_handles(false);
     }
     #[cfg(windows)]
-    return demi_runner_process::detached::start(|flags| command.creation_flags(flags).spawn());
+    return jush_runner_process::detached::start(|flags| command.creation_flags(flags).spawn());
     #[cfg(unix)]
     command.spawn()
 }

@@ -11,7 +11,7 @@
 
 use std::time::Duration;
 
-use demi_provider_common::{
+use jush_provider_common::{
     ProviderFailure,
     quota::Observation,
     wire::{
@@ -20,7 +20,7 @@ use demi_provider_common::{
         undecodable,
     },
 };
-use demi_shared_types::{QuotaWindow, Timestamp};
+use jush_shared_types::{QuotaWindow, Timestamp};
 use futures_util::{SinkExt, StreamExt, stream::LocalBoxStream};
 use http::{
     HeaderMap, HeaderValue, StatusCode,
@@ -72,7 +72,7 @@ pub(crate) struct Refusal {
 /// whatever its transport: the WebSocket would leave from the backend.
 pub(crate) async fn open(
     shared: &Shared,
-    http: &demi_provider_common::ProviderHttp,
+    http: &jush_provider_common::ProviderHttp,
     headers: &HeaderMap,
     body: &Encoded,
     cancel: &CancellationToken,
@@ -142,7 +142,7 @@ fn unreachable_until(shared: &Shared) -> std::sync::MutexGuard<'_, Option<Timest
 /// within the header timeout; dropping the stream stops the download.
 async fn sse(
     shared: &Shared,
-    http: &demi_provider_common::ProviderHttp,
+    http: &jush_provider_common::ProviderHttp,
     headers: &HeaderMap,
     body: &Encoded,
     cancel: &CancellationToken,
@@ -390,7 +390,7 @@ struct Envelope {
     response: Option<serde_json::Value>,
 }
 
-/// Decodes one message: `None` for an event type Demi does not map.
+/// Decodes one message: `None` for an event type Jush does not map.
 fn decode_message(text: &str) -> Result<Option<Received>, WireError> {
     let envelope: Envelope = decode_untagged(text)?;
     let event = if envelope.kind.as_deref() == Some("response.done") {

@@ -1,5 +1,5 @@
 //! The iOS helper's protocol (`crates/plugin-mobile/command/src/ios/mod.rs`):
-//! `demi-ios-sim serve` speaks over its standard input and output in the live
+//! `jush-ios-sim serve` speaks over its standard input and output in the live
 //! view's framing, a four-byte big-endian length, a kind and the payload.
 //!
 //! - Requests and their replies are JSON, as are the events the helper sends
@@ -12,7 +12,7 @@
 //!   frame.
 //!
 //! ```text
-//! demi-mobile                         demi-ios-sim serve
+//! jush-mobile                         jush-ios-sim serve
 //!   {id 4, method: tap, params} ───▶
 //!                               ◀─── {id 4, result: {}}
 //!                               ◀─── {event: drawn, udid}
@@ -39,9 +39,9 @@ use tokio::{
 };
 use tokio_util::{sync::CancellationToken, task::AbortOnDropHandle};
 
-use demi_live_view::stream::{CaptureEvent, EncodedFrame};
-use demi_shared_recording::{Picture, Sink};
-use demi_shared_recording_protocol::{Area, EndReason};
+use jush_live_view::stream::{CaptureEvent, EncodedFrame};
+use jush_shared_recording::{Picture, Sink};
+use jush_shared_recording_protocol::{Area, EndReason};
 
 use crate::driver::DriverError;
 
@@ -275,7 +275,7 @@ impl Helper {
     pub async fn call<T: DeserializeOwned>(&self, method: &str, params: Value) -> Result<T, DriverError> {
         let answer = self.ask(method, params).await?;
         serde_json::from_value(answer.result)
-            .map_err(|error| DriverError::Failed(format!("the iOS helper answered {method} with what Demi cannot read: {error}")))
+            .map_err(|error| DriverError::Failed(format!("the iOS helper answered {method} with what Jush cannot read: {error}")))
     }
 
     /// The frames of capture `capture` arrive at the receiver until the
@@ -450,7 +450,7 @@ fn control(
         .map_err(|error| format!("the iOS helper sent what is not JSON: {error}"))?;
     if value.get("event").is_some() {
         let event: Event = serde_json::from_value(value)
-            .map_err(|error| format!("the iOS helper sent an event Demi cannot read: {error}"))?;
+            .map_err(|error| format!("the iOS helper sent an event Jush cannot read: {error}"))?;
         if let Event::Capture { capture, failed } = &event {
             let sender = helper
                 .captures
@@ -478,7 +478,7 @@ fn control(
         return Ok(());
     }
     let reply: Reply = serde_json::from_value(value)
-        .map_err(|error| format!("the iOS helper sent a reply Demi cannot read: {error}"))?;
+        .map_err(|error| format!("the iOS helper sent a reply Jush cannot read: {error}"))?;
     let waiting = helper
         .pending
         .lock()

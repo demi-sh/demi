@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-page-sync"
+name = "jush-backend-page-sync"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,7 +12,7 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-plugin-host = { path = "../plugin-host" }
-demi-backend-database = { path = "../backend-database" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-plugin-host = { path = "../plugin-host" }
+jush-backend-database = { path = "../backend-database" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 tokio.workspace = true

@@ -14,8 +14,8 @@
 import { liveViewerMessageSchema, controlReasonSchema, type BrowserViewport, type CursorRegion, type LiveControl, type LiveDialog, type LiveDownload, type LiveMenu, type LiveTab, type LiveViewerMessage, type ControlReason } from '../generated/plugin'
 import { LIVE_CAPTURE_FAILED, LIVE_CAPTURE_STOPPED, LIVE_CAPTURE_UNAVAILABLE, LIVE_FILE_CHUNK_BYTES } from '../generated/plugin'
 import { reactive } from 'vue'
-import { LiveLink, type LiveConnection, type LiveVideoFrame, type PictureSink as LivePictureSink } from '@demicodes/plugin-sdk'
-import type { OpenUserStream } from '@demicodes/plugin-sdk'
+import { LiveLink, type LiveConnection, type LiveVideoFrame, type PictureSink as LivePictureSink } from '@jush-ai/plugin-sdk'
+import type { OpenUserStream } from '@jush-ai/plugin-sdk'
 import { LiveFrameReader, encodeFile, encodeMessage, type LiveFrame } from './frames'
 import type { PanelSize } from './view'
 
@@ -35,7 +35,7 @@ export interface LiveStream {
 /** What shows the pictures: a decoder in the page, or the gallery's canvas. */
 export type PictureSink = LivePictureSink<LiveStream>
 
-export { REFUSED_FRAME, SILENT_STREAM, type LiveConnection } from '@demicodes/plugin-sdk'
+export { REFUSED_FRAME, SILENT_STREAM, type LiveConnection } from '@jush-ai/plugin-sdk'
 
 /**
  * The reasons of the notices that leave the watched tab without a picture,

@@ -11,7 +11,7 @@
  * - A staged type change alone (`T `) shows nothing, since VS Code files no
  *   index resource for it.
  *
- * The letters are VS Code's own; the words are its words in Demi's sentence
+ * The letters are VS Code's own; the words are its words in Jush's sentence
  * style.
  */
 import { t } from './locales/text'

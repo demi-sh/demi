@@ -8,7 +8,7 @@
 //!   resident that starts again, an update or a stopped device loses no tab: the
 //!   device's resident takes its simulators back under their handles, and a stopped
 //!   device's tabs stay as they were until it lists them again.
-//! - Closing a tab closes its device, as `demi mobile close` does. A device
+//! - Closing a tab closes its device, as `jush mobile close` does. A device
 //!   that cannot hear of it then closes it when it lists the device again: the
 //!   mirroring answers the listed devices whose tab the user closed.
 //! - A simulator the agent opens on an attached device has no tab: the work shows
@@ -20,9 +20,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use demi_plugin_interface::{PluginError, PluginPort};
-use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::work::{CreateWorkTab, WorkTab};
+use jush_plugin_interface::{PluginError, PluginPort};
+use jush_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::work::{CreateWorkTab, WorkTab};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tokio::sync::Mutex;
@@ -117,7 +117,7 @@ impl Work {
     async fn show(
         &self,
         port: &PluginPort,
-        listed: &[demi_command_package_mobile_protocol::mobile::Simulator],
+        listed: &[jush_command_package_mobile_protocol::mobile::Simulator],
     ) -> Result<(), PluginError> {
         let tabs = listed
             .iter()

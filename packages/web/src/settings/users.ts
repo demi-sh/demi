@@ -1,8 +1,8 @@
 import { t } from './locales/text'
 import { computed } from 'vue'
 import { defineStore } from 'pinia'
-import { shownError, reportError } from '@demicodes/web-ui/infra/errors'
-import type { HandoffHost } from '@demicodes/web-ui/auth/handoff'
+import { shownError, reportError } from '@jush-ai/web-ui/infra/errors'
+import type { HandoffHost } from '@jush-ai/web-ui/auth/handoff'
 import type {
   NewPasswordOutcome,
   SettingsCloudStorage,
@@ -11,7 +11,7 @@ import type {
   SettingsUsersHost,
   UserAddOutcome,
   UserRole,
-} from '@demicodes/web-ui/settings/types'
+} from '@jush-ai/web-ui/settings/types'
 import { apiRequest, ApiError, jsonBody, readResponse } from '../api/client'
 import {
   createdUserSchema,

@@ -23,9 +23,9 @@
     "locked": "로그인 실패 횟수가 너무 많습니다. {time} 후에 다시 시도하십시오."
   },
   "setup": {
-    "title": "Demi 설정",
-    "message": "Demi를 관리할 소유자 계정을 만듭니다.",
-    "taken": "Demi가 이미 설정되었습니다. 소유자 계정으로 로그인하십시오.",
+    "title": "Jush 설정",
+    "message": "Jush를 관리할 소유자 계정을 만듭니다.",
+    "taken": "Jush가 이미 설정되었습니다. 소유자 계정으로 로그인하십시오.",
     "name": "이름",
     "email": "이메일",
     "password": "비밀번호",
@@ -53,7 +53,7 @@
     "passwordMessage": "패스키를 추가하려면 본인 확인이 필요합니다.",
     "password": "비밀번호",
     "readyTitle": "패스키 준비됨",
-    "readyMessage": "비밀번호 관리자에 Demi의 패스키가 이미 있습니다."
+    "readyMessage": "비밀번호 관리자에 Jush의 패스키가 이미 있습니다."
   },
   "unlock": {
     "ios": "비밀번호 대신 Face ID 또는 Touch ID로 로그인합니다.",

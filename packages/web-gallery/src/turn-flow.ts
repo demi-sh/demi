@@ -1,18 +1,18 @@
 import { computed, onBeforeUnmount, reactive, shallowRef, watch } from 'vue'
-import type { AgentMessage, Block, ChangedFile, ContextUsage, MessageComment, UserContentBlock } from '@demicodes/protocol'
-import { CHROME_ROLL_MS } from '@demicodes/web-ui/ui/chrome-roll'
-import { shownComment } from '@demicodes/web-ui/agent/comments/comments'
-import type { ToolCallBlock } from '@demicodes/web-ui/agent/block-types'
-import type { SubagentRecord } from '@demicodes/web-ui/agent/subagents'
-import type { TerminalRecord } from '@demicodes/web-ui/agent/terminals'
-import type { ChatSessionState, ConversationState, PendingSubmissionState } from '@demicodes/web-ui/agent/types'
-import { agentWorks, markSent, markWithdrawn, turnStartingMessage, type SendWay } from '@demicodes/web-ui/agent/send-way'
-import { segmentStreamUnits } from '@demicodes/web-ui/ui/stream-reveal'
-import { contentCopy, type CopiedMessage } from '@demicodes/web-ui/agent/message-input/copied-message'
-import { showRecalled } from '@demicodes/web-ui/agent/recalled-toast'
+import type { AgentMessage, Block, ChangedFile, ContextUsage, MessageComment, UserContentBlock } from '@jush-ai/protocol'
+import { CHROME_ROLL_MS } from '@jush-ai/web-ui/ui/chrome-roll'
+import { shownComment } from '@jush-ai/web-ui/agent/comments/comments'
+import type { ToolCallBlock } from '@jush-ai/web-ui/agent/block-types'
+import type { SubagentRecord } from '@jush-ai/web-ui/agent/subagents'
+import type { TerminalRecord } from '@jush-ai/web-ui/agent/terminals'
+import type { ChatSessionState, ConversationState, PendingSubmissionState } from '@jush-ai/web-ui/agent/types'
+import { agentWorks, markSent, markWithdrawn, turnStartingMessage, type SendWay } from '@jush-ai/web-ui/agent/send-way'
+import { segmentStreamUnits } from '@jush-ai/web-ui/ui/stream-reveal'
+import { contentCopy, type CopiedMessage } from '@jush-ai/web-ui/agent/message-input/copied-message'
+import { showRecalled } from '@jush-ai/web-ui/agent/recalled-toast'
 import { productWould } from './product-would'
 import { demoModel, editedFile, inRequests, inRun, listedFiles, shellView, withLists, type ShellView } from './fixtures/blocks'
-import { wholeHistory } from '@demicodes/web-ui/agent/history'
+import { wholeHistory } from '@jush-ai/web-ui/agent/history'
 import { usageAt } from './fixtures/catalog'
 import { suitePathsUpdate } from './fixtures/subagents'
 import { printLive } from './live-command'
@@ -148,7 +148,7 @@ const WORK_STEPS: WorkStep[] = [
   {
     kind: 'call',
     description: 'Make the runner script executable',
-    script: 'chmod +x tools/run-tests.sh && demi file edit tools/run-tests.sh',
+    script: 'chmod +x tools/run-tests.sh && jush file edit tools/run-tests.sh',
     lines: ['edited tools/run-tests.sh'],
     files: [editedFile({ path: 'tools/run-tests.sh', kind: 'modified', added: 1, removed: 1 })],
   },
@@ -157,7 +157,7 @@ const WORK_STEPS: WorkStep[] = [
   {
     kind: 'call',
     description: 'Patch the test status file',
-    script: 'demi file edit test/mjsunit/mjsunit.status',
+    script: 'jush file edit test/mjsunit/mjsunit.status',
     lines: ['edited test/mjsunit/mjsunit.status'],
     files: [editedFile({ path: 'test/mjsunit/mjsunit.status', kind: 'modified', added: 12, removed: 3 })],
   },

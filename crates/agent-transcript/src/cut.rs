@@ -2,11 +2,11 @@
 //! edit keeps, the prefix a Fork keeps. Each is a pure reading of the
 //! blocks; the window compaction summarizes is [`crate::compaction`]'s.
 
-use demi_shared_types::{
+use jush_shared_types::{
     AgentMessageBlock, Block, BlockId, ErrorBlock, OpaqueView, TextBlock, ToolCallStatus, TurnId, is_blank,
 };
 
-use demi_agent_store::Kind;
+use jush_agent_store::Kind;
 
 use super::{is_compaction, opens_input_turn};
 
@@ -338,7 +338,7 @@ pub fn ended_turn_answer(blocks: &[Block]) -> Option<(&Block, Option<&TextBlock>
 }
 
 /// Whether another conversation of the user sent `message`
-/// (`demi conversation send`).
+/// (`jush conversation send`).
 pub(crate) fn from_another_conversation(message: &AgentMessageBlock) -> bool {
     message.message.sender.as_ref().is_some_and(|sender| sender.conversation.is_some())
 }

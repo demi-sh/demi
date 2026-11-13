@@ -13,7 +13,7 @@
 
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-use demi_runner_protocol::wire::{Backlog, Resume, Session};
+use jush_runner_protocol::wire::{Backlog, Resume, Session};
 use tokio::sync::Notify;
 
 /// Why a call ends when the backend answers with a session of another number.

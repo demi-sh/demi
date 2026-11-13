@@ -10,7 +10,7 @@ Alex opens Settings and reads "Devices", "Add Device…", "Remove Device". He
 opens a conversation and its menu says "Move to Another Host…". Port
 Forwarding asks him to "Choose a Host" from the same list of machines that
 Settings calls devices. An error tells him "The device is already the
-conversation's main host." The agent reads `demi host list`, passes
+conversation's main host." The agent reads `jush host list`, passes
 `--host build-box`, and is told in its context block about "Attached hosts".
 
 Every one of these is the same thing: one of Alex's machines, or the Cloud.
@@ -22,7 +22,7 @@ for the same machine.
 
 ## Decision
 
-A machine Demi runs commands on, a paired computer or the Cloud, is a
+A machine Jush runs commands on, a paired computer or the Cloud, is a
 *device* everywhere: on screen, in what the agent reads and runs, in the
 code, the stored data and the protocols. What it is to a conversation is the
 device's role, never another noun.
@@ -34,7 +34,7 @@ device's role, never another noun.
 | attached host | attached device |
 | Move to Another Host… | Move to Another Device… |
 | Listen On Host, Connect To Host | Listen On Device, Connect To Device |
-| `demi host list`, `shell`, `move`, `attach`, `detach`, `pair`, `forward` | `demi device list`, … the same leaves |
+| `jush host list`, `shell`, `move`, `attach`, `detach`, `pair`, `forward` | `jush device list`, … the same leaves |
 | `--host <name>` | `--device <name>` |
 | `Primary host:`, `Attached hosts:` in the context block | `Primary device:`, `Attached devices:` |
 | `ReachableHost`, `HostRole`, `AttachedHost`, `BroughtHost`, `bringsHost` | `ReachableDevice`, `DeviceRole`, `AttachedDevice`, `BroughtDevice`, `bringsDevice` |

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { keyInput } from '@demicodes/plugin-sdk'
+import { keyInput } from '@jush-ai/plugin-sdk'
 import type { DeviceSession } from './session'
 import { insertedText } from './typed'
 import { t } from '../locales/text'

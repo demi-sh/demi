@@ -1,6 +1,6 @@
 # Testing
 
-Demi has no automated tests by default. A change is accepted by whoever made
+Jush has no automated tests by default. A change is accepted by whoever made
 it, on the running product, and a problem is diagnosed from the log.
 
 A test is added only for a problem that came back after it was fixed, and

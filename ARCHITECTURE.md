@@ -1,7 +1,7 @@
 # Architecture
 
 This document is the map of the code and the rules that hold across it. The
-[overview](docs/overview.md) describes what Demi is and follows one
+[overview](docs/overview.md) describes what Jush is and follows one
 conversation end to end. What one module decides lives in its entry comment
 (`lib.rs`, `main.rs`, `index.ts`), next to the code. When this document and
 the code disagree, the code is right and this document is fixed.
@@ -23,8 +23,8 @@ runner (crates/runner, runner-*)    machine manager (crates/machine-manager)
    |                                    | starts each Cloud with its runner
    | command invocations                v
    v                                 Cloud sandbox
-command programs (command-package-*): demi-file, demi-browser,
-demi-fetch, demi-mobile, demi-claude-code
+command programs (command-package-*): jush-file, jush-browser,
+jush-fetch, jush-mobile, jush-claude-code
 ```
 
 Each program's inside is drawn in its entry comment. The following table lists
@@ -53,9 +53,9 @@ A plugin contributes the following, all as messages:
 
 Three parties supply what the agent can do:
 
--   The agent runtime supplies its own tools, `demi agent` and `demi shell`.
--   The product supplies the conversation's device, `demi device` and
-    `demi attachment`.
+-   The agent runtime supplies its own tools, `jush agent` and `jush shell`.
+-   The product supplies the conversation's device, `jush device` and
+    `jush attachment`.
 -   Plugins supply everything else the agent can do.
 
 ### State on a device
@@ -64,9 +64,9 @@ A capability that keeps state on a device is also a command package behind the
 runner's narrow port. The browser shows how this works:
 
 -   `command-package-browser-protocol` holds the browser's operation types.
--   The `demi.browser` package (`command-package-browser` with `-chrome`)
+-   The `jush.browser` package (`command-package-browser` with `-chrome`)
     carries the operations out.
--   `plugin-browser` declares the operations as `demi browser` commands.
+-   `plugin-browser` declares the operations as `jush browser` commands.
 -   The package keys the browser's tabs by the conversation the runner names
     on every invocation. The generic conversation release ends the tabs.
 -   No browser type or message exists in the runner crates,
@@ -127,7 +127,7 @@ A shared mechanism goes where its use decides:
     access does not fit, change it first.
 -   Every reusable UI behavior lives in `web-ui` as a component or primitive,
     and a plugin's feature UI lives in its plugin package, written only against
-    `@demicodes/plugin-sdk` (`packages/plugin-sdk/src/index.ts`); `web-ui` knows
+    `@jush-ai/plugin-sdk` (`packages/plugin-sdk/src/index.ts`); `web-ui` knows
     no plugin, and `web` and `web-gallery` supply only data, state, services and
     handlers. A behavior first built for one surface (a control's affordance, a
     page's interaction, a dialog flow) is generalized into `web-ui` in the same
@@ -161,7 +161,7 @@ The runner is one executable of several crates, so a change recompiles only
 its part. `runner-protocol` and `runner-client` hold the runner's wire, not the
 executable. Only `runner-shell` links the shell and its utilities, and nothing
 below the executable depends on it. Each job's shell runs in a process of its
-own, the runner's executable as `demi-runner shell`, which outlives the runner
+own, the runner's executable as `jush-runner shell`, which outlives the runner
 and speaks the job shell contract to it over a local socket.
 
 ### Graphs and manifests
@@ -205,15 +205,15 @@ of the following:
 -   `agent-` names the conversation runtime.
 -   `provider-` names model providers.
 -   `command-` names the command wire.
--   `command-package-<name>-` names one package, released as `demi.<name>`.
+-   `command-package-<name>-` names one package, released as `jush.<name>`.
 -   `shared-` names code with no single owner.
 
 A program is named by its owner alone. A library's package is
-`demi-<directory>`, and a program's package is its executable's name. A
+`jush-<directory>`, and a program's package is its executable's name. A
 plugin's part keeps the name its kind gives it, as though it were a directory
 of `crates/` itself: `crates/plugin-browser/protocol/` holds
-`demi-command-package-browser-protocol`, and `crates/plugin-browser/page/`
-the page package `@demicodes/plugin-browser`.
+`jush-command-package-browser-protocol`, and `crates/plugin-browser/page/`
+the page package `@jush-ai/plugin-browser`.
 
 A suffix tells what a crate holds:
 
@@ -260,10 +260,10 @@ Inside a crate, these rules apply:
 -   Modules follow responsibilities. There is no `misc`, `helpers` or `utils`
     module.
 -   Generic Rust comes from std or an established crate, generic web code
-    comes from `@demicodes/utils`, and a domain helper sits beside its module.
+    comes from `@jush-ai/utils`, and a domain helper sits beside its module.
 -   Generated TypeScript (`src/generated/` directories) stays uncommitted.
 -   A vendored crate keeps its upstream metadata and licenses. Its
-    `[package.metadata.demi]` names each change from upstream with its reason,
+    `[package.metadata.jush]` names each change from upstream with its reason,
     and `bun xtask vendor diff` compares the crate with crates.io.
 
 ### Test binaries
@@ -313,7 +313,7 @@ Contracts follow these further rules:
 
 -   The runner wire and the machine manager socket have both ends in Rust and
     fixed encodings. A golden corpus of every message kind pins them.
--   A vendor's API is not a Demi contract. Each provider crate declares only
+-   A vendor's API is not a Jush contract. Each provider crate declares only
     what it reads.
 -   A boundary decodes a value from outside a process at its entry, against
     its type. After that, nothing checks the value again. Before that, nothing
@@ -480,7 +480,7 @@ xtask -> conversation-lane-protocol, shared-artifacts, command-package-browser-p
 
 ### TypeScript packages
 
-A line names a workspace package by its name without the `@demicodes/` scope.
+A line names a workspace package by its name without the `@jush-ai/` scope.
 The following graph lists the TypeScript packages:
 
 ```text

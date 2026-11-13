@@ -96,7 +96,7 @@ back.
 - [use-stick-to-bottom](https://github.com/stackblitz-labs/use-stick-to-bottom),
   which AI chat apps use for a streaming transcript, animates the scroll
   position itself with a spring toward the bottom, read again as content
-  grows, and tells its own scroll events from the reader's. Demi's glide is
+  grows, and tells its own scroll events from the reader's. Jush's glide is
   the same idea with an exponential approach instead of a spring.
 - t3code jumps to the end as content grows, with no animation.
 

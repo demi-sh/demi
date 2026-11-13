@@ -7,7 +7,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     credentials::{
         AccountKit, AccountsCapability, LoginError, LoginIo, LoginKind, NewAccount,
@@ -16,7 +16,7 @@ use demi_provider_common::{
     oauth::{Lifetime, PollInterval, ResponseError, TokenRefusal, decode_json_response},
     wire::{NonEmpty, Reported},
 };
-use demi_shared_types::{Clock, LoginPending, Timestamp};
+use jush_shared_types::{Clock, LoginPending, Timestamp};
 use futures_util::future::BoxFuture;
 use http::{HeaderMap, HeaderValue, header::AUTHORIZATION};
 use reqwest::Url;
@@ -41,7 +41,7 @@ const SLOW_DOWN: Duration = Duration::from_secs(5);
 
 /// What Grok Build adds to the account operations: its device login.
 pub(crate) struct GrokKit {
-    pub(crate) http: demi_provider_common::ProviderHttp,
+    pub(crate) http: jush_provider_common::ProviderHttp,
     /// The sign-in issuer, such as `https://auth.x.ai`.
     pub(crate) issuer: Url,
     /// The chat proxy, whose `/user` names the signed-in user.
@@ -71,7 +71,7 @@ impl AccountKit for GrokKit {
 
 impl GrokKit {
     /// The headers of the sign-in requests: the Grok CLI's version, and the
-    /// surface the login runs on, which for Demi is always its user
+    /// surface the login runs on, which for Jush is always its user
     /// interface.
     fn oauth_headers(&self) -> HeaderMap {
         let mut headers = HeaderMap::new();
@@ -106,7 +106,7 @@ impl GrokKit {
         ];
         let response = self
             .http
-            .post(demi_provider_common::endpoint_url(
+            .post(jush_provider_common::endpoint_url(
                 &self.issuer,
                 "/oauth2/device/code",
             ))
@@ -158,7 +158,7 @@ impl GrokKit {
             tokio::time::sleep(interval).await;
             let response = self
                 .http
-                .post(demi_provider_common::endpoint_url(
+                .post(jush_provider_common::endpoint_url(
                     &self.issuer,
                     "/oauth2/token",
                 ))
@@ -281,7 +281,7 @@ impl GrokKit {
     }
 }
 
-fn transport(error: impl Into<demi_provider_common::SendError>) -> LoginError {
+fn transport(error: impl Into<jush_provider_common::SendError>) -> LoginError {
     LoginError::Failed(format!(
         "Grok sign-in request failed: {}",
         error.into().without_url()

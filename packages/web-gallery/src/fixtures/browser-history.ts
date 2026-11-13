@@ -1,5 +1,5 @@
 import { ref, shallowRef } from 'vue'
-import type { HistoryDirection } from '@demicodes/web-ui/plugins/page'
+import type { HistoryDirection } from '@jush-ai/web-ui/plugins/page'
 
 /** A step of a specimen's history: what it shows, open or closed. */
 interface Shown {

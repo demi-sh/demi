@@ -15,24 +15,24 @@
 //! The persisted facts come from a read-only connection, so listing hundreds of
 //! conversations takes no writer from a running one.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::columns::decode;
-use demi_backend_database::conversation_index::ConversationRecord;
-use demi_backend_database::tree::{self, EndedTurn, SummaryFacts, Terminal};
-use demi_shared_types::{ModelSelection, SessionPhase};
-use demi_web_api_protocol::conversations::{
+use jush_backend_database::StorageError;
+use jush_backend_database::columns::decode;
+use jush_backend_database::conversation_index::ConversationRecord;
+use jush_backend_database::tree::{self, EndedTurn, SummaryFacts, Terminal};
+use jush_shared_types::{ModelSelection, SessionPhase};
+use jush_web_api_protocol::conversations::{
     ConversationMetadata, ConversationShares, ConversationStatus, ConversationSummary, EndedCommand, LastTurn, ModelSettings,
     TurnOutcome, UnreadEnd,
 };
-use demi_web_api_protocol::attached_devices::{AttachedDevice, ConversationDevices};
-use demi_web_api_protocol::ids::{ConversationId, ProviderId};
-use demi_web_api_protocol::work::Work;
-use demi_web_api_protocol::shares::ConversationShare;
+use jush_web_api_protocol::attached_devices::{AttachedDevice, ConversationDevices};
+use jush_web_api_protocol::ids::{ConversationId, ProviderId};
+use jush_web_api_protocol::work::Work;
+use jush_web_api_protocol::shares::ConversationShare;
 use futures_util::future::try_join_all;
 use tokio_util::sync::CancellationToken;
 
 use crate::shard::Shard;
-use demi_backend_device_access::root_of;
+use jush_backend_device_access::root_of;
 
 impl Shard {
     /// The entries of the user's conversations that are archived, the last
@@ -140,7 +140,7 @@ impl Shard {
             .tab_states(record.id.clone(), CancellationToken::new())
             .await
             .map_err(StorageError::from)?;
-        let permissions = demi_backend_permissions::read(self.permission_shard(), &record.id).await?;
+        let permissions = jush_backend_permissions::read(self.permission_shard(), &record.id).await?;
         let other_cost = services
             .control
             .conversation_costs(record.id.clone())

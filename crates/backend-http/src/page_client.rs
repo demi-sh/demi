@@ -13,7 +13,7 @@ use axum::extract::{ConnectInfo, FromRequestParts};
 use axum::http::HeaderMap;
 use axum::http::header::USER_AGENT;
 use axum::http::request::Parts;
-use demi_shared_types::RequestId;
+use jush_shared_types::RequestId;
 
 use super::error::ApiError;
 use super::listener::Peer;

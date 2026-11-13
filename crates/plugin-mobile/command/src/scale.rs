@@ -6,7 +6,7 @@
 //! a command takes or prints is one of its pixels, so the agent taps what it
 //! sees.
 
-use demi_command_package_mobile_protocol::mobile::{Frame, Point};
+use jush_command_package_mobile_protocol::mobile::{Frame, Point};
 
 use crate::driver::{Points, Rect, Screen};
 

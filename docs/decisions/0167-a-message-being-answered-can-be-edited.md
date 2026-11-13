@@ -81,7 +81,7 @@ stopped message leaves the transcript without coming back to its composer.
   `codex-rs/tui/src/chatwidget/input_restore.rs`); the prompt in flight
   stays in the history.
 
-Where this departs: Claude Code starts the edit from a key, Escape; Demi
+Where this departs: Claude Code starts the edit from a key, Escape; Jush
 offers only the message's Edit, as the page does once the agent is done.
 
 ## Alternatives

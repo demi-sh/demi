@@ -8,12 +8,12 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::refusal_words;
-use demi_provider_common::quota::{
+use jush_provider_common::refusal_words;
+use jush_provider_common::quota::{
     Observation, ObservedWindows, ProbeCost, ProbeReading, QuotaError, QuotaSource,
     clamp_used_percent, header_number, plan_label, severity, unix_seconds,
 };
-use demi_shared_types::{QuotaKind, QuotaPlan, QuotaUnit, QuotaWindow};
+use jush_shared_types::{QuotaKind, QuotaPlan, QuotaUnit, QuotaWindow};
 use futures_util::future::BoxFuture;
 use http::{HeaderMap, HeaderValue, header::ACCEPT};
 use reqwest::Url;
@@ -42,7 +42,7 @@ impl Kind {
 /// The quota source of one Codex account.
 pub(crate) struct CodexQuota {
     pub(crate) auth: Arc<CodexAuth>,
-    pub(crate) http: demi_provider_common::ProviderHttp,
+    pub(crate) http: jush_provider_common::ProviderHttp,
     pub(crate) usage_url: Url,
     pub(crate) user_agent: HeaderValue,
 }
@@ -91,7 +91,7 @@ impl QuotaSource for CodexQuota {
                 ))
             })?;
             let usage: UsageStatus =
-                demi_provider_common::wire::decode_untagged(&text).map_err(|error| {
+                jush_provider_common::wire::decode_untagged(&text).map_err(|error| {
                     QuotaError::Invalid(format!("Codex usage status cannot be read: {error}"))
                 })?;
             let ObservedWindows { windows, absent } = usage_windows(usage.rate_limit);
@@ -133,7 +133,7 @@ enum Reported {
     Absent,
 }
 
-/// `GET /wham/usage`, as far as Demi reads it.
+/// `GET /wham/usage`, as far as Jush reads it.
 #[derive(Deserialize)]
 struct UsageStatus {
     #[serde(default)]
@@ -189,7 +189,7 @@ fn usage_windows(rate_limit: Option<RateLimit>) -> ObservedWindows {
 /// What the `x-codex-<kind>-*` headers say about a window.
 ///
 /// Nothing without its `used-percent` header. Otherwise a window, even with a
-/// value Demi cannot read, unless the headers are the placeholder Codex sends
+/// value Jush cannot read, unless the headers are the placeholder Codex sends
 /// for a window the account does not have: nothing used, a length of zero or
 /// none, and no reset time. The Codex CLI reads its headers by the same rule.
 fn header_window(headers: &HeaderMap, kind: Kind) -> Option<Reported> {
@@ -214,7 +214,7 @@ fn window_of(
     kind: Kind,
     used_percent: Option<f64>,
     minutes: Option<f64>,
-    resets_at: Option<demi_shared_types::Timestamp>,
+    resets_at: Option<jush_shared_types::Timestamp>,
 ) -> QuotaWindow {
     QuotaWindow {
         id: kind.id().into(),

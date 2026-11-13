@@ -15,7 +15,7 @@
 //! It mounts no image and isolates nothing:
 //!
 //! - A stop clears the runner's state but its log and its job directories, as
-//!   a Cloud's `/run/demi` goes with it while its system image, which holds
+//!   a Cloud's `/run/jush` goes with it while its system image, which holds
 //!   those two, stays.
 //! - A reset clears them too.
 //! - Both keep its home, and the conversations' scratch directories, which a
@@ -27,8 +27,8 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use crate::runner::{RunnerProcess, RunnerProcessOptions, runner_binary};
-use demi_device_interface::SpawnEnv;
-use demi_machine_manager_protocol::{
+use jush_device_interface::SpawnEnv;
+use jush_machine_manager_protocol::{
     BaseVersion, Enforces, GenerationId, Isolation, MachineCall, MachineImageState, MachineResponse, Offer, RuntimeOffer,
     RuntimeState, WIRE_VERSION, decode_request, encode_line,
 };
@@ -56,10 +56,10 @@ struct State {
 }
 
 struct Shared {
-    /// The workspace's `demi-runner`, found when the manager starts, so that a
+    /// The workspace's `jush-runner`, found when the manager starts, so that a
     /// missing or stale build stops it there rather than in the task of a call.
     runner: PathBuf,
-    /// The artifact cache each Cloud runner uses, as `DEMI_ARTIFACTS`; none
+    /// The artifact cache each Cloud runner uses, as `JUSH_ARTIFACTS`; none
     /// keeps its own in its state.
     artifacts: Option<String>,
     state: Mutex<State>,
@@ -220,7 +220,7 @@ async fn handle(shared: &Arc<Shared>, call: MachineCall) -> Result<serde_json::V
                     running.push(device);
                 }
             }
-            json(serde_json::to_value(demi_machine_manager_protocol::Reconciled { running }).unwrap())
+            json(serde_json::to_value(jush_machine_manager_protocol::Reconciled { running }).unwrap())
         }
         // Its guests run on the host's own network, which no firewall
         // limits.
@@ -261,7 +261,7 @@ async fn handle(shared: &Arc<Shared>, call: MachineCall) -> Result<serde_json::V
             let (env, taken) = {
                 let mut state = shared.lock();
                 let env = match &shared.artifacts {
-                    Some(cache) => SpawnEnv::Overlay(BTreeMap::from([("DEMI_ARTIFACTS".to_owned(), Some(cache.clone()))])),
+                    Some(cache) => SpawnEnv::Overlay(BTreeMap::from([("JUSH_ARTIFACTS".to_owned(), Some(cache.clone()))])),
                     None => SpawnEnv::Inherit,
                 };
                 let capacity = params.capacity;

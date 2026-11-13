@@ -1,9 +1,9 @@
-//! The `demi audio` group, whose leaves the plugin answers itself with the
+//! The `jush audio` group, whose leaves the plugin answers itself with the
 //! request's whole port.
 
-use demi_device_interface::{GroupBuilder, LeafBuilder};
-use demi_plugin_interface::{AudioFileFormat, CommandPlugin, Placement, PortHandled, VoiceInfo};
-use demi_plugin_media::ModelsOutput;
+use jush_device_interface::{GroupBuilder, LeafBuilder};
+use jush_plugin_interface::{AudioFileFormat, CommandPlugin, Placement, PortHandled, VoiceInfo};
+use jush_plugin_media::ModelsOutput;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -20,9 +20,9 @@ const MODELS_SUMMARY: &str = "List the audio models the user's provider entries 
 
 const TEXT: &str = "The text to read aloud; - reads it from stdin.";
 const PROMPT: &str = "What to make; - reads it from stdin.";
-const MODEL: &str = "The audio model, required: one `demi audio models` lists that makes this kind.";
+const MODEL: &str = "The audio model, required: one `jush audio models` lists that makes this kind.";
 const PROVIDER: &str = "The entry to make it through, by its name in Settings or its id, when the user asked for one; without it, the first that can make the model now, in the order of Settings > Providers.";
-const VOICE: &str = "A voice `demi audio voices --model <id>` lists; the vendor's default without it; ElevenLabs and ByteDance's Seed speech, which have none, need it.";
+const VOICE: &str = "A voice `jush audio voices --model <id>` lists; the vendor's default without it; ElevenLabs and ByteDance's Seed speech, which have none, need it.";
 const INSTRUCTIONS: &str = "How to speak, such as a tone, a pace or an accent, for the models that take it.";
 const SPEED: &str = "A factor of the voice's speed, such as 1.2.";
 const SPEECH_FORMAT: &str = "The format to ask for; MP3 without it. A vendor that makes another says so on stderr; nothing is transcoded.";
@@ -111,9 +111,9 @@ pub(crate) struct ModelsArgs {
     pub(crate) model: Option<String>,
 }
 
-/// The plugin's commands: the `demi audio` group.
+/// The plugin's commands: the `jush audio` group.
 pub(crate) fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![audio_group()]).expect("the audio group is a valid declaration")
+    CommandPlugin::new(Placement::Jush, vec![audio_group()]).expect("the audio group is a valid declaration")
 }
 
 fn audio_group() -> GroupBuilder {

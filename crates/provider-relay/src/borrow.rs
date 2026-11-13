@@ -12,7 +12,7 @@
 //!
 //! Its media are made by the lender too, each kind by one maker (`media`)
 //! whose calls the relay carries over HTTPS as they are
-//! (`demi_provider_common::media::channel`). What it makes is what the lender
+//! (`jush_provider_common::media::channel`). What it makes is what the lender
 //! lists now: a kind the lender does not make lists no models.
 //!
 //! The entry keeps its name, its key and its switch, and nothing it can
@@ -22,14 +22,14 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use demi_provider_common::{
+use jush_provider_common::{
     CatalogError, ErrorCode, Provider, ProviderEvent, ProviderFailure, ProviderHttp, ProviderRun, ProviderRuntime,
     RequestBuilder, RequestLimits, RuntimeEnv, RuntimeError, InferenceRequest,
 };
-use demi_provider_common::audio::AudioMaker;
-use demi_provider_common::images::ImageMaker;
-use demi_provider_common::videos::VideoMaker;
-use demi_shared_types::{
+use jush_provider_common::audio::AudioMaker;
+use jush_provider_common::images::ImageMaker;
+use jush_provider_common::videos::VideoMaker;
+use jush_shared_types::{
     AuthState, MediaKind, Model, ProviderErrorDiagnostics, ProviderFailureFacts, ProviderModelList, RuntimeState,
     Timestamp,
 };
@@ -46,7 +46,8 @@ use url::Url;
 use crate::delta::Outbox;
 use crate::key::ShareKey;
 use crate::wire::{
-    ClientMessage, Lent, MESSAGE_BYTES, PROVIDER_ROUTE, SERVER_HEADER, SOCKET_ROUTE, ServerMessage,
+    ClientMessage, EARLIER_SERVER_HEADER, EARLIER_VERSION_HEADER, Lent, MESSAGE_BYTES, PROVIDER_ROUTE, SERVER_HEADER,
+    SOCKET_ROUTE, ServerMessage,
     TURNED_OFF, VERSION_HEADER, decoded, encoded, version,
 };
 
@@ -84,7 +85,7 @@ enum Refusal {
     Key,
     /// The lender speaks another version of the wire.
     Version,
-    /// The server is no lender: an older release, or no Demi.
+    /// The server is no lender: an older release, or no Jush.
     NoLender,
     /// It could not be reached, or answered nothing a lender answers.
     Unreachable(String),
@@ -99,7 +100,7 @@ impl Refusal {
             Self::TurnedOff => format!("{} is turned off on {lender}.", config.name),
             Self::Key => format!("{lender} no longer accepts this share key. Paste a new one."),
             Self::Version => {
-                format!("{lender} runs another version of Demi. Update the older of the two servers to the newest release.")
+                format!("{lender} runs another version of Jush. Update the older of the two servers to the newest release.")
             }
             Self::NoLender => format!("{lender} does not share providers. Update it."),
             Self::Unreachable(cause) => format!("{lender} could not be reached: {cause}"),
@@ -212,6 +213,8 @@ impl Config {
             .header(http::header::AUTHORIZATION, format!("Bearer {}", self.key.token))
             .header(VERSION_HEADER, version())
             .header(SERVER_HEADER, self.server.clone())
+            .header(EARLIER_VERSION_HEADER, version())
+            .header(EARLIER_SERVER_HEADER, self.server.clone())
     }
 
     async fn lent(&self) -> Result<Lent, Refusal> {
@@ -243,8 +246,8 @@ impl Config {
 }
 
 impl Provider for Borrowed {
-    fn capabilities(&self) -> demi_provider_common::Capabilities {
-        demi_provider_common::Capabilities::default()
+    fn capabilities(&self) -> jush_provider_common::Capabilities {
+        jush_provider_common::Capabilities::default()
     }
 
     fn auth_status(&self) -> BoxFuture<'_, AuthState> {
@@ -348,6 +351,8 @@ impl Connection {
         headers.insert(http::header::AUTHORIZATION, header(format!("Bearer {}", config.key.token))?);
         headers.insert(VERSION_HEADER, header(version().to_owned())?);
         headers.insert(SERVER_HEADER, header(config.server.clone())?);
+        headers.insert(EARLIER_VERSION_HEADER, header(version().to_owned())?);
+        headers.insert(EARLIER_SERVER_HEADER, header(config.server.clone())?);
         let socket_config = WebSocketConfig::default()
             .max_message_size(Some(MESSAGE_BYTES))
             .max_frame_size(Some(MESSAGE_BYTES));

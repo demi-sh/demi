@@ -5,17 +5,17 @@ status: proposed
 # An update waits for no device
 
 Supersedes: 0111 (An update shows each step it takes, with its progress), the
-step *Update Demi on your devices*; and 0117 (A runner update brings the
+step *Update Jush on your devices*; and 0117 (A runner update brings the
 package programs), the part that says the upgrade's wait for the devices
 covers the programs.
 
 ## Problem
 
 An administrator updates a server with five paired devices from Settings ›
-Updates. The preparation's last step, *Update Demi on your devices*, waits
+Updates. The preparation's last step, *Update Jush on your devices*, waits
 until every device has downloaded the new runner, or for two minutes. One
 laptop on a slow network keeps everyone waiting for those two minutes, and a
-laptop that is asleep always costs the full two: no one can use Demi on the
+laptop that is asleep always costs the full two: no one can use Jush on the
 new version until then, although the server is ready and the other devices
 are too.
 
@@ -31,16 +31,16 @@ updates on its own, before the restart when it can, after it when it must.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ Updating to Demi 0.1.5500                       ███████████░░░░░░░░  │
+│ Updating to Jush 0.1.5500                       ███████████░░░░░░░░  │
 │ Step 6 of 7 · Checking the databases                                 │
 │                                                                      │
-│ ✓ Download Demi 0.1.5500                          214 MB in 21 s     │
+│ ✓ Download Jush 0.1.5500                          214 MB in 21 s     │
 │ ✓ Unpack the release                              310 MB in 4 s      │
 │ ✓ Check the configuration                         Done               │
 │ – Download gVisor                                 Already installed  │
 │ ✓ Install the Cloud image                         96 MB in 9 s       │
 │ ◌ Check the databases                                                │
-│ ○ Restart Demi                                                       │
+│ ○ Restart Jush                                                       │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -59,7 +59,7 @@ updates on its own, before the restart when it can, after it when it must.
 
 ### How it works
 
-- `demi-server` sends the prefetch request over the management socket on a
+- `jush-server` sends the prefetch request over the management socket on a
   thread of its own, at the start of the preparation, and reads the answers
   only to write the devices' counts to its output. The thread ends when the
   backend closes the socket as it stops, or when every device is done; the
@@ -73,7 +73,7 @@ updates on its own, before the restart when it can, after it when it must.
 ### What an older backend or page meets
 
 The running backend during the preparation is of the release before. It
-shows the record `demi-server` sends, which no longer names the devices'
+shows the record `jush-server` sends, which no longer names the devices'
 step, as a list of seven lines; the step's kind it knows and does not meet
 changes nothing.
 
@@ -92,7 +92,7 @@ changes.
   connects, not when the client updates; the window waits for its server
   alone.
 
-Demi's backend serves only the runner of its own release, so a device that has
+Jush's backend serves only the runner of its own release, so a device that has
 not updated cannot run commands until it has, as VS Code's window cannot.
 
 ## Alternatives

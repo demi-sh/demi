@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 
 use crate::ResidentError;
 use crate::asking::{Answered, Asked, Asker, Pending};
-use demi_command_protocol::{NumbersAnswer, NumbersRequest, ProtocolError, ResidentSequence};
+use jush_command_protocol::{NumbersAnswer, NumbersRequest, ProtocolError, ResidentSequence};
 
 /// The numbers stream's kind of request.
 pub struct NumbersAsk;

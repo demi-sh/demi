@@ -11,11 +11,11 @@
 use std::{cell::RefCell, rc::Rc, sync::Arc, time::Duration};
 
 use bytes::Bytes;
-use demi_shared_types::{TurnId, 
+use jush_shared_types::{TurnId, 
     BinaryStdout, CommandId, EditedFile, NodeId, OutputView, PathChange, Sequence, StreamKind,
     StreamView,
 };
-use demi_command_protocol::Viewable;
+use jush_command_protocol::Viewable;
 use futures_util::future::LocalBoxFuture;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
@@ -197,7 +197,7 @@ pub struct JobCaller {
     pub turn: Option<TurnId>,
 }
 
-/// How long a running command's device has been unreachable, as far as Demi
+/// How long a running command's device has been unreachable, as far as Jush
 /// knows, and how long its runner keeps the command without a connection
 /// (`crates/runner/src/connection/kept.rs`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

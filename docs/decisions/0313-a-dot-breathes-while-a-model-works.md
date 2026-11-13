@@ -65,7 +65,7 @@ the page clock's origin, so every breathing dot shares one phase.
 
 ## Prior art
 
-None of the AI apps Demi compares with leaves a command running between an
+None of the AI apps Jush compares with leaves a command running between an
 agent's turns (0206), so none has a state of waiting for one to show.
 
 ## Alternatives

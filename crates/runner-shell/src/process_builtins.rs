@@ -637,7 +637,7 @@ fn kill(
                     }
                     None
                 } else {
-                    let sent = demi_runner_process::process::signal_target(pid, signal);
+                    let sent = jush_runner_process::process::signal_target(pid, signal);
                     if let Err(error) = sent {
                         #[cfg(unix)]
                         if error.raw_os_error() == Some(libc::EINVAL) {
@@ -1001,7 +1001,7 @@ fn umask(
             .shell
             .child_attributes()
             .umask
-            .unwrap_or_else(demi_runner_process::process::umask);
+            .unwrap_or_else(jush_runner_process::process::umask);
         if let Some(mode) = mode {
             let umask = if mode.starts_with(|digit: char| digit.is_ascii_digit()) {
                 match u32::from_str_radix(&mode, 8) {
@@ -1096,7 +1096,7 @@ mod unix {
     fn limits(attributes: &ChildAttributes, resource: Resource) -> std::io::Result<(u64, u64)> {
         match attributes.limits.iter().find(|&&(set, ..)| set == resource) {
             Some(&(_, soft, hard)) => Ok((soft, hard)),
-            None => demi_runner_process::process::child_limit(resource),
+            None => jush_runner_process::process::child_limit(resource),
         }
     }
 
@@ -1219,12 +1219,12 @@ mod unix {
             .stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null());
-        let mut command = demi_runner_process::process::wrap(
+        let mut command = jush_runner_process::process::wrap(
             command,
             false,
             &crate::scope::child_attributes(attributes),
         );
-        let mut child = demi_runner_process::process::start(|| {
+        let mut child = jush_runner_process::process::start(|| {
             scope.check()?;
             command.spawn()
         })

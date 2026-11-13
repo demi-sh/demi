@@ -1,6 +1,6 @@
 //! A project's workflows on the conversation's device.
 //!
-//! A workflow is a `.demi/workflows/*.yaml` file of the nearest directory that
+//! A workflow is a `.jush/workflows/*.yaml` file of the nearest directory that
 //! has it, from the project's directory up to the root of its git repository;
 //! a conversation in a linked worktree of the project reads the project's, and
 //! the worktree's own only when it picks one of them. It is:
@@ -10,15 +10,15 @@
 //! - parsed with the one parser (`crates/agent-tools/src/workflow.rs`).
 //!
 //! The shard keeps each conversation directory's workflows current with the
-//! runner's file watch (`project_files`). The spawns, `demi agent workflows`,
-//! `demi agent profiles list`, the Workflow menu and the instructions block take
+//! runner's file watch (`project_files`). The spawns, `jush agent workflows`,
+//! `jush agent profiles list`, the Workflow menu and the instructions block take
 //! what it holds.
 //!
 //! Why it is built this way:
 //!
 //! - Nothing applies by itself. A repository is often someone else's, so a
 //!   workflow applies only when the user picks it in a conversation's Workflow
-//!   menu, or allows an agent of that conversation to pick it (`demi agent
+//!   menu, or allows an agent of that conversation to pick it (`jush agent
 //!   workflows use`), never because a repository holds it.
 //! - A spawn takes the workflow as its file is then, without asking the device, so
 //!   a slow or stopped device never holds a spawn; only a directory's first read
@@ -27,26 +27,26 @@
 //!   and spawns fail with that reason until the user picks another, rather than
 //!   quietly spawning with other settings.
 
-use demi_agent_tools::{
+use jush_agent_tools::{
     ChosenWorkflow, ConversationProfiles, EFFORT_OFF, ListedWorkflow, WORKFLOW_EXTENSION,
     WORKFLOW_FILE_MAX_BYTES, WORKFLOWS_DIRECTORY, Workflow, WorkflowChild, WorkflowListing,
     WorkflowProfile, parse_workflow, workflow_id,
 };
-use demi_backend_device_access::plugin_files::ReadFilesError;
-use demi_backend_device_access::transition::ChangeRefusal;
+use jush_backend_device_access::plugin_files::ReadFilesError;
+use jush_backend_device_access::transition::ChangeRefusal;
 use std::rc::Rc;
 use std::future::Future;
 
-use demi_backend_device_access::plugin_files::look_files;
-use demi_device_interface::{Device as _, DeviceError};
-use demi_device_paths::DevicePaths;
-use demi_device_interface::project;
-use demi_device_interface::{EntryKind, DeviceFile, DeviceRead};
-use demi_shared_types::{ModelSelection, ReadAt, THINKING_OFF, UnavailableSetting, WorkflowChoice};
-use demi_web_api_protocol::conversations::{ConversationPatch, FieldResult, ModelSettings};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
-use demi_runner_protocol::files::SubscriptionKind as WatchKind;
-use demi_web_api_protocol::workflows::{ConversationWorkflows, KeptWorkflowList, MenuWorkflow, WatchSubject};
+use jush_backend_device_access::plugin_files::look_files;
+use jush_device_interface::{Device as _, DeviceError};
+use jush_device_paths::DevicePaths;
+use jush_device_interface::project;
+use jush_device_interface::{EntryKind, DeviceFile, DeviceRead};
+use jush_shared_types::{ModelSelection, ReadAt, THINKING_OFF, UnavailableSetting, WorkflowChoice};
+use jush_web_api_protocol::conversations::{ConversationPatch, FieldResult, ModelSettings};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_runner_protocol::files::SubscriptionKind as WatchKind;
+use jush_web_api_protocol::workflows::{ConversationWorkflows, KeptWorkflowList, MenuWorkflow, WatchSubject};
 use tokio_util::sync::CancellationToken;
 
 use super::project_files::KeptWorkflows;
@@ -55,8 +55,8 @@ use crate::shard::agent_profiles::{Scope, first_offering, named_entry};
 
 /// The workflows a working directory has now.
 pub(crate) struct ProjectWorkflows {
-    /// The `.demi/workflows` directory they are in, or would be; none when
-    /// no directory searched has a `.demi` that holds one.
+    /// The `.jush/workflows` directory they are in, or would be; none when
+    /// no directory searched has a `.jush` that holds one.
     pub(crate) directory: Option<String>,
     /// Why that directory cannot be used, as the device could not read it; none
     /// while it can.
@@ -93,7 +93,7 @@ impl ProjectWorkflows {
             return Some(reason.clone());
         }
         match self.get(id) {
-            None => Some("it is no longer in the project's .demi/workflows/".to_owned()),
+            None => Some("it is no longer in the project's .jush/workflows/".to_owned()),
             Some(file) => file.reason(),
         }
     }
@@ -170,11 +170,11 @@ pub(crate) fn workflow_text(answer: DeviceFile) -> Result<String, String> {
 
 /// The workflows of `cwd`, read through `read`.
 ///
-/// It reads in two requests: one finds `cwd` itself, and `.git`, `.demi` and
-/// `.demi/workflows` in every directory from `cwd` up to the repository's root,
+/// It reads in two requests: one finds `cwd` itself, and `.git`, `.jush` and
+/// `.jush/workflows` in every directory from `cwd` up to the repository's root,
 /// and one more reads the nearest workflows directory's files.
 ///
-/// A `.demi` the device cannot read makes that directory's workflows unavailable
+/// A `.jush` the device cannot read makes that directory's workflows unavailable
 /// rather than looked past.
 ///
 /// It watches only what its answer depends on, so that the files a home folder
@@ -182,7 +182,7 @@ pub(crate) fn workflow_text(answer: DeviceFile) -> Result<String, String> {
 ///
 /// - the `.git` whose coming moves the repository's root nearer;
 /// - in each directory it passed, the coming of the entry it looked for and
-///   did not find, its `.demi`, or its `.demi/workflows`;
+///   did not find, its `.jush`, or its `.jush/workflows`;
 /// - in the workflows directory, the `.yaml` entries and their contents.
 pub(crate) async fn search_workflows<E, Fut>(
     paths: DevicePaths,
@@ -193,13 +193,13 @@ where
     Fut: Future<Output = Result<(Vec<DeviceFile>, ReadAt), E>>,
 {
     let ancestors = paths.ancestors(cwd);
-    let [demi, workflows] = WORKFLOWS_DIRECTORY;
-    let dot_demi = |directory: &str| paths.join(directory, demi);
-    let workflows_of = |directory: &str| paths.join(&dot_demi(directory), workflows);
+    let [jush, workflows] = WORKFLOWS_DIRECTORY;
+    let dot_jush = |directory: &str| paths.join(directory, jush);
+    let workflows_of = |directory: &str| paths.join(&dot_jush(directory), workflows);
     let mut reads = vec![DeviceRead::new(cwd.to_owned(), 0)];
     reads.extend(project::root_reads(paths, &ancestors));
     for directory in &ancestors {
-        for path in [dot_demi(directory), workflows_of(directory)] {
+        for path in [dot_jush(directory), workflows_of(directory)] {
             reads.push(DeviceRead::new(path, 0));
         }
     }
@@ -221,12 +221,12 @@ where
         let unusable = |reason: String| (workflows_of(directory), Err(reason));
         match (&answers[0], &answers[1]) {
             (DeviceFile::Missing | DeviceFile::File { .. } | DeviceFile::Other, _) => {
-                watch.push(file(dot_demi(directory)));
+                watch.push(file(dot_jush(directory)));
                 continue;
             }
             (DeviceFile::Unreadable { message }, _) => {
-                watch.push(file(dot_demi(directory)));
-                nearest = Some(unusable(format!("the device cannot read {}: {message}", dot_demi(directory))));
+                watch.push(file(dot_jush(directory)));
+                nearest = Some(unusable(format!("the device cannot read {}: {message}", dot_jush(directory))));
             }
             (DeviceFile::Directory { .. }, DeviceFile::Missing | DeviceFile::File { .. } | DeviceFile::Other) => {
                 watch.push(file(workflows_of(directory)));
@@ -310,7 +310,7 @@ pub enum DeviceWorkflowsRefusal {
     /// The directory is not there.
     NoDirectory,
     Device(DeviceError),
-    Storage(demi_backend_database::StorageError),
+    Storage(jush_backend_database::StorageError),
 }
 
 /// The workflows of `directory`, the conversation `id`'s, read now through
@@ -407,7 +407,7 @@ impl Shard {
         })
     }
 
-    /// `demi agent workflows list` for the conversation `id`.
+    /// `jush agent workflows list` for the conversation `id`.
     pub(crate) async fn workflow_listing(&self, id: &ConversationId) -> Result<WorkflowListing, String> {
         let chosen = self.workflow_choice(id).await?;
         let found = self
@@ -448,7 +448,7 @@ impl Shard {
     }
 
     /// Makes `choice` the conversation `id`'s Workflow menu choice, as an
-    /// agent asks with `demi agent workflows use`, through the menu's own
+    /// agent asks with `jush agent workflows use`, through the menu's own
     /// change (`apply_patch`), which announces it to the page.
     ///
     /// A workflow is chosen only as the menu offers it: listed in what the
@@ -487,14 +487,14 @@ impl Shard {
                 let place = if *worktree { "the worktree" } else { "the project" };
                 let chosen = &*chosen;
                 let Some(directory) = &found.directory else {
-                    return Err("this project has no workflows: no directory from the project's directory up to the repository's root has .demi/workflows/".to_owned());
+                    return Err("this project has no workflows: no directory from the project's directory up to the repository's root has .jush/workflows/".to_owned());
                 };
                 if let Some(reason) = &found.unavailable {
                     return Err(format!("the workflows in {directory} cannot be used: {reason}"));
                 }
                 let Some(file) = found.get(chosen) else {
                     return Err(format!(
-                        "{place} has no workflow \"{chosen}\"; demi agent workflows list lists them"
+                        "{place} has no workflow \"{chosen}\"; jush agent workflows list lists them"
                     ));
                 };
                 if let Some(reason) = file.reason() {
@@ -671,7 +671,7 @@ fn workflow_context(
 ) -> Result<Option<u32>, String> {
     let window = selection.model.context_window;
     let tokens = profile.context.and_then(|choice| choice.tokens(window));
-    demi_backend_accounts::subagents::check_context(Some((&selection.model.id, window)), tokens)
+    jush_backend_accounts::subagents::check_context(Some((&selection.model.id, window)), tokens)
         .map_err(|refusal| format!("{refusal}; change the profile's context in {path}"))?;
     Ok(tokens)
 }

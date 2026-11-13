@@ -29,7 +29,7 @@
     "clearDraft": "Could Not Clear the Draft",
     "recallMessage": "Could Not Recall the Message",
     "connectionLost": "Connection Lost",
-    "connectionLostMessage": "Demi may not have received your request. Check the conversation once it reconnects.",
+    "connectionLostMessage": "Jush may not have received your request. Check the conversation once it reconnects.",
     "requestNotAccepted": "The conversation didn’t accept the request.",
     "fieldsNotUpdated": "Some fields weren’t updated.",
     "readFileWatch": "Could Not Read a Message of the File Watch",

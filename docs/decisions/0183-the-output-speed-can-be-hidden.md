@@ -53,7 +53,7 @@ None.
 VS Code's [status bar](https://code.visualstudio.com/docs/getstarted/userinterface)
 items can each be hidden from the bar's context menu, and macOS's Control
 Center settings choose which items show in the menu bar; both leave a
-reading of the app's state to the user's choice. Demi departs in putting the
+reading of the app's state to the user's choice. Jush departs in putting the
 switch in Settings, beside the conversation's other choices around the
 message field, since a menu on a reading that is hidden cannot bring it
 back.

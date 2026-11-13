@@ -9,9 +9,9 @@
 //! The module also keeps each conversation's notifications card, which asks
 //! the user to turn notifications on (§ The notifications card).
 
-use demi_web_api_protocol::ids::{ConversationId, UserId};
-use demi_web_api_protocol::push::{BrowserAuth, BrowserKey, PushEndpoint, PushEvents, PushSubscriptionKeys};
-use demi_web_api_protocol::sessions::SessionId;
+use jush_web_api_protocol::ids::{ConversationId, UserId};
+use jush_web_api_protocol::push::{BrowserAuth, BrowserKey, PushEndpoint, PushEvents, PushSubscriptionKeys};
+use jush_web_api_protocol::sessions::SessionId;
 use rusqlite::{OptionalExtension as _, Row, params};
 
 use super::StorageError;

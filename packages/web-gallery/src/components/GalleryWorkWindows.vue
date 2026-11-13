@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import SessionWindows from '@demicodes/web-ui/windows/SessionWindows.vue'
-import { useWindowStage } from '@demicodes/web-ui/windows/stage'
-import { WINDOW_SCOPE } from '@demicodes/web-ui/ui/window-stack'
+import SessionWindows from '@jush-ai/web-ui/windows/SessionWindows.vue'
+import { useWindowStage } from '@jush-ai/web-ui/windows/stage'
+import { WINDOW_SCOPE } from '@jush-ai/web-ui/ui/window-stack'
 import { gallerySessionWork } from '../fixtures/session-work'
 import type { GalleryWork } from '../fixtures/work'
 

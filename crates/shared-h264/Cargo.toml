@@ -1,5 +1,5 @@
 [package]
-name = "demi-shared-h264"
+name = "jush-shared-h264"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,7 +12,7 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-openh264 = { path = "../shared-openh264" }
+jush-shared-openh264 = { path = "../shared-openh264" }
 openh264 = { version = "0.9", default-features = false, features = ["libloading"] }
 openh264-sys2 = { version = "0.9", default-features = false }
 thiserror.workspace = true

@@ -1,10 +1,10 @@
 //! The name of a runner installation's directory, which the installers and the
 //! runner both derive from the backend's URL, so that no two of them can
-//! disagree about it: `~/.demi/runner/<name>`.
+//! disagree about it: `~/.jush/runner/<name>`.
 //!
 //! The name is the backend's host, then its port when it is not the scheme's
 //! default, then the URL's path segments, joined by `-`, and last the first
-//! four hex digits of the SHA-256 of the whole URL: `demi.example.com-3f9a`,
+//! four hex digits of the SHA-256 of the whole URL: `jush.example.com-3f9a`,
 //! `127.0.0.1-3310-b27e`. A person reads from it which backend an installation
 //! serves, and the hash keeps apart the backends the readable part cannot, such
 //! as `http://example.com` and `https://example.com`, or `/team-a` and
@@ -37,10 +37,10 @@ set -eu
 state=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 IFS= read -r backend < "$state/backend-url"
 IFS= read -r release < "$state/release-id"
-export DEMI_HOME="$state" DEMI_RELEASE_ID="$release"
+export JUSH_HOME="$state" JUSH_RELEASE_ID="$release"
 action=${1:-run}
 [ "$#" -eq 0 ] || shift
-exec "$state/demi-runner" "$action" --backend "$backend" "$@"
+exec "$state/jush-runner" "$action" --backend "$backend" "$@"
 "#;
 
 /// The launcher an installer writes as `run.ps1` on Windows, as `LAUNCHER_SH`.
@@ -49,25 +49,28 @@ pub const LAUNCHER_PS1: &str = r#"param(
   [Parameter(ValueFromRemainingArguments)][string[]]$Rest = @()
 )
 $ErrorActionPreference = 'Stop'
-$demiState = $PSScriptRoot
-$demiBackend = [IO.File]::ReadAllText((Join-Path $demiState 'backend-url')).Trim()
-$demiRelease = [IO.File]::ReadAllText((Join-Path $demiState 'release-id')).Trim()
-$demiPreviousHome = $env:DEMI_HOME
-$demiPreviousRelease = $env:DEMI_RELEASE_ID
+$jushState = $PSScriptRoot
+$jushBackend = [IO.File]::ReadAllText((Join-Path $jushState 'backend-url')).Trim()
+$jushRelease = [IO.File]::ReadAllText((Join-Path $jushState 'release-id')).Trim()
+$jushPreviousHome = $env:JUSH_HOME
+$jushPreviousRelease = $env:JUSH_RELEASE_ID
 try {
-  $env:DEMI_HOME = $demiState
-  $env:DEMI_RELEASE_ID = $demiRelease
-  & (Join-Path $demiState 'demi-runner.exe') $Action --backend $demiBackend @Rest
-  $demiExit = $LASTEXITCODE
+  $env:JUSH_HOME = $jushState
+  $env:JUSH_RELEASE_ID = $jushRelease
+  & (Join-Path $jushState 'jush-runner.exe') $Action --backend $jushBackend @Rest
+  $jushExit = $LASTEXITCODE
 } finally {
-  $env:DEMI_HOME = $demiPreviousHome
-  $env:DEMI_RELEASE_ID = $demiPreviousRelease
+  $env:JUSH_HOME = $jushPreviousHome
+  $env:JUSH_RELEASE_ID = $jushPreviousRelease
 }
-exit $demiExit
+exit $jushExit
 "#;
 
+/// The variable the launcher sets to the installation's directory.
+pub const HOME_ENV: &str = "JUSH_HOME";
+
 /// The directories under the user's home that hold every installation.
-pub const ROOT: [&str; 2] = [".demi", "runner"];
+pub const ROOT: [&str; 2] = [".jush", "runner"];
 
 /// The directory name of the installation of `backend`.
 pub fn installation_name(backend: &Url) -> String {

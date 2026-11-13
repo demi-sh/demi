@@ -25,12 +25,12 @@
 //!   video models: Google still lists models it shut down.
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     media::{MediaAnswer, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor, unreadable, within_limit},
     media_catalog::{Catalog, Modality, PriceUnit, Tokens},
     videos::{self, Change, Done, DoneVideo, JobRef, JobState, SourceVideo, VideoMaker, VideoRequest},
 };
-use demi_shared_types::VideoResolution;
+use jush_shared_types::VideoResolution;
 use futures_util::future::BoxFuture;
 use reqwest::Url;
 use serde::Serialize;
@@ -61,7 +61,7 @@ impl MediaMaker for KeyVideos {
 
     fn models<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(async move {
@@ -83,7 +83,7 @@ impl VideoMaker for KeyVideos {
         true
     }
 
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(async move {
             let key = &self.0;
             let kept = matches!(&request.source, Some(source) if matches!(source.video, SourceVideo::Job(_)));
@@ -97,7 +97,7 @@ impl VideoMaker for KeyVideos {
         })
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>> {
         Box::pin(async move {
             let read = interactions::get(&self.0, http, job.id).await;
             read.and_then(|interaction| match interaction.standing() {
@@ -129,7 +129,7 @@ impl VideoMaker for KeyVideos {
 
     /// The file's address is the key's own endpoint's, and its redirect to
     /// storage gets no key.
-    fn download<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, url: &'a Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
+    fn download<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, url: &'a Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
         Box::pin(videos::download(LABEL, &*self.0.clock, http, url, self.0.base(), self.0.headers()))
     }
 }
@@ -217,7 +217,7 @@ struct VideoConfig {
 /// its video.
 async fn encode<'a>(
     key: &GeminiKey,
-    http: &demi_provider_common::ProviderHttp,
+    http: &jush_provider_common::ProviderHttp,
     request: &'a VideoRequest,
 ) -> Result<Body<'a>, MediaFailure> {
     let mut input = Vec::new();

@@ -7,9 +7,9 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::credentials::{AccountMeta, CredentialPool};
-use demi_shared_types::{CatalogRecord, QuotaSnapshot, Timestamp};
-use demi_web_api_protocol::ids::{CredentialId, ProviderId};
+use jush_provider_common::credentials::{AccountMeta, CredentialPool};
+use jush_shared_types::{CatalogRecord, QuotaSnapshot, Timestamp};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId};
 use futures_util::future::BoxFuture;
 
 use crate::entry::ProviderEntry;

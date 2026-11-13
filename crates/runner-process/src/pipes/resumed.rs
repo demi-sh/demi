@@ -20,7 +20,7 @@
 //!   pipe's unconfirmed bytes for a connection that was lost instead.
 
 use bytes::Bytes;
-use demi_runner_protocol::wire::{self, PipeFrame, Read};
+use jush_runner_protocol::wire::{self, PipeFrame, Read};
 use futures_util::{SinkExt, StreamExt, stream::BoxStream};
 use std::io;
 use tokio::sync::mpsc;
@@ -140,7 +140,7 @@ impl PipeClient {
         let config = WebSocketConfig::default()
             .max_message_size(Some(wire::PIPE_SESSION_MESSAGE_BYTES))
             .max_frame_size(Some(wire::PIPE_SESSION_MESSAGE_BYTES));
-        let connecting = demi_command_sdk::descriptors::retry(cancel, || async {
+        let connecting = jush_command_sdk::descriptors::retry(cancel, || async {
             self.backend
                 .websocket(request.clone(), config)
                 .await

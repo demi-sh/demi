@@ -8,9 +8,9 @@ status: accepted
 
 After a server upgrade, the first time Alex opens the browser panel on a
 laptop, the panel shows "Starting the browser…" for five seconds or more. The
-runner is downloading the new `demi.browser` program (26 MB) from the server,
-and nothing says so. Every package program (`demi.browser`, `demi.mobile`,
-`demi.fetch`, `demi.file`) is new in each release, so each one makes its
+runner is downloading the new `jush.browser` program (26 MB) from the server,
+and nothing says so. Every package program (`jush.browser`, `jush.mobile`,
+`jush.fetch`, `jush.file`) is new in each release, so each one makes its
 first use after each release wait this way, in a panel or in an agent's
 command. The runner downloads it then because it learns of a package only
 from the work that runs it.

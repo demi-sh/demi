@@ -7,7 +7,7 @@ use std::{
     ffi::OsStr, fs::File, io, num::NonZeroU64, os::unix::fs::FileExt, path::Path, time::Duration,
 };
 
-use demi_machine_manager_protocol::Volume;
+use jush_machine_manager_protocol::Volume;
 
 use crate::{
     blocking::{self, OffLoop},

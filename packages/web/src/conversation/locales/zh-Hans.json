@@ -29,7 +29,7 @@
     "clearDraft": "无法清除草稿",
     "recallMessage": "无法撤回消息",
     "connectionLost": "连接已断开",
-    "connectionLostMessage": "Demi 可能没有收到你的请求。重新连接后请检查对话。",
+    "connectionLostMessage": "Jush 可能没有收到你的请求。重新连接后请检查对话。",
     "requestNotAccepted": "对话未接受该请求。",
     "fieldsNotUpdated": "部分字段未更新。",
     "readFileWatch": "无法读取文件监视的消息",

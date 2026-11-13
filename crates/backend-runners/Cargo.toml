@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-runners"
+name = "jush-backend-runners"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,16 +12,16 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-backend-blobs = { path = "../backend-blobs" }
-demi-backend-database = { path = "../backend-database" }
-demi-backend-page-sync = { path = "../backend-page-sync" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-shared-gates = { path = "../shared-gates" }
-demi-runner-client = { path = "../runner-client", features = ["edge"] }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-device-interface = { path = "../device-interface" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-backend-blobs = { path = "../backend-blobs" }
+jush-backend-database = { path = "../backend-database" }
+jush-backend-page-sync = { path = "../backend-page-sync" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-shared-gates = { path = "../shared-gates" }
+jush-runner-client = { path = "../runner-client", features = ["edge"] }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-device-interface = { path = "../device-interface" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 # A runner's connection is the WebSocket the edge upgraded.
 axum = { version = "0.8", features = ["ws"] }
 bytes.workspace = true

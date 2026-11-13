@@ -1,6 +1,6 @@
 ---
 name: Bug
-about: Something in Demi does not work as it should
+about: Something in Jush does not work as it should
 labels: bug
 ---
 
@@ -14,7 +14,7 @@ labels: bug
 
 **Where**
 
-- Demi version (Settings › About, or `demi-server status`):
+- Jush version (Settings › About, or `jush-server status`):
 - Browser and OS:
 - Device: Cloud, or a paired device (OS):
 

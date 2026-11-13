@@ -2,8 +2,8 @@
 //! backend keeps so that every page of the conversation shows it. The draft is the last one
 //! saved, whichever page saved it.
 
-use demi_conversation_lane_protocol::ClientContent;
-use demi_shared_types::{BlobRef, Comment, CommentContent, CommentStage, MAX_SAFE_INTEGER, is_blank};
+use jush_conversation_lane_protocol::ClientContent;
+use jush_shared_types::{BlobRef, Comment, CommentContent, CommentStage, MAX_SAFE_INTEGER, is_blank};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;

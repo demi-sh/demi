@@ -3,7 +3,7 @@
 //! its installation's directory with everything in it.
 //!
 //! The directory holds the device token, the releases, the log, and the
-//! artifact cache unless `DEMI_ARTIFACTS` named one elsewhere (which runners of
+//! artifact cache unless `JUSH_ARTIFACTS` named one elsewhere (which runners of
 //! several backends may share).
 //!
 //! # `run uninstall`
@@ -16,7 +16,7 @@
 //!    and is neither the user's home, nor a directory that contains it, nor a
 //!    filesystem root.
 //!
-//! A runner that ran with a mistaken `DEMI_HOME`, such as the home directory,
+//! A runner that ran with a mistaken `JUSH_HOME`, such as the home directory,
 //! wrote its state there and still never removes it ([`kept_whole`]); there it
 //! removes only the files it wrote.
 //!
@@ -73,7 +73,7 @@ fn powershell(path: &Path) -> String {
 /// Refuses `directory` unless it holds an installation: the state files an
 /// installer writes there (`backend-url` and `release-id`), or the
 /// configuration a runner writes as it starts (`runner.json`). A directory
-/// without them, such as a home directory a mistaken `DEMI_HOME` names, is
+/// without them, such as a home directory a mistaken `JUSH_HOME` names, is
 /// never removed.
 pub fn installation(directory: &Path) -> io::Result<()> {
     let installed =
@@ -95,8 +95,8 @@ const RUNNER_ENTRIES: &[&str] = &[
     "artifacts",
     "backend-url",
     "commands",
-    "demi-runner",
-    "demi-runner.exe",
+    "jush-runner",
+    "jush-runner.exe",
     "install.lock",
     "jobs",
     "log",
@@ -200,7 +200,7 @@ pub fn remove(directory: &Path) -> io::Result<Removed> {
 #[cfg(windows)]
 pub fn remove(directory: &Path) -> io::Result<Removed> {
     use std::os::windows::process::CommandExt as _;
-    const SCRIPT: &str = "$paths = $env:DEMI_REMOVED_PATHS -split \"`n\"; \
+    const SCRIPT: &str = "$paths = $env:JUSH_REMOVED_PATHS -split \"`n\"; \
         for ($i = 0; $i -lt 120; $i++) { \
         $left = @($paths | Where-Object { Test-Path -LiteralPath $_ }); \
         if ($left.Count -eq 0) { exit 0 }; \
@@ -216,7 +216,7 @@ pub fn remove(directory: &Path) -> io::Result<Removed> {
     let start = |flags: u32| {
         std::process::Command::new("powershell.exe")
             .args(["-NoProfile", "-NonInteractive", "-Command", SCRIPT])
-            .env("DEMI_REMOVED_PATHS", &joined)
+            .env("JUSH_REMOVED_PATHS", &joined)
             // A process's working directory cannot be removed while it runs.
             .current_dir(std::env::temp_dir())
             .stdin(std::process::Stdio::null())
@@ -229,6 +229,6 @@ pub fn remove(directory: &Path) -> io::Result<Removed> {
             .creation_flags(flags)
             .spawn()
     };
-    demi_runner_process::detached::start(start)?;
+    jush_runner_process::detached::start(start)?;
     Ok(removed)
 }

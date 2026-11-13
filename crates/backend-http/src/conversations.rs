@@ -15,20 +15,20 @@ use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use demi_backend_database::conversation_index::{ConversationRecord, Creation};
-use demi_backend_database::conversation_attachments::{self, AttachmentNumber};
-use demi_backend_database::tree;
-use demi_backend_page_sync::Part;
-use demi_runner_client::OpenedRead;
-use demi_device_interface::ByteRange;
-use demi_web_api_protocol::workflows::ConversationWorkflowList;
-use demi_web_api_protocol::conversations::{
+use jush_backend_database::conversation_index::{ConversationRecord, Creation};
+use jush_backend_database::conversation_attachments::{self, AttachmentNumber};
+use jush_backend_database::tree;
+use jush_backend_page_sync::Part;
+use jush_runner_client::OpenedRead;
+use jush_device_interface::ByteRange;
+use jush_web_api_protocol::workflows::ConversationWorkflowList;
+use jush_web_api_protocol::conversations::{
     BatchAnswer, BatchResult, ConversationBatch, ConversationDetail, ConversationPatch, CreatedConversation,
     ConversationUpdate, Conversations, ConversationsQuery, CreateConversation, FieldResult,
     ForkAnswer, ForkRequest, ReadRequest,
 };
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 
 use super::AppState;
 use super::body::JsonBody;
@@ -37,9 +37,9 @@ use super::error::ApiError;
 use super::gate::AuthUser;
 use super::attached_devices;
 use super::query::QueryParams;
-use demi_backend_user_shard::conversation::{AgentsError, ForkRefusal};
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::sync::etag_of;
+use jush_backend_user_shard::conversation::{AgentsError, ForkRefusal};
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::sync::etag_of;
 
 fn not_found() -> ApiError {
     ApiError::new(
@@ -124,7 +124,7 @@ pub(super) async fn create(
         .of(&user.id)
         .call(move |shard, _| async move {
             let conversation = shard.conversation_summary(record.clone()).await?;
-            Ok::<_, demi_backend_database::StorageError>((conversation, shard.conversation_metadata(record).await?))
+            Ok::<_, jush_backend_database::StorageError>((conversation, shard.conversation_metadata(record).await?))
         })
         .await??;
     Ok((status, Json(CreatedConversation { conversation, metadata, first_message })))
@@ -285,7 +285,7 @@ pub(super) async fn batch(
                 };
                 results.push(result);
             }
-            Ok::<_, demi_backend_database::StorageError>(results)
+            Ok::<_, jush_backend_database::StorageError>(results)
         })
         .await??;
     Ok((StatusCode::MULTI_STATUS, Json(BatchAnswer { results })))

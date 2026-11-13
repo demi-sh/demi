@@ -1,10 +1,10 @@
-//! The `demi.browser` package's contract: the arguments and results of its
+//! The `jush.browser` package's contract: the arguments and results of its
 //! `browser.*` operations, the live view's protocol, the capture extension's
 //! messages, and the pinned Chrome release records. It holds types and their
-//! checks only; the operations, transport and IO live in `demi-browser` and the
+//! checks only; the operations, transport and IO live in `jush-browser` and the
 //! browser libraries.
 //!
-//! The types are defined once: the `demi browser` declarations take their
+//! The types are defined once: the `jush browser` declarations take their
 //! schemas from them, the handlers decode into them, and the web app uses the
 //! TypeScript generated from them. Whatever enters from outside (command input,
 //! device files, CDP replies and events, page tool results, the page's and the
@@ -13,18 +13,18 @@
 
 /// The package's id, which its release descriptor names and the coding
 /// agent's commands and the backend's `browser` user stream bind to.
-pub const PACKAGE: &str = "demi.browser";
+pub const PACKAGE: &str = "jush.browser";
 
 // The wire-name macros every contract crate shares.
 #[macro_use]
-extern crate demi_shared_types;
+extern crate jush_shared_types;
 
 pub mod browser;
 pub mod capture;
 pub mod live;
 pub mod release;
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 
 /// An invocation of the package: the operation its name names, with the
 /// operation's checked arguments.
@@ -54,7 +54,7 @@ impl Operation {
     /// Decodes the operation `name` and its arguments.
     pub fn parse(name: &str, args: serde_json::Value) -> Result<Self, OperationError> {
         if name == live::OPERATION {
-            return demi_shared_types::decode_value::<live::LiveInput>(args)
+            return jush_shared_types::decode_value::<live::LiveInput>(args)
                 .map(|_| Self::Live)
                 .map_err(OperationError::Invalid);
         }

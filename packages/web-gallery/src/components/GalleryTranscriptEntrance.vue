@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
-import type { Block } from '@demicodes/protocol'
-import AgentMessageList from '@demicodes/web-ui/agent/AgentMessageList.vue'
-import type { SessionLoad } from '@demicodes/web-ui/agent/session-status'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import type { Block } from '@jush-ai/protocol'
+import AgentMessageList from '@jush-ai/web-ui/agent/AgentMessageList.vue'
+import type { SessionLoad } from '@jush-ai/web-ui/agent/session-status'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { transcriptDemoBlocks } from '../fixtures/blocks'
 
 const history = transcriptDemoBlocks().filter((block) => block.type === 'tool_call').slice(-2)

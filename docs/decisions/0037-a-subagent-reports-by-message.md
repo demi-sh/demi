@@ -13,7 +13,7 @@ with nothing running. Its session closes, and the parent receives "The test
 passed." as the child's result: the report it wrote first is never
 delivered.
 
-Today the answer that closes a child's session is its result, and Demi
+Today the answer that closes a child's session is its result, and Jush
 cannot tell an answer that ends the work from one that ends a turn to wait.
 Any wakeup after the report replaces the report.
 
@@ -30,7 +30,7 @@ Chosen option: no result, because sending a message to the parent already
 exists, and a report that is a message cannot be replaced by a later
 answer.
 
-* A child reports with `demi agent send parent`, whenever it has something
+* A child reports with `jush agent send parent`, whenever it has something
   the parent needs. Its answers stay in its own transcript and are sent to
   no one.
 * A child's session closes when it does today: when nothing it started
@@ -38,11 +38,11 @@ answer.
   end.
 * When the session closes, the parent receives a notice that names the
   child and how it ended: finished, failed or stopped. A failed child's
-  notice keeps Demi's failure reason; no notice carries the child's own
+  notice keeps Jush's failure reason; no notice carries the child's own
   words.
 * The commands a child leaves running are not stopped and nothing is done
   with their end.
-* `demi agent show` of a closed child says how and when it closed, with no
+* `jush agent show` of a closed child says how and when it closed, with no
   result.
 * A parent that needs what a child did but did not send reads the child's
   history (a design of its own).

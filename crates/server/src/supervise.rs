@@ -1,4 +1,4 @@
-//! `demi-server supervise`: what systemd does for a server's services, in a
+//! `jush-server supervise`: what systemd does for a server's services, in a
 //! container, which has no systemd. It runs as the container's PID 1, from
 //! the units the release carries, so a release that changes how a service
 //! runs brings the change itself:
@@ -15,7 +15,7 @@
 //! | the machine's shutdown             | `SIGTERM`, `SIGINT`: stops them    |
 //!
 //! ```text
-//!   demi-server, the manager --- requests (socket) ---+
+//!   jush-server, the manager --- requests (socket) ---+
 //!   each child, and the orphans PID 1 inherits -------+--> one loop: each
 //!   READY=1 (one notify socket per service) ----------+    unit's phase
 //!   SIGTERM, SIGINT, SIGCHLD -------------------------+
@@ -24,7 +24,7 @@
 //!
 //! It reads a unit only while `current` names its own release. Before it
 //! starts a service while `current` names another, it execs that release's
-//! `demi-server supervise`, so after a move's switch the new release
+//! `jush-server supervise`, so after a move's switch the new release
 //! supervises. No service runs then; what does, the update screen, the move
 //! itself, the work that started it and each service's log, goes to the next
 //! supervisor in [`STATE`]. A signal that arrives during the exec is lost.
@@ -33,7 +33,7 @@
 //! cgroup v2 enables no controller for the cgroups beneath while processes
 //! live in it, and the manager's limits enable them there. So a supervisor
 //! that may write the hierarchy, as in a privileged container, first moves
-//! the container's processes into a cgroup of their own, `demi-server`, as
+//! the container's processes into a cgroup of their own, `jush-server`, as
 //! Docker's docker-in-docker image does, and what it starts lives there too.
 //!
 //! Each service writes into a pipe the supervisor keeps all its life and
@@ -61,7 +61,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use demi_supervisor_protocol::{Answer, Request};
+use jush_supervisor_protocol::{Answer, Request};
 use rustix::{
     io::{Errno, FdFlags},
     process::{Pid, Signal, WaitOptions, WaitStatus},
@@ -80,7 +80,7 @@ use unit::{Kind, PathUnit, Service};
 /// The variable that carries what runs to the supervisor this one execs.
 /// That is another release's: [`Handed`] only gains fields, which a release
 /// that does not know them leaves out or skips.
-const STATE: &str = "DEMI_SUPERVISOR_STATE";
+const STATE: &str = "JUSH_SUPERVISOR_STATE";
 
 /// The lines of a service's log that answer a `log` request: as many as
 /// `journalctl -n 30` gives a failed move's report under systemd.
@@ -370,7 +370,7 @@ impl Supervisor<'_> {
             }
             Request::EndScreen => match self.screen {
                 Some(pid) => {
-                    let _ = demi_shared_processes::signal_group(pid, Signal::TERM);
+                    let _ = jush_shared_processes::signal_group(pid, Signal::TERM);
                     self.ending_screen.push(answer);
                 }
                 None => {
@@ -402,7 +402,7 @@ impl Supervisor<'_> {
             Phase::Stopped | Phase::Waiting(_) => {
                 supervised.starting.extend(waiter);
                 if let Err(error) = self.launch(unit) {
-                    println!("demi-server supervise: {unit} did not start: {error}");
+                    println!("jush-server supervise: {unit} did not start: {error}");
                     let supervised = self.unit(unit);
                     supervised.phase = Phase::Stopped;
                     for waiter in supervised.starting.drain(..) {
@@ -431,9 +431,9 @@ impl Supervisor<'_> {
             Phase::Starting(pid) | Phase::Running(pid) => {
                 let process_only = supervised.service.as_ref().is_some_and(|service| service.kill_process_only);
                 let _ = if process_only {
-                    demi_shared_processes::signal_process(pid, Signal::TERM)
+                    jush_shared_processes::signal_process(pid, Signal::TERM)
                 } else {
-                    demi_shared_processes::signal_group(pid, Signal::TERM)
+                    jush_shared_processes::signal_group(pid, Signal::TERM)
                 };
                 supervised.phase = Phase::Stopping(pid);
                 for starting in supervised.starting.drain(..) {
@@ -497,9 +497,9 @@ impl Supervisor<'_> {
             Ok(state) => state,
             Err(error) => return io::Error::other(error),
         };
-        println!("demi-server supervise: handing over to the supervisor of the current release");
+        println!("jush-server supervise: handing over to the supervisor of the current release");
         let _ = io::stdout().flush();
-        Command::new(self.layout.current().join("bin/demi-server"))
+        Command::new(self.layout.current().join("bin/jush-server"))
             .arg("--root")
             .arg(self.layout.root())
             .arg("supervise")
@@ -558,7 +558,7 @@ impl Supervisor<'_> {
         }
         for (name, value) in &service.environment {
             // The unit's answer to what runs it is systemd's; here it is this.
-            let value = if name == "DEMI_SERVICE_MANAGER" { "supervisor" } else { value };
+            let value = if name == "JUSH_SERVICE_MANAGER" { "supervisor" } else { value };
             environment.push((name.clone(), value.to_owned()));
         }
         // An environment file's settings win over the unit's, as systemd
@@ -622,7 +622,7 @@ impl Supervisor<'_> {
         if self.screen.is_some() {
             return Ok(());
         }
-        let credentials = Credentials::of(Some("demi"), Some("demi"), &[])?;
+        let credentials = Credentials::of(Some("jush"), Some("jush"), &[])?;
         let mut environment = credentials.environment();
         environment.extend(Settings::read(config)?.variables().iter().cloned());
         let mut command = Command::new(program);
@@ -695,7 +695,7 @@ impl Supervisor<'_> {
         if !process_only {
             // What the service started ends with it, as its cgroup's
             // processes do under systemd.
-            let _ = demi_shared_processes::signal_group(pid, Signal::KILL);
+            let _ = jush_shared_processes::signal_group(pid, Signal::KILL);
         }
         for waiter in supervised.starting.drain(..) {
             let _ = waiter.send(if oneshot && !failed {
@@ -705,7 +705,7 @@ impl Supervisor<'_> {
             });
         }
         if failed {
-            println!("demi-server supervise: {unit} ended {}", describe(status));
+            println!("jush-server supervise: {unit} ended {}", describe(status));
         }
         let Some(service) = supervised.service.take_if(|service| service.exec_stop_post.is_some()) else {
             self.cleaned(unit);
@@ -721,7 +721,7 @@ impl Supervisor<'_> {
         match started {
             Ok(pid) => self.unit(unit).phase = Phase::Cleaning(pid),
             Err(error) => {
-                println!("demi-server supervise: the stop-post command of {unit} did not start: {error}");
+                println!("jush-server supervise: the stop-post command of {unit} did not start: {error}");
                 self.cleaned(unit);
             }
         }
@@ -772,16 +772,16 @@ impl Supervisor<'_> {
         match Journal::read(&self.layout.journal()) {
             Ok(Some(journal)) => {
                 println!(
-                    "demi-server supervise: the move from {} to {} did not finish; the update screen says why",
+                    "jush-server supervise: the move from {} to {} did not finish; the update screen says why",
                     journal.from, journal.to
                 );
                 return;
             }
             Ok(None) => {}
-            Err(error) => println!("demi-server supervise: {error}"),
+            Err(error) => println!("jush-server supervise: {error}"),
         }
         if !self.layout.current().exists() || crate::setup::marker(self.layout).exists() {
-            self.shut_down(Some("Demi is not set up: the setup above stopped, and the next start of the container goes on with it".into()));
+            self.shut_down(Some("Jush is not set up: the setup above stopped, and the next start of the container goes on with it".into()));
             return;
         }
         self.queue = UNITS.into_iter().map(str::to_owned).collect();
@@ -792,7 +792,7 @@ impl Supervisor<'_> {
         if self.stopping.is_some() {
             return;
         }
-        println!("demi-server supervise: stopping the services");
+        println!("jush-server supervise: stopping the services");
         self.failure = failure;
         self.queue.clear();
         self.queued = None;
@@ -816,7 +816,7 @@ impl Supervisor<'_> {
                 // What else runs ends with the container.
                 let others = self.units.values().filter_map(Supervised::pid).chain(self.first).chain(self.screen);
                 for pid in others.collect::<Vec<_>>() {
-                    let _ = demi_shared_processes::signal_group(pid, Signal::TERM);
+                    let _ = jush_shared_processes::signal_group(pid, Signal::TERM);
                 }
             }
             return;
@@ -859,7 +859,7 @@ impl Supervisor<'_> {
             match read {
                 Ok(watched) => self.watched = Some(watched),
                 Err(error) => {
-                    println!("demi-server supervise: {error}");
+                    println!("jush-server supervise: {error}");
                     self.watched = Some(Vec::new());
                 }
             }
@@ -887,7 +887,7 @@ impl Supervisor<'_> {
     }
 }
 
-/// Moves the processes of the root cgroup into `demi-server`, where the
+/// Moves the processes of the root cgroup into `jush-server`, where the
 /// hierarchy is cgroup v2 and writable; elsewhere nothing changes, and the
 /// manager says what its limits lack.
 fn leave_root_cgroup() {
@@ -896,7 +896,7 @@ fn leave_root_cgroup() {
     if !in_root || !root.join("cgroup.subtree_control").exists() {
         return;
     }
-    let own = root.join("demi-server");
+    let own = root.join("jush-server");
     if fs::create_dir_all(&own).is_err() {
         return;
     }
@@ -962,7 +962,7 @@ fn listen(socket: &Path, events: mpsc::Sender<Event>) -> io::Result<()> {
         for stream in listener.incoming().flatten() {
             let events = events.clone();
             std::thread::spawn(move || {
-                let _ = demi_supervisor_protocol::serve(stream, |request| {
+                let _ = jush_supervisor_protocol::serve(stream, |request| {
                     let (answer, answered) = mpsc::channel();
                     if events.send(Event::Request(request, answer)).is_err() {
                         return Answer::Failed { error: "the supervisor stopped".into() };
@@ -1132,7 +1132,7 @@ fn spawn(mut command: Command, credentials: &Credentials, confinement: &Confinem
     let withheld: Vec<&str> = (confinement.ambient - held).iter_names().map(|(name, _)| name).collect();
     if !withheld.is_empty() {
         println!(
-            "demi-server supervise: {} runs without {}, which this container does not grant",
+            "jush-server supervise: {} runs without {}, which this container does not grant",
             command.get_program().display(),
             withheld.join(", "),
         );

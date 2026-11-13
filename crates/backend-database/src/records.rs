@@ -37,7 +37,7 @@ use std::collections::{BTreeSet, HashMap};
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
-use demi_shared_types::Block;
+use jush_shared_types::Block;
 use rusqlite::{Connection, OptionalExtension, Row, Transaction, params};
 use serde_json::Value;
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import SettingsInstructions from '@demicodes/web-ui/settings/SettingsInstructions.vue'
-import AsyncRegion from '@demicodes/web-ui/ui/AsyncRegion.vue'
+import SettingsInstructions from '@jush-ai/web-ui/settings/SettingsInstructions.vue'
+import AsyncRegion from '@jush-ai/web-ui/ui/AsyncRegion.vue'
 import { useProduct } from '../state/product'
 import { useInstructionSettings } from './instructions'
 

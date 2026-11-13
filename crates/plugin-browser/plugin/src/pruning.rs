@@ -9,8 +9,8 @@
 
 use std::{cell::RefCell, collections::HashMap, time::Duration};
 
-use demi_plugin_interface::PluginPort;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_plugin_interface::PluginPort;
+use jush_web_api_protocol::ids::ConversationId;
 use tokio_util::sync::CancellationToken;
 
 /// How long a conversation stays stopped before its agents' tabs close: a

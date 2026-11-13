@@ -47,11 +47,11 @@ use std::future::Future;
 use std::rc::Rc;
 
 use bytes::Bytes;
-use demi_runner_client::{ConditionalRead, OpenedRead, PipeReader, PipeWriter};
-use demi_device_interface::{ByteRange, FileStat, Device as _, DeviceError, WhenExists, WriteOptions};
-use demi_runner_protocol::search::SearchQuery;
-use demi_runner_protocol::wire::ReadAt;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_runner_client::{ConditionalRead, OpenedRead, PipeReader, PipeWriter};
+use jush_device_interface::{ByteRange, FileStat, Device as _, DeviceError, WhenExists, WriteOptions};
+use jush_runner_protocol::search::SearchQuery;
+use jush_runner_protocol::wire::ReadAt;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use http::header::{ACCEPT_RANGES, CONTENT_LENGTH, CONTENT_RANGE};
 use http::{HeaderMap, HeaderValue, StatusCode};
 use tokio::sync::{oneshot, watch};
@@ -91,7 +91,7 @@ pub enum DownloadPath {
     Named(String),
     /// The file at a place, as an HTML view's URL names it: its path's names
     /// joined by `/`, read in the device's form of paths
-    /// ([`demi_device_paths::DevicePaths::place`]).
+    /// ([`jush_device_paths::DevicePaths::place`]).
     Place(String),
 }
 

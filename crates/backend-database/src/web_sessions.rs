@@ -11,9 +11,9 @@
 //! The accounts service decides the policies; storage keeps the records they
 //! govern.
 
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::sessions::{HandoffId, ProductPath, SessionDto, SessionId};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::sessions::{HandoffId, ProductPath, SessionDto, SessionId};
 use jiff::SignedDuration;
 use rusqlite::{OptionalExtension, Row, params};
 

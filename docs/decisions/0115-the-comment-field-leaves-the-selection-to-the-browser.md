@@ -23,7 +23,7 @@ words as selected, and decides by its own rules what each key and press
 does to them. Those rules differ from the browser's, as measured in Chrome
 against the same steps on a plain page:
 
-| The user                         | The browser                    | Demi today                          |
+| The user                         | The browser                    | Jush today                          |
 | -------------------------------- | ------------------------------ | ----------------------------------- |
 | Presses on other words           | Clears the selection at once   | Clears it on release                |
 | Clicks the selected words        | Clears the selection on release | Keeps it, the field takes the focus |

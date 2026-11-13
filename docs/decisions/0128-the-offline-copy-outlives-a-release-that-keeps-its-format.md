@@ -77,7 +77,7 @@ build changes, and only the kind of record that changed shape goes.
 * TanStack Query's persisted cache drops a stored cache whose `buster`
   string differs, and its guide passes the build's hash
   ([persistQueryClient](https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient#cache-busting)),
-  as Demi does today. Demi derives the string from what the copy stores
+  as Jush does today. Jush derives the string from what the copy stores
   instead, so a release that keeps the shape keeps the cache.
 
 ## Alternatives

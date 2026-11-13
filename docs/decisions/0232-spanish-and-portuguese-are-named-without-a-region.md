@@ -4,13 +4,13 @@ status: accepted
 
 # Spanish and Portuguese are named without a region
 
-Supersedes: 0230 (Demi speaks Spanish, Portuguese, German and French), the
+Supersedes: 0230 (Jush speaks Spanish, Portuguese, German and French), the
 names `es-419` and `pt-BR` have in the language menu.
 
 ## Problem
 
 Settings › General › Language names Latin American Spanish *Español
-(Latinoamérica)* and Brazilian Portuguese *Português (Brasil)*. Demi speaks
+(Latinoamérica)* and Brazilian Portuguese *Português (Brasil)*. Jush speaks
 one Spanish and one Portuguese, so the region tells each from nothing, and a
 reader in Spain or Portugal, who reads them too, takes the menu for a choice
 it does not offer.
@@ -43,7 +43,7 @@ None.
 
 macOS and iOS add a region to a language's name where they offer more than
 one form of it, such as *Português (Brasil)* beside *Português (Portugal)*.
-Demi offers one of each, so their names need no region.
+Jush offers one of each, so their names need no region.
 
 ## Alternatives
 

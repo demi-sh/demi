@@ -10,13 +10,13 @@ An agent edits a local page, `report.html`, and checks each edit the same
 way:
 
 ```shell
-demi browser open file:///Users/alex/report.html && \
-  demi browser screenshot t1 | demi file view
+jush browser open file:///Users/alex/report.html && \
+  jush browser screenshot t1 | jush file view
 ```
 
-`demi browser open` makes a new tab each time. After twenty edits the
+`jush browser open` makes a new tab each time. After twenty edits the
 user's work panel holds twenty tabs of the same page, and the browser runs
-twenty copies of it until the conversation is released. `demi browser goto`
+twenty copies of it until the conversation is released. `jush browser goto`
 would have loaded the page again in the first tab, but the agent never used
 it: in the agent browser tools it knows, `open` is the verb that loads a page
 in a tab, and making a tab is a command of its own (Prior art).
@@ -27,12 +27,12 @@ in a tab, and making a tab is a command of its own (Prior art).
 acts on a tab names it:**
 
 ```shell
-$ demi browser tab new
+$ jush browser tab new
 t1
-$ demi browser open t1 file:///Users/alex/report.html
-$ demi browser screenshot t1 | demi file view
+$ jush browser open t1 file:///Users/alex/report.html
+$ jush browser screenshot t1 | jush file view
 # After the next edit, the same tab:
-$ demi browser open t1 file:///Users/alex/report.html
+$ jush browser open t1 file:///Users/alex/report.html
 ```
 
 The model reads these leaves:
@@ -44,14 +44,14 @@ The model reads these leaves:
 | `tab close <tab>` | Closes a tab. Closing the last one ends the browser; the next `tab new` starts it again. |
 | `open <tab> <url>` | Opens a URL in the tab, in place of its page, as `goto` did; `--load` and `--timeout` as before, and `--show` also shows the tab, as `show` does. |
 
-`demi browser open <url>`, `goto`, `tabs` and `close` are gone, with no
+`jush browser open <url>`, `goto`, `tabs` and `close` are gone, with no
 alias. There is no current tab: one browser serves all of a conversation's
 agents and their parallel commands, so a command without a tab would act
 on whichever tab another command made current.
 
 The design to build from:
 
-* The `demi.browser` package's operations change with the leaves, one leaf
+* The `jush.browser` package's operations change with the leaves, one leaf
   per operation as before (`crates/plugin-browser/plugin/src/browser.rs`):
 
   ```rust
@@ -93,13 +93,13 @@ The design to build from:
   not the blank page its new tab still shows, so Retry opens that address.
   `navigate` calls `open`.
 * `tab new` prints the tab's ID alone, so a script takes it as
-  `T=$(demi browser tab new)`; `--json` prints the tab and its viewport.
+  `T=$(jush browser tab new)`; `--json` prints the tab and its viewport.
 * Nothing is stored differently: tab IDs, the panel's tabs and the
   browser's lifetime are unchanged.
 * An older runner meets no other operations than its backend's: the
   backend's startup catalog pins the browser package release its leaves
   name, and a runner fetches that release. An agent that still runs
-  `demi browser goto t1 …` gets the command line's usual error, `unrecognized
+  `jush browser goto t1 …` gets the command line's usual error, `unrecognized
   subcommand 'goto'`, with the group's usage line.
 
 ## Spike
@@ -140,8 +140,8 @@ None.
   another one did last.
 * **`tab new <url>`.** Making a tab with its page in one step is what `open`
   did, and checking a page again would again make a tab.
-* **`tab ls`.** Demi's other groups list with `list`, as `demi host list`
-  and `demi agent list` do.
+* **`tab ls`.** Jush's other groups list with `list`, as `jush host list`
+  and `jush agent list` do.
 * **A limit on tabs, or freeing tabs no one looked at for a while.** With
   tabs reused there is nothing to free; either would add a count or an idle
   timer that the browser's lifetime deliberately does without.

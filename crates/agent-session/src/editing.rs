@@ -36,17 +36,17 @@
 
 use std::rc::Rc;
 
-use demi_agent_store::{
+use jush_agent_store::{
     AgentTreeStore, Checkpoint, CheckpointState, CheckpointUpdate, EditReceipt, Kind, NodeRecord, SessionStore, StoreError,
     StoredPrefix,
 };
-use demi_agent_transcript::{CutError, Earlier, ForkEnd, TranscriptLog, before_input, fork_prefix, side_end};
-use demi_command_protocol::canonical_digest;
-use demi_conversation_lane_protocol::{
+use jush_agent_transcript::{CutError, Earlier, ForkEnd, TranscriptLog, before_input, fork_prefix, side_end};
+use jush_command_protocol::canonical_digest;
+use jush_conversation_lane_protocol::{
     AgentCode, EditRequest, MediaRef, RegenerateRequest, Refusal, Version,
 };
-use demi_provider_common::ProviderRuntime;
-use demi_shared_types::{
+use jush_provider_common::ProviderRuntime;
+use jush_shared_types::{
     BlobRef, Block, BlockId, Comment, CommentPart, CommentStage, DocumentSource, MediaSource, MessageComment, NodeId,
     OperationId, UserContentBlock,
 };
@@ -315,7 +315,7 @@ struct Candidate {
     runtime: Box<dyn ProviderRuntime>,
     update: CheckpointUpdate,
     receipt: EditReceipt,
-    model: demi_shared_types::ModelSelection,
+    model: jush_shared_types::ModelSelection,
 }
 
 impl Candidate {
@@ -345,7 +345,7 @@ impl Candidate {
                         .iter()
                         .map(|comment| {
                             let content = Self::content(&target, &comment.content)?;
-                            Ok(comment.clone().with_content::<demi_shared_types::Message>(content))
+                            Ok(comment.clone().with_content::<jush_shared_types::Message>(content))
                         })
                         .collect::<Result<Vec<MessageComment>, EditError>>()?,
                     None => target.comments.to_vec(),
@@ -373,7 +373,7 @@ impl Candidate {
         let update = core.rewrite_update(&blocks, true);
         let update = CheckpointUpdate {
             state: CheckpointState {
-                phase: demi_shared_types::SessionPhase::Running,
+                phase: jush_shared_types::SessionPhase::Running,
                 queue: Vec::new(),
                 edits,
                 model: model.clone(),
@@ -519,7 +519,7 @@ pub enum ForkError {
 /// source's store holds before its window are no part of it: `prefix` names
 /// them as rows, which the destination's store copies in the database, or,
 /// when they are its own tree's, starts its node's path with
-/// ([`demi_agent_store::AgentTreeStore::create_node_after`]), and the
+/// ([`jush_agent_store::AgentTreeStore::create_node_after`]), and the
 /// checkpoint holds the blocks after them, from its `start`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ForkSeed {
@@ -568,7 +568,7 @@ pub async fn fork_seed(
     end: ForkEnd<'_>,
 ) -> Result<ForkSeed, ForkError> {
     let state = CheckpointState {
-        phase: demi_shared_types::SessionPhase::Idle,
+        phase: jush_shared_types::SessionPhase::Idle,
         queue: Vec::new(),
         agent_inputs: Vec::new(),
         reports: Vec::new(),

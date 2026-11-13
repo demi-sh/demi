@@ -17,11 +17,11 @@ another agent and that the user sees in the recipient's view.
 
 ## Decision
 
-`demi conversation send` asks nothing: any agent of a conversation sends a
+`jush conversation send` asks nothing: any agent of a conversation sends a
 message to the main agent of another conversation of the user's that is
 not archived, from its first send.
 
-- Reading stays asked: `demi conversation list` and `demi conversation
+- Reading stays asked: `jush conversation list` and `jush conversation
   history --conversation` ask Read Your Other Conversations
   (`conversation.read`) once per conversation, since what they read goes to
   the reading conversation's model provider.
@@ -53,8 +53,8 @@ instances of one OS user find each other and exchange messages, its trust
 boundary being that user, with no prompt to send
 ([opencode-plugin-peers](https://github.com/jkrandom-sudo/opencode-plugin-peers)).
 
-Claude Code departs from Demi in its inbound controls, by which a receiving session
-holds or refuses a message; in Demi every conversation is the user's own,
+Claude Code departs from Jush in its inbound controls, by which a receiving session
+holds or refuses a message; in Jush every conversation is the user's own,
 and the recipient's permissions already stand between a message and what
 it asks for.
 

@@ -14,7 +14,7 @@ use std::{collections::BTreeMap, f64::consts::FRAC_PI_2, time::Duration};
 
 use kurbo::{Affine, BezPath, Shape as _};
 
-use demi_command_package_mobile_protocol::live::{LiveCorner, LiveCorners, LiveCornerPoint};
+use jush_command_package_mobile_protocol::live::{LiveCorner, LiveCorners, LiveCornerPoint};
 
 use super::{
     axml::{self, Attribute, Event, Value},

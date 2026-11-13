@@ -3,7 +3,7 @@
  * (`crates/plugin-mobile/page/src/index.ts`): the events of the user's own browser, in
  * the picture's coordinates, whatever the source turns them into.
  */
-import type { ViewerInput } from '@demicodes/protocol'
+import type { ViewerInput } from '@jush-ai/protocol'
 
 /** Modifier keys as the protocol numbers them. */
 export const ALT = 1

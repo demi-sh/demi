@@ -1,8 +1,8 @@
 // Where the page's links lead, and the install command with what it needs.
-export const REPOSITORY = 'https://github.com/demi-sh/demi'
+export const REPOSITORY = 'https://github.com/jush-ai/jush'
 export const DOCS = `${REPOSITORY}/blob/main/docs/delivery/installation.md`
 export const LICENSE = `${REPOSITORY}#license`
-export const INSTALL_COMMAND = 'curl -fsSL https://demi.sh/install.sh | sudo bash'
+export const INSTALL_COMMAND = 'curl -fsSL https://jush.ai/install.sh | sudo bash'
 // What the server needs, said once for the hero, the install screen and
 // llms.txt.
 export const REQUIREMENTS = 'Requires a Linux server and a domain name.'

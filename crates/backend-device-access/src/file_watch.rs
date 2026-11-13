@@ -25,13 +25,13 @@ use tracing::Instrument as _;
 use std::rc::Rc;
 use std::time::Instant;
 
-use demi_runner_client::{DeviceEvent, DeviceSubscriber};
-use demi_device_interface::DeviceErrorKind;
-use demi_runner_protocol::files::{Effect, PageSubscription, PageSubscriptions};
-use demi_web_api_protocol::files::{
+use jush_runner_client::{DeviceEvent, DeviceSubscriber};
+use jush_device_interface::DeviceErrorKind;
+use jush_runner_protocol::files::{Effect, PageSubscription, PageSubscriptions};
+use jush_web_api_protocol::files::{
     ConversationSubscription, ConversationWatchRequest, FileWatchMessage,
 };
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::select_all;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;

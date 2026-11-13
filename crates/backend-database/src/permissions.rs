@@ -29,10 +29,10 @@
 
 use std::collections::BTreeMap;
 
-use demi_shared_types::{NodeId, PermissionOutcome, Timestamp};
-use demi_web_api_protocol::credentials::{CredentialField, Keep};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
-use demi_web_api_protocol::permissions::{PermissionDecision, PermissionRequestId, RequestingAgent};
+use jush_shared_types::{NodeId, PermissionOutcome, Timestamp};
+use jush_web_api_protocol::credentials::{CredentialField, Keep};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_web_api_protocol::permissions::{PermissionDecision, PermissionRequestId, RequestingAgent};
 use garde::Validate;
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};

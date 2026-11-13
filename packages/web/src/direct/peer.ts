@@ -18,8 +18,8 @@
  * connection state is `failed` or `closed`.
  */
 import { z } from 'zod'
-import { DIRECT_CONNECT_MS, DIRECT_MESSAGE_BYTES, DIRECT_PROBE_LABEL, DIRECT_QUEUE_BYTES } from '@demicodes/protocol'
-import type { DirectAddresses, DirectAttempt, DirectPermission, DirectStage } from '@demicodes/web-ui/devices/direct'
+import { DIRECT_CONNECT_MS, DIRECT_MESSAGE_BYTES, DIRECT_PROBE_LABEL, DIRECT_QUEUE_BYTES } from '@jush-ai/protocol'
+import type { DirectAddresses, DirectAttempt, DirectPermission, DirectStage } from '@jush-ai/web-ui/devices/direct'
 import { channelRefusalSchema, videoOpenedSchema, type ChannelErrorCode, type ChannelHeader, type ReadAt, type VideoOpened } from '../api/generated/web-api'
 
 /**

@@ -3,7 +3,7 @@
 // it through the `attachment` intent.
 import { defineComponent, h, type PropType } from 'vue'
 import { z } from 'zod'
-import { FileIcon, ICON_PX, type IntentPayloads, type TabKind } from '@demicodes/plugin-sdk'
+import { FileIcon, ICON_PX, type IntentPayloads, type TabKind } from '@jush-ai/plugin-sdk'
 import AttachmentTab from './AttachmentTab.vue'
 import { attachmentsWindow } from './media'
 

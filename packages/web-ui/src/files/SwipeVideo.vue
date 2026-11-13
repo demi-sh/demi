@@ -7,7 +7,7 @@ import { useSwipeLayer } from './swipe-layer'
 import { focusByPage } from '../ui/focus-by-page'
 
 /**
- * A video the media viewer shows, in Demi's player (`VideoPlayer`), which a
+ * A video the media viewer shows, in Jush's player (`VideoPlayer`), which a
  * finger swipes as a picture is swiped (`swipe-layer.ts`):
  *
  * - Sideways across the video, with `steps`, it steps to the neighbour.

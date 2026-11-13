@@ -1,4 +1,4 @@
-//! The paths of Git Bash that Demi's shell and its utilities read as Git's
+//! The paths of Git Bash that Jush's shell and its utilities read as Git's
 //! utilities do on Windows, so a path one of them takes the other takes too:
 //! `/tmp` is the user's temporary folder (`%TMP%`, else `%TEMP%`), a drive
 //! written `/c/…` is `C:\…`, and `/dev/null` is the null device, `NUL`. Any

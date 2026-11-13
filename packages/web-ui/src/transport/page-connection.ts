@@ -52,7 +52,7 @@ import {
   type LaneRefusal,
   type LaneTarget,
   type PageConnectionMessage,
-} from '@demicodes/protocol'
+} from '@jush-ai/protocol'
 import { pageLog } from '../infra/log'
 import { openSocket, reconnectNow, waitForConnection, watchSilence, type ReconnectWait, type SilenceWatch } from './liveness'
 

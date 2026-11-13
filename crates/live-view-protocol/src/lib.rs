@@ -4,7 +4,7 @@
 //!
 //! A source's own protocol, such as the browser's, carries these beside its own
 //! messages. The crate holds types and their checks only; the device's side of
-//! them is `live-view`, the page's `@demicodes/web-ui`'s live module.
+//! them is `live-view`, the page's `@jush-ai/web-ui`'s live module.
 //!
 //! - The codec is fixed, H.264 High level 5.1, and the stream does not name it:
 //!   the page asks the user's browser for a decoder before it opens a view.
@@ -19,7 +19,7 @@
 //!   next.
 
 use bytes::{Buf, Bytes, BytesMut};
-use demi_shared_types::{DecodeError, MAX_SAFE_INTEGER};
+use jush_shared_types::{DecodeError, MAX_SAFE_INTEGER};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;

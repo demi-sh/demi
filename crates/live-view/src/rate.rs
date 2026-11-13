@@ -39,7 +39,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use demi_live_view_protocol::{ChunkAck, VIDEO_MAX_BITRATE};
+use jush_live_view_protocol::{ChunkAck, VIDEO_MAX_BITRATE};
 
 use crate::{
     bwe::{

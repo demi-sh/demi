@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import type { UserContentBlock } from '@demicodes/protocol'
+import type { UserContentBlock } from '@jush-ai/protocol'
 import {
   AttachmentUploadQueue,
   applyAttachmentUpdate,

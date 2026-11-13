@@ -17,7 +17,7 @@
 //   |               [mach]  |      |       |  name+light                    ├▶[vps]
 //   +------------- name+light      +-------+                                └▶[home lab]
 import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
-import DeviceLogo from '@demicodes/web-ui/devices/DeviceLogo.vue'
+import DeviceLogo from '@jush-ai/web-ui/devices/DeviceLogo.vue'
 import type { DeviceShot, ShotDevice, ShotMachine } from '@/demo/message'
 import server from '@/assets/devices/server.webp'
 import macbook from '@/assets/devices/macbook.webp'
@@ -428,7 +428,7 @@ function px(b: { left: number; top: number; width: number; height: number }) {
 
     <div class="node server" :class="{ shown: every && !parting }" :style="px(serverBox)">
       <img :src="server" alt="">
-      <span class="label"><b>Demi</b> · your server</span>
+      <span class="label"><b>Jush</b> · your server</span>
     </div>
 
     <template v-for="(machine, name, order) in MACHINES" :key="name">

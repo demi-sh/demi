@@ -11,20 +11,20 @@ path = "src/main.rs"
 test = false
 
 [dependencies]
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-command-package-browser-protocol = { path = "../plugin-browser/protocol" }
-demi-command-package-mobile-protocol = { path = "../plugin-mobile/protocol" }
-demi-live-view-protocol = { path = "../live-view-protocol" }
-demi-command-package-file-protocol = { path = "../plugin-file/protocol" }
-demi-command-package-fetch-protocol = { path = "../plugin-web/protocol" }
-demi-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-command-package-browser-protocol = { path = "../plugin-browser/protocol" }
+jush-command-package-mobile-protocol = { path = "../plugin-mobile/protocol" }
+jush-live-view-protocol = { path = "../live-view-protocol" }
+jush-command-package-file-protocol = { path = "../plugin-file/protocol" }
+jush-command-package-fetch-protocol = { path = "../plugin-web/protocol" }
+jush-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
 # `testing` for `built_program`: `xtask dev` starts the programs the
 # workspace built beside it.
-demi-command-protocol = { path = "../command-protocol", features = ["testing"] }
-demi-shared-types = { path = "../shared-types" }
-demi-machine-manager-protocol = { path = "../machine-manager-protocol" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-shared-lanes = { path = "../shared-lanes" }
+jush-command-protocol = { path = "../command-protocol", features = ["testing"] }
+jush-shared-types = { path = "../shared-types" }
+jush-machine-manager-protocol = { path = "../machine-manager-protocol" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-shared-lanes = { path = "../shared-lanes" }
 clap = { version = "4", features = ["derive", "env"] }
 flate2 = "1"
 # Copies the built web app into a server release.
@@ -56,15 +56,15 @@ default = ["developer"]
 # The build workflow builds xtask without them, and so without the backend they
 # compile (`.github/workflows/build.yml`).
 developer = [
-  "dep:demi-backend",
-  "dep:demi-provider-common",
-  "dep:demi-provider-registry",
+  "dep:jush-backend",
+  "dep:jush-provider-common",
+  "dep:jush-provider-registry",
   "dep:log",
   "dep:resvg",
-  "dep:demi-conversation-lane-protocol",
-  "dep:demi-plugin-interface",
-  "dep:demi-plugin-widget",
-  "dep:demi-web-api-protocol",
+  "dep:jush-conversation-lane-protocol",
+  "dep:jush-plugin-interface",
+  "dep:jush-plugin-widget",
+  "dep:jush-web-api-protocol",
   "dep:axum",
   "dep:process-wrap",
 ]
@@ -75,21 +75,21 @@ developer = [
 # generated from; the echo endpoint `xtask dev` serves; the process groups it
 # starts its programs in.
 [target.'cfg(unix)'.dependencies]
-demi-backend = { path = "../backend", optional = true }
+jush-backend = { path = "../backend", optional = true }
 # The vendors the backend offers, read from models.dev as it reads them
 # (`xtask logos`).
-demi-provider-common = { path = "../provider-common", optional = true }
-demi-provider-registry = { path = "../provider-registry", optional = true }
+jush-provider-common = { path = "../provider-common", optional = true }
+jush-provider-registry = { path = "../provider-registry", optional = true }
 # Reads and draws a vendor's mark to tell whether a mask can paint it
 # (`xtask logos`).
 resvg = { version = "0.48", default-features = false, optional = true }
 # usvg's warning that it could not read a mark's color (`xtask logos`).
 log = { version = "0.4", optional = true }
-demi-conversation-lane-protocol = { path = "../conversation-lane-protocol", optional = true }
-demi-plugin-interface = { path = "../plugin-interface", optional = true }
+jush-conversation-lane-protocol = { path = "../conversation-lane-protocol", optional = true }
+jush-plugin-interface = { path = "../plugin-interface", optional = true }
 # The guide's widgets the gallery's replies show (`xtask contracts`).
-demi-plugin-widget = { path = "../plugin-widget/plugin", optional = true }
-demi-web-api-protocol = { path = "../web-api-protocol", optional = true }
+jush-plugin-widget = { path = "../plugin-widget/plugin", optional = true }
+jush-web-api-protocol = { path = "../web-api-protocol", optional = true }
 axum = { version = "0.8", optional = true }
 process-wrap = { workspace = true, optional = true }
 

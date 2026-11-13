@@ -3,8 +3,8 @@
 //! A record holds an upload's owner, media type, size, content hash and a text
 //! file's snippet. The bytes are in the owner's blobs.
 
-use demi_shared_types::{BlobRef, Timestamp};
-use demi_web_api_protocol::ids::{AttachmentId, UserId};
+use jush_shared_types::{BlobRef, Timestamp};
+use jush_web_api_protocol::ids::{AttachmentId, UserId};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::StorageError;

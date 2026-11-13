@@ -10,7 +10,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Result, after_cleanup};
 use crate::tabs::{environment::BrowserEnvironment, navigation::Navigation, tab::BrowserTab};
-use demi_command_sdk::InvocationContext;
+use jush_command_sdk::InvocationContext;
 
 use crate::page::protocol::{
     BrowserErrorCode, BrowserFailure, BrowserOperation, ContentFetchResult, FetchedPage,

@@ -123,7 +123,7 @@ address naming `tab=change&view=diff`. Nothing else was uncertain.
   (`workbench.editor.focusRecentEditorAfterClose`), never another group's.
 - Chrome: closing a tab activates a tab of the same window.
 
-Demi departs from none of them.
+Jush departs from none of them.
 
 ## Alternatives
 

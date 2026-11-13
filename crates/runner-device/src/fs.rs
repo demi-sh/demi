@@ -4,13 +4,13 @@ use std::{
     time::UNIX_EPOCH,
 };
 
-use demi_runner_process::private_files::chmod;
-use demi_runner_protocol::wire::{self, Frame, FsOk, FsResult, Inbound, Outbound, Timestamp};
+use jush_runner_process::private_files::chmod;
+use jush_runner_protocol::wire::{self, Frame, FsOk, FsResult, Inbound, Outbound, Timestamp};
 use futures_util::future::BoxFuture;
 use tokio::fs;
 use tokio_util::sync::CancellationToken;
 
-use demi_command_sdk::paths::resolve;
+use jush_command_sdk::paths::resolve;
 
 /// Returns None for messages owned by other runner subsystems. A file's
 /// contents are not answered here: they travel through pipes
@@ -333,14 +333,14 @@ pub(crate) fn link_target(followed: io::Result<(bool, bool)>) -> wire::LinkTarge
             wire::LinkTarget::Missing
         }
         Err(error) => wire::LinkTarget::Unreadable {
-            reason: demi_command_sdk::errors::reason(&error),
+            reason: jush_command_sdk::errors::reason(&error),
         },
     }
 }
 
 /// Out of open files, reading a directory waits for one (`crates/command-sdk/src/descriptors.rs`).
 async fn read_dir(path: &Path, cancel: &CancellationToken) -> io::Result<fs::ReadDir> {
-    demi_command_sdk::descriptors::retry(cancel, || fs::read_dir(path)).await
+    jush_command_sdk::descriptors::retry(cancel, || fs::read_dir(path)).await
 }
 
 /// Removes `path` with everything in it, each directory in it made
@@ -378,7 +378,7 @@ async fn remove(path: &Path, recursive: bool, cancel: &CancellationToken) -> io:
         }
         // Out of open files, the removal waits for one and continues where
         // it stopped.
-        demi_command_sdk::descriptors::retry(cancel, || fs::remove_dir_all(path)).await
+        jush_command_sdk::descriptors::retry(cancel, || fs::remove_dir_all(path)).await
     } else {
         fs::remove_file(path).await
     }
@@ -523,7 +523,7 @@ fn copy_entry<'a>(
         }
         if metadata.is_file() {
             // Out of open files, the copy waits for one (`crates/command-sdk/src/descriptors.rs`).
-            demi_command_sdk::descriptors::retry(cancel, || fs::copy(source, destination)).await?;
+            jush_command_sdk::descriptors::retry(cancel, || fs::copy(source, destination)).await?;
             return Ok(());
         }
         if !metadata.is_dir() {

@@ -6,7 +6,7 @@
 use std::{collections::BTreeMap, fmt, sync::Arc};
 
 use bytes::Bytes;
-use demi_shared_types::{ReadAt, StreamKind, Timestamp};
+use jush_shared_types::{ReadAt, StreamKind, Timestamp};
 use futures_util::{
     future::LocalBoxFuture,
     stream::{BoxStream, LocalBoxStream},
@@ -48,7 +48,7 @@ pub struct DeviceIdentity {
     /// that never connected.
     pub scratch_root: String,
     /// How the device writes its paths, from the system its runner reports.
-    pub paths: demi_device_paths::DevicePaths,
+    pub paths: jush_device_paths::DevicePaths,
 }
 
 /// An execution target. A relative path in any of its operations is

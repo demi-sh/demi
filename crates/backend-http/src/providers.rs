@@ -11,18 +11,18 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_provider_registry::families::family_name;
-use demi_provider_registry::registry::RegistryError;
-use demi_shared_types::AudioShape;
-use demi_provider_registry::entry::ProviderEntry;
-use demi_backend_providers::vault::entries::Vault;
-use demi_backend_providers::vault::operations::OperationGuard;
-use demi_provider_common::Provider;
-use demi_provider_common::quota::QuotaError;
-use demi_web_api_protocol::auth::UserDto;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::CredentialId;
-use demi_web_api_protocol::providers::{
+use jush_provider_registry::families::family_name;
+use jush_provider_registry::registry::RegistryError;
+use jush_shared_types::AudioShape;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_backend_providers::vault::entries::Vault;
+use jush_backend_providers::vault::operations::OperationGuard;
+use jush_provider_common::Provider;
+use jush_provider_common::quota::QuotaError;
+use jush_web_api_protocol::auth::UserDto;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::CredentialId;
+use jush_web_api_protocol::providers::{
     CreateProvider, ProviderAnswer, ProviderDetails, ProviderOrder, ProviderPatch, Providers, QuotaAnswer,
     CompatibleShapes, QuotaRequest, SubscriptionFamily, TestRequest, TestResult, VendorCatalog,
 };
@@ -30,9 +30,9 @@ use demi_web_api_protocol::providers::{
 use super::body::{JsonBody, OptionalJsonBody};
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_user_shard::provider_settings::ProviderRefusal;
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::Shards;
+use jush_backend_user_shard::provider_settings::ProviderRefusal;
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::Shards;
 
 /// The entry the path names, when the caller infers with it and manages
 /// it; one they only infer with is refused, and any other answers like a

@@ -4,12 +4,12 @@
 
 use std::collections::BTreeMap;
 
-use demi_command_protocol::{
+use jush_command_protocol::{
     ArtifactLocation, CommandContext, EditCopies, EditKind, MediumFacts, PackageDescriptor,
     ResidentSequence, Viewable, conversation_name, digest, without_nul,
 };
-use demi_device_paths::DevicePaths;
-use demi_shared_types::{BlobRef, DeviceLogLine};
+use jush_device_paths::DevicePaths;
+use jush_shared_types::{BlobRef, DeviceLogLine};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
@@ -90,7 +90,7 @@ pub enum Inbound {
         /// in the session this connection carries on; none when the session
         /// is a new one.
         received: u64,
-        /// The rules the device's user set for what Demi keeps on their
+        /// The rules the device's user set for what Jush keeps on their
         /// devices (`crates/runner/src/storage.rs`).
         #[garde(dive)]
         storage: StorageRules,
@@ -146,13 +146,13 @@ pub enum Inbound {
         #[garde(dive)]
         packages: Vec<PackageDescriptor>,
     },
-    /// The user changed the rules of what Demi keeps on their devices; the
+    /// The user changed the rules of what Jush keeps on their devices; the
     /// runner applies them from its next measurement.
     StorageRules {
         #[garde(dive)]
         rules: StorageRules,
     },
-    /// Measures what Demi keeps on the device, after removing what `action`
+    /// Measures what Jush keeps on the device, after removing what `action`
     /// names; `storage_done` or `storage_failed` answers.
     Storage {
         id: String,
@@ -227,7 +227,7 @@ pub enum Inbound {
     ///
     /// - Its declared commands receive `context` and may show the model the
     ///   media types `viewable` names, none for a job whose media reach no
-    ///   model, as one `demi device shell` runs.
+    ///   model, as one `jush device shell` runs.
     /// - `stdin` and `stdout` attach the job's fd 0 and fd 1 to pipes whose
     ///   other ends are elsewhere.
     JobStart {
@@ -497,7 +497,7 @@ pub enum Inbound {
     },
     /// Fill the file with the bytes the backend offers at `source`.
     ///
-    /// The runner downloads them as every file Demi downloads
+    /// The runner downloads them as every file Jush downloads
     /// (`crates/shared-artifacts/src/download.rs`): resumed after a break or a
     /// stall, with no overall deadline, and checked against the offer's size
     /// and SHA-256 before the file is put in place as `fs_writeFile` puts it.
@@ -1224,7 +1224,7 @@ pub enum Outbound {
         owner: ArtifactOwner,
         #[garde(custom(digest))]
         sha256: String,
-        #[garde(custom(demi_command_protocol::target))]
+        #[garde(custom(jush_command_protocol::target))]
         target: String,
     },
     /// Asks the backend to revoke this device, as `run uninstall` does;
@@ -1292,7 +1292,7 @@ pub enum Outbound {
     FsError {
         id: String,
         #[garde(dive)]
-        read_at: demi_shared_types::ReadAt,
+        read_at: jush_shared_types::ReadAt,
         #[serde(
             default,
             skip_serializing_if = "Option::is_none",
@@ -1306,7 +1306,7 @@ pub enum Outbound {
     GitError {
         id: String,
         #[garde(dive)]
-        read_at: demi_shared_types::ReadAt,
+        read_at: jush_shared_types::ReadAt,
         code: String,
         message: String,
     },
@@ -1366,7 +1366,7 @@ pub enum Outbound {
         )]
         tasks: Vec<String>,
     },
-    /// A job's execution context ended: its `demi` commands reach the backend
+    /// A job's execution context ended: its `jush` commands reach the backend
     /// no more, whether run by the job's own script or by what the script left
     /// running. Sent after the job's `job_exit`, at once when nothing the job
     /// left running holds the context, else when the last of that has ended.
@@ -1396,15 +1396,15 @@ pub enum Outbound {
             with = "unwrap_or_skip"
         )]
         output: Option<OutputLengths>,
-        #[garde(length(max = demi_command_protocol::EDIT_JOB_FILES), dive)]
+        #[garde(length(max = jush_command_protocol::EDIT_JOB_FILES), dive)]
         files: Vec<JobFileChange>,
         /// The renames and removals of the job's embedded utilities, in
         /// order (`crates/agent-store/src/changes.rs`).
-        #[garde(length(max = demi_command_protocol::EDIT_JOB_PATH_CHANGES), dive)]
+        #[garde(length(max = jush_command_protocol::EDIT_JOB_PATH_CHANGES), dive)]
         path_changes: Vec<JobPathChange>,
         files_truncated: bool,
     },
-    /// A medium `demi file view` handed to the job, once the job keeps it
+    /// A medium `jush file view` handed to the job, once the job keeps it
     /// (`crates/runner-jobs/src/job_media.rs`). Every one of a job precedes its
     /// `job_exit`.
     JobMedium {
@@ -1412,7 +1412,7 @@ pub enum Outbound {
         #[garde(range(min = 1))]
         number: u32,
         media_type: String,
-        #[garde(range(max = demi_command_protocol::MAX_MEDIUM_BYTES))]
+        #[garde(range(max = jush_command_protocol::MAX_MEDIUM_BYTES))]
         size: u64,
         #[garde(custom(digest))]
         sha256: String,
@@ -1691,13 +1691,13 @@ pub enum Outbound {
         #[garde(dive)]
         downloads: Vec<DeviceDownload>,
     },
-    /// What Demi keeps on the device, after each measurement the runner makes
+    /// What Jush keeps on the device, after each measurement the runner makes
     /// on its own.
     StorageMeasured {
         #[garde(dive)]
         report: StorageReport,
     },
-    /// What Demi keeps on the device after a `storage` request.
+    /// What Jush keeps on the device after a `storage` request.
     StorageDone {
         id: String,
         #[garde(dive)]
@@ -1710,7 +1710,7 @@ pub enum Outbound {
 }
 
 /// One artifact a device holds: its package, its line's name and its
-/// version, such as `demi.browser`, `Chrome for Testing` and
+/// version, such as `jush.browser`, `Chrome for Testing` and
 /// `153.0.8010.36`.
 #[derive(
     Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, garde::Validate, JsonSchema,
@@ -1737,9 +1737,9 @@ pub struct DeviceDownload {
     pub name: String,
     #[garde(length(min = 1, max = 100))]
     pub version: String,
-    #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub received: u64,
-    #[garde(range(min = 1, max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[garde(range(min = 1, max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub size: u64,
 }
 
@@ -1896,7 +1896,7 @@ pub struct RunnerInfo {
         skip_serializing_if = "Option::is_none",
         with = "unwrap_or_skip"
     )]
-    #[garde(inner(custom(demi_command_protocol::target)))]
+    #[garde(inner(custom(jush_command_protocol::target)))]
     pub native_target: Option<String>,
     /// Read at shell creation, so it arrives before any device use.
     pub identity: DeviceIdentity,
@@ -1911,7 +1911,7 @@ pub struct RunnerInfo {
     )]
     #[garde(dive)]
     pub kernel: Option<Kernel>,
-    /// The machine, which `demi device list` and `show` tell, and whose memory
+    /// The machine, which `jush device list` and `show` tell, and whose memory
     /// bounds how many idle Claude Code processes it keeps
     /// (`crates/provider-claude-code/src/idle.rs`).
     #[garde(dive)]
@@ -2131,7 +2131,7 @@ pub struct Gpu {
     pub memory: Option<u64>,
 }
 
-/// The rules for what Demi keeps on a user's devices, one set for all of them,
+/// The rules for what Jush keeps on a user's devices, one set for all of them,
 /// each applied on each device on its own.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -2180,7 +2180,7 @@ pub enum StorageAction {
     },
 }
 
-/// What Demi keeps on a device, as its runner last measured it. Sizes are the
+/// What Jush keeps on a device, as its runner last measured it. Sizes are the
 /// bytes the files take on the disk, as `du` counts them.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, garde::Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -2191,7 +2191,7 @@ pub struct StorageReport {
     /// home; none when no volume is found for it.
     pub disk: Option<u64>,
     pub disk_available: Option<u64>,
-    /// What Demi downloaded to run, its logs and its other state: its
+    /// What Jush downloaded to run, its logs and its other state: its
     /// directory less the conversations' scratch directories.
     pub components: u64,
     /// Each conversation's scratch directory, largest first.
@@ -2204,7 +2204,7 @@ pub struct StorageReport {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ConversationStorage {
-    /// Its scratch directory's name (`demi_command_protocol::scratch_name`).
+    /// Its scratch directory's name (`jush_command_protocol::scratch_name`).
     pub name: String,
     pub temporary: u64,
     pub cache: u64,
@@ -2547,11 +2547,11 @@ pub struct GitChanges {
     /// repository. Named as the web API names its fields, since the page
     /// receives it as it is.
     #[serde(rename = "gitDir", deserialize_with = "Option::deserialize")]
-    #[schemars(with = "demi_shared_types::Nullable<String>")]
+    #[schemars(with = "jush_shared_types::Nullable<String>")]
     pub git_dir: Option<String>,
     /// Always written, null before the first commit.
     #[serde(deserialize_with = "Option::deserialize")]
-    #[schemars(with = "demi_shared_types::Nullable<String>")]
+    #[schemars(with = "jush_shared_types::Nullable<String>")]
     pub head: Option<String>,
     #[garde(dive)]
     pub files: Vec<GitChange>,
@@ -2578,9 +2578,9 @@ pub struct GitChange {
     )]
     #[schemars(with = "String")]
     pub from: Option<String>,
-    #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub added: u64,
-    #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub removed: u64,
 }
 
@@ -2594,11 +2594,11 @@ pub struct GitBranches {
     pub branches: Vec<String>,
     /// Null while HEAD is detached.
     #[serde(deserialize_with = "Option::deserialize")]
-    #[schemars(with = "demi_shared_types::Nullable<String>")]
+    #[schemars(with = "jush_shared_types::Nullable<String>")]
     pub current: Option<String>,
     /// The commit a detached HEAD names; null while a branch is checked out.
     #[serde(deserialize_with = "Option::deserialize")]
-    #[schemars(with = "demi_shared_types::Nullable<String>")]
+    #[schemars(with = "jush_shared_types::Nullable<String>")]
     pub head: Option<String>,
 }
 
@@ -2623,15 +2623,15 @@ pub struct GitLogEntry {
     pub id: String,
     pub message: String,
     pub author: String,
-    pub time: demi_shared_types::Timestamp,
+    pub time: jush_shared_types::Timestamp,
 }
 
 /// A commit's time from git's seconds since the Unix epoch; a time outside
 /// what a timestamp holds is no time anyone committed at, and reads as the
 /// epoch.
-pub fn commit_time(seconds: i64) -> demi_shared_types::Timestamp {
-    demi_shared_types::Timestamp::from_millisecond(seconds.saturating_mul(1000))
-        .unwrap_or(demi_shared_types::Timestamp::UNIX_EPOCH)
+pub fn commit_time(seconds: i64) -> jush_shared_types::Timestamp {
+    jush_shared_types::Timestamp::from_millisecond(seconds.saturating_mul(1000))
+        .unwrap_or(jush_shared_types::Timestamp::UNIX_EPOCH)
 }
 
 /// One page of a first-parent history, newest first; `more` when older
@@ -2668,7 +2668,7 @@ pub struct GitCommitEntry {
     pub id: String,
     pub message: String,
     pub author: String,
-    pub time: demi_shared_types::Timestamp,
+    pub time: jush_shared_types::Timestamp,
     pub parents: Vec<String>,
 }
 
@@ -2691,9 +2691,9 @@ pub struct GitCommitFile {
     )]
     #[schemars(with = "String")]
     pub from: Option<String>,
-    #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub added: u64,
-    #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub removed: u64,
 }
 
@@ -2803,7 +2803,7 @@ pub struct JobFileChange {
     pub path: String,
     #[garde(skip)]
     pub kind: EditKind,
-    #[garde(length(max = demi_command_protocol::EDIT_JOB_SEGMENTS as usize), dive)]
+    #[garde(length(max = jush_command_protocol::EDIT_JOB_SEGMENTS as usize), dive)]
     pub edits: Vec<EditCopies>,
     #[garde(skip)]
     pub added: u64,

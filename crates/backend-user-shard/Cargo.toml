@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-user-shard"
+name = "jush-backend-user-shard"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,40 +12,40 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-agent-server = { path = "../agent-server" }
-demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
-demi-agent-session = { path = "../agent-session" }
-demi-agent-store = { path = "../agent-store" }
-demi-agent-tools = { path = "../agent-tools" }
-demi-agent-transcript = { path = "../agent-transcript" }
-demi-backend-accounts = { path = "../backend-accounts" }
-demi-backend-cloud = { path = "../backend-cloud" }
-demi-backend-device-access = { path = "../backend-device-access" }
-demi-backend-idle-watch = { path = "../backend-idle-watch" }
-demi-backend-blobs = { path = "../backend-blobs" }
-demi-backend-providers = { path = "../backend-providers" }
-demi-backend-runners = { path = "../backend-runners" }
-demi-backend-database = { path = "../backend-database" }
-demi-backend-page-sync = { path = "../backend-page-sync" }
-demi-backend-permissions = { path = "../backend-permissions" }
-demi-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
-demi-plugin-host = { path = "../plugin-host" }
-demi-plugin-interface = { path = "../plugin-interface" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-declarations = { path = "../command-declarations" }
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-shared-types = { path = "../shared-types", features = ["audio", "mp4"] }
-demi-shared-gates = { path = "../shared-gates" }
-demi-runner-client = { path = "../runner-client" }
-demi-machine-manager-protocol = { path = "../machine-manager-protocol" }
-demi-provider-common = { path = "../provider-common" }
-demi-provider-registry = { path = "../provider-registry" }
-demi-provider-relay = { path = "../provider-relay" }
-demi-provider-claude-code = { path = "../provider-claude-code" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-device-interface = { path = "../device-interface" }
-demi-device-paths = { path = "../device-paths" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-agent-server = { path = "../agent-server" }
+jush-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
+jush-agent-session = { path = "../agent-session" }
+jush-agent-store = { path = "../agent-store" }
+jush-agent-tools = { path = "../agent-tools" }
+jush-agent-transcript = { path = "../agent-transcript" }
+jush-backend-accounts = { path = "../backend-accounts" }
+jush-backend-cloud = { path = "../backend-cloud" }
+jush-backend-device-access = { path = "../backend-device-access" }
+jush-backend-idle-watch = { path = "../backend-idle-watch" }
+jush-backend-blobs = { path = "../backend-blobs" }
+jush-backend-providers = { path = "../backend-providers" }
+jush-backend-runners = { path = "../backend-runners" }
+jush-backend-database = { path = "../backend-database" }
+jush-backend-page-sync = { path = "../backend-page-sync" }
+jush-backend-permissions = { path = "../backend-permissions" }
+jush-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
+jush-plugin-host = { path = "../plugin-host" }
+jush-plugin-interface = { path = "../plugin-interface" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-declarations = { path = "../command-declarations" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-shared-types = { path = "../shared-types", features = ["audio", "mp4"] }
+jush-shared-gates = { path = "../shared-gates" }
+jush-runner-client = { path = "../runner-client" }
+jush-machine-manager-protocol = { path = "../machine-manager-protocol" }
+jush-provider-common = { path = "../provider-common" }
+jush-provider-registry = { path = "../provider-registry" }
+jush-provider-relay = { path = "../provider-relay" }
+jush-provider-claude-code = { path = "../provider-claude-code" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-device-interface = { path = "../device-interface" }
+jush-device-paths = { path = "../device-paths" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 axum = { version = "0.8", features = ["ws"] }
 base64.workspace = true
 bytes.workspace = true

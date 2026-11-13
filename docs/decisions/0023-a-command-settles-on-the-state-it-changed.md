@@ -45,7 +45,7 @@ What lets them disagree:
 
 Telegram's update protocol ([Working with updates](https://core.telegram.org/api/updates))
 solves the same problem for messages across devices. Compared item by item,
-Demi already has its push delivery, its independent sequences (one per
+Jush already has its push delivery, its independent sequences (one per
 message box, like one per agent here), its gap filling and its rule for
 duplicates. It differs in three things, which this record takes:
 

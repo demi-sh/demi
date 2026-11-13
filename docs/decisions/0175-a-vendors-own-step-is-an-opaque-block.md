@@ -6,9 +6,9 @@ status: accepted
 
 ## Problem
 
-Some of what a model does happens at its vendor and reaches Demi only as a
+Some of what a model does happens at its vendor and reaches Jush only as a
 record that the vendor alone can read: Anthropic's redacted reasoning, the
-encrypted results of xAI's X search, OpenAI's hosted tool calls. Demi keeps
+encrypted results of xAI's X search, OpenAI's hosted tool calls. Jush keeps
 such records in three ways, each for one case:
 
 - `RedactedThinkingBlock` keeps Anthropic's redacted reasoning, and the page
@@ -24,7 +24,7 @@ such records in three ways, each for one case:
 
 ## Decision
 
-A step the vendor ran on its side is an **opaque block**: Demi keeps the
+A step the vendor ran on its side is an **opaque block**: Jush keeps the
 vendor's record of it, which only that vendor's provider reads, and a
 **view** of it, which is what the page draws.
 
@@ -33,7 +33,7 @@ vendor's record of it, which only that vendor's provider reads, and a
   search steps of [0176](0176-a-subscription-searches-with-its-vendors-search.md)
   are rows of a run with their sources; redacted reasoning is thinking
   without text, as now.
-- A step whose kind Demi does not know is still kept and replayed, and shows
+- A step whose kind Jush does not know is still kept and replayed, and shows
   as one line of its name and its vendor, such as *code_interpreter at Grok
   Build*, which reads the same while it runs and once it ended.
 - A step that still runs when its request ends without a response, stopped,
@@ -107,7 +107,7 @@ compatible endpoints are two vendors; reasoning signed under the old
 ## Spike
 
 None: what the vendors send is known from 0173's runs, and this changes only
-how Demi keeps it.
+how Jush keeps it.
 
 ## Prior art
 

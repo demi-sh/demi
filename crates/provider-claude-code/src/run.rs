@@ -44,12 +44,12 @@ use std::sync::Arc;
 use std::task::Poll;
 
 use async_stream::stream;
-use demi_provider_common::credentials::{AuthFailure, AuthReason};
-use demi_provider_common::{
+use jush_provider_common::credentials::{AuthFailure, AuthReason};
+use jush_provider_common::{
     Ahead, CallEvent, CallOutcome, EarlyEnd, ErrorCode, InferenceRequest, ProviderEvent, ProviderFailure, ProviderRun,
     ProviderRuntime, RequestLimits, ToolResultKinds, offers, quota::Observation,
 };
-use demi_shared_types::Model;
+use jush_shared_types::Model;
 use futures_util::StreamExt as _;
 use futures_util::future::LocalBoxFuture;
 use futures_util::stream::{self, Stream};

@@ -1,4 +1,4 @@
-//! What Demi writes to the CLI's standard input
+//! What Jush writes to the CLI's standard input
 //! (`crates/provider-claude-code/src/run.rs`).
 //!
 //! It writes the `initialize` control request, which declares the SDK MCP
@@ -10,14 +10,14 @@
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 
-use demi_provider_common::{InferenceItem, Medium, UserPart, json_body};
+use jush_provider_common::{InferenceItem, Medium, UserPart, json_body};
 use rmcp::model::ServerJsonRpcMessage;
 use serde::Serialize;
 
 /// The one SDK MCP server a process is told about.
 pub(crate) const MCP_SERVER: &str = "main";
 
-/// One line Demi writes.
+/// One line Jush writes.
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub(crate) enum Input<'a> {
@@ -42,7 +42,7 @@ pub(crate) enum Input<'a> {
     },
 }
 
-/// A request Demi sends the CLI: `initialize`, which declares the SDK MCP
+/// A request Jush sends the CLI: `initialize`, which declares the SDK MCP
 /// server of a request's process that offers tools, or none, and `get_usage`,
 /// which the probe asks (`crates/provider-claude-code/src/account.rs`).
 #[derive(Serialize)]
@@ -92,7 +92,7 @@ pub(crate) enum ControlResponse<'a> {
         request_id: &'a str,
         response: McpReply<'a>,
     },
-    /// A request Demi does not serve.
+    /// A request Jush does not serve.
     Error { request_id: &'a str, error: String },
 }
 
@@ -138,7 +138,7 @@ enum Block<'a> {
 enum ImageSource<'a> {
     Base64 {
         media_type: &'a str,
-        data: &'a demi_shared_types::B64Bytes,
+        data: &'a jush_shared_types::B64Bytes,
     },
     Url {
         url: &'a str,
@@ -149,10 +149,10 @@ enum ImageSource<'a> {
 #[serde(tag = "type", rename = "base64")]
 struct Base64<'a> {
     media_type: &'a str,
-    data: &'a demi_shared_types::B64Bytes,
+    data: &'a jush_shared_types::B64Bytes,
 }
 
-/// `input` as the line Demi writes.
+/// `input` as the line Jush writes.
 pub(crate) fn line(input: &Input<'_>) -> Vec<u8> {
     let mut line = json_body(input);
     line.push(b'\n');

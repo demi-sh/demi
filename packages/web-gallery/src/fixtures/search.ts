@@ -1,5 +1,5 @@
-import type { Block } from '@demicodes/protocol'
-import type { MessageRow, MessageSource, SearchRow, SearchSource } from '@demicodes/web-ui/search/search'
+import type { Block } from '@jush-ai/protocol'
+import type { MessageRow, MessageSource, SearchRow, SearchSource } from '@jush-ai/web-ui/search/search'
 import { ago } from './time'
 
 /** A conversation a specimen's search reads: its row, and the text of its messages, oldest first. */
@@ -131,7 +131,7 @@ export function searchConversations(): SearchableConversation[] {
       archived: false,
       lastActiveAt: ago(3 * 60 * 1000),
       messages: [
-        { blockId: 'u1', text: 'The build fails with TS2307: Cannot find module @demicodes/utils.' },
+        { blockId: 'u1', text: 'The build fails with TS2307: Cannot find module @jush-ai/utils.' },
         { blockId: 't1', text: 'The package moved, so its path mapping in tsconfig.json still points at src/utils. Point it at packages/utils/src and TS2307 goes away.' },
       ],
     },
@@ -142,7 +142,7 @@ export function searchConversations(): SearchableConversation[] {
       lastActiveAt: ago(40 * 60 * 1000),
       messages: [
         { blockId: 'u1', text: 'The relogin test fails since the cookie rename.' },
-        { blockId: 't1', text: 'The test still reads demi_session; the cookie is demi_sid now. Updating the fixture fixes the relogin flow.' },
+        { blockId: 't1', text: 'The test still reads jush_session; the cookie is jush_sid now. Updating the fixture fixes the relogin flow.' },
       ],
     },
     {

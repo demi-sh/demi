@@ -3,8 +3,8 @@
 //! only against a lease of that conversation's file gate
 //! (`Devices::conversation_device`).
 
-use demi_device_interface::DeviceKey;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_device_interface::DeviceKey;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 
 /// Whose a device handle is.
 pub(crate) enum DeviceOwner<'a> {

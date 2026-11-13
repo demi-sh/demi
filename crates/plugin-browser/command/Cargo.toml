@@ -1,5 +1,5 @@
 [package]
-name = "demi-browser"
+name = "jush-browser"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,20 +12,20 @@ doctest = false
 bench = false
 
 [[bin]]
-name = "demi-browser"
+name = "jush-browser"
 path = "src/main.rs"
 test = false
 
 [dependencies]
 bytes.workspace = true
-demi-command-package-browser-chrome = { path = "../command-chrome" }
-demi-command-package-browser-protocol = { path = "../protocol" }
-demi-command-protocol = { path = "../../command-protocol" }
-demi-command-sdk = { path = "../../command-sdk" }
-demi-shared-cli = { path = "../../shared-cli", features = ["device-allocator"] }
-demi-shared-openh264 = { path = "../../shared-openh264" }
-demi-shared-recording = { path = "../../shared-recording" }
-demi-shared-recording-protocol = { path = "../../shared-recording-protocol" }
+jush-command-package-browser-chrome = { path = "../command-chrome" }
+jush-command-package-browser-protocol = { path = "../protocol" }
+jush-command-protocol = { path = "../../command-protocol" }
+jush-command-sdk = { path = "../../command-sdk" }
+jush-shared-cli = { path = "../../shared-cli", features = ["device-allocator"] }
+jush-shared-openh264 = { path = "../../shared-openh264" }
+jush-shared-recording = { path = "../../shared-recording" }
+jush-shared-recording-protocol = { path = "../../shared-recording-protocol" }
 futures-util.workspace = true
 png = "0.18"
 serde.workspace = true

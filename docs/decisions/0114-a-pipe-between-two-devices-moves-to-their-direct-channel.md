@@ -11,7 +11,7 @@ office network, a Mac and a Linux build box. An agent working on the Mac
 copies a dataset to the build box:
 
 ```sh
-tar c -C ~/datasets . | demi host shell --host build-box "tar x -C /data"
+tar c -C ~/datasets . | jush host shell --host build-box "tar x -C /data"
 ```
 
 Every byte goes from the Mac to the server and back to the build box, beside
@@ -34,7 +34,7 @@ the peer is connected:
   while the pair waits to try again after a failed peer.
 
 A pipe between two devices has no direct path at all. Two kinds exist: the
-standard input and output of `demi host shell`, and the two pipes of a
+standard input and output of `jush host shell`, and the two pipes of a
 forwarded connection on the relay
 (`crates/backend-user-shard/src/shard/port_forwards.rs`).
 
@@ -75,7 +75,7 @@ So everything the backend does with a pipe today stays true:
 - A call still exits after its standard output drained
   (`crates/backend-remote-host/src/relay.rs`), since the end always comes on
   the relay, after the last byte.
-- The backend can still fail a pipe for both ends, as a stopped `demi host
+- The backend can still fail a pipe for both ends, as a stopped `jush host
   shell` does, and both ends see the failure on their relay leg.
 - A call's standard output still resumes after its connection drops
   (`crates/runner-process/src/pipes/resumed.rs`): the moves are frames of its
@@ -120,7 +120,7 @@ the backend did not introduce.
 ### One peer per pair, opened from either side
 
 Today the Listen On runner of a forward offers the pair's peer and opens its
-channels; the other runner only answers. A `demi host shell` has a pipe each
+channels; the other runner only answers. A `jush host shell` has a pipe each
 way, so both runners of a pair now open channels on the same peer:
 
 - A pair keeps one peer, whichever runner offered it. Both runners open
@@ -184,7 +184,7 @@ pub enum PairHeader {
 
 `PipeClient` (`crates/runner-process/src/pipes.rs`) carries the moves for
 every stream pipe it writes and every pipe it reads, through the runner's
-pairs, which it is given as a trait object, so `demi_runner_process` keeps
+pairs, which it is given as a trait object, so `jush_runner_process` keeps
 knowing nothing of WebRTC. A pipe channel counts toward the peer's 64
 channels; a pipe that finds none free stays on the relay and asks again when
 one frees.
@@ -204,8 +204,8 @@ Each copy sent 100 MB of random bytes:
 
 | Copy                                       | Time   | Through the backend |
 | ------------------------------------------ | ------ | ------------------- |
-| `demi host shell`, one device Relay Only   | 25.8 s | 100 MB              |
-| `demi host shell`, with the move           | 8.1 s  | 4.1 MB              |
+| `jush host shell`, one device Relay Only   | 25.8 s | 100 MB              |
+| `jush host shell`, with the move           | 8.1 s  | 4.1 MB              |
 | A forwarded connection opened on the relay | 8.3 s  | 4.7 MB              |
 
 - Stopping the sink's runner for 60 seconds in the middle of a copy ended the
@@ -225,13 +225,13 @@ Each copy sent 100 MB of random bytes:
   ([DCUtR](https://github.com/libp2p/specs/blob/master/relay/DCUtR.md)):
   two peers start on a relayed connection, hole-punch beside it, and open
   every new stream on the direct connection. A stream already open stays on
-  the relay and "will have to be recreated" once the relay closes. Demi's
+  the relay and "will have to be recreated" once the relay closes. Jush's
   forwards do the same today; this record departs from it for pipes, whose
   first and longest transfer is the one the upgrade matters for.
 - **iroh** ([QUIC multipath](https://www.iroh.computer/blog/iroh-on-QUIC-multipath))
   and **Tailscale**'s magicsock move a connection between the relay and a
   direct path beneath its streams, so an open stream moves without knowing.
-  Demi has no single transport beneath its pipes to do that in: the relay is
+  Jush has no single transport beneath its pipes to do that in: the relay is
   HTTP and WebSockets through a TLS edge, the direct path SCTP over DTLS. So
   the move happens at the pipe, with the pipe's own byte positions.
 - **Multipath TCP** ([RFC 8684](https://www.rfc-editor.org/rfc/rfc8684)):
@@ -250,7 +250,7 @@ Each copy sent 100 MB of random bytes:
   between two devices, usually the one the user waits on, stays on the relay,
   and a channel that fails midway fails the copy.
 - **Wait for the peer before a pipe starts.** A firewall or a refused peer
-  would hold every `demi host shell` for the peer's ten-second timeout, which
+  would hold every `jush host shell` for the peer's ten-second timeout, which
   the direct channel's rule, that nothing waits for it, refuses.
 - **Leave the relay once the pipe is direct.** The backend would lose the
   pipe's end and failure, which a call's exit and a stop rely on, and a

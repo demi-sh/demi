@@ -4,17 +4,17 @@
 //!   granted.
 //! - A device that is not the conversation's primary device is attached, which
 //!   the conversation's nodes hear of at their next context block.
-//! - Each reference keeps its device's identity and the shell-quoted `demi device
+//! - Each reference keeps its device's identity and the shell-quoted `jush device
 //!   shell --device` command that reads the file when the agent runs it.
 //!
 //! A reference is no snapshot of the file's bytes: a device revoked or
 //! disconnected before the read makes the command fail.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_index::{AttachedDeviceRecord, ChangeOutcome, RecordChange};
-use demi_backend_database::devices::DeviceRecord;
-use demi_shared_types::UserContentBlock;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_index::{AttachedDeviceRecord, ChangeOutcome, RecordChange};
+use jush_backend_database::devices::DeviceRecord;
+use jush_shared_types::UserContentBlock;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 
 use crate::DeviceShard;
 
@@ -104,7 +104,7 @@ impl dyn DeviceShard + '_ {
 fn reference(device: &DeviceRecord, path: &str) -> Result<UserContentBlock, RemoteFileRefusal> {
     let read = format!("cat -- {}", quote(path)?);
     let command = format!(
-        "demi device shell --device {} {}",
+        "jush device shell --device {} {}",
         quote(device.id.as_str())?,
         quote(&read)?
     );

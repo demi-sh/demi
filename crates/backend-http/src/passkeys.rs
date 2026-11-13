@@ -10,14 +10,14 @@ use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::CookieJar;
-use demi_backend_accounts::passkeys::{
+use jush_backend_accounts::passkeys::{
     self, IssueRefusal, Refusal, RelyingParty, passkey_list,
 };
-use demi_backend_page_sync::Part;
-use demi_backend_user_shard::services::Services;
-use demi_web_api_protocol::auth::{Identity, UserDto};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::passkeys::{
+use jush_backend_page_sync::Part;
+use jush_backend_user_shard::services::Services;
+use jush_web_api_protocol::auth::{Identity, UserDto};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::passkeys::{
     CreationChallenge, NewPasskey, PasskeyAnswer, PasskeyId, PasskeyList,
     PasskeyPatch, PasskeySignIn, SignInChallenge,
 };

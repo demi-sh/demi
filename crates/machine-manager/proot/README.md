@@ -11,7 +11,7 @@
 
 ## Why Termux's fork
 
-Demi takes proot from Termux's fork, `github.com/termux/proot`, which is
+Jush takes proot from Termux's fork, `github.com/termux/proot`, which is
 maintained and tested on amd64 and arm64 Linux, rather than from
 `github.com/proot-me/proot`. proot-me's releases and its main branch lack
 fixes a Cloud needs:
@@ -26,7 +26,7 @@ fixes a Cloud needs:
 
 ## Building
 
-proot publishes no builds, so Demi builds it, for each architecture on that
+proot publishes no builds, so Jush builds it, for each architecture on that
 architecture, statically linked with talloc and glibc. Termux's fork uses
 glibc's interfaces, so it does not build with musl. The server release job of
 `.github/workflows/build.yml` runs `build.sh` in the builder:

@@ -17,7 +17,7 @@
 //! - A request that cannot be built now readies nothing, and the request says
 //!   why when it is sent.
 
-use demi_provider_common::Ahead;
+use jush_provider_common::Ahead;
 
 use super::{SessionShared, cancel::TurnCancel, compaction::report_context_usage, media::model_view};
 

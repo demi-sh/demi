@@ -14,12 +14,12 @@
 
 use std::{io, path::Path};
 
-use demi_machine_manager_protocol::{DeviceId, store};
+use jush_machine_manager_protocol::{DeviceId, store};
 
 use super::store::{ImageStore, StoreError};
 use crate::blocking::OffLoop;
 
-pub use demi_machine_manager_protocol::ROOM_RESERVE as RESERVE;
+pub use jush_machine_manager_protocol::ROOM_RESERVE as RESERVE;
 
 /// A write the host's disk has no room for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
@@ -144,7 +144,7 @@ pub fn host_free(_: &OffLoop, path: &Path) -> io::Result<u64> {
 /// manager never works on the directory beneath, which holds none of its
 /// Clouds, or only part of them. Turns direct I/O on for that loop device.
 pub fn require_mounted(off: &OffLoop, data: &Path) -> io::Result<()> {
-    // The names `demi-server` gives, from the store's own path, whatever
+    // The names `jush-server` gives, from the store's own path, whatever
     // link or trailing slash the configuration names it by.
     let data = match fs_err::canonicalize(data) {
         Ok(data) => data,
@@ -155,7 +155,7 @@ pub fn require_mounted(off: &OffLoop, data: &Path) -> io::Result<()> {
     let partial = store::partial_file(data);
     if partial.exists() {
         return Err(io::Error::other(format!(
-            "a move of the Cloud store into {} is unfinished, so {} holds only part of it: `demi-server upgrade` finishes it",
+            "a move of the Cloud store into {} is unfinished, so {} holds only part of it: `jush-server upgrade` finishes it",
             partial.display(),
             data.display()
         )));

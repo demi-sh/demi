@@ -23,10 +23,10 @@ use std::sync::{
 
 use tokio_util::task::AbortOnDropHandle;
 
-use demi_shared_h264::{Encoder, PixelFormat, Raw, Rate, Settings};
-use demi_shared_openh264::Load;
-use demi_shared_recording::{Held, KEY_INTERVAL, Picture, Settled, Sink, changed};
-use demi_shared_recording_protocol::{Area, EndReason};
+use jush_shared_h264::{Encoder, PixelFormat, Raw, Rate, Settings};
+use jush_shared_openh264::Load;
+use jush_shared_recording::{Held, KEY_INTERVAL, Picture, Settled, Sink, changed};
+use jush_shared_recording_protocol::{Area, EndReason};
 
 use super::screen::{self, Event, Screen, Subscription};
 
@@ -57,7 +57,7 @@ pub fn start(screen: &Arc<Screen>, load: Load, sink: Sink) -> Capture {
     let thread_sink = sink.clone();
     let thread_waiting = waiting.clone();
     std::thread::Builder::new()
-        .name("demi-mobile-record".into())
+        .name("jush-mobile-record".into())
         .spawn(move || run(&inbox, &thread_waiting, &load, &thread_sink))
         .expect("the recording's thread starts");
     let sent = messages.clone();
@@ -165,7 +165,7 @@ impl Run<'_> {
                 height,
                 rate: Rate::Quality,
             };
-            let encoder = demi_shared_h264::open(settings, self.load).map_err(|error| format!("the video encoder did not start: {error}"))?;
+            let encoder = jush_shared_h264::open(settings, self.load).map_err(|error| format!("the video encoder did not start: {error}"))?;
             tracing::debug!(event = "android_encoder.chosen", purpose = "record", encoder = encoder.name(), "an encoder was chosen");
             self.encoder = Some((encoder, (width, height)));
             self.since_key = 0;
@@ -196,7 +196,7 @@ impl Run<'_> {
     }
 
     /// Hands the sink what the encoder gave and counts what it dropped.
-    fn deliver(&mut self, mut coded: Vec<demi_shared_h264::Picture>, dropped: &[u64], (width, height): (u32, u32)) {
+    fn deliver(&mut self, mut coded: Vec<jush_shared_h264::Picture>, dropped: &[u64], (width, height): (u32, u32)) {
         let given: Vec<u64> = coded.iter().map(|picture| picture.time_us).collect();
         for settled in self.held.settle(&given, dropped) {
             match settled {

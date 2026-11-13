@@ -9,12 +9,12 @@ status: proposed
 Alex's Codex, Claude Code and Grok Build subscriptions search the web with
 their vendors' own searches, on from the start
 ([0176](0176-a-subscription-searches-with-its-vendors-search.md)). The `web`
-plugin still offers `demi web search`, backed by Exa, beside them, so the
+plugin still offers `jush web search`, backed by Exa, beside them, so the
 model has two web searches to choose from: one Alex pays for already, and one
 on an anonymous allowance every user shares, or an Exa account Alex may not
 have.
 
-Alex cannot turn Exa search off alone. Search and `demi web fetch` are one
+Alex cannot turn Exa search off alone. Search and `jush web fetch` are one
 plugin, and its one switch in Settings › Plugins takes both away, though
 every model needs fetch to read a page.
 
@@ -59,9 +59,9 @@ features left on, so the model never reads of a command it does not have; a
 group left with no feature on goes. The plugin's page reads and sets its
 features through the plugin SDK, the same call for every plugin.
 
-`web` names two: `search`, off by default, over `demi web search`, and
-`fetch`, on by default, over `demi web fetch`. With search off, the model's
-index says of `demi web` only that it fetches a page as Markdown, or a file.
+`web` names two: `search`, off by default, over `jush web search`, and
+`fetch`, on by default, over `jush web fetch`. With search off, the model's
+index says of `jush web` only that it fetches a page as Markdown, or a file.
 
 ### Design
 

@@ -1,4 +1,4 @@
-//! The `demi shell` command group.
+//! The `jush shell` command group.
 //!
 //! - `status` looks at commands of the conversation as a result shows them,
 //!   at once, and changes how often they report. It never waits for an end:
@@ -30,15 +30,15 @@
 use std::{rc::{Rc, Weak}, sync::Arc};
 
 use bytes::Bytes;
-use demi_agent_store::{AgentTreeStore, StoredCommand, StoredOutput};
-use demi_agent_tools::{
+use jush_agent_store::{AgentTreeStore, StoredCommand, StoredOutput};
+use jush_agent_tools::{
     DeviceResolver, Look, PAGE_CHARS, Stopper, look_text, whole_look_text,
 };
-use demi_device_interface::{
+use jush_device_interface::{
     CommandState, Ending, GroupBuilder, LeafBuilder, OutputText, Piece, RpcError, RpcPort, Seen,
     ShellError, Streams, TypedRpc, WholeOutput,
 };
-use demi_shared_types::{CommandEnd, CommandId, NodeId, StreamKind};
+use jush_shared_types::{CommandEnd, CommandId, NodeId, StreamKind};
 use futures_util::FutureExt;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -70,9 +70,9 @@ const STATUS_SUMMARY: &str = "Show commands of this conversation by their comman
 
 const STOP_SUMMARY: &str = "Stop running commands of this conversation by their commandIds, in order, whichever agent ran them, and wait until each has ended. Its next status shows it stopped, with its last output. Stopping a command that has ended already succeeds, so it is safe to repeat.";
 
-const OUTPUT_SUMMARY: &str = "Print a command's whole output by its commandId: numbered lines a page at a time, as `cat -n` shows them, from the first line or the lines --lines <from>-<to> names; the newest with --tail <n>. --stdout or --stderr takes one stream, with line numbers of its own. --raw prints the bytes as they are, unnumbered and unpaged, for pipes and files: `grep -n` on it gives the numbers --lines takes (`demi shell output 17 --raw | grep -n FAIL`). Any command of this conversation, running or ended.";
+const OUTPUT_SUMMARY: &str = "Print a command's whole output by its commandId: numbered lines a page at a time, as `cat -n` shows them, from the first line or the lines --lines <from>-<to> names; the newest with --tail <n>. --stdout or --stderr takes one stream, with line numbers of its own. --raw prints the bytes as they are, unnumbered and unpaged, for pipes and files: `grep -n` on it gives the numbers --lines takes (`jush shell output 17 --raw | grep -n FAIL`). Any command of this conversation, running or ended.";
 
-/// The input of `demi shell output`.
+/// The input of `jush shell output`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct OutputArgs {
@@ -92,7 +92,7 @@ struct OutputArgs {
     raw: Option<bool>,
 }
 
-/// The input of `demi shell status`.
+/// The input of `jush shell status`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct StatusArgs {
@@ -101,7 +101,7 @@ struct StatusArgs {
     id: Vec<String>,
 }
 
-/// The input of `demi shell stop`.
+/// The input of `jush shell stop`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct StopArgs {
@@ -118,7 +118,7 @@ pub(super) fn shell_group<H: DeviceResolver>(server: Weak<AgentServer<H>>) -> Gr
                 .input::<StatusArgs>()
                 .positionals(["id"])
                 .success_output("each command's status as a shell result shows it, a blank line between two")
-                .failure_output("a line per command that cannot be looked at, \"demi shell status: <id>: <reason>\", on stderr; the others are still shown, and the command exits 1")
+                .failure_output("a line per command that cannot be looked at, \"jush shell status: <id>: <reason>\", on stderr; the others are still shown, and the command exits 1")
                 .json_output::<StatusJson>()
                 .bind(TypedRpc::new(verb(server.clone(), status))),
         )
@@ -134,7 +134,7 @@ pub(super) fn shell_group<H: DeviceResolver>(server: Weak<AgentServer<H>>) -> Gr
                 .input::<StopArgs>()
                 .positionals(["id"])
                 .success_output("\"[command <id> stopped]\", or \"[command <id> had already ended]\" for a command that had ended")
-                .failure_output("a line per command that cannot be stopped, \"demi shell stop: <id>: <reason>\", on stderr; the others are still stopped, and the command exits 1")
+                .failure_output("a line per command that cannot be stopped, \"jush shell stop: <id>: <reason>\", on stderr; the others are still stopped, and the command exits 1")
                 .bind(TypedRpc::new(verb(server, stop))),
         )
 }
@@ -249,7 +249,7 @@ impl Facts {
     }
 }
 
-/// `demi shell status --json`: one command's state, and the text a shell
+/// `jush shell status --json`: one command's state, and the text a shell
 /// result shows of it, its output since the last look among it.
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -420,7 +420,7 @@ fn ended_lines(id: &str, end: CommandEnd) -> Vec<String> {
         CommandEnd::Unrecorded => vec!["status: ended".to_owned()],
     };
     lines.push(format!("commandId: {id}"));
-    lines.push(format!("[its whole output: demi shell output {id}]"));
+    lines.push(format!("[its whole output: jush shell output {id}]"));
     lines
 }
 
@@ -553,7 +553,7 @@ async fn output<H: DeviceResolver>(
     }
     let binary = found.output.binary_stdout_length();
     if binary.is_some() && streams == Streams::Only(StreamKind::Stdout) {
-        return fail(&format!("the stdout of {id} is binary; save it: demi shell output {id} --raw --stdout > <file>"));
+        return fail(&format!("the stdout of {id} is binary; save it: jush shell output {id} --raw --stdout > <file>"));
     }
     let text = found.output.text(streams, binary, Seen::default());
     let page = Page {
@@ -577,14 +577,14 @@ async fn output<H: DeviceResolver>(
 }
 
 impl<H: DeviceResolver> AgentServer<H> {
-    /// Page `page`, from 1, of what `demi conversation history open` shows of
+    /// Page `page`, from 1, of what `jush conversation history open` shows of
     /// the command `id` of the conversation `root`; also how many pages there
     /// are. The conversation need not be open: an ended command is read from
     /// its store.
     ///
     /// A page is `head`, the line that names the call, on every page, then the
     /// script after `$ `, then the whole output, both streams, its lines as
-    /// `demi shell output` shows them under its header. All of it is cut into
+    /// `jush shell output` shows them under its header. All of it is cut into
     /// pages of [`PAGE_CHARS`] less `reserve`, the line the caller adds under a
     /// page. One pass over the output finds both. A page past the last fails,
     /// naming how many there are.
@@ -637,7 +637,7 @@ impl<H: DeviceResolver> AgentServer<H> {
             lines.extend(entry.lines);
         }
         // The output's header names the lines this page shows and stands
-        // before them, as a page of `demi shell output` shows it; an output
+        // before them, as a page of `jush shell output` shows it; an output
         // without lines shows its header alone, on the last page.
         if output || page == pages {
             printed.push(shown.header(numbers));
@@ -802,7 +802,7 @@ impl Page<'_> {
         page.extend(lines);
         if let Some(next) = next {
             page.push(format!(
-                "[next: demi shell output {} --lines {next}-{to}{}]",
+                "[next: jush shell output {} --lines {next}-{to}{}]",
                 self.id,
                 self.flags()
             ));
@@ -856,7 +856,7 @@ impl Page<'_> {
         vec![
             format!("{number:>6}\t{start}"),
             format!(
-                "[line {number} is {length} characters; whole: demi shell output {} --raw{} | sed -n {number}p]",
+                "[line {number} is {length} characters; whole: jush shell output {} --raw{} | sed -n {number}p]",
                 self.id,
                 self.flags()
             ),
@@ -894,7 +894,7 @@ impl Page<'_> {
     fn reserved(&self, to: u64) -> usize {
         let header = self.header(Some((to, to)));
         let next = format!(
-            "[next: demi shell output {} --lines {to}-{to}{}]",
+            "[next: jush shell output {} --lines {to}-{to}{}]",
             self.id,
             self.flags()
         );

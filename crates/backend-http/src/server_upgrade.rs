@@ -7,11 +7,11 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::Shards;
-use demi_backend_user_shard::upgrades::RunRefused;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::server_upgrade::{RunUpgrade, ServerUpgrade, SetPrepareAhead, SetUpgradeChannel, WorkingAgents};
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::Shards;
+use jush_backend_user_shard::upgrades::RunRefused;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::server_upgrade::{RunUpgrade, ServerUpgrade, SetPrepareAhead, SetUpgradeChannel, WorkingAgents};
 
 use super::body::JsonBody;
 use super::error::ApiError;

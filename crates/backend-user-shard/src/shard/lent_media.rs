@@ -5,7 +5,7 @@
 //! does, on the entry's key or its accounts in turn (`super::media`), and is
 //! answered by the maker's own methods ([`serve`]), with no usage ledger row:
 //! the usage is the borrower's. What crosses back is what the types let cross
-//! (`demi_provider_common::media::channel`), and a sign-in that could not be
+//! (`jush_provider_common::media::channel`), and a sign-in that could not be
 //! used crosses as a refused key.
 //!
 //! A video's job crosses as a handle of this server's ([`LentJobs`]): the
@@ -26,14 +26,14 @@ use std::rc::Rc;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_plugin_interface::MediaRefusal;
-use demi_provider_common::media::channel::{Call, Reply, Roles, no_facts, serve};
-use demi_provider_common::media::MediaFailure;
-use demi_provider_common::media_catalog::Catalog;
-use demi_provider_common::videos::JobState;
-use demi_provider_common::{ErrorCode, ProviderHttp};
-use demi_provider_registry::registry::MakerOf;
-use demi_shared_types::{MediaKind, VendorTrace};
+use jush_plugin_interface::MediaRefusal;
+use jush_provider_common::media::channel::{Call, Reply, Roles, no_facts, serve};
+use jush_provider_common::media::MediaFailure;
+use jush_provider_common::media_catalog::Catalog;
+use jush_provider_common::videos::JobState;
+use jush_provider_common::{ErrorCode, ProviderHttp};
+use jush_provider_registry::registry::MakerOf;
+use jush_shared_types::{MediaKind, VendorTrace};
 use tokio::sync::oneshot;
 use tokio::time::Instant;
 

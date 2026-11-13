@@ -7,8 +7,8 @@
 
 use std::collections::BTreeSet;
 
-use demi_conversation_lane_protocol::{TranscriptPatch, Versions};
-use demi_shared_types::{Block, Timestamp};
+use jush_conversation_lane_protocol::{TranscriptPatch, Versions};
+use jush_shared_types::{Block, Timestamp};
 
 /// The patches of one commit, which advances the revision by one.
 #[derive(Debug, Clone, PartialEq)]

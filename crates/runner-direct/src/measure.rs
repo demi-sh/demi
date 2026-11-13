@@ -1,6 +1,6 @@
 //! A pair of runners' measurement of its peer against the relay, as a page
 //! measures a device's (`packages/web/src/direct/measure.ts`), with the same
-//! figures (`demi_runner_protocol::direct`): [`MEASURE_PROBES`] probes on
+//! figures (`jush_runner_protocol::direct`): [`MEASURE_PROBES`] probes on
 //! each path, [`PROBE_EVERY`] apart, each lost when not answered within
 //! [`PROBE_LOST`].
 //!
@@ -11,7 +11,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use demi_runner_protocol::direct::{MEASURE_PROBES, PROBE_EVERY, PROBE_LOST, WORSE_LATENCY, WORSE_LOST_PROBES};
+use jush_runner_protocol::direct::{MEASURE_PROBES, PROBE_EVERY, PROBE_LOST, WORSE_LATENCY, WORSE_LOST_PROBES};
 use tokio::sync::mpsc;
 use tokio::time::Instant;
 

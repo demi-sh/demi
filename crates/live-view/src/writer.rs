@@ -22,9 +22,9 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
-use demi_command_sdk::Output;
-use demi_live_view_protocol::{HEARTBEAT_MS, LiveHeartbeat, LiveNotice};
-use demi_shared_types::DecodeError;
+use jush_command_sdk::Output;
+use jush_live_view_protocol::{HEARTBEAT_MS, LiveHeartbeat, LiveNotice};
+use jush_shared_types::DecodeError;
 
 use crate::frames;
 
@@ -34,7 +34,7 @@ const CONTROL_QUEUE: usize = 64;
 
 /// A source's messages to the page as the writer sends them.
 pub trait ModuleMessage:
-    demi_live_view_protocol::ModuleMessage
+    jush_live_view_protocol::ModuleMessage
     + Serialize
     + garde::Validate<Context = ()>
     + Send
@@ -44,7 +44,7 @@ pub trait ModuleMessage:
 }
 
 impl<M> ModuleMessage for M where
-    M: demi_live_view_protocol::ModuleMessage
+    M: jush_live_view_protocol::ModuleMessage
         + Serialize
         + garde::Validate<Context = ()>
         + Send

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsAgent from '@demicodes/web-ui/settings/SettingsAgent.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsAgent from '@jush-ai/web-ui/settings/SettingsAgent.vue'
 import { useProduct } from '../state/product'
 import { usePreferences } from '../state/preferences'
 import { useResources } from '../state/resources'

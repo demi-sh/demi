@@ -29,7 +29,7 @@
     "clearDraft": "No se pudo borrar el borrador",
     "recallMessage": "No se pudo recuperar el mensaje",
     "connectionLost": "Se perdió la conexión",
-    "connectionLostMessage": "Es posible que Demi no haya recibido tu solicitud. Revisa el chat cuando se vuelva a conectar.",
+    "connectionLostMessage": "Es posible que Jush no haya recibido tu solicitud. Revisa el chat cuando se vuelva a conectar.",
     "requestNotAccepted": "El chat no aceptó la solicitud.",
     "fieldsNotUpdated": "Algunos campos no se actualizaron.",
     "readFileWatch": "No se pudo leer un mensaje de la supervisión de archivos",

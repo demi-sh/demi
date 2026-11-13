@@ -8,8 +8,8 @@
 //! ids, which the transcript it copies names. A row stays once unpinned, so
 //! the agent can be told of an unpin by the user, which `told_at` records.
 
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use rusqlite::{Connection, OptionalExtension as _, Row, params};
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +19,7 @@ use super::control::ControlService;
 
 const TABLE: &str = "conversation_pins";
 
-/// Demi's estimate of the text column's tokens in SQL, as `text_tokens` makes
+/// Jush's estimate of the text column's tokens in SQL, as `text_tokens` makes
 /// it: its UTF-8 bytes divided by 4, rounded up.
 const TOKENS: &str = "(length(CAST(text AS BLOB)) + 3) / 4";
 
@@ -250,7 +250,7 @@ impl ControlService {
                 ))?
                 .query_row(params![conversation.as_str()], |row| row.get(0))?;
             let pinned = decode(TABLE, "text", u64::try_from(pinned))?;
-            if pinned + demi_shared_types::text_tokens(&text) > limit {
+            if pinned + jush_shared_types::text_tokens(&text) > limit {
                 return Ok(Pinned::Over { pinned });
             }
             let next: i64 = transaction

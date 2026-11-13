@@ -1,8 +1,8 @@
-# Demi comparado
+# Jush comparado
 
 [English](comparison.md) · [Deutsch](comparison.de.md) · **Español** · [Français](comparison.fr.md) · [Português](comparison.pt-BR.md) · [简体中文](comparison.zh-CN.md) · [繁體中文](comparison.zh-TW.md) · [日本語](comparison.ja.md) · [한국어](comparison.ko.md)
 
-En qué se diferencia Demi de las apps de agentes de su tipo, a octubre de 2026, según la documentación y el código fuente de cada producto. La tabla incluye una fila solo donde los productos difieren, además de una capacidad que ninguno tiene todavía. Sus columnas van del producto más cercano a Demi al más lejano.
+En qué se diferencia Jush de las apps de agentes de su tipo, a octubre de 2026, según la documentación y el código fuente de cada producto. La tabla incluye una fila solo donde los productos difieren, además de una capacidad que ninguno tiene todavía. Sus columnas van del producto más cercano a Jush al más lejano.
 
 La tabla usa estos símbolos y etiquetas:
 
@@ -14,7 +14,7 @@ La tabla usa estos símbolos y etiquetas:
 
 La siguiente tabla compara los productos función por función:
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Modelos y suscripciones** | | | | | | | | |
 | Suscripción de Claude | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@ Las filas de la tabla significan lo siguiente:
 - **Comentarios por línea en diffs**: un comentario sobre una línea de un cambio, que va al agente.
 - **Agente propio**: el agente del propio producto maneja el modelo, en lugar de ejecutar Claude Code, Codex u otros agentes.
 - **Solo un shell como herramienta**: el modelo recibe una sola herramienta, un shell, y cada capacidad es un comando dentro de él.
-- **Plugins de terceros**: código de otra persona que el usuario instala para agregar herramientas o pantallas al producto, más allá de las habilidades y los servidores MCP. Las funciones propias de Demi son plugins, pero no carga los de nadie más.
+- **Plugins de terceros**: código de otra persona que el usuario instala para agregar herramientas o pantallas al producto, más allá de las habilidades y los servidores MCP. Las funciones propias de Jush son plugins, pero no carga los de nadie más.
 - **Credenciales para el agente**: secretos que el usuario guarda con un nombre y que el agente usa en sus comandos.
 - **Ver y controlar el navegador en vivo**: el usuario ve el navegador del agente mientras trabaja y puede operarlo.
 - **Uso de la computadora**: el agente maneja el escritorio con capturas de pantalla, mouse y teclado, más allá de un navegador.

@@ -80,7 +80,7 @@ comment says so instead of promising the order.
 ## Prior art
 
 None needed: the change follows from GitHub's own draft behavior and from
-the order of Demi's workflows.
+the order of Jush's workflows.
 
 ## Alternatives
 

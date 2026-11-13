@@ -7,7 +7,7 @@ status: proposed
 ## Problem
 
 Alex runs a long conversation on Grok 4.7 through a Grok Build subscription.
-The model menu and the usage indicator say its window is 256K, and Demi
+The model menu and the usage indicator say its window is 256K, and Jush
 compacts the conversation as it nears 256K, though Grok 4.7 takes 500K.
 
 The proxy's catalog (`GET /v1/models`) states two fields for each model:
@@ -17,7 +17,7 @@ The proxy's catalog (`GET /v1/models`) states two fields for each model:
 ```
 
 `context_window` is the Grok CLI's default, and `context_windows` the sizes
-its `/context-window` command offers. Demi reads only `context_window`.
+its `/context-window` command offers. Jush reads only `context_window`.
 
 ## Decision
 
@@ -52,7 +52,7 @@ today.
   Option<Vec<NonZeroU32>>`, and `ProviderModel::context_window` is the largest
   of it and `context_window`.
 - `shared-types`, `context_limit.rs`: the 300K and 200K steps take
-  `min_window: 500_000`. The steps are generated into `@demicodes/protocol`,
+  `min_window: 500_000`. The steps are generated into `@jush-ai/protocol`,
   so the page and the backend change together.
 - `provider-registry`, `catalog.rs`: `ProviderRegistry::current_selection`
   replaces `configured_selection`. It gives a selection the facts the entry's
@@ -82,7 +82,7 @@ today.
 
 Whether the proxy needs anything in a request to accept more than 256K, as
 some vendors want a header or a model name for a larger window: a request of
-about 310,000 tokens, sent as Demi sends one and with nothing added, was
+about 310,000 tokens, sent as Jush sends one and with nothing added, was
 answered normally. The size is the client's choice: the Grok CLI sends nothing
 for it either and only compacts later.
 
@@ -90,8 +90,8 @@ for it either and only compacts later.
 
 - The Grok CLI offers the sizes of `context_windows` with `/context-window`
   and in its `/model` picker, and starts each session at `context_window`.
-  Demi starts at the largest; the Context row offers less.
-- Demi's Codex catalog leaves out Codex's `max_context_window`, since nothing
+  Jush starts at the largest; the Context row offers less.
+- Jush's Codex catalog leaves out Codex's `max_context_window`, since nothing
   shows the service takes more than the window it states. For Grok Build the
   spike shows the proxy does.
 

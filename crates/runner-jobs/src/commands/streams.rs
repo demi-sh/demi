@@ -53,20 +53,20 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_command_protocol::{CommandContext, Invocation, MAX_RECORD_BYTES, PackageDescriptor};
-use demi_command_sdk::{Exchange, ExchangeError, InputSource, OutputSink};
+use jush_command_protocol::{CommandContext, Invocation, MAX_RECORD_BYTES, PackageDescriptor};
+use jush_command_sdk::{Exchange, ExchangeError, InputSource, OutputSink};
 use futures_util::{StreamExt, stream::BoxStream};
 use tokio::sync::mpsc;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_command_protocol::host_target;
-use demi_runner_command_packages::{Invoking, ResidentHandle, ResidentLease};
-use demi_runner_process::{
+use jush_command_protocol::host_target;
+use jush_runner_command_packages::{Invoking, ResidentHandle, ResidentLease};
+use jush_runner_process::{
     lines::LineSplitter,
     pipes::{PipeClient, report_pipe},
     tail::TailBuffer,
 };
-use demi_runner_protocol::wire::{self, PipeRef, ResidentErrorCode};
+use jush_runner_protocol::wire::{self, PipeRef, ResidentErrorCode};
 
 use crate::{commands::artifacts::StreamArtifacts, connection::ConnectionHandle};
 
@@ -728,7 +728,7 @@ impl OutputSink for StreamSink {
     }
 
     /// A user stream's writer refuses media (`crates/runner-jobs/src/commands/command_output.rs`).
-    async fn medium(&mut self, _: demi_command_protocol::MediumFacts, _: Bytes) -> io::Result<()> {
+    async fn medium(&mut self, _: jush_command_protocol::MediumFacts, _: Bytes) -> io::Result<()> {
         Err(io::Error::other("a user stream returned a medium"))
     }
 }

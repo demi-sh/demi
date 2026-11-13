@@ -28,14 +28,14 @@ use std::{
     time::Duration,
 };
 
-use demi_provider_common::{
+use jush_provider_common::{
     Capabilities, CatalogError, InferenceRequest, Provider, ProviderRun, ProviderRuntime,
     RequestLimits, Searches, ToolResultKinds, RuntimeEnv, RuntimeError,
     credentials::{Accounts, CredentialPool, SubscriptionAccounts},
     images::ImageMaker,
     quota::{ProviderQuota, QuotaSnapshotStore},
 };
-use demi_shared_types::{
+use jush_shared_types::{
     AuthState, Clock, Model, ProviderErrorDiagnostics, ProviderFailureFacts, ProviderModelList,
     RuntimeState, Timestamp,
 };
@@ -148,7 +148,7 @@ struct Shared {
     accounts: Accounts<CodexKit>,
     /// The client of the provider's own requests: catalogs, probes,
     /// refreshes outside a run and logins.
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     clock: Arc<dyn Clock>,
 }
 
@@ -159,12 +159,12 @@ impl CodexProvider {
         config: CodexConfig,
         pool: Arc<dyn CredentialPool>,
         snapshots: Arc<dyn QuotaSnapshotStore>,
-        http: demi_provider_common::ProviderHttp,
+        http: jush_provider_common::ProviderHttp,
         clock: Arc<dyn Clock>,
     ) -> Self {
         let user_agent = format!(
-            "demi-codex-provider/{} ({}; {})",
-            demi_shared_artifacts::BUILD_VERSION,
+            "jush-codex-provider/{} ({}; {})",
+            jush_shared_artifacts::BUILD_VERSION,
             std::env::consts::OS,
             std::env::consts::ARCH
         );
@@ -180,7 +180,7 @@ impl CodexProvider {
         let source = CodexQuota {
             auth: auth.clone(),
             http: http.clone(),
-            usage_url: demi_provider_common::endpoint_url(&config.backend_url, "/wham/usage"),
+            usage_url: jush_provider_common::endpoint_url(&config.backend_url, "/wham/usage"),
             user_agent: user_agent.clone(),
         };
         let kit = CodexKit {
@@ -218,14 +218,14 @@ impl CodexProvider {
 fn codex_url(backend: &Url, path: &str) -> Url {
     let trimmed = backend.path().trim_end_matches('/');
     if trimmed.ends_with(path) {
-        return demi_provider_common::endpoint_url(backend, path);
+        return jush_provider_common::endpoint_url(backend, path);
     }
     let codex = if trimmed.ends_with("/codex") {
         backend.clone()
     } else {
-        demi_provider_common::endpoint_url(backend, "/codex")
+        jush_provider_common::endpoint_url(backend, "/codex")
     };
-    demi_provider_common::endpoint_url(&codex, path)
+    jush_provider_common::endpoint_url(&codex, path)
 }
 
 /// The WebSocket address of a Responses URL: `wss` for `https`, `ws` for
@@ -302,7 +302,7 @@ impl Provider for CodexProvider {
 /// A session's runtime: it holds nothing between runs.
 struct CodexRuntime {
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
 }
 
 impl ProviderRuntime for CodexRuntime {

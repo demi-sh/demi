@@ -109,11 +109,11 @@ use axum::Router;
 use axum::extract::{ConnectInfo, DefaultBodyLimit, FromRef, OriginalUri, Request, State};
 use axum::Extension;
 use axum::http::Method;
-use demi_web_api_protocol::connection::CONNECT_ROUTE;
+use jush_web_api_protocol::connection::CONNECT_ROUTE;
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, patch, post, put};
-use demi_backend_runners::native;
+use jush_backend_runners::native;
 use hyper::body::Incoming;
 use axum::serve::{Listener as _, ListenerExt as _};
 use std::os::unix::fs::PermissionsExt as _;
@@ -127,8 +127,8 @@ use self::error::ApiError;
 pub use self::assets::{WebBuildError, web_build};
 pub use self::install::Site;
 use self::listener::{EdgeListener, Peer};
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::Shards;
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::Shards;
 
 /// The listener and the server over it.
 pub struct Edge {
@@ -164,7 +164,7 @@ pub struct Edge {
 /// 404 there.
 ///
 /// The machine manager mounts the socket's directory read-only at
-/// `/run/demi-backend` at every boot, so the socket a restarted backend makes
+/// `/run/jush-backend` at every boot, so the socket a restarted backend makes
 /// again reaches the running Clouds (the unit's `RuntimeDirectoryPreserve`
 /// keeps the directory). The setting's file name must therefore be
 /// `runners.sock`, the name a Cloud's runner looks for, in a directory of its
@@ -179,7 +179,7 @@ pub struct Edge {
 ///
 /// A Simple Isolation Cloud, which runs on the device's network, reaches the
 /// backend on an abstract socket named after the file instead
-/// (`demi_runner_protocol::boot::abstract_socket`): a bound file would be
+/// (`jush_runner_protocol::boot::abstract_socket`): a bound file would be
 /// one its programs could remove.
 pub fn runner_socket(path: &Path) -> io::Result<Option<RunnerSockets>> {
     let directory = path.parent().unwrap_or(Path::new("/"));
@@ -198,8 +198,8 @@ pub fn runner_socket(path: &Path) -> io::Result<Option<RunnerSockets>> {
     let file = UnixListener::bind(path)?;
     std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o666))?;
     #[cfg(target_os = "linux")]
-    let named = Some(UnixListener::bind(demi_runner_protocol::boot::abstract_socket_path(
-        &demi_runner_protocol::boot::abstract_socket(path),
+    let named = Some(UnixListener::bind(jush_runner_protocol::boot::abstract_socket_path(
+        &jush_runner_protocol::boot::abstract_socket(path),
     ))?);
     #[cfg(not(target_os = "linux"))]
     let named = None;
@@ -232,11 +232,11 @@ impl Edge {
         address: SocketAddr,
         public_url: Option<&url::Url>,
         web_directory: Option<PathBuf>,
-        update: Arc<demi_backend_database::update::Update>,
+        update: Arc<jush_backend_database::update::Update>,
     ) -> io::Result<Listening> {
         let tcp = TcpListener::bind(address).await?.tap_io(listener::without_delay);
         let local_addr = tcp.local_addr()?;
-        let public = demi_backend_runners::public_url::PublicUrl::default();
+        let public = jush_backend_runners::public_url::PublicUrl::default();
         public.listening(public_url, local_addr);
         let routes = Arc::new(std::sync::RwLock::new(update::routes(update, web_directory, public)));
         let closing = CancellationToken::new();
@@ -382,10 +382,10 @@ pub struct AppState {
     /// The links of the reply blocks shared pages frame.
     pub blocks: Arc<BlockLinks>,
     /// The update before this start, which `GET /api/update` says is over.
-    pub update: Arc<demi_backend_database::update::Update>,
+    pub update: Arc<jush_backend_database::update::Update>,
 }
 
-impl FromRef<AppState> for Arc<demi_backend_database::update::Update> {
+impl FromRef<AppState> for Arc<jush_backend_database::update::Update> {
     fn from_ref(state: &AppState) -> Self {
         state.update.clone()
     }
@@ -788,13 +788,13 @@ fn hooks() -> Router<AppState> {
 /// and no check of the page it comes from, since another server calls it; the
 /// share key is its only key.
 fn relay() -> Router<AppState> {
-    use demi_provider_relay::wire::media::MEDIA_ROUTE;
+    use jush_provider_relay::wire::media::MEDIA_ROUTE;
     // A media call's body, an edit's or a video's carrying their images, is
     // read within the limit of one frame, as `lending::media` reads it.
-    let calls = DefaultBodyLimit::max(demi_provider_relay::wire::MESSAGE_BYTES + 4);
+    let calls = DefaultBodyLimit::max(jush_provider_relay::wire::MESSAGE_BYTES + 4);
     Router::new()
-        .route(demi_provider_relay::wire::PROVIDER_ROUTE, get(lending::provider))
-        .route(demi_provider_relay::wire::SOCKET_ROUTE, get(lending::socket))
+        .route(jush_provider_relay::wire::PROVIDER_ROUTE, get(lending::provider))
+        .route(jush_provider_relay::wire::SOCKET_ROUTE, get(lending::socket))
         .route(&format!("{MEDIA_ROUTE}/{{kind}}"), post(lending::media).layer(calls))
 }
 
@@ -829,12 +829,12 @@ fn edge(app: Router<AppState>, closing: CancellationToken, state: AppState) -> R
     let pipes = Router::new()
         .route("/api/pipes/{id}", put(runners::put).get(runners::get).head(runners::head))
         .route(
-            &format!("{}/{{id}}", demi_runner_protocol::wire::CALL_OUTPUT_ROUTE),
+            &format!("{}/{{id}}", jush_runner_protocol::wire::CALL_OUTPUT_ROUTE),
             get(runners::call_output),
         )
         .route("/api/offers/{id}", get(runners::offer))
         .route(
-            demi_runner_protocol::wire::PIPE_CONNECTION_ROUTE,
+            jush_runner_protocol::wire::PIPE_CONNECTION_ROUTE,
             get(pipe_connection::connect),
         )
         .method_not_allowed_fallback(no_route);

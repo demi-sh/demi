@@ -1,11 +1,11 @@
 //! Where the package keeps what it fetched, under the device's temporary
-//! directory's `demi-fetch/`: the pages read, and each file that is no text
-//! in a directory named after its URL, `demi-fetch/<hash>/<name>`, so two
+//! directory's `jush-fetch/`: the pages read, and each file that is no text
+//! in a directory named after its URL, `jush-fetch/<hash>/<name>`, so two
 //! URLs with the same file name never overwrite each other.
 
 use std::path::{Path, PathBuf};
 
-use demi_command_protocol::canonical_digest;
+use jush_command_protocol::canonical_digest;
 use percent_encoding::percent_decode_str;
 use reqwest::Url;
 
@@ -18,7 +18,7 @@ const UNNAMED: &str = "download";
 
 /// The package's directory.
 pub fn directory() -> PathBuf {
-    std::env::temp_dir().join("demi-fetch")
+    std::env::temp_dir().join("jush-fetch")
 }
 
 /// The SHA-256 of `url`, which names what is kept of it.

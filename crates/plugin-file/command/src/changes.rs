@@ -4,7 +4,7 @@
 
 use std::{fs, path::PathBuf};
 
-use demi_command_sdk::edits::Recording;
+use jush_command_sdk::edits::Recording;
 use tokio_util::sync::CancellationToken;
 
 use crate::files::{FileError, atomic_write, check_cancelled};

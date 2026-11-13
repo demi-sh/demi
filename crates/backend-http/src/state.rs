@@ -9,7 +9,7 @@
 
 use axum::Json;
 use axum::extract::State;
-use demi_web_api_protocol::state::ProductState;
+use jush_web_api_protocol::state::ProductState;
 
 use super::AppState;
 use super::error::ApiError;

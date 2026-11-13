@@ -1,4 +1,4 @@
-//! The `demi agent` command group: its declarations, and the handlers that run
+//! The `jush agent` command group: its declarations, and the handlers that run
 //! each call against the live tree of the invoking job's conversation.
 //!
 //! - Lifecycle verbs act on the caller's own children.
@@ -28,12 +28,12 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use demi_agent_tools::{DeviceResolver, Toolset};
-use demi_device_interface::{
-    Call, CommandSet, DEMI_ROOT, GroupBuilder, LeafBuilder, RegisterError, RpcError, RpcPort,
+use jush_agent_tools::{DeviceResolver, Toolset};
+use jush_device_interface::{
+    Call, CommandSet, JUSH_ROOT, GroupBuilder, LeafBuilder, RegisterError, RpcError, RpcPort,
     TypedRpc,
 };
-use demi_shared_types::{NodeId, is_blank, trim};
+use jush_shared_types::{NodeId, is_blank, trim};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -61,15 +61,15 @@ const LIST_SUMMARY: &str = "List the agents of this conversation's tree from the
 /// The `--profile` option's description, which names no profile: the help
 /// is rendered once per tree, and the profiles change with the user's
 /// settings.
-const PROFILE_OPTION: &str = "The name of a profile `demi agent profiles list` lists, with when to use each. Required while the conversation runs a project's workflow; otherwise, without it the child inherits your model, prompt, device and commands.";
+const PROFILE_OPTION: &str = "The name of a profile `jush agent profiles list` lists, with when to use each. Required while the conversation runs a project's workflow; otherwise, without it the child inherits your model, prompt, device and commands.";
 
 /// The `--profile` option's description of a resume, which names no profile
 /// for the reason [`PROFILE_OPTION`]'s does not.
-const RESUME_PROFILE_OPTION: &str = "The name of a profile `demi agent profiles list` lists, with when to use each, to go on with. Without it the child goes on with the profile it runs on.";
+const RESUME_PROFILE_OPTION: &str = "The name of a profile `jush agent profiles list` lists, with when to use each, to go on with. Without it the child goes on with the profile it runs on.";
 
 const SHOW_SUMMARY: &str = "Bounded snapshot of any agent in the tree (root excluded): for a live one, execution state and recent tool titles with durations; for an archived one, how and when it closed, with the reason if it failed. Idle (s), the seconds since its last event, and Execution for (s) tell motion from stall. Omits what it said, tool outputs, file contents, and older turns: its last line is the history read that prints its latest blocks. Several ids show each in order; --json takes one.";
 
-/// The input of `demi agent spawn`.
+/// The input of `jush agent spawn`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 struct SpawnArgs {
@@ -81,7 +81,7 @@ struct SpawnArgs {
     cwd: Option<String>,
 }
 
-/// The input of `demi agent cwd`.
+/// The input of `jush agent cwd`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct CwdArgs {
@@ -91,7 +91,7 @@ struct CwdArgs {
 
 const CWD_SUMMARY: &str = "Print your working directory, where your shell calls start, or change it to another directory of your device.";
 
-/// The input of `demi agent send`.
+/// The input of `jush agent send`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct SendArgs {
@@ -102,7 +102,7 @@ struct SendArgs {
     message: String,
 }
 
-/// The input of `demi agent abort`.
+/// The input of `jush agent abort`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct AbortArgs {
@@ -111,7 +111,7 @@ struct AbortArgs {
     id: Vec<u64>,
 }
 
-/// The input of `demi agent resume`.
+/// The input of `jush agent resume`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ResumeArgs {
@@ -122,7 +122,7 @@ struct ResumeArgs {
     profile: Option<String>,
 }
 
-/// The input of `demi agent list`.
+/// The input of `jush agent list`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ListArgs {
@@ -130,7 +130,7 @@ struct ListArgs {
     all: Option<bool>,
 }
 
-/// The input of `demi agent show`.
+/// The input of `jush agent show`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ShowArgs {
@@ -142,21 +142,21 @@ struct ShowArgs {
 /// The group's entry in the model's capability index.
 const AGENT_ENTRY: &str = "Subagents with a fresh context each, run in parallel: spawn, send, resume (onto another profile too), abort, list, show; profiles; workflows.";
 
-/// `demi agent spawn --json` and `resume --json`.
+/// `jush agent spawn --json` and `resume --json`.
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct Started {
     subagent_id: u64,
 }
 
-/// `demi agent send --json`.
+/// `jush agent send --json`.
 #[derive(Serialize, JsonSchema)]
 struct Sent {
     id: u64,
     accepted: bool,
 }
 
-/// `demi agent abort --json`.
+/// `jush agent abort --json`.
 #[derive(Serialize, JsonSchema)]
 struct Aborted {
     id: u64,
@@ -239,9 +239,9 @@ impl NodeCommandSets {
     }
 }
 
-/// A node's commands: the product's, with the `demi agent` and `demi shell`
-/// groups grafted under a `demi` group, replacing any `agent` or `shell`
-/// child the product declared, or under a new `demi` root.
+/// A node's commands: the product's, with the `jush agent` and `jush shell`
+/// groups grafted under a `jush` group, replacing any `agent` or `shell`
+/// child the product declared, or under a new `jush` root.
 pub(crate) fn with_runtime_groups<H: DeviceResolver>(
     product_commands: &CommandSet,
     server: &Rc<AgentServer<H>>,
@@ -252,17 +252,17 @@ pub(crate) fn with_runtime_groups<H: DeviceResolver>(
         agent_group(Rc::downgrade(server), can_spawn),
         shell_group(Rc::downgrade(server)),
     ];
-    let has_demi = commands.declarations().any(|root| root.name() == DEMI_ROOT);
-    if has_demi {
+    let has_jush = commands.declarations().any(|root| root.name() == JUSH_ROOT);
+    if has_jush {
         for group in groups {
-            commands.graft(&[DEMI_ROOT], group)?;
+            commands.graft(&[JUSH_ROOT], group)?;
         }
     } else {
-        let demi = groups.into_iter().fold(
-            GroupBuilder::new(DEMI_ROOT, "Demi agent runtime commands."),
+        let jush = groups.into_iter().fold(
+            GroupBuilder::new(JUSH_ROOT, "Jush agent runtime commands."),
             GroupBuilder::group,
         );
-        commands.register(demi)?;
+        commands.register(jush)?;
     }
     Ok(commands)
 }
@@ -447,7 +447,7 @@ async fn resume<H: DeviceResolver>(
     let id = match call.tree.child_of(&call.caller, number).await {
         Ok(Some(id)) => id,
         Ok(None) => {
-            let reason = format!("no archived subagent {number} (see `demi agent list`)");
+            let reason = format!("no archived subagent {number} (see `jush agent list`)");
             return fail(&reason);
         }
         Err(error) => return fail(&error),
@@ -578,13 +578,13 @@ pub(super) fn refuse(reason: &str) -> Result<u8, RpcError> {
 }
 
 /// A verb's failure, which the dispatcher tells after the command's path:
-/// `demi agent <verb>: <reason>` on stderr, exit 1.
+/// `jush agent <verb>: <reason>` on stderr, exit 1.
 pub(super) fn fail(reason: &str) -> Result<u8, RpcError> {
     Err(RpcError::Failed(reason.to_owned()))
 }
 
 /// The failure of one of several ids, told at once as GNU tools tell
-/// theirs, `demi agent show: 9: no such subagent`; the verb goes on with
+/// theirs, `jush agent show: 9: no such subagent`; the verb goes on with
 /// the next.
 pub(super) async fn fail_one(
     port: &RpcPort,

@@ -7,7 +7,7 @@ status: accepted
 ## Problem
 
 Alex asks an agent why the conversation "Refactor the parser" cost so much.
-The agent has `demi conversation history timing`, which says where each
+The agent has `jush conversation history timing`, which says where each
 turn's time went, and nothing that says where its money went. The composer's
 context card shows the conversation's price, cache hit rate and the
 profiles' shares, but no command reads them, and nothing anywhere breaks the
@@ -22,14 +22,14 @@ Two commands read the ledger, in the same words as the context card's Cost
 section: prices are the equivalent API price, which a subscription's call is
 priced at too and which is not a bill.
 
-### `demi conversation cost`
+### `jush conversation cost`
 
 The whole conversation, every agent of it and the calls of no agent, the
 counterpart of the context card. `--conversation <id>` reads another of the
 user's conversations, with the permission `history` asks for.
 
 ```text
-$ demi conversation cost
+$ jush conversation cost
 Conversation: c-12
 Title: Refactor the parser
 Requests: 214
@@ -74,7 +74,7 @@ Not answered:
   overloaded  3         …         -
 ```
 
-- Every value is exact, as every `demi` command prints one: counts in
+- Every value is exact, as every `jush` command prints one: counts in
   tokens, prices in dollars to a hundredth of a cent, instants in UTC.
 - Requests are every call to a vendor, a title's, a compaction's and a
   medium's included, as Settings' usage counts them. The card's calls are
@@ -94,14 +94,14 @@ Not answered:
   the vendor reported counts for, of a model with no catalog price, says so
   on stderr.
 
-### `demi conversation history cost <range>`
+### `jush conversation history cost <range>`
 
 One agent's turns, read as `history timing` reads them: the turns that start
 in a range of block indices, fifty to a page, of the caller's transcript,
 `--agent`'s or `--conversation`'s.
 
 ```text
-$ demi conversation history cost 4200..
+$ jush conversation history cost 4200..
 TURN  STARTED               REQUESTS  CONTEXT FIRST  CONTEXT LAST  INPUT  CACHE WRITE  CACHE READ  OUTPUT  HIT (%)  PRICE ($)  NOTES
 4213  2026-10-14T10:02:11Z  12        84102          96220         1210   20114        1003221     9022    97.9     0.4108     -
 4260  2026-10-14T10:40:05Z  31        96220          38110         4410   310224       3100112     40021   90.8     1.9017     missed: cache_expired; compacted
@@ -130,7 +130,7 @@ TURN  STARTED               REQUESTS  CONTEXT FIRST  CONTEXT LAST  INPUT  CACHE 
   id, `usage_ledger_turn`, which a migration adds. A ledger row's turn id
   is its request's, the same id the transcript's blocks keep.
 - Each command has `--json`, of the types its tables print. `cost` is a
-  leaf of `demi conversation`, and `history cost` of `history`, beside
+  leaf of `jush conversation`, and `history cost` of `history`, beside
   `timing`, whose way of finding a page's turns it shares.
 - The page shows nothing new.
 
@@ -148,7 +148,7 @@ computes.
 - [ccusage](https://npmjs.com/package/ccusage) reports Claude Code's usage
   by session, day and five-hour block, with cache writes and reads apart.
 
-None goes below a session, and none says why a call missed the cache. Demi
+None goes below a session, and none says why a call missed the cache. Jush
 breaks the price down by turn and call because its ledger keeps them.
 
 ## Alternatives

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WINDOW_SCOPE } from '@demicodes/web-ui/ui/window-stack'
+import { WINDOW_SCOPE } from '@jush-ai/web-ui/ui/window-stack'
 
 withDefaults(defineProps<{
   variant?: string

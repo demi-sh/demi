@@ -7,7 +7,7 @@ status: proposed, superseded in part by 0066
 ## Problem
 
 An agent runs `sh -c 'sleep 8 & echo hi' > f; echo done`. Bash prints `done`
-at once; Demi prints it 8 seconds later. A program's output to a regular
+at once; Jush prints it 8 seconds later. A program's output to a regular
 file passes through a pipe the runner reads and writes into the file, so
 that each write is recorded as the command's edit, and the pipe ends only
 when every process holding it has closed it: `sleep`, which `sh` started,
@@ -94,7 +94,7 @@ above appears.
 POSIX shells open a redirection's file and give the program the descriptor
 itself
 ([Shell Command Language, Redirection](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html#tag_19_07)).
-Demi does the same, and reads the file around the program to record its
+Jush does the same, and reads the file around the program to record its
 edit.
 
 ## Alternatives

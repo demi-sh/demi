@@ -1,8 +1,8 @@
 //! What the backend's conversations are assembled from.
 //!
 //! - The product's instructions.
-//! - The toolset of the plugins the user has on, with the product's `demi device`
-//!   and `demi attachment` groups.
+//! - The toolset of the plugins the user has on, with the product's `jush device`
+//!   and `jush attachment` groups.
 //! - The user's subagent settings, which each spawn reads.
 //! - The device each node reaches, and the conversation's current primary device.
 //! - The execution context source, which tells a node that the conversation's
@@ -11,32 +11,32 @@
 
 use std::rc::{Rc, Weak};
 
-use demi_agent_tools::{
+use jush_agent_tools::{
     ContextAnswer, ContextSource, ConversationProfiles, DeviceResolver, NewProfileDraft, NodeContext, Profile, WorkflowListing,
     ProfileEdit, ProfileModel, SubagentSettings, SubagentSource, Toolset, ToolsetSource,
     runs_on as job_model,
 };
-use demi_conversation_lane_protocol::{CacheChart, JobModel};
-use demi_shared_types::{ModelSelection, NodeId, PictureFailure, WorkflowChoice};
+use jush_conversation_lane_protocol::{CacheChart, JobModel};
+use jush_shared_types::{ModelSelection, NodeId, PictureFailure, WorkflowChoice};
 
 use super::runs_on::runs_on;
-use demi_backend_device_access::attachment_commands::attachment_group;
-use demi_backend_device_access::device_commands::device_group;
+use jush_backend_device_access::attachment_commands::attachment_group;
+use jush_backend_device_access::device_commands::device_group;
 
 use super::organize::conversation_group;
 use super::pins::pin_group;
 use crate::shard::provider_commands::providers_group;
-use demi_backend_device_access::{DeviceShard, conversation_of};
-use demi_plugin_host::ContextAsk;
-use demi_runner_client::RemoteDevice;
-use demi_agent_store::Placement;
-use demi_web_api_protocol::ids::DeviceId;
-use demi_device_interface::{DeviceError, DeviceErrorKind};
-use demi_plugin_interface::{EXECUTION_SOURCE, PluginId};
-use demi_shared_types::TurnId;
-use demi_backend_database::StorageError;
-use demi_provider_registry::entry::ProviderEntry;
-use demi_web_api_protocol::subagents::SubagentProfile;
+use jush_backend_device_access::{DeviceShard, conversation_of};
+use jush_plugin_host::ContextAsk;
+use jush_runner_client::RemoteDevice;
+use jush_agent_store::Placement;
+use jush_web_api_protocol::ids::DeviceId;
+use jush_device_interface::{DeviceError, DeviceErrorKind};
+use jush_plugin_interface::{EXECUTION_SOURCE, PluginId};
+use jush_shared_types::TurnId;
+use jush_backend_database::StorageError;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_web_api_protocol::subagents::SubagentProfile;
 use futures_util::future::LocalBoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -47,15 +47,15 @@ use crate::shard::notify_commands::notify_group;
 
 /// The product's instructions, the identity that opens every node's system
 /// prompt, which a subagent profile's replace.
-pub(crate) const INSTRUCTIONS: &str = "You are Demi, an agent that works for the user on their computers: a Demi Cloud machine or the devices they paired. You write and run software, research, operate websites, and work with files and data, across turns.";
+pub(crate) const INSTRUCTIONS: &str = "You are Jush, an agent that works for the user on their computers: a Jush Cloud machine or the devices they paired. You write and run software, research, operate websites, and work with files and data, across turns.";
 
 /// The harness guide every node's system prompt carries after its identity,
 /// a profile's node too.
-pub(crate) const HARNESS_GUIDE: &str = "Guidelines:\n- Commands run on the conversation's primary device, in its working directory; a context block names both. The directory stays between turns, and Files shows it; to work in another directory, move there with `demi device move` first.\n- To wait for a command or a subagent, end your turn: its end or its message wakes you, and you continue then. Never wait with sleep or a loop.\n- The user reads only your replies, rendered as Markdown. Be concise.\n- Deliver a file as an attachment: `demi attachment upload`, then `<attachment id=\"a3\" />` on its own line; a medium a tool result showed you has its `attachment_id` already.\n- Link what the user can open: a device file `[runner.md](docs/runner.md#L438)`, a subagent `[File icons](agent:4)`, a commit `[Fix the cart total](commit:3f2a9c1)`, or `commit:src/v8@86229da` in another repository, a conversation `[Login test](conversation:<id>)`.";
+pub(crate) const HARNESS_GUIDE: &str = "Guidelines:\n- Commands run on the conversation's primary device, in its working directory; a context block names both. The directory stays between turns, and Files shows it; to work in another directory, move there with `jush device move` first.\n- To wait for a command or a subagent, end your turn: its end or its message wakes you, and you continue then. Never wait with sleep or a loop.\n- The user reads only your replies, rendered as Markdown. Be concise.\n- Deliver a file as an attachment: `jush attachment upload`, then `<attachment id=\"a3\" />` on its own line; a medium a tool result showed you has its `attachment_id` already.\n- Link what the user can open: a device file `[runner.md](docs/runner.md#L438)`, a subagent `[File icons](agent:4)`, a commit `[Fix the cart total](commit:3f2a9c1)`, or `commit:src/v8@86229da` in another repository, a conversation `[Login test](conversation:<id>)`.";
 
 /// What a conversation's tree opens with: the commands of the plugins the
-/// user has on, with the product's `demi device`, `demi attachment`, `demi
-/// conversation`, `demi credentials`, `demi providers` and `demi notify`
+/// user has on, with the product's `jush device`, `jush attachment`, `jush
+/// conversation`, `jush credentials`, `jush providers` and `jush notify`
 /// groups.
 pub(crate) struct ShardToolsets {
     /// Weak: the shard owns the agent server that holds the source.
@@ -108,7 +108,7 @@ impl ToolsetSource for ShardToolsets {
 }
 
 /// The user's subagent settings as the control store holds them now, and
-/// the changes `demi agent profiles` makes to them through the settings
+/// the changes `jush agent profiles` makes to them through the settings
 /// page's path.
 pub(crate) struct ShardSubagents {
     /// Weak: the shard owns the agent server that holds the source.
@@ -429,20 +429,20 @@ pub(crate) struct ShardAgents {
     pub(crate) shard: Weak<Shard>,
 }
 
-impl demi_agent_server::AgentsSource for ShardAgents {
+impl jush_agent_server::AgentsSource for ShardAgents {
     fn resuming(&self, root: &NodeId) -> bool {
         self.shard
             .upgrade()
-            .is_some_and(|shard| shard.restart_resumes().contains(&demi_backend_device_access::conversation_of(root)))
+            .is_some_and(|shard| shard.restart_resumes().contains(&jush_backend_device_access::conversation_of(root)))
     }
 
-    fn kept<'a>(&'a self, root: &'a NodeId) -> LocalBoxFuture<'a, demi_agent_server::KeptAgents> {
+    fn kept<'a>(&'a self, root: &'a NodeId) -> LocalBoxFuture<'a, jush_agent_server::KeptAgents> {
         Box::pin(async move {
-            let mut kept = demi_agent_server::KeptAgents::default();
+            let mut kept = jush_agent_server::KeptAgents::default();
             let Some(shard) = self.shard.upgrade() else {
                 return kept;
             };
-            let conversation = demi_backend_device_access::conversation_of(root);
+            let conversation = jush_backend_device_access::conversation_of(root);
             let services = shard.services();
             match services.control.conversation_costs(conversation.clone()).await {
                 Ok(costs) => {
@@ -462,14 +462,14 @@ impl demi_agent_server::AgentsSource for ShardAgents {
             }
             match services
                 .conversations
-                .read(&conversation, demi_backend_database::side_questions::cards)
+                .read(&conversation, jush_backend_database::side_questions::cards)
                 .await
             {
                 Ok(cards) => {
                     kept.cards = cards
                         .unwrap_or_default()
                         .into_iter()
-                        .map(|(id, title, folded)| (id, demi_agent_server::SideCard { title, folded }))
+                        .map(|(id, title, folded)| (id, jush_agent_server::SideCard { title, folded }))
                         .collect();
                 }
                 // The cards show untitled and open until they change.
@@ -493,7 +493,7 @@ impl demi_agent_server::AgentsSource for ShardAgents {
             let Some(shard) = self.shard.upgrade() else {
                 return std::collections::HashMap::new();
             };
-            let conversation = demi_backend_device_access::conversation_of(root);
+            let conversation = jush_backend_device_access::conversation_of(root);
             match shard.services().control.conversation_charts(conversation.clone()).await {
                 Ok(charts) => charts.into_iter().collect(),
                 // The cards show no rate and no chart until the agent's next
@@ -521,7 +521,7 @@ pub(crate) struct ShardReplyFiles {
     pub(crate) shard: Weak<Shard>,
 }
 
-impl demi_agent_server::ReplyFiles for ShardReplyFiles {
+impl jush_agent_server::ReplyFiles for ShardReplyFiles {
     fn files<'a>(
         &'a self,
         root: &'a NodeId,
@@ -551,7 +551,7 @@ impl demi_agent_server::ReplyFiles for ShardReplyFiles {
             let looked = shard
                 .device_shard()
                 .look_at_device(&conversation, &cancel, async move |device| {
-                    use demi_device_interface::DeviceFs as _;
+                    use jush_device_interface::DeviceFs as _;
                     let stats = futures_util::future::join_all(
                         resolved.iter().map(|(_, on_device)| device.device.stat(on_device.as_str())),
                     )
@@ -560,7 +560,7 @@ impl demi_agent_server::ReplyFiles for ShardReplyFiles {
                         .into_iter()
                         .zip(stats)
                         .filter(|(_, stat)| {
-                            matches!(stat, Ok(demi_device_interface::FileStat { kind: demi_device_interface::FileKind::File, .. }))
+                            matches!(stat, Ok(jush_device_interface::FileStat { kind: jush_device_interface::FileKind::File, .. }))
                         })
                         .map(|(paths, _)| paths)
                         .collect::<std::collections::HashMap<String, String>>()
@@ -593,7 +593,7 @@ impl demi_agent_server::ReplyFiles for ShardReplyFiles {
             let shard = self.shard.upgrade().ok_or(PictureFailure::DeviceUnavailable)?;
             let conversation = conversation_of(root);
             let device = device
-                .and_then(|device| demi_web_api_protocol::ids::DeviceId::try_from(device).ok())
+                .and_then(|device| jush_web_api_protocol::ids::DeviceId::try_from(device).ok())
                 .ok_or(PictureFailure::DeviceUnavailable)?;
             // A path from the device's home is read from the home its runner
             // reported.
@@ -608,7 +608,7 @@ impl demi_agent_server::ReplyFiles for ShardReplyFiles {
                 }
                 None => path.to_owned(),
             };
-            demi_backend_device_access::attachment_commands::copy_picture(
+            jush_backend_device_access::attachment_commands::copy_picture(
                 shard.device_shard(),
                 &conversation,
                 &device,

@@ -1,4 +1,4 @@
-import type { ShellViewStatus } from '@demicodes/protocol'
+import type { ShellViewStatus } from '@jush-ai/protocol'
 import { formatSpan } from '../ui/dates'
 import { t } from './locales/text'
 

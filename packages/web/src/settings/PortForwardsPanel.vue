@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsPortForwards from '@demicodes/web-ui/settings/SettingsPortForwards.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsPortForwards from '@jush-ai/web-ui/settings/SettingsPortForwards.vue'
 import { useProduct } from '../state/product'
 import { useSettingsAddress } from './address'
 import { usePortForwardSettings } from './port-forwards'

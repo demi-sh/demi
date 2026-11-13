@@ -1,4 +1,4 @@
-# Builds the website, packages/site, and publishes it to demi.sh after each
+# Builds the website, packages/site, and publishes it to jush.ai after each
 # push to main. A run that started finishes; of the pushes that arrive while it
 # runs, only the newest waits, so the newest push is always published. A build
 # takes longer than main often goes between pushes, so cancelling a running one
@@ -38,7 +38,7 @@ jobs:
         with:
           key: site
       - run: bun install --frozen-lockfile
-      - run: bun --filter @demicodes/utils --filter @demicodes/protocol --filter @demicodes/conversation-client build
+      - run: bun --filter @jush-ai/utils --filter @jush-ai/protocol --filter @jush-ai/conversation-client build
       - run: bunx playwright install --with-deps chromium
         working-directory: packages/site
       - run: bun run build

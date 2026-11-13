@@ -40,7 +40,7 @@
 //! CPU and blocking work leave the thread through `Admission`, whose semaphores
 //! are the load limits.
 //!
-//! Shell work runs in a process per job, `demi-runner shell`, which outlives
+//! Shell work runs in a process per job, `jush-runner shell`, which outlives
 //! the runner (`crates/runner-shell/src/remote/mod.rs`). There each interpreter
 //! unit and utility has an OS thread: builtins and utilities do synchronous IO,
 //! utilities keep state in thread-locals, and pipeline stages run at once. A
@@ -88,7 +88,7 @@
 //! nothing below the executable depends on it.
 //!
 //! ```text
-//! demi-runner (connection, registration, device log, composition)
+//! jush-runner (connection, registration, device log, composition)
 //!   |-- runner-jobs --> runner-command-packages --> runner-process
 //!   |-- runner-device --------------------------------> runner-process
 //!   |-- runner-shell -------------------------------> runner-process
@@ -99,6 +99,7 @@
 //! command's algorithms, which are separate programs.
 
 mod autostart;
+mod renamed;
 mod connection;
 mod console;
 mod environment;
@@ -118,19 +119,19 @@ mod state;
 mod storage;
 mod update;
 
-use demi_command_protocol::{LocalInvocation, host_target};
-use demi_runner_process::{
+use jush_command_protocol::{LocalInvocation, host_target};
+use jush_runner_process::{
     command_client::{self, RAW, RawCommand, Stdio},
     local_socket,
     stdio::{self, standard_file},
 };
-use demi_runner_process::backend::Backend;
-use demi_runner_protocol::{
+use jush_runner_process::backend::Backend;
+use jush_runner_protocol::{
     boot::{BACKEND_SOCKET, ManagedBoot, TEMPORARY_DIRECTORY},
     values::BackendUrl,
     wire::{self, RunnerPlatform},
 };
-use demi_runner_shell::remote::RemoteShell;
+use jush_runner_shell::remote::RemoteShell;
 use management::Revocation;
 use registration::{Ending, Options};
 use state::RunnerState;
@@ -249,10 +250,10 @@ async fn manage(
 }
 
 /// The installation directory: a managed guest's temporary state, the one
-/// `DEMI_HOME` names, or the backend's under the user's home.
+/// `JUSH_HOME` names, or the backend's under the user's home.
 fn directory(installation: &Installation, boot: Option<&ManagedBoot>) -> io::Result<PathBuf> {
     if boot.is_some() {
-        return Ok(PathBuf::from("/run/demi"));
+        return Ok(PathBuf::from("/run/jush"));
     }
     if let Some(directory) = &installation.home {
         return Ok(directory.clone());
@@ -264,8 +265,8 @@ fn directory(installation: &Installation, boot: Option<&ManagedBoot>) -> io::Res
     // One component at a time, so that on Windows the path the runner
     // prints, such as its removal command, has the system's separators.
     let mut directory = home()?;
-    directory.extend(demi_runner_protocol::installation::ROOT);
-    directory.push(demi_runner_protocol::installation::installation_name(backend.url()));
+    directory.extend(jush_runner_protocol::installation::ROOT);
+    directory.push(jush_runner_protocol::installation::installation_name(backend.url()));
     Ok(directory)
 }
 
@@ -277,11 +278,11 @@ fn home() -> io::Result<PathBuf> {
 
 /// The runner's own name, under which it runs as the runner rather than as a
 /// command alias.
-const PROGRAM: &str = "demi-runner";
+const PROGRAM: &str = "jush-runner";
 
-/// Runs this device as a Demi execution target.
+/// Runs this device as a Jush execution target.
 #[derive(clap::Parser)]
-#[command(name = PROGRAM, version = demi_shared_artifacts::BUILD_VERSION)]
+#[command(name = PROGRAM, version = jush_shared_artifacts::BUILD_VERSION)]
 struct Cli {
     #[command(subcommand)]
     action: Action,
@@ -297,14 +298,14 @@ enum Action {
         #[arg(long, conflicts_with = "backend")]
         managed_boot: Option<PathBuf>,
         /// How the device appears to the backend; the hostname by default.
-        #[arg(long, env = "DEMI_RUNNER_NAME", hide = true)]
+        #[arg(long, env = "JUSH_RUNNER_NAME", hide = true)]
         name: Option<String>,
         /// Marks a runner the backend manages, when set and not empty.
-        #[arg(long, env = "DEMI_RUNNER_MANAGED", hide = true)]
+        #[arg(long, env = "JUSH_RUNNER_MANAGED", hide = true)]
         managed: Option<String>,
         /// The artifact cache, which runners of one user may share;
         /// `artifacts` in the installation's directory by default.
-        #[arg(long, env = "DEMI_ARTIFACTS", hide = true)]
+        #[arg(long, env = "JUSH_ARTIFACTS", hide = true)]
         artifacts: Option<PathBuf>,
         /// Writes the runner's output to its installation's log, as a
         /// runner the installer or `start` starts in the background does.
@@ -370,11 +371,11 @@ struct Installation {
     #[arg(long)]
     backend: Option<BackendUrl>,
     /// The installation's directory; one per backend under
-    /// `~/.demi/runner` by default.
-    #[arg(long = "home", env = "DEMI_HOME", hide = true)]
+    /// `~/.jush/runner` by default.
+    #[arg(long = "home", env = jush_runner_protocol::installation::HOME_ENV, hide = true)]
     home: Option<PathBuf>,
     /// This runner's release, which `status` compares with the active one.
-    #[arg(long, env = demi_runner_protocol::release::RELEASE_ENV, hide = true)]
+    #[arg(long, env = jush_runner_protocol::release::RELEASE_ENV, hide = true)]
     release: Option<String>,
 }
 
@@ -479,17 +480,28 @@ async fn runner(cli: Cli) -> io::Result<u8> {
         }
         None => None,
     };
-    let directory = directory(&installation, boot.as_ref())?;
+    let mut directory = directory(&installation, boot.as_ref())?;
     let backend = boot
         .as_ref()
         .map(|boot| boot.backend_url.clone())
         .or(installation.backend);
     let home = home()?;
+    // An installation under the names of before the rename moves before the
+    // runner opens anything in it, which on Windows would hold the directory.
+    let mut moved = None;
+    let renaming = match boot.is_none() && !removing {
+        true => renamed::move_installation(&directory, &home).await,
+        false => None,
+    };
+    if let Some(to) = renaming.as_ref().and_then(renamed::Move::moved_to) {
+        moved = std::env::current_exe()?.file_name().map(|name| to.join(name));
+        directory = to.to_owned();
+    }
     let state = RunnerState::open(directory.clone()).await?;
     if log {
         console::to_log(&directory)?;
     }
-    let own: BTreeMap<String, String> = demi_runner_shell::device_environment().collect();
+    let own: BTreeMap<String, String> = jush_runner_shell::device_environment().collect();
     // A paired device's is the user's login environment, whoever started
     // the runner; a managed guest's is its image's
     // (`crates/machine-manager/src/storage/mod.rs`), and one that
@@ -516,7 +528,7 @@ async fn runner(cli: Cli) -> io::Result<u8> {
     //   name with `=` ("invalid environment variable name \"=C:\"").
     let mut env: BTreeMap<_, _> = resolved
         .into_iter()
-        .filter(|(name, _)| !name.starts_with("DEMI_") && !name.starts_with('='))
+        .filter(|(name, _)| !name.starts_with("JUSH_") && !name.starts_with('='))
         .collect();
     environment::complete(&mut env);
     let backend = match backend {
@@ -529,7 +541,12 @@ async fn runner(cli: Cli) -> io::Result<u8> {
                 .backend_url
         }
     };
-    let executable = std::env::current_exe()?;
+    // The system may name this process's executable by the path it started
+    // from, which a move left.
+    let executable = match moved {
+        Some(executable) => executable,
+        None => std::env::current_exe()?,
+    };
     // A managed guest's runner comes with its image, never from an
     // installer (`crates/runner/src/update.rs`).
     let installed = match &boot {
@@ -569,7 +586,7 @@ async fn runner(cli: Cli) -> io::Result<u8> {
     // empties; its conversations' files go to its home, which stops and
     // resets keep, as its artifacts do.
     let scratch = match &boot {
-        Some(_) => home.join(".demi").join("scratch"),
+        Some(_) => home.join(".jush").join("scratch"),
         None => directory.join("scratch"),
     };
     let scratch_root = scratch.to_string_lossy().into_owned();
@@ -586,7 +603,7 @@ async fn runner(cli: Cli) -> io::Result<u8> {
         os: machine::operating_system(kernel.as_ref()),
         version: installation
             .release
-            .unwrap_or_else(|| demi_shared_artifacts::BUILD_VERSION.into()),
+            .unwrap_or_else(|| jush_shared_artifacts::BUILD_VERSION.into()),
         hardware: machine::hardware(&canonical_home),
         booted_at: machine::booted_at(),
         identity,
@@ -613,8 +630,8 @@ async fn runner(cli: Cli) -> io::Result<u8> {
     // on the system layer, which a stop keeps (`crates/runner/src/device_log.rs`, `crates/runner-jobs/src/job_directories.rs`).
     let (log_directory, jobs) = if boot.is_some() {
         (
-            PathBuf::from("/var/log/demi"),
-            PathBuf::from("/var/lib/demi/jobs"),
+            PathBuf::from("/var/log/jush"),
+            PathBuf::from("/var/lib/jush/jobs"),
         )
     } else {
         (directory.join("log"), directory.join("jobs"))
@@ -628,18 +645,21 @@ async fn runner(cli: Cli) -> io::Result<u8> {
         .with(device_log::Console.with_filter(LevelFilter::WARN))
         .init();
     // Kept until the runner ends: it says when this thread did not run.
-    let _control_watch = demi_runner_process::steps::watch_control_loop();
+    let _control_watch = jush_runner_process::steps::watch_control_loop();
     if let Some(reason) = unresolved {
         tracing::warn!(event = "runner.environment_own", %reason, "the device environment is the runner's own");
+    }
+    if let Some(renaming) = &renaming {
+        renaming.log();
     }
     if let Some(error) = unsettled {
         tracing::warn!(event = "runner.unsettled", %error, "the runner runs from its release's directory");
     }
     // Every job and stream shares this process's open files; without the raise the runner still works, waiting sooner.
     #[cfg(unix)]
-    match demi_shared_cli::raise_open_file_limit() {
+    match jush_shared_cli::raise_open_file_limit() {
         Ok(limit) => {
-            demi_runner_process::process::keep_started_open_file_limit(
+            jush_runner_process::process::keep_started_open_file_limit(
                 limit.started_soft,
                 limit.started_hard,
                 limit.raised,
@@ -656,7 +676,7 @@ async fn runner(cli: Cli) -> io::Result<u8> {
     // Read once before any job runs, since reading it may briefly set a
     // stricter one (`process::umask`).
     #[cfg(unix)]
-    let _umask = demi_runner_process::process::umask();
+    let _umask = jush_runner_process::process::umask();
     // A Cloud's temporary directory, which its runner's `TMPDIR` names,
     // starts each boot empty
     // (`crates/machine-manager/src/storage/mod.rs`).
@@ -680,7 +700,7 @@ async fn runner(cli: Cli) -> io::Result<u8> {
         Some(ManagedBoot {
             abstract_socket: Some(name),
             ..
-        }) => Backend::through(backend, demi_runner_protocol::boot::abstract_socket_path(name)),
+        }) => Backend::through(backend, jush_runner_protocol::boot::abstract_socket_path(name)),
         Some(_) => Backend::through(backend, PathBuf::from(BACKEND_SOCKET)),
         None => Backend::at(backend),
     };
@@ -690,7 +710,7 @@ async fn runner(cli: Cli) -> io::Result<u8> {
         // A Cloud keeps its artifacts on its home image, which its stops,
         // wakes and resets keep (`crates/runner-command-packages/src/cache.rs`).
         artifacts: artifacts.unwrap_or_else(|| match &boot {
-            Some(_) => home.join(".demi").join("artifacts"),
+            Some(_) => home.join(".jush").join("artifacts"),
             None => directory.join("artifacts"),
         }),
         directory,
@@ -772,15 +792,15 @@ async fn runner(cli: Cli) -> io::Result<u8> {
             Ok(0)
         }
         Ok(Ending::Removed(projects)) => {
-            console::line("demi-runner: this device was revoked; removing this runner");
+            console::line("jush-runner: this device was revoked; removing this runner");
             if !projects.is_empty() {
                 console::line(format_args!(
-                    "demi-runner: its projects went with it, their files stay: {}",
+                    "jush-runner: its projects went with it, their files stay: {}",
                     projects.join(", ")
                 ));
             }
             let removed = removal::remove(&installation_directory)?;
-            console::line(format_args!("demi-runner: {}", removed.told(&installation_directory)));
+            console::line(format_args!("jush-runner: {}", removed.told(&installation_directory)));
             autostart::Registration::of(&installation_directory, &home)?
                 .remove()
                 .await;
@@ -794,7 +814,7 @@ async fn runner(cli: Cli) -> io::Result<u8> {
 /// stays.
 ///
 /// A Cloud pinned to a base from before the image made the directory has only
-/// its parent, `/var/lib/demi`, which is the `demi` user's and private to it,
+/// its parent, `/var/lib/jush`, which is the `jush` user's and private to it,
 /// so the directory made in it is private too.
 ///
 /// What cannot go is logged, since a file left behind only takes space. A
@@ -914,21 +934,28 @@ async fn signal() -> io::Result<()> {
 fn main() {
     // A panic leaves its report on standard error
     // (`crates/xtask/src/native/build.rs`).
-    demi_shared_cli::install_panic_hook();
+    jush_shared_cli::install_panic_hook();
     let args: Vec<_> = std::env::args().collect();
     let name = Path::new(&args[0])
         .file_stem()
         .and_then(|name| name.to_str())
         .unwrap_or("");
+    // A launcher from before the rename starts the runner under its earlier
+    // name (`renamed.rs`).
+    let program = name == PROGRAM || name == jush_runner_protocol::renamed::RUNNER;
+    if program {
+        // SAFETY: no other thread runs yet.
+        unsafe { renamed::adopt_environment() };
+    }
     // A root command's alias passes its arguments through untouched.
-    let cli = (name == PROGRAM).then(<Cli as clap::Parser>::parse);
+    let cli = program.then(<Cli as clap::Parser>::parse);
     // Shutdown leaves the runtimes' remaining threads to the process exit
     // below; runner shutdown has joined its owned jobs and residents already.
     let result = if let Some(Cli {
         action: Action::Shell { job },
     }) = cli
     {
-        demi_runner_shell::remote::serve(job, demi_shared_artifacts::BUILD_VERSION.to_owned())
+        jush_runner_shell::remote::serve(job, jush_shared_artifacts::BUILD_VERSION.to_owned())
     } else if let Some(cli) = cli {
         // The control thread's state belongs to one registration, so it runs
         // alone; each job's shell runs in a process of its own.
@@ -961,7 +988,7 @@ fn main() {
         // (`crates/device-interface/src/rpc.rs`).
         Err(error) if error.kind() == std::io::ErrorKind::BrokenPipe => 141,
         Err(error) => {
-            console::line(format_args!("demi-runner: {error}"));
+            console::line(format_args!("jush-runner: {error}"));
             1
         }
     };

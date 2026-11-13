@@ -4,7 +4,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     credentials::{
         AccountDocument, AccountLabel, AuthFailure, AuthReason, CredentialPool, RefreshFailure, SecretDocument,
@@ -14,7 +14,7 @@ use demi_provider_common::{
     quota::unix_seconds,
     wire::{Reported, ReportedString},
 };
-use demi_shared_types::{Clock, Timestamp};
+use jush_shared_types::{Clock, Timestamp};
 use reqwest::{Url, header::ACCEPT};
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
@@ -29,7 +29,7 @@ const EXPIRY_SKEW: Duration = Duration::from_secs(5 * 60);
 /// the issuer and client that issued them, the team or organization the tokens
 /// act for, and the user they belong to.
 ///
-/// Demi defines it; it is not the Grok CLI's `auth.json`.
+/// Jush defines it; it is not the Grok CLI's `auth.json`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct GrokSecret {
@@ -100,7 +100,7 @@ pub(crate) struct Principal {
     pub(crate) id: String,
 }
 
-/// The claims Demi reads from a Grok token, which spells its principal claims
+/// The claims Jush reads from a Grok token, which spells its principal claims
 /// in both snake and camel case. The signature is not checked and the vendor
 /// judges the token, so a claim of the wrong type reads as absent.
 #[derive(Debug, Default, Deserialize)]
@@ -251,7 +251,7 @@ impl GrokAuth {
     /// expire as soon. A sign-in without a refresh token is used as it is.
     pub(crate) async fn credentials(
         &self,
-        http: &demi_provider_common::ProviderHttp,
+        http: &jush_provider_common::ProviderHttp,
         refused: Option<&Secret>,
     ) -> Result<Credentials, AuthFailure> {
         let doc = self.document()?;
@@ -279,7 +279,7 @@ impl GrokAuth {
 /// A refresh of a Grok sign-in, which owns what it needs, so that it runs
 /// to its end apart from the request that asked for it.
 struct Refresh {
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     clock: Arc<dyn Clock>,
 }
 
@@ -302,7 +302,7 @@ impl Refresh {
         }
         let response = self
             .http
-            .post(demi_provider_common::endpoint_url(
+            .post(jush_provider_common::endpoint_url(
                 &secret.issuer.0,
                 "/oauth2/token",
             ))

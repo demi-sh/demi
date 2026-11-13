@@ -1,10 +1,10 @@
-//! When Demi reclaims what a conversation uses on a device, by one rule: the
+//! When Jush reclaims what a conversation uses on a device, by one rule: the
 //! conversation's agent has been idle for the idle window.
 //!
 //! - Each device of an idle conversation, a paired device or a running Cloud,
 //!   hears the conversation release ([`conversations`]).
 //! - A Cloud also stops as a whole once no conversation using it is active
-//!   (`demi_backend_cloud`'s maintenance).
+//!   (`jush_backend_cloud`'s maintenance).
 //! - After a conversation's deletion, its owner's blobs that nothing names any
 //!   more go too ([`collection`]).
 //!

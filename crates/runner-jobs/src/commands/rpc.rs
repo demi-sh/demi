@@ -17,7 +17,7 @@
 //! some of its output meanwhile, which the call would write again.
 //!
 //! It outlives the runner as well: the caller that asked for it is told the
-//! call's id (`demi_command_protocol::Record::Resumable`), and once an
+//! call's id (`jush_command_protocol::Record::Resumable`), and once an
 //! update replaced the runner, sends the command again naming it, which the
 //! next runner sends as that call, `resumed`.
 
@@ -27,11 +27,11 @@ use crate::{
     connection::{ConnectionHandle, Live, UNREACHABLE},
 };
 use bytes::Bytes;
-use demi_command_declarations::Parsed;
-use demi_command_protocol::{MAX_MEDIUM_BYTES, MediumFacts};
-use demi_command_sdk::{Input, ResidentError};
-use demi_runner_process::pipes::PipeClient;
-use demi_runner_protocol::wire::{self, PipeRef};
+use jush_command_declarations::Parsed;
+use jush_command_protocol::{MAX_MEDIUM_BYTES, MediumFacts};
+use jush_command_sdk::{Input, ResidentError};
+use jush_runner_process::pipes::PipeClient;
+use jush_runner_protocol::wire::{self, PipeRef};
 use futures_util::StreamExt;
 use std::{
     collections::BTreeMap,
@@ -483,7 +483,7 @@ fn report(
     let message = wire::encode(&wire::Outbound::PipeDone {
         pipe_id: reference.id.clone(),
         ok: result.is_ok(),
-        error: result.as_ref().err().map(|error| demi_runner_process::pipes::causes(error)),
+        error: result.as_ref().err().map(|error| jush_runner_process::pipes::causes(error)),
     })
     .map_err(ResidentError::failed)?;
     output.push(message);

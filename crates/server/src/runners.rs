@@ -15,7 +15,7 @@ use std::{
     time::Duration,
 };
 
-use demi_runner_protocol::release::{PrefetchAnswer, PrefetchProgress, PrefetchRequest, PrefetchState, RunnerRelease};
+use jush_runner_protocol::release::{PrefetchAnswer, PrefetchProgress, PrefetchRequest, PrefetchState, RunnerRelease};
 
 /// How long the work ahead of an update waits for the backend to answer its
 /// announcement of the next runner release.

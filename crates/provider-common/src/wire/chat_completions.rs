@@ -1,4 +1,4 @@
-//! The OpenAI Chat Completions stream as Demi reads it, shared by every
+//! The OpenAI Chat Completions stream as Jush reads it, shared by every
 //! provider that speaks it (OpenAI-compatible endpoints), and its mapping onto
 //! a run's events.
 //!
@@ -8,7 +8,7 @@
 use std::collections::BTreeMap;
 
 use bytes::Bytes;
-use demi_shared_types::{FailureSource, ProviderErrorDiagnostics, TokenUsage};
+use jush_shared_types::{FailureSource, ProviderErrorDiagnostics, TokenUsage};
 use futures_util::{Stream, StreamExt};
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;

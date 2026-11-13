@@ -151,8 +151,8 @@ check-cfg = [
     "cfg(wasi_runner)",
 ]
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "Files, streams, the environment, printing and exit go through uucore::context, so a run embedded in a shell job uses the job's working directory, environment, standard streams and cancellation, and exit ends only the utility",
     "The `--filter` command runs in the job's own `sh` as a child program of the job, with `$FILE` in its environment, where upstream ran the user's `$SHELL` as a child of the process, which did not see the job's environment; SIGPIPE is not changed, which is the process's own",

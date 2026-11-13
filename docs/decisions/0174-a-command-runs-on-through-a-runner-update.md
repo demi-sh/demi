@@ -5,7 +5,7 @@ status: proposed
 # A command runs on through a runner update, in a shell process of its own
 
 Supersedes: 0068 (A job's `sh` and `bash` are its own shell, and a utility is
-Demi's only where it writes files or starts programs), the part that makes a
+Jush's only where it writes files or starts programs), the part that makes a
 shell's `$$` unique in the runner: it is unique in its job, and two jobs share
 one only by chance, as two runners' shells do now.
 
@@ -40,7 +40,7 @@ command's `kill` still reaches it. The device shows offline for the seconds
 the update takes, as now.
 
 A command still ends when someone ends it: a stop, a revoked or removed
-device, `demi-runner drain` and uninstall stop jobs as they do now, and end
+device, `jush-runner drain` and uninstall stop jobs as they do now, and end
 every shell with what an ended job left running in it, as that work ended
 with a runner that ran it in its own process. A Cloud's
 upgrade restarts the Cloud, which ends its jobs as before; a later record
@@ -49,7 +49,7 @@ takes that on.
 ### A shell process per job
 
 Each job runs in a process of its own, the runner's executable as
-`demi-runner shell --job <id>`, which holds brush, Demi's utilities and the
+`jush-runner shell --job <id>`, which holds brush, Jush's utilities and the
 job shell contract's server (`runner-shell`). It runs the release that
 started it until its job and what the job left running have ended, so a
 runner of another release takes it over.
@@ -57,11 +57,11 @@ runner of another release takes it over.
 ```text
 runner (each release)                 shell process (one per job)
 +------------------------------+      +--------------------------------+
-| connection, commands, jobs   |      | brush and Demi's utilities     |
+| connection, commands, jobs   |      | brush and Jush's utilities     |
 | kept output, edit report     |<---->| programs: cargo, tail, ...     |
 | job shell contract client    |socket| job shell contract server      |
 +------------------------------+      +--------------------------------+
-        ^  declared commands (`demi ...`)          |
+        ^  declared commands (`jush ...`)          |
         +---------- local command endpoint --------+
 ```
 
@@ -95,13 +95,13 @@ runner (each release)                 shell process (one per job)
   invocation over the runner's local command endpoint, as a command alias
   does, so the runner's dispatcher stays the only one. The endpoint's address
   is one per installation instead of one per start, so a program a job started
-  before an update reaches the new runner: `/tmp/demi-<uid>/<name>/ipc.sock`,
+  before an update reaches the new runner: `/tmp/jush-<uid>/<name>/ipc.sock`,
   in a directory its user alone may enter, as tmux keeps its sockets in
-  `/tmp/tmux-<uid>/`, or the pipe `demi-<name>` on Windows; a system where
+  `/tmp/tmux-<uid>/`, or the pipe `jush-<name>` on Windows; a system where
   that address cannot be, such as one without a writable `/tmp`, listens at an
   address of its own, as before. A job's command
   waits up to 30 seconds for an endpoint that is gone to come back, so a
-  `demi` call made while the runner restarts waits for it.
+  `jush` call made while the runner restarts waits for it.
 - **Background tasks.** A shell numbers its tasks from a place it draws at
   random, as a runner does now. A `kill` of a task id the job's shell does not
   have goes to the runner, which asks every other shell; the one that has the
@@ -157,7 +157,7 @@ next runner, and on Unix it replaces its program in its own process, as now.
 ## Spike
 
 - **Every path, on every system.** A job printing a line a second for 40
-  seconds, then running `demi host current`, was left by its runner eight
+  seconds, then running `jush host current`, was left by its runner eight
   seconds in, on macOS 27 (Apple silicon), Windows 11 (x64) and Ubuntu (arm64,
   musl build), once by a crash (`kill -9`, `taskkill /F`) and a fresh start,
   once by an update. Each time the new runner took the job over within one
@@ -176,7 +176,7 @@ next runner, and on Unix it replaces its program in its own process, as now.
   was refused the same one, with no prompt; so did a program it started, and
   one re-parented to `launchd`. What the system decides once the runner that
   started a shell has crashed was not tried: it needs a runner signed with
-  Demi's certificate that the test can end, and is tried on the first signed
+  Jush's certificate that the test can end, and is tried on the first signed
   build.
 - **Windows.** A child in a kill-on-close job object died with the process
   that held the job's last handle, so the shell starts outside the runner's.
@@ -201,7 +201,7 @@ next runner, and on Unix it replaces its program in its own process, as now.
   ([`shim_load.go`](https://github.com/containerd/containerd/blob/main/core/runtime/v2/shim_load.go)).
   It keeps a bridge for shims of the previous task API, v2, beside v3
   ([`bridge.go`](https://github.com/containerd/containerd/blob/main/core/runtime/v2/bridge.go)),
-  and its service unit has `KillMode=process`, which Demi's systemd unit has
+  and its service unit has `KillMode=process`, which Jush's systemd unit has
   too.
 - Podman's conmon forks away from Podman, calls `setsid`, logs the container's
   output to a file and writes its exit code to a file in `--exit-dir`, so
@@ -210,7 +210,7 @@ next runner, and on Unix it replaces its program in its own process, as now.
 - tmux keeps its server's socket in `/tmp/tmux-<uid>/`, a directory it checks
   is its user's alone.
 
-Demi departs in three ways:
+Jush departs in three ways:
 
 - The shell is the runner's own executable, as a shim is not: a program of its
   own would be a release artifact for each target, through the build,

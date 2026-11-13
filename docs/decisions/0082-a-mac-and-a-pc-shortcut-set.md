@@ -6,7 +6,7 @@ status: proposed
 
 ## Problem
 
-Alex opens Demi in Chrome on Windows and presses Ctrl+K to search. Nothing
+Alex opens Jush in Chrome on Windows and presses Ctrl+K to search. Nothing
 happens: every shortcut is written in the Mac's notation (`⌘K`), and ⌘ is
 matched as the Meta key on every system, which on Windows is the Windows
 key. Win+K is the system's own, so the shortcut never runs, and Settings ›
@@ -16,7 +16,7 @@ on a PC too.
 
 ## Decision
 
-Demi has two sets of shortcuts: the Mac's, on macOS, and the PC's, on
+Jush has two sets of shortcuts: the Mac's, on macOS, and the PC's, on
 Windows and Linux. A page uses the set of the system it runs on. Each set
 has its own defaults, and the user's changes to one leave the other as it
 is.

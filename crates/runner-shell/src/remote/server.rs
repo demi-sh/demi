@@ -9,9 +9,9 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_command_protocol::EditContext;
-use demi_command_sdk::edits::Recorder;
-use demi_runner_process::{
+use jush_command_protocol::EditContext;
+use jush_command_sdk::edits::Recorder;
+use jush_runner_process::{
     job_shell::{JobCommands, JobShell, JobStart, ShellJob},
     local_socket::{Listener, Stream},
     process::{OutputChunk, ProcessExit, ProcessInput},
@@ -65,7 +65,7 @@ pub fn serve(job: String, release: String) -> io::Result<u8> {
         }
     }
     let (lines, lines_received) = mpsc::unbounded_channel();
-    demi_command_sdk::log_lines_to("shell", job, move |bytes| {
+    jush_command_sdk::log_lines_to("shell", job, move |bytes| {
         let line = String::from_utf8_lossy(bytes).trim_end().to_owned();
         let _ = lines.send(line);
     });
@@ -119,7 +119,7 @@ struct Connection {
 
 /// A chunk of output no runner has kept yet.
 struct Held {
-    stream: demi_runner_protocol::wire::OutputStream,
+    stream: jush_runner_protocol::wire::OutputStream,
     offset: u64,
     bytes: Bytes,
 }
@@ -215,7 +215,7 @@ impl Server {
                 () = &mut unclaimed, if ended_alone => break,
                 socket = listener.accept() => match socket {
                     Ok(socket) => self.connect(socket),
-                    Err(error) if demi_command_sdk::descriptors::exhausted(&error) => {
+                    Err(error) if jush_command_sdk::descriptors::exhausted(&error) => {
                         tokio::time::sleep(Duration::from_millis(50)).await;
                     }
                     Err(error) => return Err(error),

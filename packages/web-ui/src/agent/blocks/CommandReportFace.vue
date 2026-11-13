@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CommandReport } from '@demicodes/protocol'
+import type { CommandReport } from '@jush-ai/protocol'
 import NoticeLabel from './NoticeLabel.vue'
 import CommandEndTag from './CommandEndTag.vue'
 import { reportMark, reportNotice, reportTitle, useCommandRevealer } from '../command-reports'

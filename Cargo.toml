@@ -133,7 +133,7 @@ incremental = false
 # crates alone are optimized in development builds. Measured on 4 x86-64 cores:
 # SHA-256 of the built programs, which a test harness hashes to publish them as
 # packages and a runner hashes to verify a download, 55 MB/s unoptimized and
-# 311 MB/s optimized (the 125 MB debug demi-commands: 2.3 s, then 0.4 s).
+# 311 MB/s optimized (the 125 MB debug jush-commands: 2.3 s, then 0.4 s).
 [profile.dev.package.sha2]
 opt-level = 3
 
@@ -159,10 +159,10 @@ opt-level = 3
 # for 20 seconds at 1080 × 2424: unoptimized, 299 of the 1,126 pictures it drew
 # were recorded and the program used 88% of a core; optimized, all 1,211 were,
 # at 23%. A test or a check of a device would not show what the program does.
-[profile.dev.package.demi-shared-h264]
+[profile.dev.package.jush-shared-h264]
 opt-level = 3
 
-[profile.dev.package.demi-shared-recording]
+[profile.dev.package.jush-shared-recording]
 opt-level = 3
 
 [profile.dev.package.yuv]
@@ -186,7 +186,7 @@ opt-level = 3
 
 # Small executables, since every paired device downloads each one
 # (`crates/xtask/src/native/build.rs`). Measured on aarch64-apple-darwin,
-# runner and demi-commands: thin LTO at opt-level 3 36.0 and 23.8 MiB in 79 s;
+# runner and jush-commands: thin LTO at opt-level 3 36.0 and 23.8 MiB in 79 s;
 # these 20.4 and 14.0 MiB in 125 s. Panics unwind: the runner and the command
 # services contain a panic to one job or invocation. The line tables go to a
 # debug file beside each executable, which stays out of what a device

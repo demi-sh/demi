@@ -61,7 +61,7 @@ conversations of several workspaces. A new skill whose name a skill that
 is on has starts off, with *Name taken* naming the other's repository and
 place.
 
-**The agent.** `demi skills` acts on what its conversation is offered:
+**The agent.** `jush skills` acts on what its conversation is offered:
 
 * `list` lists Global's sources and the conversation's workspace's, with a
   column naming each one's place.
@@ -115,7 +115,7 @@ None: a conversation's workspace is known wherever its catalog is made.
 * **VS Code** keeps user settings and a workspace's settings, and enables an
   extension globally or for one workspace only.
 
-Demi takes the same two places, with the workspace as the narrower one.
+Jush takes the same two places, with the workspace as the narrower one.
 
 ## Alternatives
 

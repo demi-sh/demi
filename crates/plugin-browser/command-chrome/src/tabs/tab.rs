@@ -8,7 +8,7 @@
 //! later page. The lock orders agent commands among themselves only; a user in
 //! the live view acts at any time. A script is not a transaction.
 //!
-//! Every tab Demi drives renders as the front tab of its window does, one
+//! Every tab Jush drives renders as the front tab of its window does, one
 //! behind another included: Chrome delivers mouse input only with a frame, so a
 //! tab that drew none would hold a click or scroll until the user brought it to
 //! the front. The cost is that a tab behind another keeps rendering.
@@ -233,7 +233,7 @@ impl BrowserTab {
     /// Whether the user acted in the tab: in its live view, pressed a button
     /// or a key, turned the wheel, pasted, chose or answered a dialog; or in
     /// its window, went to an address, back, forward, reloaded or stopped it.
-    /// Once the user did, the tab is the user's, and Demi never prunes it.
+    /// Once the user did, the tab is the user's, and Jush never prunes it.
     pub fn used(&self) -> bool {
         self.state.used.load(Ordering::Relaxed)
     }

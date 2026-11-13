@@ -11,12 +11,12 @@ and port forwards ask nothing of their own.
 ## Problem
 
 The user asks an agent to set up a virtual machine on `lab-server`, a device
-they paired weeks ago. The agent runs `demi host list`, which shows only the
+they paired weeks ago. The agent runs `jush host list`, which shows only the
 Hosts this conversation already reaches: the laptop it runs on. It concludes
 `lab-server` is out of reach and asks the user for an SSH address. Had it
-tried `demi host shell --host lab-server`, the error would have sent it to
-`demi host list` again. The device was online all along; only
-`demi host devices`, a second list, shows it.
+tried `jush host shell --host lab-server`, the error would have sent it to
+`jush host list` again. The device was online all along; only
+`jush host devices`, a second list, shows it.
 
 Two lists answer one question, "which machines can I work on", and the one
 named `list` leaves out most of the answer.
@@ -33,7 +33,7 @@ conversation uses, one at a time.
 
 ### One list
 
-`demi host list` lists the user's Cloud and every paired device, each with
+`jush host list` lists the user's Cloud and every paired device, each with
 what it is to this conversation:
 
 ```text
@@ -49,7 +49,7 @@ that wakes for work. The role is `primary`, `attached`, `subagent` for a
 Host only a subagent works on, or none. The directory is where commands
 start, for a device the conversation reaches. The JSON form is one array of
 these rows, a missing role or directory as `null`. Listing asks nothing:
-seeing a device is not using it. `demi host devices` is removed; every
+seeing a device is not using it. `jush host devices` is removed; every
 summary and error that named it names `list`.
 
 ### A device is allowed when it is attached
@@ -59,8 +59,8 @@ a Cloud conversation, and the devices attached to it. Attaching is how it
 reaches any other, and the attachment is the user's leave: detaching the
 device takes it back.
 
-- `demi host attach lab-server` attaches it.
-- `demi host shell --host lab-server` and `demi host move lab-server …` on a
+- `jush host attach lab-server` attaches it.
+- `jush host shell --host lab-server` and `jush host move lab-server …` on a
   device the conversation does not reach attach it first, as `attach` does,
   then go on. The agent never meets a dead end that only a second command
   gets past.
@@ -71,7 +71,7 @@ An agent's attach asks the user for that device:
 +----------------------------------------------------------------+
 | Allow this conversation to use "lab-server"?                   |
 | The agent ran                                                  |
-|   demi host shell --host lab-server "df -h"                    |
+|   jush host shell --host lab-server "df -h"                    |
 | Its agents can run commands as you on "lab-server" until you   |
 | detach it.                                                     |
 |                         [Deny]  [Allow for This Conversation]  |
@@ -90,10 +90,10 @@ are not one decision. Each device asks once per conversation.
 
 What else `host.use` covered asks nothing of its own:
 
-- `demi host pair` pairs a computer the agent already runs commands on,
+- `jush host pair` pairs a computer the agent already runs commands on,
   since it ran the installer there, and attaches it: the conversation reaches
   nothing it did not reach.
-- `demi host forward add` and `remove` act on devices the conversation
+- `jush host forward add` and `remove` act on devices the conversation
   reaches: both ends of the forward must be attached, or the command says to
   attach the one that is not, which asks for it.
 
@@ -118,8 +118,8 @@ What else `host.use` covered asks nothing of its own:
   conversation does not reach.
 - `web-ui`: `PermissionRequestCard` shows a device's request with the
   device's title and description. The gallery shows it.
-- The context block's line says: `Attached hosts: build-box (…). demi host
-  list shows all of the user's devices; demi host shell --host <name>
+- The context block's line says: `Attached hosts: build-box (…). jush host
+  list shows all of the user's devices; jush host shell --host <name>
   <script> runs a shell string on any of them, attaching it first.`
 
 A conversation that held Use Your Devices asks again, once per device it

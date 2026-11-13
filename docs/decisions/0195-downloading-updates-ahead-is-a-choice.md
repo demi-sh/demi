@@ -34,7 +34,7 @@ the ones that update to this release included.
 ```
 
 - **Off.** The checks keep their cadence, every hour on Canary and every
-  day on Beta, and a newer release shows as *Demi 0.1.5500 is available*
+  day on Beta, and a newer release shows as *Jush 0.1.5500 is available*
   with **Update Now** and *You have 0.1.5469.* Nothing is downloaded until
   Alex clicks **Update Now**, which lists its seven steps from the
   download, as before the work ahead existed. The devices download their
@@ -43,7 +43,7 @@ the ones that update to this release included.
   finds it, as it does today. Turned on while a newer release is known, it
   starts at once, without waiting for the next check.
 - **Turned off while the work ahead runs.** That work finishes: it runs as
-  root in `demi-prepare.service`, which the backend cannot stop. A request
+  root in `jush-prepare.service`, which the backend cannot stop. A request
   for a newer release that waits behind it is withdrawn, so no new work
   starts after it. A release already got ready stays, and Update Now uses
   it.
@@ -60,7 +60,7 @@ the ones that update to this release included.
 - `Upgrades` holds the setting with the channel. A check writes the
   prepare request only when it is on; turning it on writes the request for
   the newer release the last check found, unless an update runs; turning
-  it off removes a request `demi-server` has not taken yet. A turn of the
+  it off removes a request `jush-server` has not taken yet. A turn of the
   switch waits for a check that runs, as a change of channel does, so the
   two never write the request at once.
 
@@ -85,7 +85,7 @@ written.
 - [Home Assistant](https://github.com/home-assistant/supervisor) checks for
   new versions on a schedule and downloads only when the user installs.
 
-Demi takes macOS's switch and Home Assistant's default: a channel that
+Jush takes macOS's switch and Home Assistant's default: a channel that
 publishes several times a day makes downloading each release by default
 cost more than the minute Update Now saves.
 

@@ -23,9 +23,9 @@
     "locked": "Muitas tentativas de login falharam. Tente novamente em {time}."
   },
   "setup": {
-    "title": "Configurar o Demi",
-    "message": "Crie a conta principal que gerencia o Demi.",
-    "taken": "O Demi já está configurado. Entre com a conta principal dele.",
+    "title": "Configurar o Jush",
+    "message": "Crie a conta principal que gerencia o Jush.",
+    "taken": "O Jush já está configurado. Entre com a conta principal dele.",
     "name": "Nome",
     "email": "E-mail",
     "password": "Senha",
@@ -53,7 +53,7 @@
     "passwordMessage": "Confirme que é você para adicionar a chave-senha.",
     "password": "Senha",
     "readyTitle": "Chave-senha pronta",
-    "readyMessage": "Seu gerenciador de senhas já tem uma chave-senha para o Demi."
+    "readyMessage": "Seu gerenciador de senhas já tem uma chave-senha para o Jush."
   },
   "unlock": {
     "ios": "Entre com Face ID ou Touch ID em vez da sua senha.",

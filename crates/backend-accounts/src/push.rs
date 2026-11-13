@@ -23,12 +23,12 @@ use std::time::Duration;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::push::{PutPush, StoredPushSubscription};
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::push::{PushEndpoint, PushMessage, PushSubscriptionBody};
-use demi_web_api_protocol::sessions::SessionId;
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::push::{PutPush, StoredPushSubscription};
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::push::{PushEndpoint, PushMessage, PushSubscriptionBody};
+use jush_web_api_protocol::sessions::SessionId;
 use futures_util::future::{BoxFuture, join_all};
 use reqwest::StatusCode;
 use reqwest::dns::{Addrs, Name, Resolve, Resolving};

@@ -2,16 +2,16 @@
 import { t } from './locales/text'
 import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsProvidersPage from '@demicodes/web-ui/settings/SettingsProvidersPage.vue'
-import type { SettingsCompatibleShapes } from '@demicodes/web-ui/settings/types'
-import ProviderLoginDialog from '@demicodes/web-ui/settings/ProviderLoginDialog.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsProvidersPage from '@jush-ai/web-ui/settings/SettingsProvidersPage.vue'
+import type { SettingsCompatibleShapes } from '@jush-ai/web-ui/settings/types'
+import ProviderLoginDialog from '@jush-ai/web-ui/settings/ProviderLoginDialog.vue'
 import { useResources } from '../state/resources'
 import { usePreferences } from '../state/preferences'
 import { useProduct } from '../state/product'
 import { useProviderSettings } from './providers'
 import { deviceMarkOf, targetKindOf, deviceLabel } from '../state/devices'
-import type { MenuDevice } from '@demicodes/web-ui/targets/types'
+import type { MenuDevice } from '@jush-ai/web-ui/targets/types'
 
 /** The shapes before the catalog is read, while the page keeps their menus disabled: none besides None. */
 const NO_SHAPES: SettingsCompatibleShapes = { audio: [] }

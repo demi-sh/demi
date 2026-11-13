@@ -4,14 +4,14 @@ status: accepted
 
 # A provider crosses the relay as its own types
 
-Supersedes: 0236 (A Demi relays its providers to another), the parts that
+Supersedes: 0236 (A Jush relays its providers to another), the parts that
 no longer hold: the wire's copies of the provider contract's types and its
 `VERSION`, its JSON text frames, and its routes of each media call with the
 lender's table of video jobs.
 
 ## Problem
 
-Alex lends a Google entry from `demi.example.com` to Kim's server. Each type
+Alex lends a Google entry from `jush.example.com` to Kim's server. Each type
 and each call that crosses is declared a second time for the relay:
 
 - The socket of a borrowed session carries `WireRequest`, `WireItem`,
@@ -102,7 +102,7 @@ A change of a trait changes `Call`, `Reply`, `serve` and `Remote` in the
 same module and commit. A provider implements only the trait, and the relay
 knows no media call: one route, `POST /api/relay/media/{kind}`, takes one
 call and answers its replies as they come. A kind the lent entry makes none
-of now answers HTTP 410, which the borrower words "demi.example.com makes
+of now answers HTTP 410, which the borrower words "jush.example.com makes
 no videos with it now"; its `Facts` lists no models.
 
 A video job is one call: the borrower reads its steps from the same answer
@@ -136,15 +136,15 @@ records. Bytes cross as bytes, never as base64.
 
 The wire's version is the SHA-256 of the JSON Schema of every message that
 crosses, which each server computes once when it starts. It replaces the
-number a person raised, and goes in the `demi-relay-version` header as 0236
+number a person raised, and goes in the `jush-relay-version` header as 0236
 has it. Two servers lend to each other exactly when what crosses is the
 same.
 
 A release that changes a type that crosses, an added field of
 `VideoRequest` or a new `ProviderEvent` included, therefore lends only to a
 server of a release with the same types, until the other upgrades. A digest
-has no order, so the borrower says "demi.example.com runs another version of
-Demi. Update the older of the two servers to the newest release." A
+has no order, so the borrower says "jush.example.com runs another version of
+Jush. Update the older of the two servers to the newest release." A
 borrower reads any 409 so, so a lender of 0.1.5950, whose number was 1,
 meets another version; a borrower of 0.1.5950 cannot read a digest, and
 says the lender does not share providers.
@@ -173,11 +173,11 @@ same front, which the empty frames keep open.
 - tarpc ([`#[tarpc::service]`](https://docs.rs/tarpc/latest/tarpc/attr.service.html))
   generates, from one trait, its request and response enums, a client stub
   that implements it, and a `serve` that answers requests with an
-  implementation. Demi writes the same three by hand beside each of its
+  implementation. Jush writes the same three by hand beside each of its
   three makers' traits, which saves a macro and a framework for three enums.
 - gRPC frames each message with its length and streams a server's replies
   to one call, which is how a job's steps cross here.
-- Demi's runner protocol (`crates/runner-protocol`) is linked by both ends,
+- Jush's runner protocol (`crates/runner-protocol`) is linked by both ends,
   so each message is defined once, and encodes its records as MessagePack.
 
 ## Alternatives

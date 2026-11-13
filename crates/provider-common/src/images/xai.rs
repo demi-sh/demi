@@ -7,7 +7,7 @@
 //! address and its cost in ticks, as a video's job does
 //! (`crate::videos::xai`). A deferred image comes only as an address.
 
-use demi_shared_types::{Cost, Currency, VendorTrace};
+use jush_shared_types::{Cost, Currency, VendorTrace};
 use reqwest::Url;
 use serde::Deserialize;
 

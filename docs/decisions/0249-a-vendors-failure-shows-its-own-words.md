@@ -14,25 +14,25 @@ an error event:
  "message": "Too many requests for this model. Try again in a few minutes."}}
 ```
 
-Demi prints:
+Jush prints:
 
 ```text
-demi video generate: Google's usage limit is reached (code rate_limit_exceeded)
+jush video generate: Google's usage limit is reached (code rate_limit_exceeded)
 ```
 
 Two things went wrong:
 
 - **The words are lost.** Google's `message` is dropped. Alex can't read
-  what Google said, only Demi's guess.
+  what Google said, only Jush's guess.
 - **The guess may be wrong.** The code alone made the failure a used-up
   key, so Alex reads that the key is used up while Google's dashboard shows
-  it far below its limits. The code names no quota. Demi tells Google's
+  it far below its limits. The code names no quota. Jush tells Google's
   HTTP refusals apart by the quota their details name, a limit of the minute
   from one of the day, but reads this event by its code alone.
 
 A chat turn doesn't have the problem. Its failure keeps the vendor's text in
 its message and the whole answer behind Provider Response, and the
-transcript shows the text below Demi's headline. A media call, an image, a
+transcript shows the text below Jush's headline. A media call, an image, a
 video or audio, prints one line on stderr. Several kinds of that line have no
 room for the vendor's words. Other places drop the words too.
 
@@ -88,16 +88,16 @@ Three places drop the words on purpose, and stay as they are:
 ## Decision
 
 Every failure the vendor reported carries the vendor's own words, verbatim,
-beside Demi's sentence. Demi's sentence says what kind of failure it is. It
+beside Jush's sentence. Jush's sentence says what kind of failure it is. It
 calls a failure a used-up limit only when the vendor's own sign says so.
 
 On stderr, the sentence comes first, then the vendor's words in quotes, then
 the code and request ID, as today:
 
 ```text
-demi video generate: Google is limiting requests. Google said: "Too many requests for this model. Try again in a few minutes." (code rate_limit_exceeded)
-demi image generate: OpenAI's usage limit is reached, resetting at 9:00 PM. OpenAI said: "You exceeded your current quota." (code insufficient_quota, trace req_0a1b2c)
-demi image generate: OpenAI refused the request. OpenAI said: "Your request was rejected by the safety system." (code moderation_blocked)
+jush video generate: Google is limiting requests. Google said: "Too many requests for this model. Try again in a few minutes." (code rate_limit_exceeded)
+jush image generate: OpenAI's usage limit is reached, resetting at 9:00 PM. OpenAI said: "You exceeded your current quota." (code insufficient_quota, trace req_0a1b2c)
+jush image generate: OpenAI refused the request. OpenAI said: "Your request was rejected by the safety system." (code moderation_blocked)
 ```
 
 A failure without words reads as today: `Google did not answer: HTTP 503
@@ -135,12 +135,12 @@ It keeps its name: the words are one more thing a vendor's failure names, and
 a rename would change every place that uses it while what it does stays the
 same.
 
-- `MediaFailure` keeps Demi's own reason apart from the vendor's words, which
+- `MediaFailure` keeps Jush's own reason apart from the vendor's words, which
   every vendor's variant holds in its `trace`.
-  - `KeyRefused` and `Refused` lose their `message`. A refusal Demi finds in
+  - `KeyRefused` and `Refused` lose their `message`. A refusal Jush finds in
     an answer, such as an image MiniMax withheld, keeps its reason in
     `Refused { reason: Option<String> }`.
-  - `Unanswered { cause }` holds only Demi's cause, such as `HTTP 503` or the
+  - `Unanswered { cause }` holds only Jush's cause, such as `HTTP 503` or the
     transport's error. The vendor's text moves from `cause` to `trace.words`.
   - `JobState::Failed { message, trace }` becomes `Failed { reason, trace }`
     by the same rule.
@@ -178,7 +178,7 @@ its plugins in one release, so nothing older meets the new shape.
   Google's message either way
   ([`googleQuotaErrors.ts`](https://github.com/google-gemini/gemini-cli/blob/main/packages/core/src/utils/googleQuotaErrors.ts)).
 
-Demi departs from the AI SDK only in printing the words on one line, since a
+Jush departs from the AI SDK only in printing the words on one line, since a
 media call's failure is a command's stderr.
 
 ## Alternatives

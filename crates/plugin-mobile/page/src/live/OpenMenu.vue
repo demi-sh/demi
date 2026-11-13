@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue'
-import { Menu, MenuGroup, MenuItem } from '@demicodes/plugin-sdk'
+import { Menu, MenuGroup, MenuItem } from '@jush-ai/plugin-sdk'
 import type { ListResult, MobilePlatform, Simulator } from '../generated/plugin'
 import { MobileError } from '../devices'
 import type { MobileDevicesController } from './controller'
@@ -13,7 +13,7 @@ import { t } from '../locales/text'
  * opens it (`MobileDevicesController.open`) and its window.
  *
  * The list is read each time the menu shows, as a device's simulators come
- * and go outside Demi.
+ * and go outside Jush.
  */
 const props = defineProps<{ controller: MobileDevicesController }>()
 const emit = defineEmits<{ opened: [] }>()

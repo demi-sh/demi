@@ -29,7 +29,7 @@
     "clearDraft": "Impossible d’effacer le brouillon",
     "recallMessage": "Impossible de rappeler le message",
     "connectionLost": "Connexion perdue",
-    "connectionLostMessage": "Demi n’a peut-être pas reçu votre demande. Vérifiez la conversation une fois la connexion rétablie.",
+    "connectionLostMessage": "Jush n’a peut-être pas reçu votre demande. Vérifiez la conversation une fois la connexion rétablie.",
     "requestNotAccepted": "La conversation n’a pas accepté la demande.",
     "fieldsNotUpdated": "Certains champs n’ont pas été mis à jour.",
     "readFileWatch": "Impossible de lire un message de la surveillance des fichiers",

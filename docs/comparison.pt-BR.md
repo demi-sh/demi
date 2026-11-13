@@ -1,8 +1,8 @@
-# Demi comparado
+# Jush comparado
 
 [English](comparison.md) · [Deutsch](comparison.de.md) · [Español](comparison.es.md) · [Français](comparison.fr.md) · **Português** · [简体中文](comparison.zh-CN.md) · [繁體中文](comparison.zh-TW.md) · [日本語](comparison.ja.md) · [한국어](comparison.ko.md)
 
-Como o Demi se diferencia dos apps de agentes do mesmo tipo, em outubro de 2026, com base na documentação e no código-fonte de cada produto. A tabela mostra uma linha só onde os produtos diferem, além de um recurso que nenhum deles tem ainda. As colunas vão do produto mais próximo do Demi ao mais distante.
+Como o Jush se diferencia dos apps de agentes do mesmo tipo, em outubro de 2026, com base na documentação e no código-fonte de cada produto. A tabela mostra uma linha só onde os produtos diferem, além de um recurso que nenhum deles tem ainda. As colunas vão do produto mais próximo do Jush ao mais distante.
 
 A tabela usa estes símbolos e rótulos:
 
@@ -14,7 +14,7 @@ A tabela usa estes símbolos e rótulos:
 
 A tabela a seguir compara os produtos recurso por recurso:
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Modelos e assinaturas** | | | | | | | | |
 | Assinatura do Claude | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@ As linhas da tabela significam o seguinte:
 - **Comentários por linha em diffs**: um comentário sobre uma linha de uma alteração, que vai para o agente.
 - **Agente próprio**: o agente do próprio produto controla o modelo, em vez de executar o Claude Code, o Codex ou outros agentes.
 - **Só um shell como ferramenta**: o modelo recebe uma única ferramenta, um shell, e cada recurso é um comando dentro dele.
-- **Plugins de terceiros**: código de outra pessoa que o usuário instala para adicionar ferramentas ou telas ao produto, além das habilidades e dos servidores MCP. Os próprios recursos do Demi são plugins, mas ele não carrega os de mais ninguém.
+- **Plugins de terceiros**: código de outra pessoa que o usuário instala para adicionar ferramentas ou telas ao produto, além das habilidades e dos servidores MCP. Os próprios recursos do Jush são plugins, mas ele não carrega os de mais ninguém.
 - **Credenciais para o agente**: segredos que o usuário salva com um nome e que o agente usa nos comandos.
 - **Ver e controlar o navegador ao vivo**: o usuário acompanha o navegador do agente enquanto ele trabalha e pode operá-lo.
 - **Uso do computador**: o agente opera o desktop com capturas de tela, mouse e teclado, além de um navegador.

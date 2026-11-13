@@ -3,9 +3,9 @@
  * plugin's part in its tabs, in memory: the gallery's windows change the way the product's do, a beat late, over the
  * gallery's own browser.
  */
-import { addedWorkTab, browserTabDataSchema, type BrowserTabData } from '@demicodes/plugin-browser/live/tabs'
-import { applyWorkChange, dataChanges, type WorkAnswer, type WorkBackend, type WorkChange, type WorkRead } from '@demicodes/web-ui/agent/work-changes'
-import type { WorkTab } from '@demicodes/web-ui/agent/work-tabs'
+import { addedWorkTab, browserTabDataSchema, type BrowserTabData } from '@jush-ai/plugin-browser/live/tabs'
+import { applyWorkChange, dataChanges, type WorkAnswer, type WorkBackend, type WorkChange, type WorkRead } from '@jush-ai/web-ui/agent/work-changes'
+import type { WorkTab } from '@jush-ai/web-ui/agent/work-tabs'
 import type { GalleryBrowser } from './live-browser'
 
 /** How long the backend takes over a change of the work. */

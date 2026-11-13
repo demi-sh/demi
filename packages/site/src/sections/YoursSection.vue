@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The third screen: what is the user's own: the server Demi runs on, the
+// The third screen: what is the user's own: the server Jush runs on, the
 // workspaces that keep the parts of their life apart, the links they share,
 // their data, which reaches no one but the AI providers they choose, and
 // their team, a card each, each drawn its own way.
@@ -40,7 +40,7 @@ const terminalOnScreen = useOnScreen(terminal)
     <div class="heading">
       <h2 class="section-title">Your server, your data.</h2>
       <p class="section-lede">
-        Demi runs on a server of your own. Keep work and life apart,<br />
+        Jush runs on a server of your own. Keep work and life apart,<br />
         share with a link, and invite your team.
       </p>
     </div>
@@ -48,12 +48,12 @@ const terminalOnScreen = useOnScreen(terminal)
     <div class="bento">
       <OtterCard class="third" :icon="otterSelfHost" title="Self-hosted" text="One server of yours runs it all: the conversations, the agents and each member's sandbox. Install it with one command and update it from Settings.">
         <div ref="terminal" class="terminal" :class="{ paused: !terminalOnScreen }">
-          <p><span class="prompt">$</span> <span class="cmd">curl</span> <span class="flag">-fsSL</span> <span class="url">https://demi.sh/install.sh</span> <span class="op">|</span> <span class="cmd">sudo bash</span></p>
-          <p class="faint">==&gt; Installing Demi 0.4.2 (Beta)</p>
+          <p><span class="prompt">$</span> <span class="cmd">curl</span> <span class="flag">-fsSL</span> <span class="url">https://jush.ai/install.sh</span> <span class="op">|</span> <span class="cmd">sudo bash</span></p>
+          <p class="faint">==&gt; Installing Jush 0.4.2 (Beta)</p>
           <p class="ok"><CheckIcon :size="12" /> Cloud sandboxes ready</p>
-          <p class="ok"><CheckIcon :size="12" /> HTTPS for <span class="url">demi.example.com</span></p>
+          <p class="ok"><CheckIcon :size="12" /> HTTPS for <span class="url">jush.example.com</span></p>
           <p class="ok"><CheckIcon :size="12" /> Running, updates from Settings</p>
-          <p class="faint">Open <span class="url">https://demi.example.com</span> to create</p>
+          <p class="faint">Open <span class="url">https://jush.example.com</span> to create</p>
           <p class="faint">the admin account.</p>
           <p><span class="prompt">$</span> <i class="cursor" /></p>
         </div>
@@ -77,7 +77,7 @@ const terminalOnScreen = useOnScreen(terminal)
           <strong>Share Conversation</strong>
           <small>Anyone with the link can read it.</small>
           <div class="link-row">
-            <span class="field"><LinkIcon :size="13" />demi.example.com/s/4f9a2e7c</span>
+            <span class="field"><LinkIcon :size="13" />jush.example.com/s/4f9a2e7c</span>
             <span class="dark-button"><CopyIcon :size="13" />Copy Link</span>
           </div>
           <div class="option current"><CheckIcon :size="14" />The whole conversation</div>
@@ -87,7 +87,7 @@ const terminalOnScreen = useOnScreen(terminal)
 
       <OtterCard class="half" :icon="otterData" title="Your data" text="Conversations and files stay on your server, and nothing goes through us: it talks straight to the AI providers you choose. Change providers and keep your history.">
         <div class="stats">
-          <div class="stat-head"><ServerIcon :size="14" />demi.example.com</div>
+          <div class="stat-head"><ServerIcon :size="14" />jush.example.com</div>
           <div class="figures">
             <span><b>1,284</b><small>conversations</small></span>
             <span><b>3.2 GB</b><small>files</small></span>
@@ -96,7 +96,7 @@ const terminalOnScreen = useOnScreen(terminal)
           <div class="months">
             <i v-for="(height, n) in MONTHS" :key="n" :style="{ height: `${height}%` }" />
           </div>
-          <small class="since">All on your disk, since March. No Demi cloud in between.</small>
+          <small class="since">All on your disk, since March. No Jush cloud in between.</small>
         </div>
       </OtterCard>
 

@@ -9,7 +9,7 @@ status: accepted
 A project's workflow declares the subagents its conversations may run. For
 example, a review workflow has a `review` profile on a strong model and a
 `research` profile its instructions keep for questions the user assigns.
-The leading agent can still run `demi agent spawn` without `--profile`: the
+The leading agent can still run `jush agent spawn` without `--profile`: the
 child then takes the inherit profile, the parent's model, instructions and
 Context, which the workflow never declared. The way of working the team
 wrote down is one flag away from not applying, and a child the team did not
@@ -23,7 +23,7 @@ spawning agent's own. A spawn without `--profile` fails before anything is
 created, and says so:
 
 ```text
-$ demi agent spawn < brief.md
+$ jush agent spawn < brief.md
 error: workflow Review Team spawns only its profiles: review, research; do
 other work in this session.
 ```
@@ -37,7 +37,7 @@ other work in this session.
   <workflow name="Review Team">
   Have review check every change before you report it.
 
-  The only subagents you can spawn, with demi agent spawn --profile <id>:
+  The only subagents you can spawn, with jush agent spawn --profile <id>:
   - review: Use to review a change before it is committed.
   - research: Use only when the user assigns a question to it.
   </workflow>
@@ -47,20 +47,20 @@ other work in this session.
   edited profile reaches the agent at its next request.
 - A workflow with no profiles runs no subagents: its element says "You can
   spawn no subagents.", the spawn fails saying to do the work in this
-  session, and `demi agent profiles list` says so on stderr.
+  session, and `jush agent profiles list` says so on stderr.
 - A picked workflow that cannot be used, its file gone or not reading, keeps
   its element too, which says so with the reason its spawns fail with: "You
   can spawn no subagents while this workflow cannot be used: it is no longer
-  in the project's .demi/workflows/." Without it, the agent reads the
+  in the project's .jush/workflows/." Without it, the agent reads the
   element's removal as the rule's end.
 - Global Workflow, the user's own profiles from Settings > Subagents, keeps
   the inherit profile: a user with no profile has no other way to spawn,
   and the user's settings are the user's own choice, not a team's.
 - A workflow's profile without `model` still runs on the parent's model:
   the workflow declared that profile.
-- `demi agent resume` without `--profile` still goes on with the profile the
+- `jush agent resume` without `--profile` still goes on with the profile the
   child runs on; it spawns nothing.
-- `--profile`'s description in `demi agent spawn --help` says it is required
+- `--profile`'s description in `jush agent spawn --help` says it is required
   while a workflow is picked.
 
 `Tree::spawn_setup` takes the case in its `ConversationProfiles::Workflow`

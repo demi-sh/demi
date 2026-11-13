@@ -1,4 +1,4 @@
-//! The `demi.claude-code` package's contract
+//! The `jush.claude-code` package's contract
 //! (`crates/command-package-claude-code/src/lib.rs`):
 //!
 //! - `claude-code.ensure` installs the Claude Code CLI a release record names.
@@ -17,7 +17,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer, de::DeserializeOwn
 use serde_json::Value;
 
 /// The package's id in the native catalog.
-pub const PACKAGE: &str = "demi.claude-code";
+pub const PACKAGE: &str = "jush.claude-code";
 
 /// The package's operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,5 +1,5 @@
 //! A widget's frame: the size its page declares in its head,
-//! `<meta name="demi-frame" content="...">`, in CSS's own words and meaning.
+//! `<meta name="jush-frame" content="...">`, in CSS's own words and meaning.
 //!
 //! Only `height`, `aspect-ratio`, `min-height` and `max-height` count,
 //! lengths in `px`. The frame has that size before the page loads and keeps
@@ -56,7 +56,7 @@ impl FrameSize {
         Some(self.min_height.map_or(height, |min| height.max(min)))
     }
 
-    /// The declaration as `demi widget create` prints it, such as
+    /// The declaration as `jush widget create` prints it, such as
     /// `height 330px`, or `no frame declared` for one that declares none.
     pub(crate) fn describe(&self) -> String {
         let mut parts = Vec::new();
@@ -89,7 +89,7 @@ pub(crate) fn declared(page: &str) -> Result<FrameSize, String> {
     for declaration in content.split(';').map(str::trim).filter(|part| !part.is_empty()) {
         let (property, value) = declaration
             .split_once(':')
-            .ok_or_else(|| format!("demi-frame: \"{declaration}\" is not a property and its value"))?;
+            .ok_or_else(|| format!("jush-frame: \"{declaration}\" is not a property and its value"))?;
         let (property, value) = (property.trim(), value.trim());
         match property {
             "height" => frame.height = Some(length(property, value)?),
@@ -98,7 +98,7 @@ pub(crate) fn declared(page: &str) -> Result<FrameSize, String> {
             "aspect-ratio" => frame.aspect_ratio = Some(ratio(value)?),
             _ => {
                 return Err(format!(
-                    "demi-frame: {property} is not one of height, aspect-ratio, min-height and max-height"
+                    "jush-frame: {property} is not one of height, aspect-ratio, min-height and max-height"
                 ));
             }
         }
@@ -106,10 +106,10 @@ pub(crate) fn declared(page: &str) -> Result<FrameSize, String> {
     if let (Some(min), Some(max)) = (frame.min_height, frame.max_height)
         && min > max
     {
-        return Err(format!("demi-frame: min-height {min}px is more than max-height {max}px"));
+        return Err(format!("jush-frame: min-height {min}px is more than max-height {max}px"));
     }
     if !frame.declared() && (frame.min_height.is_some() || frame.max_height.is_some()) {
-        return Err("demi-frame: min-height and max-height bound a height or an aspect-ratio, which it lacks".into());
+        return Err("jush-frame: min-height and max-height bound a height or an aspect-ratio, which it lacks".into());
     }
     Ok(frame)
 }
@@ -120,16 +120,16 @@ fn length(property: &str, value: &str) -> Result<u32, String> {
         .strip_suffix("px")
         .and_then(|number| number.trim().parse::<f64>().ok())
         .filter(|pixels| pixels.is_finite() && *pixels >= 1.0)
-        .ok_or_else(|| format!("demi-frame: {property} {value} is not a length in px, such as 360px"))?;
+        .ok_or_else(|| format!("jush-frame: {property} {value} is not a length in px, such as 360px"))?;
     if pixels > f64::from(MAX_HEIGHT) {
-        return Err(format!("demi-frame: {property} {value} is over {MAX_HEIGHT}px"));
+        return Err(format!("jush-frame: {property} {value} is over {MAX_HEIGHT}px"));
     }
     Ok(pixels.round() as u32)
 }
 
 /// A ratio such as `16 / 9`, or one number, such as `1.5`, over 1.
 fn ratio(value: &str) -> Result<AspectRatio, String> {
-    let unreadable = || format!("demi-frame: aspect-ratio {value} is not a ratio, such as 16 / 9");
+    let unreadable = || format!("jush-frame: aspect-ratio {value} is not a ratio, such as 16 / 9");
     let number = |text: &str| {
         text.trim()
             .parse::<f64>()
@@ -151,14 +151,14 @@ fn ratio(value: &str) -> Result<AspectRatio, String> {
     Ok(ratio)
 }
 
-/// The content of the page's first `demi-frame` meta tag outside comments
+/// The content of the page's first `jush-frame` meta tag outside comments
 /// and scripts.
 fn meta_content(page: &str) -> Option<String> {
     let scanned = crate::markup::scan(page);
     let mut from = 0;
     while let Some((start, end)) = crate::markup::find_tag(&scanned[from..], "meta").map(|(start, end)| (from + start, from + end)) {
         let tag = &page[start..end];
-        if crate::markup::attribute(tag, "name").is_some_and(|name| name.eq_ignore_ascii_case("demi-frame")) {
+        if crate::markup::attribute(tag, "name").is_some_and(|name| name.eq_ignore_ascii_case("jush-frame")) {
             return crate::markup::attribute(tag, "content");
         }
         from = end;

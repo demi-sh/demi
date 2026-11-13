@@ -2,7 +2,7 @@
 //! the entry's family from the entry's configuration, with each entry's
 //! catalog and its accounts' rotation and quotas.
 //!
-//! A program that infers with configured entries, such as Demi's backend,
+//! A program that infers with configured entries, such as Jush's backend,
 //! keeps one registry for all of them:
 //!
 //! ```text

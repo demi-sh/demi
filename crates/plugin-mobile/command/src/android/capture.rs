@@ -18,9 +18,9 @@ use fast_image_resize::{FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer
 use futures_util::future::BoxFuture;
 use tokio::sync::mpsc;
 
-use demi_live_view::stream::{CaptureEvent, EncodedFrame};
-use demi_shared_h264::{Encoder, PixelFormat, Raw, Rate, Settings};
-use demi_shared_openh264::Load;
+use jush_live_view::stream::{CaptureEvent, EncodedFrame};
+use jush_shared_h264::{Encoder, PixelFormat, Raw, Rate, Settings};
+use jush_shared_openh264::Load;
 
 use super::screen::{Event, Picture, Screen, Subscription};
 use crate::driver::{DeviceCapture, DriverError};
@@ -83,7 +83,7 @@ impl AndroidCapture {
         let encoder = shared.clone();
         let encoded = events.clone();
         std::thread::Builder::new()
-            .name("demi-mobile-h264".into())
+            .name("jush-mobile-h264".into())
             .spawn(move || encode(&encoder, &encoded, &load, size, fps, bitrate))
             .expect("the encoder's thread starts");
         let pictures = shared.clone();
@@ -143,7 +143,7 @@ fn started(load: &Load, width: u32, height: u32, bitrate: u32, fps: u32) -> Resu
     // Rate control holds the bit rate only by skipping pictures; a skipped one
     // is encoded again at the next interval, so the last picture of a change
     // still shows.
-    demi_shared_h264::open(
+    jush_shared_h264::open(
         Settings {
             width,
             height,

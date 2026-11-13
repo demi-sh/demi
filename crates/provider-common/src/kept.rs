@@ -11,7 +11,7 @@
 use std::future::Future;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-use demi_shared_types::{Clock, Timestamp};
+use jush_shared_types::{Clock, Timestamp};
 use jiff::SignedDuration;
 use tokio::runtime::Handle;
 

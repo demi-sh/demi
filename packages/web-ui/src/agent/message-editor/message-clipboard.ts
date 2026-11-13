@@ -5,8 +5,8 @@ import { capsuleOf, type MessageCapsule } from './capsules'
 import { fragmentDocument } from './clipboard-slices'
 
 /**
- * A copy of a message's content in every form: Demi's own and plain text, and
- * its HTML, Demi's own form an attribute of its outermost element; all three
+ * A copy of a message's content in every form: Jush's own and plain text, and
+ * its HTML, Jush's own form an attribute of its outermost element; all three
  * hold the same lines, without blank ones at the ends.
  */
 export interface MessageCopy {

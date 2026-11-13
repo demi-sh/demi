@@ -1,8 +1,8 @@
 import { readonly, ref } from 'vue'
-import type { UpdateEnd } from '@demicodes/web-ui/ui/UpdatingScreen.vue'
-import { pageLog } from '@demicodes/web-ui/infra/log'
-import { errorFields } from '@demicodes/web-ui/infra/errors'
-import { reloadPage } from '@demicodes/web-ui/infra/build-reload'
+import type { UpdateEnd } from '@jush-ai/web-ui/ui/UpdatingScreen.vue'
+import { pageLog } from '@jush-ai/web-ui/infra/log'
+import { errorFields } from '@jush-ai/web-ui/infra/errors'
+import { reloadPage } from '@jush-ai/web-ui/infra/build-reload'
 import { updateStateSchema, type UpdateState } from '../api/generated/web-api'
 
 /**
@@ -13,11 +13,11 @@ import { updateStateSchema, type UpdateState } from '../api/generated/web-api'
  * until the backend serves. Then the screen shows how the update ended.
  *
  * A page that was in front when it learned of the update loads itself again
- * only when the user opens Demi, so the user who watched the update begin
+ * only when the user opens Jush, so the user who watched the update begin
  * sees every step end. A page that was in the background then, another tab,
  * a minimized window or a locked phone, loads itself as soon as the update
  * ends, even if it came to the front meanwhile: nobody watched it begin, and
- * Open Demi would only add a click. Nothing else loads the page while the
+ * Open Jush would only add a click. Nothing else loads the page while the
  * screen shows.
  */
 
@@ -61,7 +61,7 @@ function shownOf(state: UpdateState | null): UpdateShown {
 function end(state: Extract<UpdateState, { state: 'none' }> | null): void {
   const last = shown.value?.progress ?? null
   // A screen that never heard how far the update was has nothing to tell
-  // a return by, and says only that Demi is updated.
+  // a return by, and says only that Jush is updated.
   const updated = last === null || (state !== null && state.version === last.to)
   if (updated && last !== null && state?.updated) {
     shown.value = { progress: { ...last, returning: false, steps: state.updated }, ended: 'updated' }

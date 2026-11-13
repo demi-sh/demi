@@ -1,5 +1,5 @@
-// What every `demi` helper gets from the tool's server for the call it runs
-// in (browse.md § What `demi` adds), and how a helper fails.
+// What every `jush` helper gets from the tool's server for the call it runs
+// in (browse.md § What `jush` adds), and how a helper fails.
 import type { Browser } from './browser'
 import type { ScriptedModel } from './model'
 import type { Network } from './network'
@@ -23,13 +23,13 @@ export interface Tool {
   model(): ScriptedModel
   /** Prints a line of the call's output on the caller's terminal. */
   print(line: string): void
-  /** The caller's `DEMI_*` variables, which the processes the tool starts get. */
+  /** The caller's `JUSH_*` variables, which the processes the tool starts get. */
   env: Record<string, string>
   /** Records a screenshot the call wrote, for its report. */
   wrote(shot: Shot): void
   /** Runs `release` when the call ends, however it ends, for what a helper opened only for the call. */
   release(release: () => Promise<void>): void
-  /** Ends the server once the call has answered, as `demi.stop` and `demi.down` do. */
+  /** Ends the server once the call has answered, as `jush.stop` and `jush.down` do. */
   endServer(): void
 }
 

@@ -15,8 +15,8 @@ use std::{
     rc::Rc,
 };
 
-use demi_device_interface::{CommandSet, DeviceError, DeviceKey, PageState, PageView, Seen, ShellEnvironment};
-use demi_shared_types::CommandId;
+use jush_device_interface::{CommandSet, DeviceError, DeviceKey, PageState, PageView, Seen, ShellEnvironment};
+use jush_shared_types::CommandId;
 use futures_util::future::join_all;
 use tokio::sync::OnceCell;
 

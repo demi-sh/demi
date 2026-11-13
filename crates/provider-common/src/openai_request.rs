@@ -14,7 +14,7 @@
 use std::borrow::Cow;
 
 use base64::{Engine, engine::general_purpose::STANDARD};
-use demi_shared_types::{ThinkingConfig, ThinkingSummary};
+use jush_shared_types::{ThinkingConfig, ThinkingSummary};
 use serde::Serialize;
 
 use crate::{
@@ -61,7 +61,7 @@ impl<'a> PromptCacheOptions<'a> {
 }
 
 /// FNV-1a over the UTF-16 code units of `text`, as lowercase hexadecimal
-/// without leading zeros: the short hash of the ids Demi derives for a
+/// without leading zeros: the short hash of the ids Jush derives for a
 /// vendor, such as a long session's cache key.
 pub fn short_hash(text: &str) -> String {
     let mut hash: u32 = 2_166_136_261;
@@ -208,7 +208,7 @@ pub enum InputItem<'a> {
     Reasoning(ReasoningItem),
     FunctionCall(FunctionCallInput<'a>),
     FunctionCallOutput(FunctionCallOutputInput<'a>),
-    /// An item the vendor sent that Demi keeps whole, sent back as it came.
+    /// An item the vendor sent that Jush keeps whole, sent back as it came.
     Recorded(Recorded<'a>),
 }
 
@@ -379,7 +379,7 @@ pub fn responses_input<'a>(
 /// Whether a recorded item is no search, or one of `searches`: OpenAI's and
 /// xAI's web search call, xAI's X search calls, and its looks at an image or
 /// a video.
-fn declared(entry: &demi_shared_types::Entry, searches: Searches) -> bool {
+fn declared(entry: &jush_shared_types::Entry, searches: Searches) -> bool {
     #[derive(serde::Deserialize)]
     struct Item<'a> {
         #[serde(rename = "type", borrow)]
@@ -613,7 +613,7 @@ impl<'a> From<&'a ToolDefinition> for ChatTool<'a> {
 /// message when the prompt is not blank, then consecutive assistant text and
 /// tool calls as one assistant message, each tool result as a tool message.
 ///
-/// With `interleaved_thinking` ([`ModelWire`](demi_shared_types::ModelWire)),
+/// With `interleaved_thinking` ([`ModelWire`](jush_shared_types::ModelWire)),
 /// the thinking `model_id` wrote goes back as `reasoning_content` on the
 /// assistant message it preceded, and an empty one on a tool-call message
 /// without thinking. Thinking is read from `reasoning_content` only, so only
@@ -626,7 +626,7 @@ pub fn chat_messages<'a>(
     interleaved_thinking: bool,
 ) -> Vec<ChatMessage<'a>> {
     let mut messages = Vec::new();
-    if !demi_shared_types::is_blank(system_prompt) {
+    if !jush_shared_types::is_blank(system_prompt) {
         messages.push(ChatMessage::System {
             content: system_prompt,
         });

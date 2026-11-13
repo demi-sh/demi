@@ -10,12 +10,12 @@
 //!   401 for a refused key and 402 for a used-up balance.
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     ErrorCode, HttpFailureRecord, ProviderFailure, ProviderHttp, Secret,
     media::{Ask, Holding, MediaAnswer, MediaCall, MediaCredential, MediaFailure, unreadable},
     read_http_failure,
 };
-use demi_shared_types::{Clock, VendorTrace};
+use jush_shared_types::{Clock, VendorTrace};
 use reqwest::{
     StatusCode,
     header::{AUTHORIZATION, HeaderMap},

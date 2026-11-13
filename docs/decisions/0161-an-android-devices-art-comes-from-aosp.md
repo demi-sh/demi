@@ -7,11 +7,11 @@ status: accepted
 ## Problem
 
 Alex creates a Pixel 10 virtual device with the SDK's command-line tools and
-has never installed Android Studio. Demi opens it, and the work panel shows a
+has never installed Android Studio. Jush opens it, and the work panel shows a
 plain rectangle with square corners around a square screen, nothing like a
 Pixel 10. Two things are missing, and both come from Android Studio today:
 
-- **The frame.** Demi draws a device's frame from the device art in Android
+- **The frame.** Jush draws a device's frame from the device art in Android
   Studio's installation (`plugins/android/resources/device-art-resources`).
   Without Android Studio there is none, and the view draws its stand-in frame.
 - **The screen's shape.** The system image holds overlays for each Pixel,
@@ -25,25 +25,25 @@ Pixel 10. Two things are missing, and both come from Android Studio today:
 
 ## Decision
 
-Demi takes every Android device's art from the Android Open Source Project
+Jush takes every Android device's art from the Android Open Source Project
 (AOSP), where Android Studio's comes from, and never from Android Studio: one
-source, the same on every Host whatever is installed on it. And Demi turns on
+source, the same on every Host whatever is installed on it. And Jush turns on
 the device's overlays itself, so its screen has the device's shape however the
 virtual device was created or started.
 
 - **Where.** The art lives in AOSP's `platform/tools/adt/idea` repository, in
   `artwork/resources/device-art-resources`, one folder per device, such as
   `pixel_10`, and one folder per posture for a foldable, under the Apache
-  License 2.0. Demi reads it at one commit it pins.
+  License 2.0. Jush reads it at one commit it pins.
 - **When.** The first time a Host opens a virtual device whose
   `hw.device.name` names a device with art, the Host downloads that device's
   art and keeps it for every later use. A device with no art at AOSP draws the
   stand-in, as now. A Host that cannot reach AOSP draws the stand-in too,
   says why in its log, and tries again the next time the device opens.
-- **Checked.** Demi carries the SHA-256 of every file it may download, as it
+- **Checked.** Jush carries the SHA-256 of every file it may download, as it
   does for its other downloads, and keeps a device's art only when all its
   files match.
-- **The screen's shape.** Once the emulator booted, Demi turns on the system
+- **The screen's shape.** Once the emulator booted, Jush turns on the system
   image's overlays named for the device, the ones the emulator turns on after
   a cold boot with the device's skin. A virtual device that has them on is
   left as it is.
@@ -110,9 +110,9 @@ The code that finds Android Studio's installations is removed.
 - The emulator's `QemuMiscPipe` turns on the overlays whose names end in the
   skin's name after a cold boot.
 
-Where this departs: Android Studio ships the art in its installation; Demi
+Where this departs: Android Studio ships the art in its installation; Jush
 downloads one device's art when it is first needed. The emulator turns the
-overlays on only after a cold boot with the skin; Demi turns them on after
+overlays on only after a cold boot with the skin; Jush turns them on after
 any boot, so a snapshot or a virtual device created without the skin gets
 them too.
 
@@ -123,7 +123,7 @@ them too.
   installed.
 - **Start the emulator with the art as its skin.** It covers only a cold
   boot of a phone, as the spike shows, and breaks a foldable's screen.
-- **Demi ships all the art.** Several megabytes in every runner's command
+- **Jush ships all the art.** Several megabytes in every runner's command
   package, for devices most Hosts never open.
 
 ## Open questions

@@ -1,4 +1,4 @@
-import type { SharedItem } from '@demicodes/web-ui/share/shared-items'
+import type { SharedItem } from '@jush-ai/web-ui/share/shared-items'
 import { demoModel } from './blocks'
 import { ago } from './time'
 

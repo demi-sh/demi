@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Demi's abilities as pieces at the browser's corner, beside a demo whose
+// Jush's abilities as pieces at the browser's corner, beside a demo whose
 // scene says what each request snapped together: a tray of every piece on
 // top, and under it each request's recipe, its pieces placed one after
 // another, a piece in the tray lighting as it is taken. The same pieces come

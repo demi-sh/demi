@@ -7,24 +7,24 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::CookieJar;
-use demi_backend_accounts::email_change::{StartOutcome, StartRefusal};
-use demi_backend_accounts::passkeys::relying_party_id;
-use demi_backend_database::accounts::ChallengeOutcome;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::auth::{
+use jush_backend_accounts::email_change::{StartOutcome, StartRefusal};
+use jush_backend_accounts::passkeys::relying_party_id;
+use jush_backend_database::accounts::ChallengeOutcome;
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::auth::{
     Credentials, EmailChangeConfirm, EmailChangeStart, EmailChangeStarted, Identity, NicknamePatch,
     PasswordChange, SetupRequest, SetupStatus,
 };
-use demi_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::error::ErrorCode;
 
 use super::body::JsonBody;
-use super::cookies::{self, Https, SESSION_COOKIE};
+use super::cookies::{self, Https};
 use super::error::ApiError;
 use super::gate::AuthUser;
 use super::revalidate;
 use super::sessions::user_agent;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 pub(super) async fn setup_status(
     State(services): State<Arc<Services>>,
@@ -127,11 +127,11 @@ pub(super) async fn logout(
     jar: CookieJar,
     Https(https): Https,
 ) -> Result<Response, ApiError> {
-    if let Some(cookie) = jar.get(SESSION_COOKIE) {
-        services.sessions.close(cookie.value()).await?;
+    if let Some((token, _)) = cookies::session_token(&jar) {
+        services.sessions.close(&token).await?;
         services
             .sync
-            .end_session(&user.id, &TokenHash::of(cookie.value()));
+            .end_session(&user.id, &TokenHash::of(&token));
         services.sync.mark(&user.id, Part::Sessions);
     }
     Ok(revalidate::clear_cache((cookies::remove(jar, https), StatusCode::NO_CONTENT).into_response()))

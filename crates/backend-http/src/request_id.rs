@@ -8,7 +8,7 @@
 //! - Every JSON error carries it as `requestId`.
 //! - Every request logs one line as it is answered, or as its client abandons
 //!   it, so that an ID a user copies always finds its request.
-//! - The page that made a request names its load in `X-Demi-Page`, or in a
+//! - The page that made a request names its load in `X-Jush-Page`, or in a
 //!   socket's `page` parameter; the span carries it as `page_id`, so the
 //!   backend's lines of a request the page made are found by the page's ID
 //!   beside the page's own lines.
@@ -32,9 +32,9 @@ use axum::http::{HeaderMap, HeaderName, HeaderValue, StatusCode, Uri};
 use axum::middleware::Next;
 use axum::response::Response;
 use data_encoding::{Encoding, Specification};
-use demi_shared_types::RequestId;
-use demi_web_api_protocol::diagnostics::PAGE_HEADER;
-use demi_web_api_protocol::error::ErrorCode;
+use jush_shared_types::RequestId;
+use jush_web_api_protocol::diagnostics::PAGE_HEADER;
+use jush_web_api_protocol::error::ErrorCode;
 
 /// The header every response names its request in.
 const X_REQUEST_ID: HeaderName = HeaderName::from_static("x-request-id");
@@ -110,7 +110,7 @@ fn is_page_id(text: &str) -> bool {
 
 const ALPHABET_SYMBOLS: &[u8] = b"0123456789abcdefghjkmnpqrstvwxyz";
 
-/// The page load the request came from: its `X-Demi-Page`, or the `page`
+/// The page load the request came from: its `X-Jush-Page`, or the `page`
 /// parameter of a page connection's URL, which is the only part of the query
 /// read.
 pub(crate) fn page_of<'a>(headers: &'a HeaderMap, uri: &'a Uri) -> Option<&'a str> {
@@ -157,7 +157,7 @@ pub(crate) fn lane_span(
     kind: &str,
     page: Option<&str>,
     ray: Option<&str>,
-    user: &demi_web_api_protocol::ids::UserId,
+    user: &jush_web_api_protocol::ids::UserId,
 ) -> tracing::Span {
     tracing::info_span!(
         parent: None,

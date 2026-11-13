@@ -25,14 +25,14 @@ person reads on it, `text=`, or by its identifier, `id=`. The command
 finds it in the tree when it runs, and waits until it is there.
 
 ```text
-$ demi mobile tap m1 "text=Delete Account"
+$ jush mobile tap m1 "text=Delete Account"
 Tapped button "Delete Account" [ref=e41] at 352,1210.
 
-$ demi mobile type m1 alex@example.com --into id=email
+$ jush mobile type m1 alex@example.com --into id=email
 Typed 16 characters into text field "Email" [ref=e44]; it holds "alex@example.com".
 
-$ demi mobile tap m1 text=Delete
-demi mobile tap: 2 elements show "Delete": button "Delete" [ref=e45] at 120,980,
+$ jush mobile tap m1 text=Delete
+jush mobile tap: 2 elements show "Delete": button "Delete" [ref=e45] at 120,980,
 text "Delete" [ref=e46] at 352,300; tap one by its ref
 ```
 
@@ -94,11 +94,11 @@ says that `text=` and `id=` name an element without an `inspect`.
 - [Maestro](https://docs.maestro.dev/reference/selectors/core-selectors)
   taps by `text` (a full match of a regular expression) or `id`, and polls
   for the element for up to 17 seconds. When several match, it takes one,
-  or the one `index` picks. Demi lists them instead, since the agent
+  or the one `index` picks. Jush lists them instead, since the agent
   cannot see which one Maestro would take.
 - [Playwright](https://playwright.dev/docs/actionability) locators wait
   until the element is visible, stable over two animation frames, enabled
-  and the only match, and fail on several matches in strict mode. Demi
+  and the only match, and fail on several matches in strict mode. Jush
   checks the same, with two reads of the tree for two frames. Its
   `text=` and `id=` follow Playwright's older selector engines of the
   same names.

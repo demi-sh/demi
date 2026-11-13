@@ -2,12 +2,12 @@
 
 interface ImportMetaEnv {
   /** The local development account, from the repository's `.env`; development builds only. */
-  readonly DEMI_DEV_EMAIL?: string
-  readonly DEMI_DEV_PASSWORD?: string
+  readonly JUSH_DEV_EMAIL?: string
+  readonly JUSH_DEV_PASSWORD?: string
   /** This page's build, which `vite build` writes in (`vite.config.ts`); none in development. */
-  readonly DEMI_WEB_BUILD?: string
-  /** The Demi version this page belongs to (`vite.config.ts`). */
-  readonly DEMI_VERSION: string
+  readonly JUSH_WEB_BUILD?: string
+  /** The Jush version this page belongs to (`vite.config.ts`). */
+  readonly JUSH_VERSION: string
 }
 
 declare module '*.vue' {

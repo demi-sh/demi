@@ -9,12 +9,12 @@
 //!
 //! Whether a device is online is its runner connection's, not a record's.
 
-use demi_runner_protocol::pairs::PairRoute;
-use demi_runner_protocol::wire::{AutostartUnavailable, DeviceArtifact, Hardware, OperatingSystem, RunnerPlatform};
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::devices::{DeviceKind, DeviceLogo, DeviceRoute};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, ProjectId};
-use demi_web_api_protocol::storage::DeviceStorageReport;
+use jush_runner_protocol::pairs::PairRoute;
+use jush_runner_protocol::wire::{AutostartUnavailable, DeviceArtifact, Hardware, OperatingSystem, RunnerPlatform};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::devices::{DeviceKind, DeviceLogo, DeviceRoute};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId, ProjectId};
+use jush_web_api_protocol::storage::DeviceStorageReport;
 use std::collections::HashMap;
 
 use rusqlite::{Connection, OptionalExtension, Row, params};
@@ -207,7 +207,7 @@ const CLAUDE_CODE_NAME: &str = "Claude Code";
 const CLOUD_PLATFORM: RunnerPlatform = RunnerPlatform::Linux;
 
 impl ControlService {
-    /// Keeps what Demi keeps on `device`, as its runner just measured.
+    /// Keeps what Jush keeps on `device`, as its runner just measured.
     pub async fn set_device_storage(&self, device: DeviceId, report: DeviceStorageReport) -> Result<(), StorageError> {
         self.call(move |connection, _| {
             connection.execute(
@@ -524,7 +524,7 @@ impl ControlService {
     /// - When the system changed, for the conversations whose primary device the
     ///   device is.
     /// - When the home differs from the one its contexts named before, the Cloud's
-    ///   `/home/demi` before its first report, for the conversations whose
+    ///   `/home/jush` before its first report, for the conversations whose
     ///   context names a directory under that home: a Cloud conversation working
     ///   in its own directory, one in the device's home, and one the device is
     ///   attached to without a directory of its own.

@@ -3,7 +3,7 @@
 //! one thread. The edge reaches a user's shard with `shards.of(user).call(..)`: the closure is
 //! `Send`, the future it starts runs on the shard and need not be, and the answer is `Send`.
 //!
-//! The pool is Demi's own small set of `LocalRuntime` threads fed by a job
+//! The pool is Jush's own small set of `LocalRuntime` threads fed by a job
 //! channel. tokio-util's `LocalPoolHandle` is not used: it gives each worker a
 //! runtime of its own, which a test's paused clock cannot reach.
 
@@ -45,14 +45,14 @@ use std::num::NonZeroUsize;
 use std::rc::{Rc, Weak};
 use std::sync::Arc;
 
-use demi_agent_server::AgentServer;
-use demi_backend_cloud::machine::Cloud;
-use demi_plugin_host::UserPlugins;
-use demi_runner_client::{ARRIVAL, Pipes};
-use demi_backend_runners::devices::Devices;
-use demi_backend_runners::router::CommandRouter;
-use demi_shared_gates::{KeyedSerialGate, SerialGate};
-use demi_web_api_protocol::ids::UserId;
+use jush_agent_server::AgentServer;
+use jush_backend_cloud::machine::Cloud;
+use jush_plugin_host::UserPlugins;
+use jush_runner_client::{ARRIVAL, Pipes};
+use jush_backend_runners::devices::Devices;
+use jush_backend_runners::router::CommandRouter;
+use jush_shared_gates::{KeyedSerialGate, SerialGate};
+use jush_web_api_protocol::ids::UserId;
 use futures_util::future::LocalBoxFuture;
 use sha2::{Digest, Sha256};
 use tokio::sync::{mpsc, oneshot};
@@ -73,8 +73,8 @@ use crate::conversation::{self, ConversationParts, ShardDevices};
 use crate::lifecycle::collection::BlobCollection;
 use crate::lifecycle::conversations::ConversationWatches;
 use crate::services::Services;
-use demi_backend_device_access::access::Conversations;
-use demi_backend_device_access::plugin_files::PluginInstalls;
+use jush_backend_device_access::access::Conversations;
+use jush_backend_device_access::plugin_files::PluginInstalls;
 
 /// Where the shards run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -157,12 +157,12 @@ pub struct Shard {
     plugin_installs: PluginInstalls,
     /// How many times each conversation's permission requests changed
     /// since the shard started.
-    permission_revisions: demi_backend_page_sync::Revisions,
+    permission_revisions: jush_backend_page_sync::Revisions,
     /// The project files its conversations use, kept current by the
     /// runner's file watch.
     project_files: ProjectFiles,
     /// The calls that wait for the answers to their requests.
-    waits: demi_backend_permissions::Waits,
+    waits: jush_backend_permissions::Waits,
     /// What rearms the expiry of the user's credentials.
     credential_expiry: credentials::CredentialExpiry,
     /// What the user's runners announced of their forwards, and the peers
@@ -265,9 +265,9 @@ impl Shard {
             claude_cli: ClaudeCli::default(),
             plugins,
             plugin_installs: PluginInstalls::default(),
-            permission_revisions: demi_backend_page_sync::Revisions::default(),
+            permission_revisions: jush_backend_page_sync::Revisions::default(),
             project_files,
-            waits: demi_backend_permissions::Waits::default(),
+            waits: jush_backend_permissions::Waits::default(),
             credential_expiry: credentials::CredentialExpiry::default(),
             forwards: port_forwards::ForwardsHeld::default(),
             worktrees: worktrees::WorktreesHeld::default(),

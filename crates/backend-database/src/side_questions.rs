@@ -4,8 +4,8 @@
 //! its node, and the two fields the backend changes afterwards: the title the
 //! small model writes once, and whether the card is folded.
 
-use demi_shared_types::{BlockId, MediaSource, NodeId, UserContentBlock};
-use demi_conversation_lane_protocol::SideQuestion;
+use jush_shared_types::{BlockId, MediaSource, NodeId, UserContentBlock};
+use jush_conversation_lane_protocol::SideQuestion;
 use rusqlite::{Connection, Row, params};
 
 use super::StorageError;

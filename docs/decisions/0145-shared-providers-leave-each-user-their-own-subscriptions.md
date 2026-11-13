@@ -28,11 +28,11 @@ Alex's lists Alex's API keys and Alex's own subscriptions, without Bo's.
 | --- | --- | --- |
 | Each User's Own | the user's | the user's |
 | Shared | the master's | the user's |
-| Shared, `DEMI_SHARED_SUBSCRIPTIONS=on` | the master's | the master's |
+| Shared, `JUSH_SHARED_SUBSCRIPTIONS=on` | the master's | the master's |
 
 - A user's own API keys stay hidden while providers are shared, stored as
   before, and come back when sharing stops.
-- `DEMI_SHARED_SUBSCRIPTIONS=on` keeps what it does today: every user
+- `JUSH_SHARED_SUBSCRIPTIONS=on` keeps what it does today: every user
   infers with the master's subscriptions, and no user signs in to one of
   their own.
 - Every user manages the entries they infer with that they own: on a
@@ -70,7 +70,7 @@ their own subscriptions, which nobody else can use.
                                              [Cancel] [Share]
 ```
 
-With `DEMI_SHARED_SUBSCRIPTIONS=on` the description and the question read
+With `JUSH_SHARED_SUBSCRIPTIONS=on` the description and the question read
 as they do today, without the sentence on subscriptions.
 
 The design:
@@ -82,7 +82,7 @@ The design:
   owner's order. It replaces `owner_for` followed by `entries`, which every
   reader of a user's entries called: the model catalog, the sync state,
   media, agent profiles, small requests, `GET /providers` and
-  `demi providers`.
+  `jush providers`.
 - `visible(user, id)` holds an entry whose owner is the owner of its kind.
 - `configures(user)` goes. A user manages an entry they infer with when
   they own it, `Vault::manages(user, entry)`, which decides its changes and
@@ -121,7 +121,7 @@ None.
   enters for themselves, `apiKey: "user_provided"`
   ([Custom Endpoints](https://www.librechat.ai/docs/configuration/librechat_yaml/object_structure/custom_endpoint)).
 
-Both layer a user's own credentials on the administrator's. Demi layers
+Both layer a user's own credentials on the administrator's. Jush layers
 them by kind: the master's API keys and the user's own subscriptions, since
 a subscription is a person's account, and a user's own API keys stay
 hidden so the shared keys are the only ones the team pays for.

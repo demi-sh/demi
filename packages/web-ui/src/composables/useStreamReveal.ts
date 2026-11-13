@@ -1,5 +1,5 @@
 import { onScopeDispose, ref, shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
-import type { TextArrival } from '@demicodes/conversation-client'
+import type { TextArrival } from '@jush-ai/conversation-client'
 import { alignShown, arrivedSteps, nextStepEnd, STREAM_PACE, stepInterval, type RevealStep } from '../ui/stream-reveal'
 
 /**

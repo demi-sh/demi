@@ -1,8 +1,8 @@
-# Demi comparé
+# Jush comparé
 
 [English](comparison.md) · [Deutsch](comparison.de.md) · [Español](comparison.es.md) · **Français** · [Português](comparison.pt-BR.md) · [简体中文](comparison.zh-CN.md) · [繁體中文](comparison.zh-TW.md) · [日本語](comparison.ja.md) · [한국어](comparison.ko.md)
 
-Ce qui distingue Demi des apps d’agent du même type, en octobre 2026, d’après la documentation et le code source de chaque produit. Le tableau ne contient une ligne que là où les produits diffèrent, plus une capacité qu’aucun d’eux n’a encore. Ses colonnes vont du produit le plus proche de Demi au plus éloigné.
+Ce qui distingue Jush des apps d’agent du même type, en octobre 2026, d’après la documentation et le code source de chaque produit. Le tableau ne contient une ligne que là où les produits diffèrent, plus une capacité qu’aucun d’eux n’a encore. Ses colonnes vont du produit le plus proche de Jush au plus éloigné.
 
 Le tableau utilise ces symboles et libellés :
 
@@ -14,7 +14,7 @@ Le tableau utilise ces symboles et libellés :
 
 Le tableau suivant compare les produits fonctionnalité par fonctionnalité :
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Modèles et abonnements** | | | | | | | | |
 | Abonnement Claude | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@ Les lignes du tableau signifient ce qui suit :
 - **Commentaires de ligne sur les diffs** : un commentaire sur une ligne d’une modification, transmis à l’agent.
 - **Agent propre** : l’agent du produit lui-même pilote le modèle, au lieu d’exécuter Claude Code, Codex ou d’autres agents.
 - **Un shell pour seul outil** : le modèle reçoit un seul outil, un shell, et chaque capacité est une commande de ce shell.
-- **Plug-ins tiers** : du code écrit par quelqu’un d’autre, que l’utilisateur installe pour ajouter des outils ou des écrans au produit, au-delà des compétences et des serveurs MCP. Les fonctionnalités de Demi sont elles-mêmes des plug-ins, mais il ne charge ceux de personne d’autre.
+- **Plug-ins tiers** : du code écrit par quelqu’un d’autre, que l’utilisateur installe pour ajouter des outils ou des écrans au produit, au-delà des compétences et des serveurs MCP. Les fonctionnalités de Jush sont elles-mêmes des plug-ins, mais il ne charge ceux de personne d’autre.
 - **Identifiants pour l’agent** : des secrets que l’utilisateur enregistre sous un nom et que l’agent utilise dans ses commandes.
 - **Voir et piloter le navigateur en direct** : l’utilisateur regarde le navigateur de l’agent pendant qu’il travaille et peut le manipuler.
 - **Utilisation de l’ordinateur** : l’agent pilote le bureau avec des captures d’écran, la souris et le clavier, au-delà d’un navigateur.

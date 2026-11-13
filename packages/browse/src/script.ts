@@ -12,7 +12,7 @@ import { mkdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /** The names a script can use, in the order the function's head lists them. */
-export const SCOPE_NAMES = ['page', 'context', 'expect', 'cdp', 'demi', 'keep', 'console'] as const
+export const SCOPE_NAMES = ['page', 'context', 'expect', 'cdp', 'jush', 'keep', 'console'] as const
 export type ScriptScope = Record<typeof SCOPE_NAMES[number], unknown>
 
 /** The module's head, which the script's first line follows on the same line. */

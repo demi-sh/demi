@@ -2,9 +2,9 @@
 //! next message or steer, each question asked aside since it last heard of
 //! them, with its final answer, under the words it asked about.
 
-use demi_agent_store::{Kind, SessionStore, SideOf, StoreError};
-use demi_agent_transcript::bound_text;
-use demi_shared_types::{Block, NodeId, TurnId, UserContentBlock};
+use jush_agent_store::{Kind, SessionStore, SideOf, StoreError};
+use jush_agent_transcript::bound_text;
+use jush_shared_types::{Block, NodeId, TurnId, UserContentBlock};
 
 /// The sentence the block of the side questions source starts with.
 const TOLD: &str = "The user asked these aside and was answered there; they show what the user was unsure of.";

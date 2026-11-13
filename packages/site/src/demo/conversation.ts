@@ -1,13 +1,13 @@
 // A demo's conversation: the state `ChatSession` reads, and the writes a
 // scene makes to it over time, as the product's runtime would make them.
 import { reactive } from 'vue'
-import type { Block, ChangedFile, EditedFile, MessageComment, ModelSelection, UserContentBlock } from '@demicodes/protocol'
-import type { ToolCallBlock } from '@demicodes/web-ui/agent/block-types'
-import { wholeHistory } from '@demicodes/web-ui/agent/history'
-import { segmentStreamUnits } from '@demicodes/web-ui/ui/stream-reveal'
-import type { ChatSessionState } from '@demicodes/web-ui/agent/types'
-import type { ConversationFiles, MessageAttachment } from '@demicodes/web-ui/markdown/types'
-import type { ModelInfo, ProviderInfo } from '@demicodes/web-ui/transport/protocol'
+import type { Block, ChangedFile, EditedFile, MessageComment, ModelSelection, UserContentBlock } from '@jush-ai/protocol'
+import type { ToolCallBlock } from '@jush-ai/web-ui/agent/block-types'
+import { wholeHistory } from '@jush-ai/web-ui/agent/history'
+import { segmentStreamUnits } from '@jush-ai/web-ui/ui/stream-reveal'
+import type { ChatSessionState } from '@jush-ai/web-ui/agent/types'
+import type { ConversationFiles, MessageAttachment } from '@jush-ai/web-ui/markdown/types'
+import type { ModelInfo, ProviderInfo } from '@jush-ai/web-ui/transport/protocol'
 
 export const PROVIDERS: ProviderInfo[] = [{ id: 'anthropic', label: 'Anthropic', isAvailable: true }]
 

@@ -2,7 +2,7 @@
 //! agent uploaded
 //! (`crates/backend-device-access/src/attachment_commands.rs`).
 //!
-//! A sent file's bytes, and those `demi attachment upload` stores, are a blob of
+//! A sent file's bytes, and those `jush attachment upload` stores, are a blob of
 //! the conversation owner's namespace. The conversation's `attachments` table
 //! holds one row per attachment, keyed by its number in the conversation's
 //! `attachment` sequence, with:
@@ -28,10 +28,10 @@ use std::collections::BTreeSet;
 use std::fmt;
 use std::str::FromStr;
 
-use demi_conversation_lane_protocol::{AttachmentSourceDto, ConversationAttachment};
+use jush_conversation_lane_protocol::{AttachmentSourceDto, ConversationAttachment};
 
-use demi_shared_types::{BlobRef, NodeId, PixelSize};
-use demi_web_api_protocol::ids::DeviceId;
+use jush_shared_types::{BlobRef, NodeId, PixelSize};
+use jush_web_api_protocol::ids::DeviceId;
 use rusqlite::{Connection, OptionalExtension, Row, Transaction, params};
 
 use super::StorageError;
@@ -119,7 +119,7 @@ pub struct AttachmentSource {
 }
 
 /// An attachment's row with who stored it: the node of the agent whose
-/// `demi attachment upload` did, a side question's included; none for a
+/// `jush attachment upload` did, a side question's included; none for a
 /// file the user sent, or uploaded from a command the user ran.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StoredAttachment {

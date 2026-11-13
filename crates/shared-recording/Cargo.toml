@@ -1,5 +1,5 @@
 [package]
-name = "demi-shared-recording"
+name = "jush-shared-recording"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,9 +12,9 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-h264 = { path = "../shared-h264" }
-demi-shared-openh264 = { path = "../shared-openh264" }
-demi-shared-recording-protocol = { path = "../shared-recording-protocol" }
+jush-shared-h264 = { path = "../shared-h264" }
+jush-shared-openh264 = { path = "../shared-openh264" }
+jush-shared-recording-protocol = { path = "../shared-recording-protocol" }
 # The glyphs of the keys a drawn export shows (`overlay.rs`), from the one
 # font the crate carries.
 ab_glyph = "0.2"

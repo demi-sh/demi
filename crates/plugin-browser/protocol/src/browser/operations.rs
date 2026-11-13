@@ -7,7 +7,7 @@ use std::time::Duration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use demi_shared_types::MAX_SAFE_INTEGER;
+use jush_shared_types::MAX_SAFE_INTEGER;
 use serde_with::rust::unwrap_or_skip;
 
 
@@ -319,7 +319,7 @@ input! {
     /// `stop`: stops loading a tab's page, as a browser's Stop does. Only the
     /// user's page asks for it: the agent waits for its commands rather than
     /// stopping a load, so it answers the page's [`TabMoved`] and is no
-    /// command of `demi browser`.
+    /// command of `jush browser`.
     pub struct StopInput {}
 }
 
@@ -404,8 +404,8 @@ pub struct TabCloseResult {
 
 input! {
     /// `tab.prune`: closes the agents' tabs the user did not make theirs,
-    /// once the conversation stopped running. Demi's, never an agent's: it
-    /// has no `demi browser` leaf.
+    /// once the conversation stopped running. Jush's, never an agent's: it
+    /// has no `jush browser` leaf.
     pub struct TabPruneInput {}
 }
 
@@ -542,10 +542,10 @@ input! {
     }
 }
 
-pub use demi_shared_recording_protocol::{
+pub use jush_shared_recording_protocol::{
     FrameSet, RecordAction, RecordResult, RecordingDuration, Region, record_input, recording_target,
 };
-pub use demi_shared_recording_protocol::text::about as record_about;
+pub use jush_shared_recording_protocol::text::about as record_about;
 
 recording_target! {
     /// What `record`'s first operand names: the tab `start` records, or the
@@ -1141,7 +1141,7 @@ input! {
 #[serde(deny_unknown_fields)]
 pub struct DialogInspectResult {
     #[serde(deserialize_with = "Option::deserialize")]
-    #[schemars(with = "demi_shared_types::Nullable<Dialog>")]
+    #[schemars(with = "jush_shared_types::Nullable<Dialog>")]
     pub dialog: Option<Dialog>,
 }
 
@@ -1598,7 +1598,7 @@ macro_rules! operations {
             /// Decodes the arguments of the operation `browser.<name>`.
             pub fn parse(name: &str, args: Value) -> Result<Self, crate::OperationError> {
                 match name {
-                    $($name => Ok(demi_shared_types::decode_value(args).map(Self::$variant)?),)*
+                    $($name => Ok(jush_shared_types::decode_value(args).map(Self::$variant)?),)*
                     _ => Err(crate::OperationError::Unserved(format!("{}{name}", super::PREFIX))),
                 }
             }
@@ -1709,7 +1709,7 @@ impl BrowserOperation {
     }
 }
 
-impl demi_shared_types::buffer::Entry for LogEntry {
+impl jush_shared_types::buffer::Entry for LogEntry {
     fn sequence(&self) -> u64 {
         self.sequence
     }
@@ -1719,7 +1719,7 @@ impl demi_shared_types::buffer::Entry for LogEntry {
     }
 }
 
-impl demi_shared_types::buffer::Entry for CdpEvent {
+impl jush_shared_types::buffer::Entry for CdpEvent {
     fn sequence(&self) -> u64 {
         self.sequence
     }

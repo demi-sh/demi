@@ -15,19 +15,19 @@
 
 use std::rc::{Rc, Weak};
 
-use demi_agent_server::instructions::ProjectFile;
-use demi_agent_store::Placement;
-use demi_backend_database::Selection;
-use demi_backend_database::conversation_index::ExecutionTarget;
-use demi_backend_device_access::access::DeviceAccessError;
-use demi_backend_device_access::conversation_of;
-use demi_backend_device_access::kept::{Found, Kept, SearchError, Shown, Subscribe};
-use demi_backend_page_sync::Part;
-use demi_plugin_interface::{PluginId, WatchSubject};
-use demi_runner_protocol::files::Subject;
-use demi_shared_types::NodeId;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
-use demi_web_api_protocol::workflows::{ConversationWorkflowList, ConversationWorkflows, KeptWorkflowList};
+use jush_agent_server::instructions::ProjectFile;
+use jush_agent_store::Placement;
+use jush_backend_database::Selection;
+use jush_backend_database::conversation_index::ExecutionTarget;
+use jush_backend_device_access::access::DeviceAccessError;
+use jush_backend_device_access::conversation_of;
+use jush_backend_device_access::kept::{Found, Kept, SearchError, Shown, Subscribe};
+use jush_backend_page_sync::Part;
+use jush_plugin_interface::{PluginId, WatchSubject};
+use jush_runner_protocol::files::Subject;
+use jush_shared_types::NodeId;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::workflows::{ConversationWorkflowList, ConversationWorkflows, KeptWorkflowList};
 use serde_json::Value;
 use tokio_util::sync::CancellationToken;
 
@@ -99,8 +99,8 @@ impl ProjectFiles {
                             .project_search(&plugin, &conversation, &device, directory, paths, CancellationToken::new())
                             .await
                             .map_err(|error| match error {
-                                demi_plugin_interface::PluginError::Port {
-                                    refusal: demi_plugin_interface::PortRefusal::NotRunning,
+                                jush_plugin_interface::PluginError::Port {
+                                    refusal: jush_plugin_interface::PortRefusal::NotRunning,
                                 } => SearchError::NotRunning,
                                 error => SearchError::Failed(format!("{plugin}: {error}")),
                             })?;
@@ -187,7 +187,7 @@ impl Shard {
             directory: target.path().to_owned(),
             project_directory,
             in_project: matches!(target, ExecutionTarget::Project { .. }),
-            loaded: self.agent().tree(&demi_backend_device_access::root_of(id)).is_some(),
+            loaded: self.agent().tree(&jush_backend_device_access::root_of(id)).is_some(),
         })
     }
 

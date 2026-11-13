@@ -7,41 +7,41 @@ status: proposed
 ## Problem
 
 On a paired Mac, an agent runs `ls ~/Desktop`. macOS asks whether
-`demi-runner` may access files in the Desktop folder, and the user allows
+`jush-runner` may access files in the Desktop folder, and the user allows
 it. The next day the backend is upgraded, the runner updates itself, and the
 same command asks again; so do Documents, Downloads, Photos and iCloud
 Drive, one dialog each, after every update.
 
 The runner of each release lives in its own directory,
-`<installation>/releases/<release>/demi-runner`, and an update starts the
+`<installation>/releases/<release>/jush-runner`, and an update starts the
 new one from there. macOS's privacy controls (TCC) tell a program that is
 not an app bundle by its path: the system log names the client as
-`identifier /Users/alex/.demi/runner/<id>/releases/<release>/demi-runner,
+`identifier /Users/alex/.jush/runner/<id>/releases/<release>/jush-runner,
 type: 1`, type 1 being a path. A new release is a new path, so it is a new
 program, with none of the permissions the user gave the old one. Its code
 signature is not the cause: every release carries the same designated
-requirement, `identifier "sh.demi.runner" and certificate leaf = H"…"`.
+requirement, `identifier "ai.jush.runner" and certificate leaf = H"…"`.
 
 ## Decision
 
-**The runner always runs from `<installation>/demi-runner`**
-(`demi-runner.exe` on Windows). An update replaces that file in place, so
+**The runner always runs from `<installation>/jush-runner`**
+(`jush-runner.exe` on Windows). An update replaces that file in place, so
 on a Mac the permissions the user gave stay with it from one release to the
 next. One layout serves macOS, Linux and Windows.
 
 ```text
   <installation>/
-    demi-runner                    the runner, the only one started
+    jush-runner                    the runner, the only one started
     release-id                     its release
-    run, run.ps1                   the launcher, which starts demi-runner
-    releases/<release>/demi-runner a release downloaded ahead, until used
+    run, run.ps1                   the launcher, which starts jush-runner
+    releases/<release>/jush-runner a release downloaded ahead, until used
     releases/.download-*/          a download in progress
     releases/.replaced-*.exe       on Windows, a runner set aside
 ```
 
 * **An update.** Under the install lock, the runner puts the new release's
   executable in `releases/<release>/` and checks it, as today. Then:
-  - On Linux and macOS it renames that file over `<installation>/demi-runner`,
+  - On Linux and macOS it renames that file over `<installation>/jush-runner`,
     which is atomic on one file system and leaves the running process its
     own file.
   - On Windows, where a running executable cannot be replaced but can be
@@ -56,21 +56,21 @@ next. One layout serves macOS, Linux and Windows.
     `releases/<release>/` no longer holds it.
 * **The installers** download into `releases/.download-*/` and check the
   file there. When they start a runner, they move it to
-  `<installation>/demi-runner`, on Windows after setting aside the file
+  `<installation>/jush-runner`, on Windows after setting aside the file
   there, which a runner that has just drained may still hold; when the
   release already runs, the download is discarded.
-* **The launcher** starts `<installation>/demi-runner`. Its text has one
+* **The launcher** starts `<installation>/jush-runner`. Its text has one
   owner, `runner-protocol`, from which both installers write it, and the
   runner too.
 * **An installation from before.** Its runner of this release starts from
-  `releases/<release>/demi-runner`, by an older launcher or an older
+  `releases/<release>/jush-runner`, by an older launcher or an older
   runner's update. Under the install lock it links its own file to
-  `<installation>/demi-runner`, writes the launcher anew, removes the
+  `<installation>/jush-runner`, writes the launcher anew, removes the
   releases, and starts itself from the fixed path. Until the launcher is
   written the old path still works, so a failure leaves a launcher that
   starts the runner, which tries again at its next start. A Mac asks once
   more, for the new path, and not after.
-* **Removal** deletes `demi-runner` with the installation's other files.
+* **Removal** deletes `jush-runner` with the installation's other files.
 
 ## Spike
 
@@ -94,7 +94,7 @@ keeps the permission.
 
 ## Alternatives
 
-* Install the runner as an app bundle, `Demi Runner.app`, which macOS tells
+* Install the runner as an app bundle, `Jush Runner.app`, which macOS tells
   by its bundle identifier wherever it is: the dialogs would name an app,
   but the release, the installers and the updates would all change, for the
   same result on permissions.

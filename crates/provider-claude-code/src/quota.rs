@@ -19,13 +19,13 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
-use demi_device_interface::{Process, ProcessOutput};
-use demi_provider_common::quota::{
+use jush_device_interface::{Process, ProcessOutput};
+use jush_provider_common::quota::{
     Observation, ObservedWindows, ProbeCost, ProbeReading, QuotaError, QuotaSource,
     clamp_used_percent, plan_label, rfc3339, severity,
 };
-use demi_provider_common::wire::{NonEmpty, Reported, Tagged};
-use demi_shared_types::{QuotaKind, QuotaPlan, QuotaScope, QuotaSeverity, QuotaUnit, QuotaWindow, StreamKind, Timestamp};
+use jush_provider_common::wire::{NonEmpty, Reported, Tagged};
+use jush_shared_types::{QuotaKind, QuotaPlan, QuotaScope, QuotaSeverity, QuotaUnit, QuotaWindow, StreamKind, Timestamp};
 use futures_util::future::BoxFuture;
 use futures_util::stream::LocalBoxStream;
 use futures_util::{FutureExt as _, StreamExt as _};
@@ -183,7 +183,7 @@ impl QuotaSource for ClaudeQuota {
     }
 }
 
-/// What Demi reads of the CLI's `get_usage` answer (Claude Code 2.1.301).
+/// What Jush reads of the CLI's `get_usage` answer (Claude Code 2.1.301).
 #[derive(Deserialize)]
 struct UsageAnswer {
     /// The vendor's usage object, null when the CLI did not read it.
@@ -317,7 +317,7 @@ async fn answer(mut output: LocalBoxStream<'static, ProcessOutput>) -> Answer {
     Answer::Ended(stderr.text())
 }
 
-/// The windows Demi names, by the vendor's id, with their length and the
+/// The windows Jush names, by the vendor's id, with their length and the
 /// model a window on one model applies to.
 const NAMED_WINDOWS: [(&str, u64, Option<&str>); 4] = [
     ("five_hour", FIVE_HOURS, None),
@@ -385,7 +385,7 @@ struct UnifiedWindow {
 
 impl RateLimitInfo {
     /// Each named window of `unifiedWindows`, then the binding window when
-    /// those do not hold it. A window Demi does not name is left out.
+    /// those do not hold it. A window Jush does not name is left out.
     fn windows(self) -> Vec<QuotaWindow> {
         let mut windows: Vec<QuotaWindow> = self
             .unified_windows
@@ -426,7 +426,7 @@ fn unix_seconds(seconds: Reported<i64>) -> Option<Timestamp> {
 }
 
 /// The usage an account reports. Quota is a display, so a window or a limit
-/// Demi cannot read is left out and the rest still shows.
+/// Jush cannot read is left out and the rest still shows.
 #[derive(Default, Deserialize)]
 #[serde(default)]
 struct Usage {
@@ -544,7 +544,7 @@ impl Usage {
 
 /// The period of a limit of the probe, by its kind, never by the vendor's
 /// identifier: a `weekly_*` kind has a week and a session kind five hours;
-/// another kind's period Demi cannot tell.
+/// another kind's period Jush cannot tell.
 fn limit_period(kind: &str) -> Option<u64> {
     if kind.starts_with("weekly") {
         Some(SEVEN_DAYS)

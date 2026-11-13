@@ -5,8 +5,8 @@
 
 use std::collections::BTreeMap;
 
-use demi_command_package_fetch_protocol::{MAX_FILE_BYTES, MAX_REDIRECTS, MAX_TEXT_BYTES};
-use demi_command_protocol::is_binary;
+use jush_command_package_fetch_protocol::{MAX_FILE_BYTES, MAX_REDIRECTS, MAX_TEXT_BYTES};
+use jush_command_protocol::is_binary;
 use mime::Mime;
 use reqwest::{
     Client, NoProxy, Proxy, StatusCode, Url,
@@ -21,7 +21,7 @@ const ACCEPT_TYPES: &str = "text/markdown, text/html;q=0.9, */*;q=0.8";
 /// The User-Agent, a crawler's form naming the program, since a site
 /// refuses a request that names none.
 const USER_AGENT: &str = concat!(
-    "Mozilla/5.0 (compatible; demi-fetch/",
+    "Mozilla/5.0 (compatible; jush-fetch/",
     env!("CARGO_PKG_VERSION"),
     ")"
 );
@@ -60,7 +60,7 @@ pub enum Body {
 #[derive(Debug, thiserror::Error)]
 pub enum DownloadError {
     #[error(
-        "{url} answered with a Cloudflare challenge, which only a browser passes; open the page in a browser tab: demi browser tab new, then demi browser open <tab> {url}"
+        "{url} answered with a Cloudflare challenge, which only a browser passes; open the page in a browser tab: jush browser tab new, then jush browser open <tab> {url}"
     )]
     Challenge { url: Url },
     #[error("{url} redirected more than {MAX_REDIRECTS} times")]
@@ -168,26 +168,26 @@ pub async fn download(
         return Err(too_large());
     }
     let bytes = match kind {
-        // A file that arrived is Demi's one download (`crates/shared-artifacts/src/download.rs`), resumed after a break or a stall: the answer started
+        // A file that arrived is Jush's one download (`crates/shared-artifacts/src/download.rs`), resumed after a break or a stall: the answer started
         // it, and the download continues it.
         Kind::File | Kind::Unknown if status.is_success() => {
             // The client decodes every coding it knows, so the bytes kept
             // may count none the server sent: a break asks for the file
             // again, uncoded, from its start.
-            let request = demi_shared_artifacts::Download {
+            let request = jush_shared_artifacts::Download {
                 limit,
                 first: Some(response),
                 first_decoded: true,
-                ..demi_shared_artifacts::Download::new(url.as_str())
+                ..jush_shared_artifacts::Download::new(url.as_str())
             };
             // The command ends the fetch by dropping it; nothing else
             // cancels it.
             let cancel = tokio_util::sync::CancellationToken::new();
-            match demi_shared_artifacts::download_bytes(&client, request, &cancel).await {
+            match jush_shared_artifacts::download_bytes(&client, request, &cancel).await {
                 // The client decoded what it was sent in a coding, and a
                 // later request asks for the bytes as they are.
                 Ok((_, bytes)) => bytes,
-                Err(demi_shared_artifacts::Error::TooLarge { .. }) => return Err(too_large()),
+                Err(jush_shared_artifacts::Error::TooLarge { .. }) => return Err(too_large()),
                 Err(error) => {
                     return Err(DownloadError::Request {
                         url: url.to_string(),
@@ -301,7 +301,7 @@ fn cause(error: &(dyn std::error::Error + 'static)) -> String {
         innermost = source;
     }
     match innermost.downcast_ref::<std::io::Error>() {
-        Some(error) => demi_command_sdk::errors::reason(error),
+        Some(error) => jush_command_sdk::errors::reason(error),
         None => innermost.to_string(),
     }
 }

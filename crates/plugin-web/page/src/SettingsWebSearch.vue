@@ -11,7 +11,7 @@ import {
   Switch,
   TextInput,
   type SentenceText,
-} from '@demicodes/plugin-sdk'
+} from '@jush-ai/plugin-sdk'
 import type { Feature, InUse, WebState } from './generated/plugin'
 import { t } from './locales/text'
 

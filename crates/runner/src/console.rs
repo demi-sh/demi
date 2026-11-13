@@ -1,6 +1,6 @@
 //! The runner's console: its standard output and error, where it writes the
 //! lines for the person at the terminal, among them the pairing code and result
-//! the installers read (`demi_runner_protocol::console`).
+//! the installers read (`jush_runner_protocol::console`).
 //!
 //! A runner started in the background writes it to its installation's log
 //! itself (`runner.log`, rotated at 10 MiB to `runner.log.1`) rather than the
@@ -162,7 +162,7 @@ fn start_apart() -> io::Result<()> {
 /// The console line of a message of the runner's own, such as one its
 /// device log's console layer writes.
 pub fn runner_line(message: impl Display) -> String {
-    format!("demi-runner: {message}")
+    format!("jush-runner: {message}")
 }
 
 /// Writes `line` to standard error as one write, so that no other line
@@ -174,7 +174,7 @@ pub fn line(line: impl Display) {
         && let Err(error) = log.start_again_if_full()
     {
         // The line still goes to the log that has passed its size.
-        text = format!("demi-runner: the log could not start again: {error}\n{text}");
+        text = format!("jush-runner: the log could not start again: {error}\n{text}");
     }
     // A console that nobody reads any more, such as a closed terminal's, is
     // no reason for the runner to stop.

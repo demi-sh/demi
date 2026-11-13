@@ -12,7 +12,7 @@ import net from 'node:net'
 import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import { parseArgs } from 'node:util'
-import { HELP } from './demi/help'
+import { HELP } from './jush/help'
 import { parseCallLimit } from './limit'
 import { replySchema, type Request } from './protocol'
 import { currentSlot, slotPaths } from './slot'
@@ -70,14 +70,14 @@ function scriptOf(): { text: string, file: string | null } {
   const servers = rest.map((name) => JSON.stringify(name))
   switch (first) {
     case 'up':
-      return { text: `await demi.up(${servers.join(', ')})`, file: null }
+      return { text: `await jush.up(${servers.join(', ')})`, file: null }
     case 'down':
       if (values.wipe) {
         servers.push('{ wipe: true }')
       }
-      return { text: `await demi.down(${servers.join(', ')})`, file: null }
+      return { text: `await jush.down(${servers.join(', ')})`, file: null }
     case 'stop':
-      return { text: 'await demi.stop()', file: null }
+      return { text: 'await jush.stop()', file: null }
     case undefined:
       if (process.stdin.isTTY) {
         fail(`bun browse reads a script from standard input or a file.\n\n${HELP}`)
@@ -92,14 +92,14 @@ function scriptOf(): { text: string, file: string | null } {
 }
 
 /**
- * The caller's `DEMI_*` variables and `PATH`, which the processes the tool starts
+ * The caller's `JUSH_*` variables and `PATH`, which the processes the tool starts
  * get: a server finds the same programs (`cargo`) as the shell that asked for it,
  * not those of the shell that happened to start the tool's server.
  */
 function callerEnv(): Record<string, string> {
   const env: Record<string, string> = {}
   for (const [name, value] of Object.entries(process.env)) {
-    if ((name.startsWith('DEMI_') || name === 'PATH') && value !== undefined) {
+    if ((name.startsWith('JUSH_') || name === 'PATH') && value !== undefined) {
       env[name] = value
     }
   }

@@ -1,5 +1,5 @@
 [package]
-name = "demi-command-package-browser-protocol"
+name = "jush-command-package-browser-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,9 +13,9 @@ bench = false
 
 [dependencies]
 base64 = "0.22"
-demi-live-view-protocol = { path = "../../live-view-protocol" }
-demi-shared-recording-protocol = { path = "../../shared-recording-protocol" }
-demi-shared-types = { path = "../../shared-types" }
+jush-live-view-protocol = { path = "../../live-view-protocol" }
+jush-shared-recording-protocol = { path = "../../shared-recording-protocol" }
+jush-shared-types = { path = "../../shared-types" }
 garde.workspace = true
 regex = "1"
 schemars.workspace = true

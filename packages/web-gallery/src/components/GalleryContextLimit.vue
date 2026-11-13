@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import ContextUsageIndicator from '@demicodes/web-ui/agent/ContextUsageIndicator.vue'
-import ModelMenu from '@demicodes/web-ui/agent/ModelMenu.vue'
-import ModelSelector from '@demicodes/web-ui/agent/ModelSelector.vue'
-import { contextWindowInUse } from '@demicodes/web-ui/agent/context-limit'
+import ContextUsageIndicator from '@jush-ai/web-ui/agent/ContextUsageIndicator.vue'
+import ModelMenu from '@jush-ai/web-ui/agent/ModelMenu.vue'
+import ModelSelector from '@jush-ai/web-ui/agent/ModelSelector.vue'
+import { contextWindowInUse } from '@jush-ai/web-ui/agent/context-limit'
 import {
   applyModelChange,
   type ModelSettings,
   type ModelSettingsChange,
-} from '@demicodes/web-ui/agent/model-selection'
+} from '@jush-ai/web-ui/agent/model-selection'
 import {
   contextLimitModels,
   contextLimitProviders,

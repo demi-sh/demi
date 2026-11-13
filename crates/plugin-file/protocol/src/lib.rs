@@ -1,16 +1,16 @@
-//! The `demi.file` package's contract: the arguments of its `file.*` operations. Paths are
+//! The `jush.file` package's contract: the arguments of its `file.*` operations. Paths are
 //! relative to the invocation's working directory; the handler resolves and
 //! checks them. It holds types and their checks only; the operations live in
-//! `demi-file`.
+//! `jush-file`.
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
 
 /// The package's id, which its release descriptor names and the coding
 /// agent's commands bind to.
-pub const PACKAGE: &str = "demi.file";
+pub const PACKAGE: &str = "jush.file";
 
 /// Why an invocation could not be decoded.
 #[derive(Debug, thiserror::Error)]
@@ -212,7 +212,7 @@ pub enum EditArgsError {
     #[error("Line {line} of stdin names {path}, but no block follows it")]
     PathWithoutBlocks { line: usize, path: String },
     #[error(
-        "Line {line} of stdin, {marker}, is out of place in block {block}; a text that holds a line exactly like a marker is changed with `demi file patch`"
+        "Line {line} of stdin, {marker}, is out of place in block {block}; a text that holds a line exactly like a marker is changed with `jush file patch`"
     )]
     MarkerOutOfPlace {
         line: usize,
@@ -398,7 +398,7 @@ fn decode<T>(args: serde_json::Value) -> Result<T, OperationError>
 where
     T: serde::de::DeserializeOwned + garde::Validate<Context = ()>,
 {
-    Ok(demi_shared_types::decode_value(args)?)
+    Ok(jush_shared_types::decode_value(args)?)
 }
 
 /// Decodes `file.edit`'s arguments: checked [`EditArgs`], then the edit

@@ -85,7 +85,7 @@ const HOLD: Duration = KEY_FRAME_SPACING;
 const UNANSWERED: Duration = Duration::from_secs(2);
 
 /// One encoded picture of a source: H.264 Annex B in
-/// [`VIDEO_CODEC`](demi_live_view_protocol::VIDEO_CODEC), with its size in
+/// [`VIDEO_CODEC`](jush_live_view_protocol::VIDEO_CODEC), with its size in
 /// pixels and whether it is a key frame.
 #[derive(Debug, Clone)]
 pub struct EncodedFrame {

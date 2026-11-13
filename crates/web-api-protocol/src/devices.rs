@@ -1,10 +1,10 @@
 //! Devices: the list, pairing, and a device's log.
 
-use demi_runner_protocol::direct::CANDIDATE_CHARS;
+use jush_runner_protocol::direct::CANDIDATE_CHARS;
 /// The STUN servers' URLs, which the product state names to the page.
-pub use demi_runner_protocol::direct::{NotAStunUrl, StunUrl};
-use demi_runner_protocol::wire::{AutostartUnavailable, DeviceArtifact, DeviceDownload, OperatingSystem, RunnerPlatform};
-use demi_shared_types::{Nullable, Timestamp};
+pub use jush_runner_protocol::direct::{NotAStunUrl, StunUrl};
+use jush_runner_protocol::wire::{AutostartUnavailable, DeviceArtifact, DeviceDownload, OperatingSystem, RunnerPlatform};
+use jush_shared_types::{Nullable, Timestamp};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -159,7 +159,7 @@ pub struct DeviceDto {
 }
 
 /// The commands that install and start the runner on a computer of each
-/// system, which the Add Device dialog and `demi device install-command` show
+/// system, which the Add Device dialog and `jush device install-command` show
 /// as they are. They hold no credential.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct InstallCommands {

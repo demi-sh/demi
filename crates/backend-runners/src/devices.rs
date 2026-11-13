@@ -35,19 +35,19 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use axum::extract::ws::{Message, WebSocket};
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::devices::{DeviceRecord, FirstHome};
-use demi_backend_page_sync::{Part, UserMarks};
-use demi_runner_client::{
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::devices::{DeviceRecord, FirstHome};
+use jush_backend_page_sync::{Part, UserMarks};
+use jush_runner_client::{
     Admission, DeviceJobs, DeviceLink, DeviceSession, Link, LinkDriver, LinkEnd, RemoteDevice, close_frame,
     socket_frame,
 };
-use demi_device_interface::{DeviceIdentity, DeviceKey};
-use demi_runner_protocol::wire::{self, AutostartUnavailable, DeviceArtifact, Hardware, Inbound, OperatingSystem};
-use demi_runner_protocol::values::BackendUrl;
-use demi_web_api_protocol::devices::{DeviceDto, DeviceKind, DeviceLogo, DeviceMark, DeviceState};
-use demi_web_api_protocol::ids::{DeviceId, UserId};
+use jush_device_interface::{DeviceIdentity, DeviceKey};
+use jush_runner_protocol::wire::{self, AutostartUnavailable, DeviceArtifact, Hardware, Inbound, OperatingSystem};
+use jush_runner_protocol::values::BackendUrl;
+use jush_web_api_protocol::devices::{DeviceDto, DeviceKind, DeviceLogo, DeviceMark, DeviceState};
+use jush_web_api_protocol::ids::{DeviceId, UserId};
 use futures_util::future::ready;
 use futures_util::{SinkExt as _, StreamExt as _};
 use tokio::sync::watch;
@@ -704,7 +704,7 @@ impl Devices {
     pub fn adopting_device(
         &self,
         device: &DeviceId,
-        conversation: &demi_web_api_protocol::ids::ConversationId,
+        conversation: &jush_web_api_protocol::ids::ConversationId,
         cwd: String,
         admission: Admission,
     ) -> RemoteDevice {

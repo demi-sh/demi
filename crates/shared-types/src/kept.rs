@@ -36,7 +36,7 @@ pub fn kept_words_budget(window: Option<u64>) -> u64 {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct KeptMessage {
     /// The index of the `user` or `steer` block it came from in its agent's
-    /// transcript, the one `demi conversation history read` and `open` take;
+    /// transcript, the one `jush conversation history read` and `open` take;
     /// a message carried into a later compaction keeps it.
     #[garde(range(max = MAX_SAFE_INTEGER))]
     pub index: u64,
@@ -54,7 +54,7 @@ impl KeptMessage {
     /// place: an image, or an attachment of one, as `[Image]`, any other
     /// attachment as `[Attachment]`. A medium directly before an attachment is
     /// the attachment's own view, which the model read in its place, so the
-    /// two are one file, as `demi conversation history open` numbers them.
+    /// two are one file, as `jush conversation history open` numbers them.
     /// Text parts are joined by a line break, a placeholder by a space.
     pub fn of(index: u64, content: &[UserContentBlock]) -> Self {
         const IMAGE: &str = "[Image]";

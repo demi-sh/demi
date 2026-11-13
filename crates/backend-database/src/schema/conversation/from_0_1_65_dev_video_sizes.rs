@@ -8,7 +8,7 @@
 
 use std::str::FromStr;
 
-use demi_shared_types::BlobRef;
+use jush_shared_types::BlobRef;
 use rusqlite::Transaction;
 
 use super::super::{Migration, ReadBlob};

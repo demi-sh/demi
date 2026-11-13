@@ -11,7 +11,7 @@ use tokio::sync::mpsc;
 
 use crate::ResidentError;
 use crate::asking::{Answered, Asked, Asker, Pending};
-use demi_command_protocol::{
+use jush_command_protocol::{
     ArtifactAnswer, ArtifactAnswered, ArtifactAsk, ArtifactInstall, ArtifactProgress,
     ArtifactReply, ArtifactRequest, ArtifactsInstalled, InstalledArtifact, ProtocolError,
 };

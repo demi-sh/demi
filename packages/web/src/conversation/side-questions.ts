@@ -1,9 +1,9 @@
 import { toRaw } from 'vue'
 import { defineStore } from 'pinia'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import type { ClientContent } from '@demicodes/protocol'
-import type { DraftMessage, MessageFiles } from '@demicodes/web-ui/agent/comments/comments'
-import type { NewSideQuestion, ReplyAsking, ShownSideQuestion } from '@demicodes/web-ui/agent/comments/asks'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import type { ClientContent } from '@jush-ai/protocol'
+import type { DraftMessage, MessageFiles } from '@jush-ai/web-ui/agent/comments/comments'
+import type { NewSideQuestion, ReplyAsking, ShownSideQuestion } from '@jush-ai/web-ui/agent/comments/asks'
 import { ApiError } from '../api/client'
 import { t } from './locales/text'
 import {

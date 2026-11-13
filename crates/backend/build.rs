@@ -19,7 +19,7 @@ fn main() {
         .filter(|name| !name.is_empty())
         .or_else(|| git(&["symbolic-ref", "--quiet", "--short", "HEAD"]));
     if let Some(branch) = branch {
-        println!("cargo::rustc-env=DEMI_BUILD_BRANCH={branch}");
+        println!("cargo::rustc-env=JUSH_BUILD_BRANCH={branch}");
     }
 }
 

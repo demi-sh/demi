@@ -7,7 +7,7 @@
  */
 
 /** The `localStorage` key that names the account the browser's data is. */
-const OWNER_KEY = 'demi.account'
+const OWNER_KEY = 'jush.account'
 
 /** The account the browser's data is; none when it holds none. */
 export function heldAccount(): string | null {

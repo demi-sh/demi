@@ -19,13 +19,13 @@ use std::{
     rc::Rc,
 };
 
-use demi_device_interface::ProcessEnd;
-use demi_runner_protocol::wire::{self, Inbound, JOB_VIEW_BYTES, KeptJob};
-use demi_shared_types::StreamKind;
+use jush_device_interface::ProcessEnd;
+use jush_runner_protocol::wire::{self, Inbound, JOB_VIEW_BYTES, KeptJob};
+use jush_shared_types::StreamKind;
 use tokio::{sync::watch, time::Instant};
 use tokio_util::sync::CancellationToken;
 
-use demi_shared_gates::GateLease;
+use jush_shared_gates::GateLease;
 
 use crate::{
     WeakLink,
@@ -33,9 +33,9 @@ use crate::{
     manifest::CommandSelection,
 };
 
-/// Why a job is lost when Demi was upgraded and the runner that kept it
+/// Why a job is lost when Jush was upgraded and the runner that kept it
 /// replaced itself with the new release's (`upgrades.md`).
-pub const UPGRADED: &str = "Demi was upgraded and the device's runner replaced itself";
+pub const UPGRADED: &str = "Jush was upgraded and the device's runner replaced itself";
 /// Why a Cloud's job is lost when its runner started anew.
 pub const CLOUD_RESTARTED: &str = "the Cloud restarted";
 /// Why a paired device's job is lost when its runner started anew.
@@ -672,7 +672,7 @@ impl DeviceJobs {
         &self,
         link: &Link,
         id: &str,
-        output: Option<&demi_device_interface::WholeOutput>,
+        output: Option<&jush_device_interface::WholeOutput>,
         lengths: wire::OutputLengths,
     ) {
         let mut table = self.0.borrow_mut();
@@ -836,10 +836,10 @@ impl JobEntry {
 /// beyond them, at their offsets. The kept output leaves bytes out in one
 /// place at most; the bytes after it end where each stream's length says.
 fn kept_chunks(
-    output: &demi_device_interface::WholeOutput,
+    output: &jush_device_interface::WholeOutput,
     lengths: wire::OutputLengths,
 ) -> Vec<JobOutput> {
-    use demi_device_interface::OutputRecord;
+    use jush_device_interface::OutputRecord;
     let lengths = [lengths.stdout_bytes, lengths.stderr_bytes];
     let index = stream_index;
     let records = output.records();

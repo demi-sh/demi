@@ -1,6 +1,6 @@
 //! A device's log, followed into memory from the moment the device opens
 //! until it closes, across the connections it takes meanwhile, and read
-//! after a cursor as `demi browser logs` reads a tab's console.
+//! after a cursor as `jush browser logs` reads a tab's console.
 //!
 //! The drivers follow the platform's log and push each entry here; a read
 //! filters what the buffer kept. Nothing goes to the disk: the buffer
@@ -10,8 +10,8 @@ use std::sync::Mutex;
 
 use tokio_util::sync::CancellationToken;
 
-use demi_command_package_mobile_protocol::mobile::{DeviceId, LOG_BYTES, LOG_ENTRIES, LogEntry, LogsInput, LogsResult};
-use demi_shared_types::buffer::{Buffer, BufferError};
+use jush_command_package_mobile_protocol::mobile::{DeviceId, LOG_BYTES, LOG_ENTRIES, LogEntry, LogsInput, LogsResult};
+use jush_shared_types::buffer::{Buffer, BufferError};
 
 use crate::error::MobileError;
 
@@ -40,7 +40,7 @@ pub struct Log {
     /// followed from then.
     since: f64,
     /// Cancelled once the device closes or is lost, which ends what follows
-    /// it across its connections, as the console of an app Demi launched.
+    /// it across its connections, as the console of an app Jush launched.
     closed: CancellationToken,
 }
 
@@ -122,7 +122,7 @@ fn stale(error: BufferError) -> MobileError {
 }
 
 /// A log entry of the platform's, its position left to the log.
-pub fn entry(timestamp: f64, level: demi_command_package_mobile_protocol::mobile::LogLevel, pid: u32, text: String) -> LogEntry {
+pub fn entry(timestamp: f64, level: jush_command_package_mobile_protocol::mobile::LogLevel, pid: u32, text: String) -> LogEntry {
     LogEntry {
         sequence: 0,
         timestamp,

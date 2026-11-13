@@ -6,7 +6,7 @@
 //!
 //! The build produces two things:
 //!
-//! - `demi-ios-sim`, the Swift package in `ios-sim/` linking idb's v1.7.6
+//! - `jush-ios-sim`, the Swift package in `ios-sim/` linking idb's v1.7.6
 //!   libraries.
 //! - idb's guest bridge `SimulatorFrameworkBridge-iOS`, built from the same
 //!   release's source with Xcode and XcodeGen.
@@ -24,9 +24,9 @@
 //! development or release, builds the helper here, keeping the downloads and
 //! the Swift and Xcode builds under the target directory's `ios-sim/`.
 //!
-//! A Mac without Xcode or its iOS SDK builds no helper and says why. Then `demi
+//! A Mac without Xcode or its iOS SDK builds no helper and says why. Then `jush
 //! mobile list` says iOS needs Xcode. A release build sets
-//! `DEMI_MOBILE_IOS_HELPER=required`, which makes that an error.
+//! `JUSH_MOBILE_IOS_HELPER=required`, which makes that an error.
 //!
 //! # The Android helper
 //!
@@ -39,7 +39,7 @@
 //!   (`crates/plugin-mobile/command/src/android/mod.rs`).
 //!
 //! A build that cannot fetch it carries none and says why;
-//! `DEMI_MOBILE_ANDROID_HELPER=required` makes that an error.
+//! `JUSH_MOBILE_ANDROID_HELPER=required` makes that an error.
 
 use std::{
     env, fs,
@@ -53,7 +53,7 @@ use sha2::{Digest, Sha256};
 /// The one target whose build carries the helper.
 const TARGET: &str = "aarch64-apple-darwin";
 /// What a release build sets so a build without the helper fails.
-const REQUIRED: &str = "DEMI_MOBILE_IOS_HELPER";
+const REQUIRED: &str = "JUSH_MOBILE_IOS_HELPER";
 
 /// idb's v1.7.6 source, whose guest bridge the build compiles.
 const IDB_SOURCE: Pinned = Pinned {
@@ -74,7 +74,7 @@ const XCODEGEN: Pinned = Pinned {
 const BRIDGE: &str = "SimulatorFrameworkBridge-iOS";
 
 /// What a release build sets so a build without the Android helper fails.
-const ANDROID_REQUIRED: &str = "DEMI_MOBILE_ANDROID_HELPER";
+const ANDROID_REQUIRED: &str = "JUSH_MOBILE_ANDROID_HELPER";
 /// openatx's UI automation server, run inside an emulator with
 /// `app_process`.
 const U2_JAR: Pinned = Pinned {
@@ -91,8 +91,8 @@ struct Pinned {
 }
 
 fn main() {
-    println!("cargo::rustc-check-cfg=cfg(demi_ios_helper)");
-    println!("cargo::rustc-check-cfg=cfg(demi_android_helper)");
+    println!("cargo::rustc-check-cfg=cfg(jush_ios_helper)");
+    println!("cargo::rustc-check-cfg=cfg(jush_android_helper)");
     println!("cargo::rerun-if-changed=build.rs");
     println!("cargo::rerun-if-changed=ios-sim");
     println!("cargo::rerun-if-changed=android");
@@ -107,7 +107,7 @@ fn main() {
         if required {
             panic!("the iOS helper needs Xcode with its iOS SDK: {missing}");
         }
-        println!("cargo::warning=demi-mobile carries no iOS helper: {missing}");
+        println!("cargo::warning=jush-mobile carries no iOS helper: {missing}");
         return;
     }
     let out = PathBuf::from(env::var_os("OUT_DIR").expect("cargo sets OUT_DIR"));
@@ -116,9 +116,9 @@ fn main() {
     let archive = build(&manifest.join("ios-sim"), &cache)
         .unwrap_or_else(|error| panic!("the iOS helper did not build: {error}"));
     let digest: String = Sha256::digest(&archive).iter().map(|byte| format!("{byte:02x}")).collect();
-    fs::write(out.join("demi-ios-sim.tar.zst"), &archive).expect("the archive is written");
-    println!("cargo::rustc-env=DEMI_IOS_SIM_SHA256={digest}");
-    println!("cargo::rustc-cfg=demi_ios_helper");
+    fs::write(out.join("jush-ios-sim.tar.zst"), &archive).expect("the archive is written");
+    println!("cargo::rustc-env=JUSH_IOS_SIM_SHA256={digest}");
+    println!("cargo::rustc-cfg=jush_ios_helper");
 }
 
 /// The emulator's gRPC client and server, and the Android helper.
@@ -144,11 +144,11 @@ fn android() {
     match fetched {
         Ok(jar) => {
             fs::copy(&jar, out.join("u2.jar")).expect("the Android helper is copied");
-            println!("cargo::rustc-env=DEMI_U2_JAR_SHA256={}", U2_JAR.sha256);
-            println!("cargo::rustc-cfg=demi_android_helper");
+            println!("cargo::rustc-env=JUSH_U2_JAR_SHA256={}", U2_JAR.sha256);
+            println!("cargo::rustc-cfg=jush_android_helper");
         }
         Err(error) if required => panic!("the Android helper was not fetched: {error}"),
-        Err(error) => println!("cargo::warning=demi-mobile carries no Android helper: {error}"),
+        Err(error) => println!("cargo::warning=jush-mobile carries no Android helper: {error}"),
     }
 }
 
@@ -234,15 +234,15 @@ fn build(package: &Path, cache: &Path) -> Result<Vec<u8>, Failure> {
     run(&mut swift(&[]))?;
     let shown = swift(&["--show-bin-path"]).output()?;
     let products = PathBuf::from(String::from_utf8(shown.stdout)?.trim());
-    let helper = products.join("demi-ios-sim");
+    let helper = products.join("jush-ios-sim");
     // The archive's contents, signed and packed.
     let staging = cache.join("staging");
     if staging.exists() {
         fs::remove_dir_all(&staging)?;
     }
     fs::create_dir_all(staging.join("Resources"))?;
-    fs::copy(&helper, staging.join("demi-ios-sim"))?;
-    run(Command::new("codesign").args(["--force", "--sign", "-"]).arg(staging.join("demi-ios-sim")))?;
+    fs::copy(&helper, staging.join("jush-ios-sim"))?;
+    run(Command::new("codesign").args(["--force", "--sign", "-"]).arg(staging.join("jush-ios-sim")))?;
     // idb's stub frameworks, which the helper loads from beside itself
     // (`@loader_path`), their symlinks kept.
     for entry in fs::read_dir(&products)? {

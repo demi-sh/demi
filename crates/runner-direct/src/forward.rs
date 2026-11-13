@@ -9,8 +9,8 @@
 //! - The channel closes once both sides have ended.
 
 use bytes::BytesMut;
-use demi_runner_protocol::direct::{MESSAGE_BYTES, WriteEnd};
-use demi_runner_protocol::forward::DEADLINE;
+use jush_runner_protocol::direct::{MESSAGE_BYTES, WriteEnd};
+use jush_runner_protocol::forward::DEADLINE;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};

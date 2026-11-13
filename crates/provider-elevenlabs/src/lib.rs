@@ -11,10 +11,10 @@ mod audio;
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     Capabilities, Provider, ProviderRuntime, RuntimeEnv, RuntimeError, Secret, audio::AudioMaker, read_http_failure,
 };
-use demi_shared_types::{AuthState, Clock, ProviderErrorDiagnostics, ProviderFailureFacts, RuntimeState, Timestamp};
+use jush_shared_types::{AuthState, Clock, ProviderErrorDiagnostics, ProviderFailureFacts, RuntimeState, Timestamp};
 use futures_util::future::BoxFuture;
 use reqwest::Url;
 

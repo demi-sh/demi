@@ -4,9 +4,9 @@
 //! (`crates/backend-database/src/command_outputs.rs`).
 
 use bytes::Bytes;
-use demi_device_interface::{Missing, OutputRecord, WholeOutput};
-use demi_runner_protocol::wire::{self, KeptRecord, OutputStream, WireBytes, WireError};
-use demi_shared_types::StreamKind;
+use jush_device_interface::{Missing, OutputRecord, WholeOutput};
+use jush_runner_protocol::wire::{self, KeptRecord, OutputStream, WireBytes, WireError};
+use jush_shared_types::StreamKind;
 
 /// The output `bytes` hold, records of a kept output, which the `missing`
 /// bytes follow.

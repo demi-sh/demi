@@ -23,8 +23,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
-use demi_shared_types::{CatalogRecord, Clock, ProviderModelList, Timestamp};
-use demi_web_api_protocol::ids::ProviderId;
+use jush_shared_types::{CatalogRecord, Clock, ProviderModelList, Timestamp};
+use jush_web_api_protocol::ids::ProviderId;
 use futures_util::FutureExt;
 use futures_util::future::{BoxFuture, Shared};
 use garde::Validate;

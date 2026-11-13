@@ -1,8 +1,8 @@
 import { computed } from 'vue'
 import { defineStore } from 'pinia'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import type { CredentialReveal, MessageCredentials } from '@demicodes/web-ui/markdown/types'
-import type { SettingsCredential, SettingsCredentialDraft, SettingsCredentialPatch } from '@demicodes/web-ui/settings/types'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import type { CredentialReveal, MessageCredentials } from '@jush-ai/web-ui/markdown/types'
+import type { SettingsCredential, SettingsCredentialDraft, SettingsCredentialPatch } from '@jush-ai/web-ui/settings/types'
 import { ApiError, apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   credentialAnswerSchema,

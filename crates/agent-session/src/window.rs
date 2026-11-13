@@ -12,10 +12,10 @@
 
 use std::collections::BTreeMap;
 
-use demi_agent_store::{Kind, StoreError};
-use demi_agent_transcript::{Earlier, TranscriptLog};
-use demi_conversation_lane_protocol::{BlockVersions, PageAt, Versions, latest_page_start, light, page};
-use demi_shared_types::{Block, BlockId};
+use jush_agent_store::{Kind, StoreError};
+use jush_agent_transcript::{Earlier, TranscriptLog};
+use jush_conversation_lane_protocol::{BlockVersions, PageAt, Versions, latest_page_start, light, page};
+use jush_shared_types::{Block, BlockId};
 
 use super::SessionShared;
 
@@ -66,7 +66,7 @@ pub struct LatestPage {
     pub length: usize,
     pub blocks: Vec<Block>,
     pub versions: Vec<BlockVersions>,
-    pub version: demi_conversation_lane_protocol::Version,
+    pub version: jush_conversation_lane_protocol::Version,
 }
 
 /// The latest `count` blocks of the session's transcript, a page at most,
@@ -93,7 +93,7 @@ fn page_of(
     start: usize,
     blocks: &[Block],
     versions: &BTreeMap<usize, Versions>,
-    version: demi_conversation_lane_protocol::Version,
+    version: jush_conversation_lane_protocol::Version,
     count: usize,
 ) -> LatestPage {
     let from = start + page(blocks.len(), PageAt::Latest(count)).start;

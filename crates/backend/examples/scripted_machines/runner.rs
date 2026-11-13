@@ -1,4 +1,4 @@
-//! A real runner process for a scripted Cloud sandbox: the `demi-runner` the
+//! A real runner process for a scripted Cloud sandbox: the `jush-runner` the
 //! workspace built, with a temporary home and state of its own, connecting to
 //! the backend as the device its token names. Its state, and so its token,
 //! survives a stop.
@@ -7,13 +7,13 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
 
-use demi_command_protocol::testing::{BUILD_PROGRAMS, built_program};
-use demi_device_interface::SpawnEnv;
+use jush_command_protocol::testing::{BUILD_PROGRAMS, built_program};
+use jush_device_interface::SpawnEnv;
 use tokio::process::Child;
 
-/// The `demi-runner` the workspace built beside this example.
+/// The `jush-runner` the workspace built beside this example.
 pub fn runner_binary() -> PathBuf {
-    built_program("demi-runner")
+    built_program("jush-runner")
 }
 
 /// How a runner process starts.
@@ -102,7 +102,7 @@ impl RunnerProcess {
     }
 
     /// Empties the runner's state while it is stopped as a Cloud's stop
-    /// does: its temporary state, `/run/demi` on a Cloud, goes, while its
+    /// does: its temporary state, `/run/jush` on a Cloud, goes, while its
     /// log and its job directories, which a Cloud keeps on its system image
     /// (`crates/machine-manager/src/storage/mod.rs`), its home and the
     /// scratch directories stay.
@@ -195,23 +195,23 @@ fn runner_command(
         .current_dir(home)
         .env("HOME", home)
         .env("USERPROFILE", home)
-        .env("DEMI_HOME", state)
+        .env("JUSH_HOME", state)
         // What the runner leaves in its temporary directory goes with the
         // process's state, even when it is killed.
         .env("TMPDIR", state.join("tmp"))
-        .env("DEMI_RUNNER_NAME", &options.name)
-        .env("DEMI_RUNNER_MANAGED", "1")
+        .env("JUSH_RUNNER_NAME", &options.name)
+        .env("JUSH_RUNNER_MANAGED", "1")
         .stdin(Stdio::null())
         .kill_on_drop(true);
     // The service manager's runner, which hands nothing over, unless the
     // script says otherwise.
     let named = match &options.env {
         SpawnEnv::Inherit => false,
-        SpawnEnv::Overlay(changes) => changes.contains_key(demi_runner_protocol::SUPERVISED),
+        SpawnEnv::Overlay(changes) => changes.contains_key(jush_runner_protocol::SUPERVISED),
         SpawnEnv::Exactly(_) => true,
     };
     if !named {
-        command.env(demi_runner_protocol::SUPERVISED, "1");
+        command.env(jush_runner_protocol::SUPERVISED, "1");
     }
     command
 }

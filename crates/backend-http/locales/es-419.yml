@@ -5,13 +5,13 @@ oauth:
     text: "Iniciaste sesión en %{vendor}. Puedes cerrar esta pestaña."
   unknown_plugin:
     title: "No se encontró el inicio de sesión"
-    text: "Nada en Demi inicia sesión aquí. Cierra esta pestaña."
+    text: "Nada en Jush inicia sesión aquí. Cierra esta pestaña."
   unknown_state:
     title: "El inicio de sesión venció"
-    text: "Este inicio de sesión venció, ya se usó o lo inició otra cuenta. Cierra esta pestaña y vuelve a iniciar sesión en Demi."
+    text: "Este inicio de sesión venció, ya se usó o lo inició otra cuenta. Cierra esta pestaña y vuelve a iniciar sesión en Jush."
   denied:
     title: "No se inició sesión en %{vendor}"
-    text: "%{vendor} no inició tu sesión (%{error}). Cierra esta pestaña y vuelve a intentarlo en Demi."
+    text: "%{vendor} no inició tu sesión (%{error}). Cierra esta pestaña y vuelve a intentarlo en Jush."
   exchange_failed:
     title: "No se inició sesión en %{vendor}"
-    text: "%{vendor} no completó el inicio de sesión: %{failure}. Cierra esta pestaña y vuelve a intentarlo en Demi."
+    text: "%{vendor} no completó el inicio de sesión: %{failure}. Cierra esta pestaña y vuelve a intentarlo en Jush."

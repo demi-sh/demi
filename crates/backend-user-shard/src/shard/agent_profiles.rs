@@ -1,23 +1,23 @@
-//! What the profile changes of `demi agent profiles` need of the user's shard
+//! What the profile changes of `jush agent profiles` need of the user's shard
 //! (`crates/agent-server/src/server/tree/profiles.rs`).
 //!
 //! - A command's change is resolved into the body the settings page sends,
 //!   written by the same path with the same checks and the same words.
-//! - The user's entries come with their catalogs, which `demi providers` lists
+//! - The user's entries come with their catalogs, which `jush providers` lists
 //!   too.
 
-use demi_agent_tools::{
+use jush_agent_tools::{
     EFFORT_OFF, ModelChoice, ModelEdit, NewProfileDraft, ProfileEdit, TIER_DEFAULT,
 };
-use demi_backend_accounts::subagents::ContextRefusal;
-use demi_backend_database::StorageError;
-use demi_provider_registry::entry::ProviderEntry;
-use demi_shared_types::{ContextChoice, THINKING_OFF};
-use demi_web_api_protocol::conversations::ModelSettings;
-use demi_web_api_protocol::ids::ProviderId;
-use demi_web_api_protocol::providers::{Availability, CatalogProvider};
-use demi_web_api_protocol::settings::Preferences;
-use demi_web_api_protocol::subagents::{NewProfile, ProfilePatch, SubagentProfile};
+use jush_backend_accounts::subagents::ContextRefusal;
+use jush_backend_database::StorageError;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_shared_types::{ContextChoice, THINKING_OFF};
+use jush_web_api_protocol::conversations::ModelSettings;
+use jush_web_api_protocol::ids::ProviderId;
+use jush_web_api_protocol::providers::{Availability, CatalogProvider};
+use jush_web_api_protocol::settings::Preferences;
+use jush_web_api_protocol::subagents::{NewProfile, ProfilePatch, SubagentProfile};
 
 use super::Shard;
 
@@ -287,12 +287,12 @@ fn offering_entry(
             if !listing.is_empty() {
                 let entries: Vec<String> = listing.iter().map(|catalog| label(catalog)).collect();
                 return Err(format!(
-                    "model \"{model}\" is offered only by provider entries that cannot run now: {}; `demi providers show` shows the models of each entry the user can use",
+                    "model \"{model}\" is offered only by provider entries that cannot run now: {}; `jush providers show` shows the models of each entry the user can use",
                     entries.join(", ")
                 ));
             }
             Err(format!(
-                "no provider entry offers the model \"{model}\"; `demi providers show` shows the models of each entry the user can use"
+                "no provider entry offers the model \"{model}\"; `jush providers show` shows the models of each entry the user can use"
             ))
         }
         several => {
@@ -314,13 +314,13 @@ fn offering_entry(
 /// Why a profile cannot take a model of an entry the user turned off.
 fn hidden_entry(entry: &str) -> String {
     format!(
-        "the provider entry \"{entry}\" is turned off in Settings > Providers; choose a model `demi providers show` shows, or ask the user to turn the entry on"
+        "the provider entry \"{entry}\" is turned off in Settings > Providers; choose a model `jush providers show` shows, or ask the user to turn the entry on"
     )
 }
 
 /// Why a profile cannot take a model the user turned off.
 fn hidden_model(model: &str, entry: &str) -> String {
     format!(
-        "the model \"{model}\" of \"{entry}\" is turned off in Settings > Providers; choose a model `demi providers show` shows, or ask the user to turn it on"
+        "the model \"{model}\" of \"{entry}\" is turned off in Settings > Providers; choose a model `jush providers show` shows, or ask the user to turn it on"
     )
 }

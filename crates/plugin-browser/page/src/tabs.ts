@@ -1,7 +1,7 @@
 import { computed, onScopeDispose } from 'vue'
 import { z } from 'zod'
 import { BrowserTabsError, asTabsError, type BrowserTabsApi } from './live/tabs'
-import { PluginCallError, type ConversationPlugin } from '@demicodes/plugin-sdk'
+import { PluginCallError, type ConversationPlugin } from '@jush-ai/plugin-sdk'
 import {
   browserTabsSchema,
   controlReasonSchema,

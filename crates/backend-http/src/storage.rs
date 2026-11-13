@@ -1,4 +1,4 @@
-//! `/api/storage`: what Demi keeps on the server and on the caller's devices,
+//! `/api/storage`: what Jush keeps on the server and on the caller's devices,
 //! the rules that clean it up, and the cleanups the caller makes by hand
 //! (`crates/backend-user-shard/src/shard/storage.rs`).
 //!
@@ -9,11 +9,11 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_user_shard::shard::storage::StorageRequestError;
-use demi_web_api_protocol::auth::Role;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::DeviceId;
-use demi_web_api_protocol::storage::{DeviceStorageReport, LogRetention, Storage, StorageAction, StorageRules};
+use jush_backend_user_shard::shard::storage::StorageRequestError;
+use jush_web_api_protocol::auth::Role;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::DeviceId;
+use jush_web_api_protocol::storage::{DeviceStorageReport, LogRetention, Storage, StorageAction, StorageRules};
 
 use super::AppState;
 use super::body::JsonBody;

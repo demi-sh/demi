@@ -9,8 +9,8 @@
 //! - A read replies once the file is open and positioned, before its first
 //!   byte, so a file that cannot be opened is an error reply and never an empty
 //!   stream.
-//! - A write goes to a temporary file beside the destination (`.demi-partial-`,
-//!   from `demi_shared_artifacts`'s publication, as a file command's is) and is
+//! - A write goes to a temporary file beside the destination (`.jush-partial-`,
+//!   from `jush_shared_artifacts`'s publication, as a file command's is) and is
 //!   renamed into place only when the pipe ends cleanly. A failed or cancelled
 //!   pipe leaves the destination as it was. A file left behind by a crash is
 //!   safe to delete, and a write still running when it goes fails instead of
@@ -24,13 +24,13 @@
 //! A runner that stops reading before the end because nothing reads it any more
 //! (a job ended or closed its input) reports success. The backend then ends the
 //! pipe for its writer as a whole one, and the writer stops without a message,
-//! as a local writer does whose reader left: `… | demi device shell --device x
+//! as a local writer does whose reader left: `… | jush device shell --device x
 //! 'read l; echo $l'` prints the far command's line and status alone.
 //!
 //! # Deadline
 //!
 //! A write's reply comes within 60 seconds of its last byte leaving the backend
-//! (`reply_after_input` in `demi_runner_client`). A session file's last
+//! (`reply_after_input` in `jush_runner_client`). A session file's last
 //! bytes once stayed queued where gVisor left them and the write waited all
 //! night; the deadline turns such a stall into one failed start and a retry.
 //! The pipe itself keeps no deadline.
@@ -42,7 +42,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_shared_artifacts::{Mode, Permissions, Publication, Staged};
+use jush_shared_artifacts::{Mode, Permissions, Publication, Staged};
 use futures_util::StreamExt;
 use tokio::{
     fs,
@@ -51,13 +51,13 @@ use tokio::{
 };
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_command_sdk::paths::resolve;
+use jush_command_sdk::paths::resolve;
 
-use demi_runner_process::{
+use jush_runner_process::{
     pipes::{PipeClient, UploadBody, report_pipe, report_queued},
     private_files::{chmod, io_error},
 };
-use demi_runner_protocol::wire::{self, Inbound, PipeRef, ReadAt};
+use jush_runner_protocol::wire::{self, Inbound, PipeRef, ReadAt};
 
 use crate::{fs::error_code, git::GitService, search::Search};
 
@@ -454,7 +454,7 @@ impl FileTransfers {
             let decoded = match root {
                 // Out of open files, the request waits for one (`crates/command-sdk/src/descriptors.rs`).
                 Ok(root) => {
-                    demi_command_sdk::descriptors::retry(&transfer, || git.show(&root, &path, commit.as_deref(), &transfer)).await
+                    jush_command_sdk::descriptors::retry(&transfer, || git.show(&root, &path, commit.as_deref(), &transfer)).await
                 }
                 Err(error) => Err(crate::git::GitError::Io(error)),
             };
@@ -546,7 +546,7 @@ fn opened_file(stat: wire::FileStat, held: Option<&str>) -> wire::OpenedFile {
 }
 
 /// [`open_read`] for the backend's `fs_readFile`: the range as an upload's
-/// body, which goes again from any offset (`demi_runner_process::pipes`).
+/// body, which goes again from any offset (`jush_runner_process::pipes`).
 async fn open_upload(
     target: io::Result<PathBuf>,
     offset: u64,
@@ -633,7 +633,7 @@ async fn open_range(
 ) -> io::Result<(fs::File, u64, wire::FileStat)> {
     let target = target?;
     // Out of open files, the transfer waits for one (`crates/command-sdk/src/descriptors.rs`).
-    let mut file = demi_command_sdk::descriptors::retry(cancel, || fs::File::open(&target)).await?;
+    let mut file = jush_command_sdk::descriptors::retry(cancel, || fs::File::open(&target)).await?;
     let metadata = file.metadata().await?;
     if !metadata.is_file() {
         return Err(io::Error::new(
@@ -674,7 +674,7 @@ async fn open_file(
 ) -> io::Result<OpenFile> {
     let target = target?;
     // Out of open files, the read waits for one (`crates/command-sdk/src/descriptors.rs`).
-    let file = demi_command_sdk::descriptors::retry(cancel, || fs::File::open(&target)).await?;
+    let file = jush_command_sdk::descriptors::retry(cancel, || fs::File::open(&target)).await?;
     let metadata = file.metadata().await?;
     if !metadata.is_file() {
         return Err(io::Error::new(
@@ -761,7 +761,7 @@ async fn look_at(
     let start = bytes.len();
     let read = async {
         // Out of open files, the look waits for one (`crates/command-sdk/src/descriptors.rs`).
-        let file = demi_command_sdk::descriptors::retry(cancel, || fs::File::open(&target)).await?;
+        let file = jush_command_sdk::descriptors::retry(cancel, || fs::File::open(&target)).await?;
         file.take(limit).read_to_end(bytes).await
     };
     match read.await {
@@ -861,7 +861,7 @@ async fn staged_write(
         durable: false,
     };
     // Out of open files, the write waits for one (`crates/command-sdk/src/descriptors.rs`).
-    demi_command_sdk::descriptors::retry(cancel, || Staged::new(target, publication))
+    jush_command_sdk::descriptors::retry(cancel, || Staged::new(target, publication))
         .await
         .map_err(io_error)
 }

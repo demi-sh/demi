@@ -1,6 +1,6 @@
 //! What a page follows on a socket, and the version of it the page holds.
 
-use demi_shared_types::NodeId;
+use jush_shared_types::NodeId;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

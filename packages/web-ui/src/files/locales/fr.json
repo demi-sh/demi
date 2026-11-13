@@ -192,7 +192,7 @@
     "selectFile": "Sélectionnez un fichier modifié",
     "previousNotKept": "L’ancien contenu n’a pas été conservé.",
     "changeNotKept": "Le contenu de cette modification n’a pas été conservé.",
-    "binaryNotKept": "Demi conserve le texte des modifications faites par une conversation, pas les images ni les autres fichiers binaires.",
+    "binaryNotKept": "Jush conserve le texte des modifications faites par une conversation, pas les images ni les autres fichiers binaires.",
     "onNoBranch": "Sur aucune branche",
     "committed": "Commité",
     "workingTree": "Arbre de travail",

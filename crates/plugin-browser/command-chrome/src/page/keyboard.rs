@@ -6,7 +6,7 @@ use chromiumoxide::{
     },
     keys::get_key_definition,
 };
-use demi_shared_recording_protocol::InputBy;
+use jush_shared_recording_protocol::InputBy;
 use serde_json::json;
 
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Operation, Result, after_cleanup};

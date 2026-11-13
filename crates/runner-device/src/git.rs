@@ -67,9 +67,9 @@ use tokio::{
 };
 use tokio_util::{sync::CancellationToken, task::AbortOnDropHandle};
 
-use demi_command_sdk::paths::resolve;
-use demi_command_protocol::line_counts;
-use demi_runner_protocol::wire::{self, ChangeKind, Frame, Inbound};
+use jush_command_sdk::paths::resolve;
+use jush_command_protocol::line_counts;
+use jush_runner_protocol::wire::{self, ChangeKind, Frame, Inbound};
 
 use crate::tree_watch::{Change as Seen, Event, Reach};
 use crate::watches::{Follower, Key, Status, Watches};
@@ -179,8 +179,8 @@ impl Clone for GitError {
             GitError::Internal(message) => GitError::Internal(message.clone()),
             // Out of open files stays so, whatever the error wraps: the
             // request then waits (`crates/command-sdk/src/descriptors.rs`).
-            GitError::Io(error) if demi_command_sdk::descriptors::exhausted(error) => {
-                GitError::Io(demi_command_sdk::descriptors::exhaustion())
+            GitError::Io(error) if jush_command_sdk::descriptors::exhausted(error) => {
+                GitError::Io(jush_command_sdk::descriptors::exhaustion())
             }
             GitError::Io(error) => GitError::Io(match error.raw_os_error() {
                 Some(code) => io::Error::from_raw_os_error(code),
@@ -193,7 +193,7 @@ impl Clone for GitError {
 pub(crate) fn internal<E: std::error::Error + Send + Sync + 'static>(error: E) -> GitError {
     // Running out of open files stays an IO error, so the request waits for
     // one (`crates/command-sdk/src/descriptors.rs`).
-    if demi_command_sdk::descriptors::exhausted(&error) {
+    if jush_command_sdk::descriptors::exhausted(&error) {
         return GitError::Io(io::Error::other(error));
     }
     GitError::Internal(error.to_string())
@@ -877,9 +877,9 @@ async fn interruptible<T: Send + 'static>(
 pub(crate) fn discover(root: &Path) -> Result<Option<gix::Repository>, GitError> {
     match gix::discover(root) {
         Ok(repo) => Ok(Some(repo)),
-        Err(error) if demi_command_sdk::descriptors::exhausted(&error) => Err(internal(error)),
+        Err(error) if jush_command_sdk::descriptors::exhausted(&error) => Err(internal(error)),
         Err(gix::discover::Error::Discover(_)) => match std::fs::File::open(root) {
-            Err(error) if demi_command_sdk::descriptors::exhausted(&error) => {
+            Err(error) if jush_command_sdk::descriptors::exhausted(&error) => {
                 Err(GitError::Io(error))
             }
             _ => Ok(None),
@@ -1581,7 +1581,7 @@ pub async fn handle(
     // Before anything is read (`crates/runner-device/src/numbers.rs`).
     let read_at = crate::numbers::read_at();
     // Out of open files, the request waits for one (`crates/command-sdk/src/descriptors.rs`).
-    let result = demi_command_sdk::descriptors::retry(cancel, || {
+    let result = jush_command_sdk::descriptors::retry(cancel, || {
         call(service, message, default_cwd, &read_at, cancel)
     })
     .await;

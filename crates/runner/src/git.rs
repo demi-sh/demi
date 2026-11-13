@@ -1,5 +1,5 @@
 //! Git for Windows, whose `usr\bin` holds the utilities a job on Windows runs
-//! besides Demi's own (`crates/runner-shell/src/utilities.rs`): `ls`, `grep`,
+//! besides Jush's own (`crates/runner-shell/src/utilities.rs`): `ls`, `grep`,
 //! `awk`, `tar` and the rest.
 //!
 //! The runner finds it, whoever installed it, by:
@@ -12,7 +12,7 @@
 //!    below the installation.
 //!
 //! A folder counts when it has a `usr\bin`. The device's installer asks the
-//! runner for it (`demi-runner git`) before it installs Git for Windows itself
+//! runner for it (`jush-runner git`) before it installs Git for Windows itself
 //! (`crates/backend-runners/src/install.rs`).
 //!
 //! The device environment has the folder's `usr\bin` in `PATH`: where the device's

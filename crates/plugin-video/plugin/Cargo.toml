@@ -1,5 +1,5 @@
 [package]
-name = "demi-plugin-video"
+name = "jush-plugin-video"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,11 +12,11 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-device-interface = { path = "../../device-interface" }
-demi-plugin-interface = { path = "../../plugin-interface" }
-demi-plugin-media = { path = "../../plugin-media" }
+jush-device-interface = { path = "../../device-interface" }
+jush-plugin-interface = { path = "../../plugin-interface" }
+jush-plugin-media = { path = "../../plugin-media" }
 # The MP4's header, read by the one reader the ledger's seconds come from.
-demi-shared-types = { path = "../../shared-types", features = ["mp4"] }
+jush-shared-types = { path = "../../shared-types", features = ["mp4"] }
 futures-util.workspace = true
 schemars.workspace = true
 serde.workspace = true

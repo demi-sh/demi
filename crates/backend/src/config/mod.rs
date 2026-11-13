@@ -4,7 +4,7 @@
 //! # One configuration for two programs
 //!
 //! The backend and the machine manager of a deployment read one
-//! configuration: the environment file `/opt/demi/config/demi.env` that both
+//! configuration: the environment file `/opt/jush/config/jush.env` that both
 //! services load, or the same settings as flags. Each parses its settings
 //! into one typed configuration and validates all of it before anything
 //! starts.
@@ -14,30 +14,30 @@
 //!
 //! # Names the backend refuses
 //!
-//! - The prefix `DEMI_MANAGED_` belongs to the machine manager, which refuses
-//!   a `DEMI_MANAGED_*` variable it does not read. The backend leaves those
+//! - The prefix `JUSH_MANAGED_` belongs to the machine manager, which refuses
+//!   a `JUSH_MANAGED_*` variable it does not read. The backend leaves those
 //!   names to it.
-//! - The backend refuses every other `DEMI_*` variable that none of its
-//!   settings reads, such as a misspelt `DEMI_BACKEND_LISTENN`, rather than
+//! - The backend refuses every other `JUSH_*` variable that none of its
+//!   settings reads, such as a misspelt `JUSH_BACKEND_LISTENN`, rather than
 //!   leave the setting at its default.
-//! - The settings the manager shares with the backend (`DEMI_RELEASE`,
-//!   `DEMI_BACKEND_PUBLIC_URL`, `DEMI_MACHINE_MANAGER_SOCKET`,
-//!   `DEMI_BACKEND_RUNNER_SOCKET`) are the backend's names, so the backend's
+//! - The settings the manager shares with the backend (`JUSH_RELEASE`,
+//!   `JUSH_BACKEND_PUBLIC_URL`, `JUSH_MACHINE_MANAGER_SOCKET`,
+//!   `JUSH_BACKEND_RUNNER_SOCKET`) are the backend's names, so the backend's
 //!   check covers them and one file serves both programs without either
 //!   ignoring a misspelling.
 //!
 //! # Defaults
 //!
-//! `DEMI_BACKEND_PUBLIC_URL` has no default: whoever deploys decides it, and
+//! `JUSH_BACKEND_PUBLIC_URL` has no default: whoever deploys decides it, and
 //! nothing chooses for them.
 //!
-//! A server leaves `DEMI_RELEASE` out, so that the backend and the machine
+//! A server leaves `JUSH_RELEASE` out, so that the backend and the machine
 //! manager run the release of their own executables: the directory above the
 //! one that holds the running executable, as `current_exe` reports it.
 //!
 //! # The public URL and TLS
 //!
-//! Demi does not terminate TLS: the public URL names a domain, and something
+//! Jush does not terminate TLS: the public URL names a domain, and something
 //! in front of the backend holds the certificate.
 //!
 //! The URL names a domain, not an IP address, for two reasons:
@@ -61,28 +61,28 @@ use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use demi_backend_database::server_log::ServerLog;
-use demi_web_api_protocol::devices::{NotAStunUrl, StunUrl};
-use demi_shared_types::{Clock, SystemClock};
-use demi_web_api_protocol::server_upgrade::UpgradeChannel;
+use jush_backend_database::server_log::ServerLog;
+use jush_web_api_protocol::devices::{NotAStunUrl, StunUrl};
+use jush_shared_types::{Clock, SystemClock};
+use jush_web_api_protocol::server_upgrade::UpgradeChannel;
 use tracing_subscriber::filter::Targets;
 use url::Url;
 
-use demi_backend_accounts::email_change::AccountMail;
-use demi_backend_blobs::store::{S3Config, Storage};
-use demi_backend_cloud::tuning::CloudTuning;
-use demi_backend_user_shard::conversation::claude_cli::MachineSlot;
-use demi_provider_claude_code::releases::DEFAULT_RELEASES_URL;
-use demi_provider_registry::families::FamilyRegistry;
-use demi_backend_providers::vault::entries::SeededAccount;
-use demi_backend_providers::vault::logins::LoginTiming;
-use demi_backend_runners::native::NativeCatalog;
-use demi_plugin_interface::PluginFactory;
-use demi_provider_common::media_catalog;
-use demi_provider_common::models_dev::ModelsDevClient;
+use jush_backend_accounts::email_change::AccountMail;
+use jush_backend_blobs::store::{S3Config, Storage};
+use jush_backend_cloud::tuning::CloudTuning;
+use jush_backend_user_shard::conversation::claude_cli::MachineSlot;
+use jush_provider_claude_code::releases::DEFAULT_RELEASES_URL;
+use jush_provider_registry::families::FamilyRegistry;
+use jush_backend_providers::vault::entries::SeededAccount;
+use jush_backend_providers::vault::logins::LoginTiming;
+use jush_backend_runners::native::NativeCatalog;
+use jush_plugin_interface::PluginFactory;
+use jush_provider_common::media_catalog;
+use jush_provider_common::models_dev::ModelsDevClient;
 
-use demi_backend_user_shard::shard::ShardPlacement;
-use demi_backend_user_shard::tuning::{
+use jush_backend_user_shard::shard::ShardPlacement;
+use jush_backend_user_shard::tuning::{
     ConversationTuning, LifecycleTuning, MediaTuning, PageTuning, RunnerTuning,
 };
 
@@ -92,7 +92,7 @@ use self::secret::InstanceSecret;
 /// Cloudflare's public one.
 const DEFAULT_STUN_URLS: &str = "stun:stun.cloudflare.com:3478";
 
-/// `DEMI_STUN_URLS`: comma-separated `stun:` URLs, or nothing.
+/// `JUSH_STUN_URLS`: comma-separated `stun:` URLs, or nothing.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StunUrls(pub Vec<StunUrl>);
 
@@ -109,21 +109,21 @@ impl std::str::FromStr for StunUrls {
     }
 }
 
-/// The configuration as flags or `DEMI_*` variables. Each value's name in
+/// The configuration as flags or `JUSH_*` variables. Each value's name in
 /// `--help` and in every error is its variable, so an unusable value stops
 /// startup naming the variable.
 #[derive(clap::Parser)]
 #[command(
-    name = "demi-backend",
-    version = demi_shared_artifacts::BUILD_VERSION,
-    about = "The Demi product server"
+    name = "jush-backend",
+    version = jush_shared_artifacts::BUILD_VERSION,
+    about = "The Jush product server"
 )]
 pub struct Config {
     /// Validate the configuration as a start would, then exit
     #[arg(long)]
     pub check_config: bool,
     /// Serve only the update screen of the server update whose steps `FILE`
-    /// holds, as `demi-server` runs it while no backend runs
+    /// holds, as `jush-server` runs it while no backend runs
     #[arg(long, hide = true, value_name = "FILE")]
     pub update_screen: Option<PathBuf>,
     /// Development only: the Codex sign-in the master account's Codex entry
@@ -133,24 +133,24 @@ pub struct Config {
     pub dev_codex_account: Option<PathBuf>,
     /// The server release root [default: the directory above the one that
     /// holds this executable]
-    #[arg(long, env = "DEMI_RELEASE", value_name = "DEMI_RELEASE")]
+    #[arg(long, env = "JUSH_RELEASE", value_name = "JUSH_RELEASE")]
     pub release: Option<PathBuf>,
-    /// The data directory [default: ~/.demi/backend]
-    #[arg(long, env = "DEMI_BACKEND_DATA", value_name = "DEMI_BACKEND_DATA")]
+    /// The data directory [default: ~/.jush/backend]
+    #[arg(long, env = "JUSH_BACKEND_DATA", value_name = "JUSH_BACKEND_DATA")]
     pub data: Option<PathBuf>,
     /// The address and port the backend listens on
     #[arg(
         long,
-        env = "DEMI_BACKEND_LISTEN",
-        value_name = "DEMI_BACKEND_LISTEN",
+        env = "JUSH_BACKEND_LISTEN",
+        value_name = "JUSH_BACKEND_LISTEN",
         default_value = "0.0.0.0:3271"
     )]
     pub listen: SocketAddr,
     #[arg(
         long,
-        env = "DEMI_SHARED_SUBSCRIPTIONS",
+        env = "JUSH_SHARED_SUBSCRIPTIONS",
         hide = true,
-        value_name = "DEMI_SHARED_SUBSCRIPTIONS",
+        value_name = "JUSH_SHARED_SUBSCRIPTIONS",
         value_parser = clap::builder::BoolishValueParser::new(),
         default_value = "off"
     )]
@@ -158,50 +158,50 @@ pub struct Config {
     /// The URL browsers, runners and Cloud guests reach the backend at
     #[arg(
         long,
-        env = "DEMI_BACKEND_PUBLIC_URL",
-        value_name = "DEMI_BACKEND_PUBLIC_URL"
+        env = "JUSH_BACKEND_PUBLIC_URL",
+        value_name = "JUSH_BACKEND_PUBLIC_URL"
     )]
     pub public_url: Url,
     /// The machine manager's Unix socket
     #[arg(
         long,
-        env = "DEMI_MACHINE_MANAGER_SOCKET",
-        value_name = "DEMI_MACHINE_MANAGER_SOCKET",
-        default_value = "/run/demi-cloud/machines.sock"
+        env = "JUSH_MACHINE_MANAGER_SOCKET",
+        value_name = "JUSH_MACHINE_MANAGER_SOCKET",
+        default_value = "/run/jush-cloud/machines.sock"
     )]
     pub machines_socket: PathBuf,
     /// The Unix socket the backend serves its Clouds' runners on, which the
     /// machine manager mounts into each Cloud
     #[arg(
         long,
-        env = "DEMI_BACKEND_RUNNER_SOCKET",
-        value_name = "DEMI_BACKEND_RUNNER_SOCKET",
-        default_value = "/run/demi-backend/runners.sock"
+        env = "JUSH_BACKEND_RUNNER_SOCKET",
+        value_name = "JUSH_BACKEND_RUNNER_SOCKET",
+        default_value = "/run/jush-backend/runners.sock"
     )]
     pub runner_socket: PathBuf,
     /// The Unix socket only root may open, on which an upgrade names the
     /// runner release that comes next
     #[arg(
         long,
-        env = demi_runner_protocol::release::MANAGE_SOCKET_ENV,
-        value_name = "DEMI_BACKEND_MANAGE_SOCKET",
-        default_value = demi_runner_protocol::release::MANAGE_SOCKET
+        env = jush_runner_protocol::release::MANAGE_SOCKET_ENV,
+        value_name = "JUSH_BACKEND_MANAGE_SOCKET",
+        default_value = jush_runner_protocol::release::MANAGE_SOCKET
     )]
     pub manage_socket: PathBuf,
     /// The file an administrator's Update Now writes the version to, which
-    /// `demi-upgrade.path` watches; without it the server offers no updates
+    /// `jush-upgrade.path` watches; without it the server offers no updates
     #[arg(
         long,
-        env = demi_runner_protocol::release::UPGRADE_REQUEST_ENV,
-        value_name = "DEMI_UPGRADE_REQUEST"
+        env = jush_runner_protocol::release::UPGRADE_REQUEST_ENV,
+        value_name = "JUSH_UPGRADE_REQUEST"
     )]
     pub upgrade_request: Option<PathBuf>,
     /// The channel the installation came from, which Settings › Updates
     /// starts on until an administrator chooses another: `beta` or `canary`
     #[arg(
         long,
-        env = "DEMI_UPGRADE_CHANNEL",
-        value_name = "DEMI_UPGRADE_CHANNEL",
+        env = "JUSH_UPGRADE_CHANNEL",
+        value_name = "JUSH_UPGRADE_CHANNEL",
         default_value = "beta",
         value_parser = upgrade_channel
     )]
@@ -209,41 +209,41 @@ pub struct Config {
     /// Where the one object store lives: `local`, the data directory, or `s3`
     #[arg(
         long,
-        env = "DEMI_STORAGE",
-        value_name = "DEMI_STORAGE",
+        env = "JUSH_STORAGE",
+        value_name = "JUSH_STORAGE",
         default_value = "local"
     )]
     pub storage: StorageKind,
     /// The S3 store's bucket
-    #[arg(long, env = "DEMI_S3_BUCKET", value_name = "DEMI_S3_BUCKET")]
+    #[arg(long, env = "JUSH_S3_BUCKET", value_name = "JUSH_S3_BUCKET")]
     pub s3_bucket: Option<String>,
     /// The S3 store's region
-    #[arg(long, env = "DEMI_S3_REGION", value_name = "DEMI_S3_REGION")]
+    #[arg(long, env = "JUSH_S3_REGION", value_name = "JUSH_S3_REGION")]
     pub s3_region: Option<String>,
     /// An HTTPS endpoint of an S3-compatible service [default: the region's AWS endpoint]
-    #[arg(long, env = "DEMI_S3_ENDPOINT", value_name = "DEMI_S3_ENDPOINT")]
+    #[arg(long, env = "JUSH_S3_ENDPOINT", value_name = "JUSH_S3_ENDPOINT")]
     pub s3_endpoint: Option<Url>,
     /// `true` names the bucket in the request path instead of the host name [default: false]
     #[arg(
         long,
-        env = "DEMI_S3_FORCE_PATH_STYLE",
-        value_name = "DEMI_S3_FORCE_PATH_STYLE",
+        env = "JUSH_S3_FORCE_PATH_STYLE",
+        value_name = "JUSH_S3_FORCE_PATH_STYLE",
         action = clap::ArgAction::Set
     )]
     pub s3_force_path_style: Option<bool>,
     /// The instance secret as 64 hexadecimal digits [default: generated into the data directory]
     #[arg(
         long,
-        env = "DEMI_INSTANCE_SECRET",
-        value_name = "DEMI_INSTANCE_SECRET",
+        env = "JUSH_INSTANCE_SECRET",
+        value_name = "JUSH_INSTANCE_SECRET",
         hide_env_values = true
     )]
     pub instance_secret: Option<String>,
     /// The Claude Code distribution whose newest release the CLI on each Cloud follows
     #[arg(
         long,
-        env = "DEMI_CLAUDE_RELEASES_URL",
-        value_name = "DEMI_CLAUDE_RELEASES_URL",
+        env = "JUSH_CLAUDE_RELEASES_URL",
+        value_name = "JUSH_CLAUDE_RELEASES_URL",
         default_value = DEFAULT_RELEASES_URL
     )]
     pub claude_releases_url: Url,
@@ -252,17 +252,17 @@ pub struct Config {
     /// empty keeps direct channels to one network
     #[arg(
         long,
-        env = "DEMI_STUN_URLS",
-        value_name = "DEMI_STUN_URLS",
+        env = "JUSH_STUN_URLS",
+        value_name = "JUSH_STUN_URLS",
         default_value = DEFAULT_STUN_URLS
     )]
     pub stun_urls: StunUrls,
     /// What the backend logs: a level, and a level per target, comma-separated,
-    /// such as `info,demi::provider::claude_code::wire=trace`
+    /// such as `info,jush::provider::claude_code::wire=trace`
     #[arg(
         long,
-        env = "DEMI_LOG",
-        value_name = "DEMI_LOG",
+        env = "JUSH_LOG",
+        value_name = "JUSH_LOG",
         default_value = "info"
     )]
     pub log: Targets,
@@ -278,25 +278,25 @@ pub enum StorageKind {
 /// A configuration value clap cannot check by itself.
 #[derive(Debug, thiserror::Error)]
 pub enum ConfigError {
-    #[error("DEMI_BACKEND_DATA is not set and the home directory is unknown")]
+    #[error("JUSH_BACKEND_DATA is not set and the home directory is unknown")]
     NoDataDirectory,
-    #[error("DEMI_RELEASE is not set and the executable's directory is unknown: {0}")]
+    #[error("JUSH_RELEASE is not set and the executable's directory is unknown: {0}")]
     NoRelease(std::io::Error),
-    #[error("DEMI_BACKEND_LISTEN must name a port, not 0")]
+    #[error("JUSH_BACKEND_LISTEN must name a port, not 0")]
     ListenPort,
     /// The value itself is secret, so the error leaves it out.
-    #[error("DEMI_INSTANCE_SECRET must be 64 hexadecimal digits")]
+    #[error("JUSH_INSTANCE_SECRET must be 64 hexadecimal digits")]
     InstanceSecret,
     #[error(
-        "DEMI_BACKEND_PUBLIC_URL must be an HTTP or HTTPS URL without a user, a password, a query or a fragment"
+        "JUSH_BACKEND_PUBLIC_URL must be an HTTP or HTTPS URL without a user, a password, a query or a fragment"
     )]
     PublicUrl,
-    #[error("DEMI_STORAGE=s3 needs {0}")]
+    #[error("JUSH_STORAGE=s3 needs {0}")]
     S3Missing(&'static str),
-    #[error("{0} names an S3 bucket, and DEMI_STORAGE is local")]
+    #[error("{0} names an S3 bucket, and JUSH_STORAGE is local")]
     S3Unused(&'static str),
     #[error("{0}")]
-    S3(#[from] demi_backend_blobs::store::S3ConfigError),
+    S3(#[from] jush_backend_blobs::store::S3ConfigError),
     /// The reason never quotes the file, which holds tokens.
     #[error("--dev-codex-account {}: {reason}", path.display())]
     DevCodexAccount { path: PathBuf, reason: String },
@@ -304,7 +304,7 @@ pub enum ConfigError {
 
 impl Config {
     /// The server release root (`crates/xtask/src/server_release.rs`):
-    /// `DEMI_RELEASE`, or the directory above the one that holds this
+    /// `JUSH_RELEASE`, or the directory above the one that holds this
     /// executable.
     pub fn release(&self) -> Result<PathBuf, ConfigError> {
         if let Some(release) = &self.release {
@@ -323,13 +323,13 @@ impl Config {
             })
     }
 
-    /// The object store the `DEMI_STORAGE` and `DEMI_S3_*` settings name.
+    /// The object store the `JUSH_STORAGE` and `JUSH_S3_*` settings name.
     fn storage(&self) -> Result<Storage, ConfigError> {
         let named = [
-            ("DEMI_S3_BUCKET", self.s3_bucket.is_some()),
-            ("DEMI_S3_REGION", self.s3_region.is_some()),
-            ("DEMI_S3_ENDPOINT", self.s3_endpoint.is_some()),
-            ("DEMI_S3_FORCE_PATH_STYLE", self.s3_force_path_style.is_some()),
+            ("JUSH_S3_BUCKET", self.s3_bucket.is_some()),
+            ("JUSH_S3_REGION", self.s3_region.is_some()),
+            ("JUSH_S3_ENDPOINT", self.s3_endpoint.is_some()),
+            ("JUSH_S3_FORCE_PATH_STYLE", self.s3_force_path_style.is_some()),
         ];
         match self.storage {
             StorageKind::Local => match named.iter().find(|(_, set)| *set) {
@@ -341,11 +341,11 @@ impl Config {
                     bucket: self
                         .s3_bucket
                         .clone()
-                        .ok_or(ConfigError::S3Missing("DEMI_S3_BUCKET"))?,
+                        .ok_or(ConfigError::S3Missing("JUSH_S3_BUCKET"))?,
                     region: self
                         .s3_region
                         .clone()
-                        .ok_or(ConfigError::S3Missing("DEMI_S3_REGION"))?,
+                        .ok_or(ConfigError::S3Missing("JUSH_S3_REGION"))?,
                     endpoint: self.s3_endpoint.clone(),
                     force_path_style: self.s3_force_path_style.unwrap_or(false),
                 };
@@ -362,7 +362,7 @@ impl Config {
             Some(data) => data.clone(),
             None => std::env::home_dir()
                 .ok_or(ConfigError::NoDataDirectory)?
-                .join(".demi")
+                .join(".jush")
                 .join("backend"),
         };
         if self.listen.port() == 0 {
@@ -395,7 +395,7 @@ impl Config {
         config.web_directory = web.is_dir().then_some(web);
         let runners = release.join("runners");
         config.runner_releases = runners.is_dir().then_some(runners);
-        let public_url = demi_backend_runners::install::backend_url(&self.public_url)
+        let public_url = jush_backend_runners::install::backend_url(&self.public_url)
             .map_err(|_| ConfigError::PublicUrl)?;
         config.public_url = Some(public_url);
         config.claude_releases = self.claude_releases_url.clone();
@@ -406,13 +406,13 @@ impl Config {
 
 /// The Codex account the file at `path` signs in, which the master account's
 /// Codex entry holds.
-fn dev_codex_account(path: &Path, now: demi_shared_types::Timestamp) -> Result<SeededAccount, ConfigError> {
+fn dev_codex_account(path: &Path, now: jush_shared_types::Timestamp) -> Result<SeededAccount, ConfigError> {
     let failed = |reason: String| ConfigError::DevCodexAccount {
         path: path.to_owned(),
         reason,
     };
     let text = std::fs::read_to_string(path).map_err(|error| failed(error.to_string()))?;
-    let account = demi_provider_codex::development_account(&text, now)
+    let account = jush_provider_codex::development_account(&text, now)
         .map_err(|error| failed(error.to_string()))?;
     Ok(SeededAccount {
         family: "codex".into(),
@@ -559,10 +559,10 @@ impl BackendConfig {
             models_dev_url: ModelsDevClient::DEFAULT_URL
                 .parse()
                 .expect("the models.dev address parses"),
-            model_shutdowns_url: demi_provider_registry::shutdowns::DEFAULT_URL
+            model_shutdowns_url: jush_provider_registry::shutdowns::DEFAULT_URL
                 .parse()
                 .expect("LiteLLM's address parses"),
-            media_catalog_url: media_catalog::branch_url(option_env!("DEMI_BUILD_BRANCH")),
+            media_catalog_url: media_catalog::branch_url(option_env!("JUSH_BUILD_BRANCH")),
             media_catalog: media_catalog::Catalog::carried(),
             claude_releases: DEFAULT_RELEASES_URL
                 .parse()
@@ -582,7 +582,7 @@ impl BackendConfig {
     }
 }
 
-/// `DEMI_UPGRADE_CHANNEL`'s value.
+/// `JUSH_UPGRADE_CHANNEL`'s value.
 fn upgrade_channel(value: &str) -> Result<UpgradeChannel, String> {
     value.parse().map_err(|_| format!("{value} is no channel: beta or canary"))
 }

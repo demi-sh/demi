@@ -2,11 +2,11 @@
 //! the chat proxy with the account's session. A catalog that cannot be read
 //! is a failed refresh, and the backend keeps its last one.
 
-use demi_provider_common::{
+use jush_provider_common::{
     CatalogError, refusal_words,
     wire::{NonEmpty, decode_untagged},
 };
-use demi_shared_types::{Clock, ProviderModel, ProviderModelList};
+use jush_shared_types::{Clock, ProviderModel, ProviderModelList};
 use http::{HeaderValue, header::ACCEPT};
 use serde::Deserialize;
 
@@ -88,7 +88,7 @@ struct Envelope {
     data: Option<Vec<GrokModel>>,
 }
 
-/// One model as the proxy describes it; only the fields Demi reads. A
+/// One model as the proxy describes it; only the fields Jush reads. A
 /// context window is a count of tokens: `context_window` is the one the Grok
 /// CLI starts a session at, and `context_windows` all it lets the user pick.
 #[derive(Deserialize)]
@@ -151,7 +151,7 @@ impl GrokModel {
             // The proxy states no modalities; Grok Build's own harness sends
             // images natively. Its proxy drops a document, so the list names
             // the images alone (`crates/shared-types/src/model.rs`).
-            accepted_extensions: Some(demi_shared_types::IMAGE_FILE_EXTENSIONS.to_vec()),
+            accepted_extensions: Some(jush_shared_types::IMAGE_FILE_EXTENSIONS.to_vec()),
             supports_reasoning: reasoning.then_some(true),
             supported_thinking_efforts: (!efforts.is_empty()).then_some(efforts),
             can_disable_thinking: None,

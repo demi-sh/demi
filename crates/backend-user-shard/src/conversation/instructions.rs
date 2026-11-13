@@ -14,14 +14,14 @@
 
 use std::rc::{Rc, Weak};
 
-use demi_agent_server::instructions::{self, NONE_LEFT, ProjectFile, WorkflowText, render};
-use demi_agent_tools::{ContextAnswer, ContextSource, NodeContext, WORKFLOW_EXTENSION};
-use demi_backend_device_access::conversation_of;
-use demi_backend_device_access::kept::Found;
-use demi_backend_device_access::plugin_files::ReadFilesError;
-use demi_runner_protocol::files::{Subject, SubscriptionKind};
-use demi_shared_types::{INSTRUCTIONS_SOURCE, TurnId, WorkflowChoice};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_agent_server::instructions::{self, NONE_LEFT, ProjectFile, WorkflowText, render};
+use jush_agent_tools::{ContextAnswer, ContextSource, NodeContext, WORKFLOW_EXTENSION};
+use jush_backend_device_access::conversation_of;
+use jush_backend_device_access::kept::Found;
+use jush_backend_device_access::plugin_files::ReadFilesError;
+use jush_runner_protocol::files::{Subject, SubscriptionKind};
+use jush_shared_types::{INSTRUCTIONS_SOURCE, TurnId, WorkflowChoice};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::LocalBoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -74,12 +74,12 @@ async fn workflow_text(shard: &Shard, conversation: &ConversationId, id: &str, w
         .unwrap_or_default();
     // The user's profiles go by a pointer to the command that lists them, so
     // an edit in Settings changes no conversation's transcript.
-    const USERS: &str = "The user's own profiles, which demi agent profiles list shows.";
+    const USERS: &str = "The user's own profiles, which jush agent profiles list shows.";
     if workflow.profiles.is_empty() && !workflow.user_profiles {
         text.push_str("You can spawn no subagents.");
     } else {
         let only = if workflow.user_profiles { "The" } else { "The only" };
-        text.push_str(&format!("{only} subagents you can spawn, with demi agent spawn --profile <id>:"));
+        text.push_str(&format!("{only} subagents you can spawn, with jush agent spawn --profile <id>:"));
         for profile in &workflow.profiles {
             text.push_str(&format!("\n- {}: {}", profile.id, profile.description));
         }

@@ -5,15 +5,15 @@
 //!
 //! It shows in no pill and no Change view, and it is still there an hour later,
 //! which `/tmp` does not promise. The runner picks the scratch root: a
-//! Cloud's is `~/.demi/scratch` in its home, since its `DEMI_HOME` is in
+//! Cloud's is `~/.jush/scratch` in its home, since its `JUSH_HOME` is in
 //! memory and every stop would empty it; any other device's is
-//! `<DEMI_HOME>/scratch`. Every program the runner starts finds it in
-//! `DEMI_SCRATCH_ROOT`
-//! ([`SCRATCH_ROOT_ENV`](demi_command_protocol::SCRATCH_ROOT_ENV)).
+//! `<JUSH_HOME>/scratch`. Every program the runner starts finds it in
+//! `JUSH_SCRATCH_ROOT`
+//! ([`SCRATCH_ROOT_ENV`](jush_command_protocol::SCRATCH_ROOT_ENV)).
 //!
 //! # Who sees which directory
 //!
-//! `DEMI_SCRATCH` names the calling agent's own:
+//! `JUSH_SCRATCH` names the calling agent's own:
 //!
 //! - the conversation's directory for the root agent;
 //! - an `agent-<number>/` folder inside it for each subagent, so two subagents
@@ -50,10 +50,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_command_protocol::{CommandCaller, scratch_name};
+use jush_command_protocol::{CommandCaller, scratch_name};
 
 /// The variable that names a job's scratch directory.
-pub const SCRATCH_ENV: &str = "DEMI_SCRATCH";
+pub const SCRATCH_ENV: &str = "JUSH_SCRATCH";
 
 /// The directory that holds every conversation's scratch directory.
 #[derive(Clone, Debug)]
@@ -128,7 +128,7 @@ impl Scratch {
 
     /// The names of the conversations' directories under the root: a
     /// conversation that ever ran a job here has one
-    /// ([`demi_command_protocol::scratch_name`]). Empty when there is none.
+    /// ([`jush_command_protocol::scratch_name`]). Empty when there is none.
     pub async fn directories(&self) -> io::Result<HashSet<String>> {
         let mut names = HashSet::new();
         let mut entries = match tokio::fs::read_dir(&self.root).await {
@@ -148,9 +148,9 @@ impl Scratch {
 
     /// Removes the record of `conversation`'s open browser tabs: it was
     /// released, which ends them, and a release reaches only the residents
-    /// that run (`demi_command_protocol::browser_tab_record`).
+    /// that run (`jush_command_protocol::browser_tab_record`).
     pub async fn forget_released(&self, conversation: &str) {
-        let record = demi_command_protocol::browser_tab_record(Some(&self.root), conversation);
+        let record = jush_command_protocol::browser_tab_record(Some(&self.root), conversation);
         match tokio::fs::remove_file(&record).await {
             Ok(()) => tracing::info!(
                 event = "released_tabs.removed",
@@ -171,7 +171,7 @@ impl Scratch {
     /// deleted. One that cannot be removed stays until the next time the
     /// runner connects.
     pub async fn forget_archived(&self, conversation: &str) {
-        let directory = demi_command_protocol::scratch_directory(Some(&self.root), conversation);
+        let directory = jush_command_protocol::scratch_directory(Some(&self.root), conversation);
         match tokio::fs::remove_dir_all(&directory).await {
             Ok(()) => tracing::info!(
                 event = "archived_files.removed",

@@ -1,4 +1,4 @@
-import { contextLimits } from '@demicodes/protocol'
+import { contextLimits } from '@jush-ai/protocol'
 import type { ModelInfo } from '../transport/protocol'
 import { formatDecimal } from '../ui/numbers'
 import { formatTokens } from '../ui/token-count'
@@ -25,7 +25,7 @@ export interface ContextLimitOption {
 }
 
 /**
- * The window Demi uses for `model`: the user's limit on it, or its context
+ * The window Jush uses for `model`: the user's limit on it, or its context
  * window; null when unknown.
  */
 export function contextWindowInUse(model: ModelInfo | null | undefined): number | null {

@@ -21,7 +21,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Result, after_cleanup};
 use crate::tabs::{environment::BrowserEnvironment, tab::BrowserTab};
-use demi_command_sdk::InvocationContext;
+use jush_command_sdk::InvocationContext;
 
 use crate::page::{
     element,

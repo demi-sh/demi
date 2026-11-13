@@ -104,7 +104,7 @@ fills them.
 * GitHub's review comments are edited in place with their quote; an edited
   comment replaces the first.
 
-Demi shows a message's comments the same way before it is sent and while
+Jush shows a message's comments the same way before it is sent and while
 it is edited, so the two never differ.
 
 ## Alternatives

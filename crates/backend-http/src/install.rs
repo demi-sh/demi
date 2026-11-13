@@ -24,17 +24,18 @@ use std::ops::Bound;
 use axum_extra::TypedHeader;
 use axum_extra::headers::Range;
 use bytes::Bytes;
-use demi_backend_database::devices::DeviceRecord;
-use demi_backend_runners::devices::Download;
-use demi_backend_runners::native::StoredBytes;
+use jush_backend_database::devices::DeviceRecord;
+use jush_backend_runners::devices::Download;
+use jush_backend_runners::native::StoredBytes;
 use futures_util::stream::{BoxStream, StreamExt as _, TryStreamExt as _};
-use demi_backend_runners::install::{
+use jush_backend_runners::install::{
     backend_url, powershell_script, read_runner_release, shell_script,
 };
-use demi_command_protocol::{is_digest, is_target};
-use demi_runner_protocol::release::{COMPRESSED_SUFFIX, RunnerRelease, TOKEN_HEADER};
+use jush_command_protocol::{is_digest, is_target};
+use jush_runner_protocol::release::{COMPRESSED_SUFFIX, RUNNER, RunnerRelease};
+use jush_runner_protocol::renamed;
 
-use demi_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::error::ErrorCode;
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -161,16 +162,19 @@ pub(super) async fn artifact(
     let Some(releases) = state.services.runner_releases.root() else {
         return Err(not_found());
     };
-    let executable = if target.contains("windows") {
-        "demi-runner.exe"
-    } else {
-        "demi-runner"
+    let extension = if target.contains("windows") { ".exe" } else { "" };
+    // A runner from before the rename fetches its update under its own name
+    // (`jush_runner_protocol::renamed`).
+    let named = |name: &str| {
+        [RUNNER, renamed::RUNNER]
+            .iter()
+            .any(|executable| name.strip_prefix(executable) == Some(extension))
     };
     // The compressed copy as it is stored, for a runner's update, or the
     // executable decoded as it streams, for an installer, which has no zstd.
     let compressed = match file.strip_suffix(COMPRESSED_SUFFIX) {
-        Some(name) if name == executable => true,
-        None if file == executable => false,
+        Some(name) if named(name) => true,
+        None if named(&file) => false,
         _ => return Err(not_found()),
     };
     if !is_digest(&release) || !is_target(&target) {
@@ -208,7 +212,7 @@ pub(super) async fn artifact(
     if compressed {
         // A runner's download names its device, whose page shows its bytes
         // as they reach it: no cache may answer it, nor a proxy buffer it.
-        let delivery = if headers.contains_key(TOKEN_HEADER) {
+        let delivery = if super::runners::token_header(&headers).is_some() {
             Delivery::Counted
         } else {
             Delivery::Shared
@@ -224,7 +228,7 @@ pub(super) async fn artifact(
     );
     headers.insert(CACHE_CONTROL, HeaderValue::from_static(IMMUTABLE));
     headers.insert(CONTENT_LENGTH, HeaderValue::from(artifact.size));
-    let decoded = demi_shared_artifacts::decode_stream(stored.into_stream());
+    let decoded = jush_shared_artifacts::decode_stream(stored.into_stream());
     Ok((headers, Body::from_stream(decoded)).into_response())
 }
 

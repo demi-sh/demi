@@ -1,9 +1,9 @@
 //! Convert retained edit snapshots to the runner's completed-job report.
 
-use demi_command_protocol::{EDIT_FILE_BYTES, PathChange};
-use demi_command_sdk::edits::Recorder;
-use demi_command_protocol::line_counts;
-use demi_runner_protocol::wire;
+use jush_command_protocol::{EDIT_FILE_BYTES, PathChange};
+use jush_command_sdk::edits::Recorder;
+use jush_command_protocol::line_counts;
+use jush_runner_protocol::wire;
 use std::io::Read;
 
 /// What a job's `job_exit` reports of its edits (`crates/command-protocol/src/edits.rs`).
@@ -82,7 +82,7 @@ fn read_snapshot(path: &String) -> std::io::Result<Vec<u8>> {
     std::fs::File::open(path)?
         .take((EDIT_FILE_BYTES + 1) as u64)
         .read_to_end(&mut bytes)?;
-    if bytes.len() > EDIT_FILE_BYTES || demi_command_protocol::is_binary(&bytes) {
+    if bytes.len() > EDIT_FILE_BYTES || jush_command_protocol::is_binary(&bytes) {
         return Err(std::io::Error::other("invalid edit snapshot"));
     }
     Ok(bytes)

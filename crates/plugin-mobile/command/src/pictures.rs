@@ -13,7 +13,7 @@
 //! its VUI begins; this is the little of H.264 that takes.
 
 use bytes::Bytes;
-use demi_shared_h264::bitstream::{BitReader, BitWriter, SPS, annex_b, escape, kind, unescape, units};
+use jush_shared_h264::bitstream::{BitReader, BitWriter, SPS, annex_b, escape, kind, unescape, units};
 
 /// The `profile_idc`s whose SPS carries the chroma and bit depth fields.
 const HIGH_PROFILES: [u32; 12] = [100, 110, 122, 244, 44, 83, 86, 118, 128, 138, 139, 134];

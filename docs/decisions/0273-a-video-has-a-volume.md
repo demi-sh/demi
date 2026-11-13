@@ -46,7 +46,7 @@ The design to build from:
   element, so `SwipeVideo` and the media viewer leave a press on it to the
   player as they do one on the capsule. The capsule draws its blur on a
   layer of its own, so the panel's blur sees the picture.
-- The volume is kept in `localStorage` as `demi-video-volume`.
+- The volume is kept in `localStorage` as `jush-video-volume`.
 
 ## Prior art
 

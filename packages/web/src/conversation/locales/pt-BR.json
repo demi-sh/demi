@@ -29,7 +29,7 @@
     "clearDraft": "Não foi possível limpar o rascunho",
     "recallMessage": "Não foi possível recuperar a mensagem",
     "connectionLost": "Conexão perdida",
-    "connectionLostMessage": "O Demi pode não ter recebido sua solicitação. Verifique a conversa quando a conexão voltar.",
+    "connectionLostMessage": "O Jush pode não ter recebido sua solicitação. Verifique a conversa quando a conexão voltar.",
     "requestNotAccepted": "A conversa não aceitou a solicitação.",
     "fieldsNotUpdated": "Alguns campos não foram atualizados.",
     "readFileWatch": "Não foi possível ler uma mensagem do monitoramento de arquivos",

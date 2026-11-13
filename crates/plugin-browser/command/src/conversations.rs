@@ -62,27 +62,27 @@ use tokio_util::{
 };
 use tracing::Instrument as _;
 
-use demi_command_package_browser_chrome::driver::{
+use jush_command_package_browser_chrome::driver::{
     installation::Chrome,
     numbers::TabNumbers,
     operation::{BrowserError, Result},
     output,
 };
-use demi_command_package_browser_chrome::page::actions::TabResult;
-use demi_command_package_browser_chrome::tabs::{
+use jush_command_package_browser_chrome::page::actions::TabResult;
+use jush_command_package_browser_chrome::tabs::{
     environment::{BrowserEnvironment, LaunchOptions, with_browser},
     registry::Closed,
 };
-use demi_command_package_browser_chrome::tabs::registry::Snapshot;
-use demi_command_package_browser_protocol::OperationError;
-use demi_command_protocol::{
+use jush_command_package_browser_chrome::tabs::registry::Snapshot;
+use jush_command_package_browser_protocol::OperationError;
+use jush_command_protocol::{
     ColorScheme, CommandError, CommandLocale, Completion, ConversationRequest, ConversationStatus,
 };
-use demi_command_sdk::{ConversationContext, InvocationContext, Messages, Numbers, ResidentError};
-use demi_command_package_browser_protocol::browser::{BrowserMessage, TabsChange};
+use jush_command_sdk::{ConversationContext, InvocationContext, Messages, Numbers, ResidentError};
+use jush_command_package_browser_protocol::browser::{BrowserMessage, TabsChange};
 
-use demi_shared_openh264::Codec;
-use demi_shared_recording::{Answer, Library, Live, Reading};
+use jush_shared_openh264::Codec;
+use jush_shared_recording::{Answer, Library, Live, Reading};
 
 use crate::protocol::{
     self, ActionProgress, RecordAction, RecordInput, RecordTarget, BrowserCreatedBy, BrowserErrorCode, BrowserFailure, BrowserInput, BrowserOperation, CapabilitiesResult,
@@ -90,7 +90,7 @@ use crate::protocol::{
     ScreenshotResult, ShowResult, TabCloseResult, TabListResult, TabNewInput, TabNewResult, TabPruneResult,
 };
 use crate::tab_record::{self, RecordedTab, TabRecord};
-use demi_command_package_browser_chrome::traced::SpawnTraced as _;
+use jush_command_package_browser_chrome::traced::SpawnTraced as _;
 
 /// Requests waiting for an owner; a full queue holds back their senders.
 const REQUESTS: usize = 64;
@@ -116,7 +116,7 @@ type Readiness = Option<std::result::Result<Started, EnvironmentFailure>>;
 #[derive(Clone)]
 struct Started {
     environment: BrowserEnvironment,
-    live: Arc<demi_command_package_browser_chrome::live::hub::Hub>,
+    live: Arc<jush_command_package_browser_chrome::live::hub::Hub>,
 }
 
 #[derive(Clone)]
@@ -669,7 +669,7 @@ impl Owner {
             let retire = owner_stop.clone();
             let result = async {
                 let installation = chrome.installation().await?;
-                demi_command_package_browser_chrome::tabs::environment::swept(&chrome).await;
+                jush_command_package_browser_chrome::tabs::environment::swept(&chrome).await;
                 let Starting {
                     locale,
                     color_scheme,
@@ -685,7 +685,7 @@ impl Owner {
                         // them waits for it rather than failing.
                         reopen(&environment, &resume, &retire).await;
                         let live =
-                            Arc::new(demi_command_package_browser_chrome::live::hub::Hub::start(
+                            Arc::new(jush_command_package_browser_chrome::live::hub::Hub::start(
                                 &environment,
                             ));
                         publisher.send_replace(Some(Ok(Started {
@@ -857,7 +857,7 @@ async fn reopen(environment: &BrowserEnvironment, resume: &[RecordedTab], stop: 
             }
             // A blank tab stays blank, as a new tab is.
             if recorded.url != "about:blank" {
-                demi_command_package_browser_chrome::tabs::navigation::start_loading(&tab, &recorded.url)?;
+                jush_command_package_browser_chrome::tabs::navigation::start_loading(&tab, &recorded.url)?;
             }
             Ok::<_, BrowserError>(())
         }
@@ -870,7 +870,7 @@ async fn reopen(environment: &BrowserEnvironment, resume: &[RecordedTab], stop: 
 
 /// Prints a `line` of how `install` goes in the output of its invocation,
 /// unless it answers in JSON, whose output is the one document.
-/// Where an install's progress lines go: `demi browser install`'s own output,
+/// Where an install's progress lines go: `jush browser install`'s own output,
 /// or the standard error of an operation that installs first.
 #[derive(Clone, Copy)]
 enum Lines {
@@ -894,7 +894,7 @@ async fn print_progress(context: &InvocationContext, line: String, lines: Lines)
 /// What the tab's page offers, of every command family: the page's own families
 /// and the CDP ones, which only the program has together.
 async fn capabilities(
-    tab: &demi_command_package_browser_chrome::tabs::tab::BrowserTab,
+    tab: &jush_command_package_browser_chrome::tabs::tab::BrowserTab,
     cancel: &CancellationToken,
     deadline: tokio::time::Instant,
 ) -> Result<serde_json::Value> {
@@ -909,11 +909,11 @@ async fn capabilities(
         return Err(failure(BrowserError::DialogBlocked));
     }
     let mut capabilities = operation
-        .run(demi_command_package_browser_chrome::page::actions::capabilities(tab.page()))
+        .run(jush_command_package_browser_chrome::page::actions::capabilities(tab.page()))
         .await
         .map_err(&failure)?;
     let families = operation
-        .run(demi_command_package_browser_chrome::cdp::capabilities(
+        .run(jush_command_package_browser_chrome::cdp::capabilities(
             tab.page(),
         ))
         .await
@@ -924,14 +924,14 @@ async fn capabilities(
 
 /// A viewer reaches the conversation's browser, and learns that one started
 /// or ended, through its lifecycle.
-impl demi_command_package_browser_chrome::live::viewer::ViewedBrowser for ConversationBrowser {
+impl jush_command_package_browser_chrome::live::viewer::ViewedBrowser for ConversationBrowser {
     async fn running(
         &self,
         cancel: &CancellationToken,
     ) -> Result<
         Option<(
             BrowserEnvironment,
-            Arc<demi_command_package_browser_chrome::live::hub::Hub>,
+            Arc<jush_command_package_browser_chrome::live::hub::Hub>,
         )>,
     > {
         let started = self.started(None, cancel).await?;
@@ -1125,12 +1125,12 @@ async fn prune_tabs(
     Ok(result)
 }
 
-/// Whether `tab` is one Demi closes once the conversation stopped running:
+/// Whether `tab` is one Jush closes once the conversation stopped running:
 /// an agent made it, or a page opened it from such a tab, and the user did
 /// not make it theirs, which the agent's `show` or the user's own act in it
 /// does. A temporary command's tab closes with its command, and a page whose
-/// opener closed comes from nobody Demi knows, so it stays.
-fn prunable(listing: &Snapshot, tab: &demi_command_package_browser_chrome::tabs::tab::BrowserTab) -> bool {
+/// opener closed comes from nobody Jush knows, so it stays.
+fn prunable(listing: &Snapshot, tab: &jush_command_package_browser_chrome::tabs::tab::BrowserTab) -> bool {
     if tab.shows() > 0 || tab.used() {
         return false;
     }
@@ -1170,17 +1170,17 @@ struct Kept {
 impl Kept {
     fn library(&self, conversation: &str) -> Arc<Library> {
         Arc::new(Library::new(
-            demi_command_protocol::recordings_directory(self.scratch_root.as_deref(), conversation),
+            jush_command_protocol::recordings_directory(self.scratch_root.as_deref(), conversation),
             self.codec.clone(),
         ))
     }
 
     fn profile(&self, conversation: &str) -> std::path::PathBuf {
-        demi_command_protocol::browser_profile_directory(self.scratch_root.as_deref(), conversation)
+        jush_command_protocol::browser_profile_directory(self.scratch_root.as_deref(), conversation)
     }
 
     fn tab_record(&self, conversation: &str) -> std::path::PathBuf {
-        demi_command_protocol::browser_tab_record(self.scratch_root.as_deref(), conversation)
+        jush_command_protocol::browser_tab_record(self.scratch_root.as_deref(), conversation)
     }
 }
 
@@ -1319,7 +1319,7 @@ impl Conversations {
         context: InvocationContext,
     ) -> std::result::Result<Completion, ResidentError> {
         let (browser, _command) = self.admit(&context).await?;
-        demi_command_package_browser_chrome::live::viewer::serve(browser, context).await
+        jush_command_package_browser_chrome::live::viewer::serve(browser, context).await
     }
 
     /// Admits an invocation into its conversation's browser, made on first
@@ -1551,7 +1551,7 @@ impl Conversations {
             // A browser of its own draws it; the conversation's does not start.
             let installation = self.chrome.installation().await?;
             let html = draw_document(context, cancellation).await?;
-            let drawn = demi_command_package_browser_chrome::drawing::draw(
+            let drawn = jush_command_package_browser_chrome::drawing::draw(
                 installation,
                 input,
                 html,
@@ -1572,7 +1572,7 @@ impl Conversations {
         if matches!(command, BrowserOperation::TabPrune(_)) {
             if !user {
                 return Err(BrowserError::Configuration(
-                    "tab.prune is Demi's: an agent closes its tabs with tab close".into(),
+                    "tab.prune is Jush's: an agent closes its tabs with tab close".into(),
                 ));
             }
             let pruned = prune_tabs(browser, cancellation, command.timeout()).await?;
@@ -1583,7 +1583,7 @@ impl Conversations {
                 return Err(BrowserError::Configuration(why));
             }
             // Reading a recording needs no browser: it outlasts its tab.
-            if demi_command_package_browser_protocol::browser::BrowserInput::tab(input).is_none() {
+            if jush_command_package_browser_protocol::browser::BrowserInput::tab(input).is_none() {
                 return record(browser, context, input).await;
             }
         }
@@ -1614,20 +1614,20 @@ impl Conversations {
         if let BrowserOperation::TabNew(input) = command {
             // A refused address makes no tab.
             if let Some(url) = &input.url {
-                demi_command_package_browser_chrome::tabs::navigation::validate_url(url)?;
+                jush_command_package_browser_chrome::tabs::navigation::validate_url(url)?;
             }
             let created_by = if user {
                 BrowserCreatedBy::User {}
             } else {
                 BrowserCreatedBy::Agent {
-                    number: demi_command_package_browser_chrome::driver::operation::agent(context)?,
+                    number: jush_command_package_browser_chrome::driver::operation::agent(context)?,
                 }
             };
             let tab = environment
                 .new_tab(created_by, cancellation, deadline)
                 .await?;
             if let Some(url) = &input.url {
-                demi_command_package_browser_chrome::tabs::navigation::start_loading(&tab, url)?;
+                jush_command_package_browser_chrome::tabs::navigation::start_loading(&tab, url)?;
             }
             // The user asked to see the tab they opened: it comes into the
             // work selected.
@@ -1640,7 +1640,7 @@ impl Conversations {
             let viewport = if user {
                 None
             } else {
-                demi_command_package_browser_chrome::page::actions::metadata(
+                jush_command_package_browser_chrome::page::actions::metadata(
                     &tab,
                     cancellation,
                     deadline.saturating_duration_since(tokio::time::Instant::now()),
@@ -1656,7 +1656,7 @@ impl Conversations {
             })?));
         }
         if matches!(command, BrowserOperation::ContentFetch(_)) {
-            let result = demi_command_package_browser_chrome::page::fetch::execute(
+            let result = jush_command_package_browser_chrome::page::fetch::execute(
                 context,
                 &environment,
                 None,
@@ -1671,7 +1671,7 @@ impl Conversations {
             } else {
                 Ok(())
             };
-            return demi_command_package_browser_chrome::driver::operation::after_cleanup(
+            return jush_command_package_browser_chrome::driver::operation::after_cleanup(
                 result, retired,
             )
             .map(CommandOutput::Json);
@@ -1705,7 +1705,7 @@ impl Conversations {
             tab.mark_used();
             let operation = tab.operation(cancellation, deadline);
             let stopped =
-                demi_command_package_browser_chrome::tabs::navigation::stop(tab, &operation)
+                jush_command_package_browser_chrome::tabs::navigation::stop(tab, &operation)
                     .await?;
             return Ok(CommandOutput::Json(output::value(stopped)?));
         }
@@ -1721,7 +1721,7 @@ impl Conversations {
             // The user took the tab to a page of their own.
             tab.mark_used();
             let operation = tab.operation(cancellation, deadline);
-            let result = demi_command_package_browser_chrome::tabs::navigation::steer(
+            let result = jush_command_package_browser_chrome::tabs::navigation::steer(
                 tab, command, &operation,
             )
             .await?;
@@ -1731,7 +1731,7 @@ impl Conversations {
             let family: Option<futures_util::future::BoxFuture<'_, Result<serde_json::Value>>> =
                 match command {
                     BrowserOperation::Upload(_) => Some(Box::pin(
-                        demi_command_package_browser_chrome::page::upload::execute(
+                        jush_command_package_browser_chrome::page::upload::execute(
                             context,
                             &environment,
                             Some(tab),
@@ -1741,7 +1741,7 @@ impl Conversations {
                         ),
                     )),
                     BrowserOperation::Download(_) => Some(Box::pin(
-                        demi_command_package_browser_chrome::page::download::execute(
+                        jush_command_package_browser_chrome::page::download::execute(
                             context,
                             &environment,
                             Some(tab),
@@ -1752,7 +1752,7 @@ impl Conversations {
                     )),
                     BrowserOperation::ClipboardRead(_) | BrowserOperation::ClipboardWrite(_) => {
                         Some(Box::pin(
-                            demi_command_package_browser_chrome::page::clipboard::execute(
+                            jush_command_package_browser_chrome::page::clipboard::execute(
                                 context,
                                 &environment,
                                 Some(tab),
@@ -1766,7 +1766,7 @@ impl Conversations {
                     | BrowserOperation::CdpDetach(_)
                     | BrowserOperation::CdpSend(_)
                     | BrowserOperation::CdpEvents(_) => Some(Box::pin(
-                        demi_command_package_browser_chrome::cdp::commands::execute(
+                        jush_command_package_browser_chrome::cdp::commands::execute(
                             context,
                             &environment,
                             Some(tab),
@@ -1776,7 +1776,7 @@ impl Conversations {
                         ),
                     )),
                     BrowserOperation::AssetsList(_) | BrowserOperation::AssetsExport(_) => Some(
-                        Box::pin(demi_command_package_browser_chrome::page::assets::execute(
+                        Box::pin(jush_command_package_browser_chrome::page::assets::execute(
                             context,
                             &environment,
                             Some(tab),
@@ -1786,7 +1786,7 @@ impl Conversations {
                         )),
                     ),
                     BrowserOperation::WebmcpList(_) | BrowserOperation::WebmcpCall(_) => Some(
-                        Box::pin(demi_command_package_browser_chrome::cdp::webmcp::execute(
+                        Box::pin(jush_command_package_browser_chrome::cdp::webmcp::execute(
                             context,
                             &environment,
                             Some(tab),
@@ -1798,7 +1798,7 @@ impl Conversations {
                     _ => None,
                 };
             if let Some(family) = family {
-                let recorded = demi_command_package_browser_chrome::page::actions::recorded(tab, command, family, |_| None);
+                let recorded = jush_command_package_browser_chrome::page::actions::recorded(tab, command, family, |_| None);
                 return recorded.await.map(CommandOutput::Json);
             }
         }
@@ -1809,14 +1809,14 @@ impl Conversations {
                 ));
             }
             if let Some(output) = &input.output {
-                demi_command_package_browser_chrome::driver::output::preflight(
+                jush_command_package_browser_chrome::driver::output::preflight(
                     &context.request.cwd,
                     output,
                     input.overwrite == Some(true),
                 )
                 .await?;
             }
-            let bytes = demi_command_package_browser_chrome::page::screenshot::capture(
+            let bytes = jush_command_package_browser_chrome::page::screenshot::capture(
                 tab,
                 input.full_page == Some(true),
                 input.clip.as_deref(),
@@ -1830,14 +1830,14 @@ impl Conversations {
             let width = decoded.info().width;
             let height = decoded.info().height;
             drop(decoded);
-            let metadata = demi_command_package_browser_chrome::page::actions::metadata(
+            let metadata = jush_command_package_browser_chrome::page::actions::metadata(
                 tab,
                 cancellation,
                 command.timeout(),
             )
             .await?;
             let Some(output) = &input.output else {
-                let captured = demi_command_package_browser_chrome::driver::text::captured(
+                let captured = jush_command_package_browser_chrome::driver::text::captured(
                     tab.id().as_str(),
                     width,
                     height,
@@ -1848,7 +1848,7 @@ impl Conversations {
                     png: bytes,
                 });
             };
-            let path = demi_command_package_browser_chrome::driver::output::save_with_overwrite(
+            let path = jush_command_package_browser_chrome::driver::output::save_with_overwrite(
                 &context.request.cwd,
                 output,
                 bytes,
@@ -1887,7 +1887,7 @@ impl Conversations {
             output::preflight(&context.request.cwd, file, input.overwrite == Some(true)).await?;
             let mut session = tab.state().gate.try_checkout().ok_or(BrowserError::Busy)?;
             let TabResult::Probe(mut result) =
-                demi_command_package_browser_chrome::page::actions::command_admitted(
+                jush_command_package_browser_chrome::page::actions::command_admitted(
                     tab,
                     command,
                     cancellation,
@@ -1902,12 +1902,12 @@ impl Conversations {
             };
             let bytes = tab
                 .operation(cancellation, deadline)
-                .run(demi_command_package_browser_chrome::page::screenshot::bytes(tab, false, None))
+                .run(jush_command_package_browser_chrome::page::screenshot::bytes(tab, false, None))
                 .await?;
             // Decoding and encoding a screenshot takes milliseconds of CPU.
             let outlined = result.clone();
             let bytes = tokio::task::spawn_blocking(move || {
-                demi_command_package_browser_chrome::page::probe::annotate(bytes, &outlined)
+                jush_command_package_browser_chrome::page::probe::annotate(bytes, &outlined)
             })
             .await??;
             result.path = Some(
@@ -1923,7 +1923,7 @@ impl Conversations {
             );
             return Ok(CommandOutput::Json(output::value(result)?));
         }
-        let result = demi_command_package_browser_chrome::page::actions::command(
+        let result = jush_command_package_browser_chrome::page::actions::command(
             tab,
             command,
             cancellation,
@@ -2060,7 +2060,7 @@ async fn record(
         }
         (RecordTarget::Recording(_) | RecordTarget::Recordings(_), RecordAction::List) => {
             return Err(BrowserError::Configuration(
-                "list names a tab, such as demi browser record t1 list".into(),
+                "list names a tab, such as jush browser record t1 list".into(),
             ));
         }
         (RecordTarget::Recording(_) | RecordTarget::Recordings(_), _) => input.target.recordings(),
@@ -2073,7 +2073,7 @@ async fn record(
         }
         _ => {
             return Err(BrowserError::Configuration(format!(
-                "{} works on a recording, such as demi browser record r1 {}; start returns its ID",
+                "{} works on a recording, such as jush browser record r1 {}; start returns its ID",
                 input.action, input.action
             )));
         }
@@ -2081,12 +2081,12 @@ async fn record(
     let id = &ids[0];
     if input.action == RecordAction::Start {
         return Err(BrowserError::Configuration(
-            "start records a tab, such as demi browser record t1 start".into(),
+            "start records a tab, such as jush browser record t1 start".into(),
         ));
     }
     let output = match &input.output {
         Some(output) => Some(
-            demi_command_sdk::paths::resolve(&context.request.cwd, output)
+            jush_command_sdk::paths::resolve(&context.request.cwd, output)
                 .map_err(|error| BrowserError::Configuration(error.to_string()))?,
         ),
         None => None,
@@ -2098,7 +2098,7 @@ async fn record(
     }
     let library = &browser.recordings.library;
     let reading = Reading {
-        command: "demi browser record",
+        command: "jush browser record",
         frames: input.frames.as_ref(),
         whole: input.whole == Some(true),
         region: input.region,
@@ -2131,12 +2131,12 @@ async fn record(
 async fn start_recording(
     browser: &ConversationBrowser,
     environment: &BrowserEnvironment,
-    tab: &demi_command_package_browser_chrome::tabs::tab::BrowserTab,
+    tab: &jush_command_package_browser_chrome::tabs::tab::BrowserTab,
     input: &RecordInput,
 ) -> Result<CommandOutput> {
     if input.action != RecordAction::Start {
         return Err(BrowserError::Configuration(format!(
-            "{} works on a recording, such as demi browser record r1 {}; start returns its ID",
+            "{} works on a recording, such as jush browser record r1 {}; start returns its ID",
             input.action, input.action
         )));
     }
@@ -2152,13 +2152,13 @@ async fn start_recording(
     running.insert(tab.id().to_string(), live.clone());
     drop(running);
     environment.recording(live.clone());
-    demi_command_package_browser_chrome::live::record::start(
+    jush_command_package_browser_chrome::live::record::start(
         tab.clone(),
         environment.captures().clone(),
         live.clone(),
         environment.tasks(),
     );
-    let Answer::Result { result, .. } = demi_shared_recording::started("demi browser record", &live)? else {
+    let Answer::Result { result, .. } = jush_shared_recording::started("jush browser record", &live)? else {
         unreachable!("start answers a result")
     };
     Ok(CommandOutput::Json(output::value(result)?))
@@ -2167,7 +2167,7 @@ async fn start_recording(
 /// The document `draw` reads as its invocation's input, at most
 /// `DRAW_HTML_BYTES`.
 async fn draw_document(context: &mut InvocationContext, cancellation: &CancellationToken) -> Result<String> {
-    use demi_command_package_browser_protocol::browser::DRAW_HTML_BYTES;
+    use jush_command_package_browser_protocol::browser::DRAW_HTML_BYTES;
     let mut bytes = Vec::new();
     loop {
         let chunk = tokio::select! {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provideFilePills } from '@demicodes/web-ui/agent/edit-selection'
+import { provideFilePills } from '@jush-ai/web-ui/agent/edit-selection'
 
 /**
  * Whether the transcript below shows its file pills, as the product's

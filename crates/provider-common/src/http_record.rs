@@ -4,7 +4,7 @@
 
 use std::time::SystemTime;
 
-use demi_shared_types::{
+use jush_shared_types::{
     Clock, FailureSource, ProviderErrorDiagnostics, ProviderFailureFacts, Timestamp, VendorTrace,
 };
 use http::{HeaderMap, StatusCode};

@@ -1,4 +1,4 @@
-//! The product's `demi attachment` group: `upload` and `download` move files
+//! The product's `jush attachment` group: `upload` and `download` move files
 //! between the device and the conversation's attachments.
 //!
 //! `upload` copies files of the device into the conversation as attachments `a1`,
@@ -6,7 +6,7 @@
 //! blocks.
 //!
 //! 1. The runner of the invocation's device, the conversation's primary device or
-//!    an attached one a `demi device shell` job runs on, hashes each file beside
+//!    an attached one a `jush device shell` job runs on, hashes each file beside
 //!    the invocation, through the conversation's device access. It refuses one
 //!    over 25 MiB before reading a byte.
 //! 2. A blob the conversation owner's namespace holds already is not read
@@ -33,7 +33,7 @@
 //!
 //! `download` writes attachments of the conversation, the user's or the
 //! agent's, into the invocation's directory. The runner downloads each from
-//! this backend as every file Demi downloads, resumed after a break
+//! this backend as every file Jush downloads, resumed after a break
 //! (`crates/shared-artifacts/src/download.rs`), and takes the first free name,
 //! the same bytes under the name being that file.
 //!
@@ -50,25 +50,25 @@
 use std::rc::{Rc, Weak};
 
 use bytes::Bytes;
-use demi_agent_store::attachments::upload_media_type;
-use demi_agent_store::pixels::{has_pixel_size, pixel_size};
-use demi_backend_blobs::blobs::{FetchError, OPENING_BYTES};
-use demi_backend_database::conversation_attachments::{
+use jush_agent_store::attachments::upload_media_type;
+use jush_agent_store::pixels::{has_pixel_size, pixel_size};
+use jush_backend_blobs::blobs::{FetchError, OPENING_BYTES};
+use jush_backend_database::conversation_attachments::{
     self, AttachmentNumber, AttachmentRow, AttachmentSource, StoredAttachment,
 };
-use demi_backend_database::conversations::ConversationDb;
-use demi_backend_database::{StorageError, sequences};
-use demi_runner_client::collect_pipe;
-use demi_runner_protocol::wire::FileHash;
-use demi_device_interface::{
+use jush_backend_database::conversations::ConversationDb;
+use jush_backend_database::{StorageError, sequences};
+use jush_runner_client::collect_pipe;
+use jush_runner_protocol::wire::FileHash;
+use jush_device_interface::{
     ByteRange, Call, GroupBuilder, Device as _, DeviceError, DeviceErrorKind, LeafBuilder, RpcError, RpcPort, TypedRpc, WhenExists, WriteOptions,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     BlobRef, NodeId, PictureFailure, PixelSize, Sequence, preview_media_type,
     output::{Cell, Table},
 };
-use demi_web_api_protocol::attachments::ATTACHMENT_MAX_BYTES;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::attachments::ATTACHMENT_MAX_BYTES;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
@@ -83,7 +83,7 @@ const SUMMARY: &str = "Give the user files of this device as attachments of the 
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "Makes a device file an attachment of the conversation, or downloads one.";
 
-const UPLOAD_SUMMARY: &str = "Copy files into the conversation as attachments a1, a2, ..., each kept as it is now, whatever later becomes of the file, and print each one's number. Deliver one in your reply as <attachment id=\"a3\" /> on a line of its own, not also a link to its path: an image shows, a video and audio play, and any other file is a card the user opens. A file is at most 25 MiB. Returns no medium; demi file view shows you a file.";
+const UPLOAD_SUMMARY: &str = "Copy files into the conversation as attachments a1, a2, ..., each kept as it is now, whatever later becomes of the file, and print each one's number. Deliver one in your reply as <attachment id=\"a3\" /> on a line of its own, not also a link to its path: an image shows, a video and audio play, and any other file is a card the user opens. A file is at most 25 MiB. Returns no medium; jush file view shows you a file.";
 
 const DOWNLOAD_SUMMARY: &str = "Write attachments of the conversation, such as a file the user sent as <attachment id=\"a7\" ... />, into the current directory, or the one --dir names, under their names, and print each one's path. A file never replaces another: it takes the first free name, and the same file already there is that file.";
 
@@ -91,7 +91,7 @@ const DOWNLOAD_SUMMARY: &str = "Write attachments of the conversation, such as a
 /// name tell it.
 const UNKNOWN_MEDIA_TYPE: &str = "application/octet-stream";
 
-/// The input of `demi attachment upload`.
+/// The input of `jush attachment upload`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct UploadArgs {
@@ -100,7 +100,7 @@ struct UploadArgs {
     path: Vec<String>,
 }
 
-/// An attachment of `demi attachment upload --json`, which lists them in
+/// An attachment of `jush attachment upload --json`, which lists them in
 /// the order of their paths.
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -114,7 +114,7 @@ struct UploadedAttachment {
     size: u64,
 }
 
-/// The input of `demi attachment download`.
+/// The input of `jush attachment download`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct DownloadArgs {
@@ -126,7 +126,7 @@ struct DownloadArgs {
     dir: Option<String>,
 }
 
-/// An attachment of `demi attachment download --json`, which lists them in
+/// An attachment of `jush attachment download --json`, which lists them in
 /// the order of their numbers as given.
 #[derive(Serialize, JsonSchema)]
 struct DownloadedAttachment {
@@ -319,7 +319,7 @@ async fn upload(
 /// the device is reached and what the copy may be.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Purpose {
-    /// An agent's `demi attachment upload`: the command wakes a stopped Cloud
+    /// An agent's `jush attachment upload`: the command wakes a stopped Cloud
     /// as any command does, and any file is a copy.
     Upload,
     /// A picture a reply shows: the device is looked at, never woken, and only
@@ -654,7 +654,7 @@ fn within_limit(size: u64) -> Result<(), CopyError> {
 /// The bytes of the file at `path` beside `cwd`. A file that grew past the
 /// limit since it was hashed is refused before a byte is read.
 async fn read(
-    device: &demi_runner_client::RemoteDevice,
+    device: &jush_runner_client::RemoteDevice,
     cwd: &str,
     path: &str,
 ) -> Result<Bytes, CopyError> {

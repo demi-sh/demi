@@ -6,7 +6,7 @@ status: proposed
 
 ## Problem
 
-Alex installs Demi for a small team. `demi-server setup` refuses to go on
+Alex installs Jush for a small team. `jush-server setup` refuses to go on
 until Alex picks `shared` or `isolated`, a word the installer does not
 explain, and the choice is fixed in the server's configuration file: to
 change it, Alex edits the file and restarts the backend. On a shared
@@ -54,10 +54,10 @@ Settings › Users gains a group above Accounts, which only the master sees:
   not offer is one whose provider is gone, as after the provider's removal.
 - A shared instance offers no subscription: Settings › Providers lists no
   Subscriptions group, a sign-in is refused, and the model menus and
-  `demi providers` list no subscription model. The entries stay stored and
+  `jush providers` list no subscription model. The entries stay stored and
   come back with Each User's Own.
-- `demi-server setup` asks no mode and takes no `--mode`, and the backend
-  reads no `DEMI_INSTANCE_MODE`.
+- `jush-server setup` asks no mode and takes no `--mode`, and the backend
+  reads no `JUSH_INSTANCE_MODE`.
 
 The warning before a second account or a rotation names no vendor and says
 the risk is the user's; it still shows once:
@@ -66,7 +66,7 @@ the risk is the user's; it still shows once:
 Use several accounts?
 Using more than one subscription account, or rotating between accounts,
 may violate the provider's Terms of Service. You do so at your own risk.
-Demi won't ask again.
+Jush won't ask again.
                                            [Cancel] [Continue]
 ```
 
@@ -89,7 +89,7 @@ The design:
   keeps the ones left out where they were.
 
 What an older piece meets: a configuration file that still sets
-`DEMI_INSTANCE_MODE` stops the backend at start, naming the variable, as
+`JUSH_INSTANCE_MODE` stops the backend at start, naming the variable, as
 any variable no setting reads does; its line is removed before the
 upgrade, and the master chooses the mode on the page.
 
@@ -104,17 +104,17 @@ None.
   connections, Direct Connections, on there at run time, or with
   `ENABLE_DIRECT_CONNECTIONS`
   ([Direct Connections](https://docs.openwebui.com/features/chat-conversations/direct-connections/)).
-- Demi's own upgrade channel is kept in `server_settings` and chosen in
+- Jush's own upgrade channel is kept in `server_settings` and chosen in
   Settings › Updates.
 
-Demi departs from Open WebUI in having one mode, not two layers: a user
+Jush departs from Open WebUI in having one mode, not two layers: a user
 either has their own providers or the master's, and the setting has no
 variable beside it.
 
 ## Alternatives
 
 - **Keep the variable as the default the setting overrides,** as the
-  upgrade channel's `DEMI_UPGRADE_CHANNEL` is. Two places would say the
+  upgrade channel's `JUSH_UPGRADE_CHANNEL` is. Two places would say the
   mode, and a server would show a mode the file no longer says.
 - **Share API keys and subscriptions alike.** A personal subscription
   serving many users is what vendors' terms most clearly forbid.

@@ -2,21 +2,21 @@
 import { GALLERY_MARKS, shownAmong } from '../fixtures/device-marks'
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import SidebarLayout from '@demicodes/web-ui/sidebar/SidebarLayout.vue'
-import AppSidebar from '@demicodes/web-ui/sidebar/AppSidebar.vue'
-import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
-import SettingsDialog from '@demicodes/web-ui/settings/SettingsDialog.vue'
-import type { SettingsTab } from '@demicodes/web-ui/settings/types'
-import { settingsSections as productSections } from '@demicodes/web-ui/settings/sections'
-import type { DeviceOption, MenuDevice } from '@demicodes/web-ui/targets/types'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { providePageHost, sidebarEntries, withPluginSections } from '@demicodes/web-ui/plugins/page'
-import { provideLiveCalls } from '@demicodes/web-ui/agent/live-calls'
-import { useCallTerminals } from '@demicodes/web-ui/agent/terminals'
-import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
-import ChoosePasswordWizard from '@demicodes/web-ui/auth/ChoosePasswordWizard.vue'
-import PasskeyOffer from '@demicodes/web-ui/auth/PasskeyOffer.vue'
-import { deviceReportKey } from '@demicodes/web-ui/auth/device-unlock'
+import SidebarLayout from '@jush-ai/web-ui/sidebar/SidebarLayout.vue'
+import AppSidebar from '@jush-ai/web-ui/sidebar/AppSidebar.vue'
+import ChatSession from '@jush-ai/web-ui/agent/ChatSession.vue'
+import SettingsDialog from '@jush-ai/web-ui/settings/SettingsDialog.vue'
+import type { SettingsTab } from '@jush-ai/web-ui/settings/types'
+import { settingsSections as productSections } from '@jush-ai/web-ui/settings/sections'
+import type { DeviceOption, MenuDevice } from '@jush-ai/web-ui/targets/types'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { providePageHost, sidebarEntries, withPluginSections } from '@jush-ai/web-ui/plugins/page'
+import { provideLiveCalls } from '@jush-ai/web-ui/agent/live-calls'
+import { useCallTerminals } from '@jush-ai/web-ui/agent/terminals'
+import { appShortcuts } from '@jush-ai/web-ui/settings/shortcuts'
+import ChoosePasswordWizard from '@jush-ai/web-ui/auth/ChoosePasswordWizard.vue'
+import PasskeyOffer from '@jush-ai/web-ui/auth/PasskeyOffer.vue'
+import { deviceReportKey } from '@jush-ai/web-ui/auth/device-unlock'
 import { DEVICE_REPORTS } from '../fixtures/device-reports'
 import GalleryComposer from '../components/GalleryComposer.vue'
 import GalleryDeviceMenu from '../components/GalleryDeviceMenu.vue'
@@ -40,8 +40,8 @@ import { PLUGIN_PAGES } from '../generated/pages'
 import { productWould } from '../product-would'
 import { demoAccount, demoConversations, demoProjects, savedScopeSwitched } from '../sidebar/sidebar-data'
 import { useTurnFlow } from '../turn-flow'
-import type { SidebarConversation } from '@demicodes/web-ui/sidebar/types'
-import type { TitleText } from '@demicodes/web-ui/ui/ui-text'
+import type { SidebarConversation } from '@jush-ai/web-ui/sidebar/types'
+import type { TitleText } from '@jush-ai/web-ui/ui/ui-text'
 import { useAgentContext } from '../agent-context'
 
 /** What a child's context card in the Agents window shows and does beside its usage. */
@@ -274,7 +274,7 @@ onMounted(async () => {
       settingsOpen.value = true
       break
     case 'notifications':
-      // Safari on an iPhone, outside the Home Screen: turning notifications on shows how to add Demi there.
+      // Safari on an iPhone, outside the Home Screen: turning notifications on shows how to add Jush there.
       settings.notifications.iphone = true
       settingsTab.value = 'notifications'
       settingsOpen.value = true

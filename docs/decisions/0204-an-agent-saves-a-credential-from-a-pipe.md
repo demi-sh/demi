@@ -8,25 +8,25 @@ status: proposed
 
 Alex asks an agent to run model tests with the API key in
 `~/Projects/acme/.env`. The agent wants to keep the key as a credential, so
-that later commands pass it on with `demi credentials read` instead of reading
-the file. Its only way to save one is `demi credentials request`, a card on
+that later commands pass it on with `jush credentials read` instead of reading
+the file. Its only way to save one is `jush credentials request`, a card on
 which Alex pastes the values. So the agent shows Alex a card that says where
 the key is and asks Alex to open the file, copy the key and paste it, for a
 value the agent could read itself.
 
 The agent cannot pass the value as an argument either. The shell expands
-`--value "$(grep … .env)"` before Demi sees it, and Demi shows and stores the
+`--value "$(grep … .env)"` before Jush sees it, and Jush shows and stores the
 expanded command line on a permission card: the value would reach the page and
 the database.
 
 ## Decision
 
-`demi credentials save` saves a credential from values piped on its standard
+`jush credentials save` saves a credential from values piped on its standard
 input, which no model reads:
 
 ```sh
 grep '^ACME_API_KEY=' .env | cut -d= -f2- \
-  | demi credentials save "Acme API key" --field api_key:secret:"API key"
+  | jush credentials save "Acme API key" --field api_key:secret:"API key"
 ```
 
 - `save <name> --field … [--reason …] [--keep …]` takes the same arguments as

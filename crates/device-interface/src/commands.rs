@@ -5,7 +5,7 @@
 
 use std::{collections::HashMap, rc::Rc};
 
-use demi_command_declarations::{
+use jush_command_declarations::{
     CapabilityIndex, Category, Group, Leaf, LeafKind, NativeOperation, Node, check_input_subset,
     render_index,
 };
@@ -59,9 +59,9 @@ pub struct Checked<'a> {
 #[error("{0}")]
 pub struct RegisterError(String);
 
-/// The root Demi's own command groups sit under, as `demi browser`; each of
+/// The root Jush's own command groups sit under, as `jush browser`; each of
 /// its groups, like every other root that is a group, is a top-level group.
-pub const DEMI_ROOT: &str = "demi";
+pub const JUSH_ROOT: &str = "jush";
 
 /// Root commands, in the order they were registered, and the handler of
 /// every `rpc` leaf.
@@ -313,14 +313,14 @@ impl CommandSet {
 }
 
 /// The top-level groups of the root `root`, with their paths: the groups of
-/// the `demi` root, or the root itself when it is any other group.
+/// the `jush` root, or the root itself when it is any other group.
 fn top_level_groups(root: &Node<NativeOperation>) -> Vec<(Vec<&str>, &Group<NativeOperation>)> {
     match root {
-        Node::Group(group) if group.name == DEMI_ROOT => group
+        Node::Group(group) if group.name == JUSH_ROOT => group
             .subcommands
             .iter()
             .filter_map(|child| match child {
-                Node::Group(child) => Some((vec![DEMI_ROOT, child.name.as_str()], child)),
+                Node::Group(child) => Some((vec![JUSH_ROOT, child.name.as_str()], child)),
                 Node::Leaf(_) => None,
             })
             .collect(),

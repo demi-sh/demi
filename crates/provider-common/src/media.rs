@@ -9,7 +9,7 @@
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_shared_types::{AudioKind, Clock, QuotaWindow, Timestamp, VendorTrace};
+use jush_shared_types::{AudioKind, Clock, QuotaWindow, Timestamp, VendorTrace};
 use futures_util::future::BoxFuture;
 use futures_util::stream::{BoxStream, StreamExt as _};
 use http::{HeaderMap, StatusCode};
@@ -362,7 +362,7 @@ impl<T> MediaAnswer<T> {
 }
 
 /// Why a vendor did not answer with what was asked: what kind of failure it
-/// is, in Demi's terms, and, for each failure the vendor sent, what the
+/// is, in Jush's terms, and, for each failure the vendor sent, what the
 /// vendor said, its own words, code and request or trace ID, which the
 /// call's words end with.
 ///
@@ -389,7 +389,7 @@ pub enum MediaFailure {
         #[serde(skip)]
         trace: VendorTrace,
     },
-    /// The vendor refused the prompt or an image; `reason` is Demi's, for a
+    /// The vendor refused the prompt or an image; `reason` is Jush's, for a
     /// refusal it read out of an answer, such as an image withheld.
     Refused {
         #[serde(skip)]
@@ -406,7 +406,7 @@ pub enum MediaFailure {
         #[serde(skip)]
         trace: VendorTrace,
     },
-    /// The vendor failed, or did not answer in time; `cause` is Demi's,
+    /// The vendor failed, or did not answer in time; `cause` is Jush's,
     /// such as `HTTP 503` or the transport's error.
     Unanswered {
         #[serde(skip)]
@@ -710,7 +710,7 @@ impl MediaCall<'_> {
             let cause = format!("HTTP {}", status.as_u16());
             return MediaFailure::Unanswered { cause, code: failure.code, trace };
         }
-        // A refusal without words names its status, as Demi's reason.
+        // A refusal without words names its status, as Jush's reason.
         let reason = trace.words.is_none().then(|| format!("HTTP {}", status.as_u16()));
         MediaFailure::Refused { reason, code: failure.code, trace }
     }

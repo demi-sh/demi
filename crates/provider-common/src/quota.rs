@@ -21,7 +21,7 @@
 
 use std::sync::{Arc, Mutex, PoisonError};
 
-use demi_shared_types::{
+use jush_shared_types::{
     Clock, QuotaPlan, QuotaSeverity, QuotaSnapshot, QuotaWindow, SnapshotSource, Timestamp,
 };
 use futures_util::future::BoxFuture;
@@ -185,7 +185,7 @@ impl From<Vec<QuotaWindow>> for ObservedWindows {
 pub enum ProbeCost {
     /// It reads a usage endpoint and spends no inference.
     Free,
-    /// It spends an inference request, which Demi never runs as a probe.
+    /// It spends an inference request, which Jush never runs as a probe.
     Inference,
 }
 

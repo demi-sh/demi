@@ -50,7 +50,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(import.meta.dirname, 'src'),
-      '@demicodes/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
+      '@jush-ai/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
     },
   },
   server: {

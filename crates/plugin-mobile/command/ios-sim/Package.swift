@@ -1,5 +1,5 @@
 // swift-tools-version: 6.0
-// demi-ios-sim, the iOS helper demi-mobile carries
+// jush-ios-sim, the iOS helper jush-mobile carries
 // (`crates/plugin-mobile/command/src/ios/mod.rs`): it
 // links Meta's FBSimulatorControl (MIT) from idb's v1.7.6 release, each
 // library pinned by its URL and sha256. `bun xtask native build` builds it,
@@ -25,23 +25,23 @@ let libraries: [(String, String)] = [
 ]
 
 let package = Package(
-  name: "DemiIosSim",
+  name: "JushIosSim",
   // idb's libraries are built for macOS 15 on Apple silicon.
   platforms: [.macOS(.v15)],
-  products: [.executable(name: "demi-ios-sim", targets: ["DemiIosSim"])],
+  products: [.executable(name: "jush-ios-sim", targets: ["JushIosSim"])],
   targets: libraries.map { name, checksum in
     .binaryTarget(name: name, url: "\(release)/\(name).xcframework.zip", checksum: checksum)
   } + [
     // The device's frame as DeviceKit draws it, apart from the simulator.
     .target(
-      name: "DemiChrome",
-      path: "Sources/DemiChrome",
+      name: "JushChrome",
+      path: "Sources/JushChrome",
       swiftSettings: [.swiftLanguageMode(.v5)]
     ),
     .executableTarget(
-      name: "DemiIosSim",
-      dependencies: libraries.map { .byName(name: $0.0) } + ["DemiChrome"],
-      path: "Sources/DemiIosSim",
+      name: "JushIosSim",
+      dependencies: libraries.map { .byName(name: $0.0) } + ["JushChrome"],
+      path: "Sources/JushIosSim",
       swiftSettings: [.swiftLanguageMode(.v5)]
     ),
   ]

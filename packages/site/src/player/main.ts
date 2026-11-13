@@ -1,6 +1,6 @@
 // The page each of the site's demos shows in a frame: it plays the demo's
 // recording (`recording.ts`) for the screen the frame stands for, so the
-// frame shows Demi's own app as it looked, with none of the app's script.
+// frame shows Jush's own app as it looked, with none of the app's script.
 // The page tells it which demo to play (`src/demo/message.ts`); each
 // time, the recording starts over, and a demo that loops starts over by
 // itself once its seconds have run. The page pauses the play while the

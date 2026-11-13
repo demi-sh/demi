@@ -1,5 +1,5 @@
 [package]
-name = "demi-machine-manager-protocol"
+name = "jush-machine-manager-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,9 +12,9 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-command-protocol = { path = "../command-protocol" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-shared-types = { path = "../shared-types" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-shared-types = { path = "../shared-types" }
 garde.workspace = true
 ipnet = { version = "2", features = ["serde"] }
 serde.workspace = true

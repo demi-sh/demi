@@ -1,7 +1,7 @@
 import { t } from './locales/text'
 /** Presentation models for the settings surfaces. Pages map their own state onto these. */
 import type { ShownError } from '../infra/errors'
-import { VIDEO_FILE_EXTENSIONS, type QuotaWindowName } from '@demicodes/protocol'
+import { VIDEO_FILE_EXTENSIONS, type QuotaWindowName } from '@jush-ai/protocol'
 import type { Component } from 'vue'
 import type { ModelSettings } from '../agent/model-selection'
 import type { TagTone } from '../ui/Tag.vue'
@@ -369,7 +369,7 @@ export interface SettingsProviderAccount {
   quotaAt?: string | null
 }
 
-/** The CLI a process provider starts, which Demi installs and updates on Claude Code's machine. */
+/** The CLI a process provider starts, which Jush installs and updates on Claude Code's machine. */
 export interface SettingsProviderCli {
   /** The vendor's newest version, or why it could not be read. */
   newest: { version: string } | { error: string }
@@ -442,7 +442,7 @@ export interface SettingsProviderEntry {
   apiKey: string
   keyConfigured?: boolean
   /**
-   * For a provider another Demi server shares: that server, by its host,
+   * For a provider another Jush server shares: that server, by its host,
    * once a share key names it, else null; absent for any other provider. Its
    * page has a Share Key in place of the endpoint and key, and no Share.
    */
@@ -451,7 +451,7 @@ export interface SettingsProviderEntry {
   shareKey?: string
   configured?: boolean
   /**
-   * The CLI its requests start on a machine, which Demi installs there, once
+   * The CLI its requests start on a machine, which Jush installs there, once
    * asked for; null while it is not known, absent for a provider whose
    * requests are HTTP.
    */
@@ -653,7 +653,7 @@ export interface SettingsSubagentProfile {
    * with the parent's model.
    */
   contextLimit: number | null
-  /** The text added to a child's system prompt after Demi's own; null for none. */
+  /** The text added to a child's system prompt after Jush's own; null for none. */
   instructions: string | null
   /** Whether the profile's children may spawn children of their own. */
   canSpawn: boolean

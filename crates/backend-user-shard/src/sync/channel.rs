@@ -31,11 +31,11 @@ use std::convert::Infallible;
 use std::rc::Rc;
 
 use axum::extract::ws::close_code;
-use demi_backend_page_sync::{Part, Registration, StateVersion};
-use demi_conversation_lane_protocol::{Held, Version};
-use demi_web_api_protocol::auth::Role;
-use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::state::{PageMessage, SyncEvent, SyncFollow, SyncFollowed};
+use jush_backend_page_sync::{Part, Registration, StateVersion};
+use jush_conversation_lane_protocol::{Held, Version};
+use jush_web_api_protocol::auth::Role;
+use jush_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::state::{PageMessage, SyncEvent, SyncFollow, SyncFollowed};
 
 use crate::conversation::notifications::OpenPage;
 use crate::shard::lane::PageSession;

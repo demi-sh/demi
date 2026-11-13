@@ -15,7 +15,7 @@ archived; it wakes a stopped Cloud; it changes or disappears when the file
 does, though the reply was written about the picture as it was; and a shared
 page never shows it.
 
-An attachment the agent uploads with `demi attachment upload` has none of
+An attachment the agent uploads with `jush attachment upload` has none of
 these problems: the backend keeps a copy, with its size, and the reply shows
 the copy.
 
@@ -32,7 +32,7 @@ attachment already does.
 
 * When an agent's message is written to its end, the backend copies each
   Host picture its text shows, from the Host the agent ran on, into the
-  conversation's attachments, with its size, as `demi attachment upload`
+  conversation's attachments, with its size, as `jush attachment upload`
   would. The message shows the copies; the text keeps the path the agent
   wrote.
 * The copies are made in the background: the agent's turn and the next

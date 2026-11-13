@@ -5,7 +5,7 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     endpoint_url,
     media::{Ask, Holding, MediaAnswer, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor, subscription_models},
     media_catalog::{Catalog, MediaKind, Subscription},
@@ -32,7 +32,7 @@ impl MediaMaker for GrokVideos {
     /// accepted: the proxy lists none.
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(subscription_models(catalog, Subscription::Grok, MediaKind::Video))))
@@ -40,11 +40,11 @@ impl MediaMaker for GrokVideos {
 }
 
 impl VideoMaker for GrokVideos {
-    fn download<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, url: &'a reqwest::Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
+    fn download<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, url: &'a reqwest::Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
         Box::pin(videos::download(crate::LABEL, &*self.0.clock, http, url, url, HeaderMap::new()))
     }
 
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a demi_provider_common::media_catalog::Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a jush_provider_common::media_catalog::Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(async move {
             let shared = &*self.0;
             shared
@@ -57,7 +57,7 @@ impl VideoMaker for GrokVideos {
         })
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: demi_provider_common::videos::JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>>  {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: jush_provider_common::videos::JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>>  {
         let job = job.id;
         Box::pin(async move {
             let shared = &*self.0;

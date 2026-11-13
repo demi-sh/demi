@@ -46,14 +46,14 @@ the VM, on the VM's Linux disk.
 Build the image inside the VM as the
 [guest image build](../../cloud-guest-image/README.md) describes, from the
 server-release root that [devices in use](#devices-in-use) builds, prefixing the
-build command with `limactl shell demi-machine-manager --`. The VM sees the
+build command with `limactl shell jush-machine-manager --`. The VM sees the
 Mac's home directory at the same path. Its output is the `image/` of the manager's root on the
-VM's Linux disk, such as `/opt/demi/dev-<build>/image`, never a shared Mac
+VM's Linux disk, such as `/opt/jush/dev-<build>/image`, never a shared Mac
 directory.
 
 ## Machine manager in Lima
 
-`crates/machine-manager/lima/demi-machine-manager.yaml` and
+`crates/machine-manager/lima/jush-machine-manager.yaml` and
 `crates/machine-manager/scripts/lima-machines.sh` provision the Linux
 dependencies, a separate persistent data disk, the manager service, the network
 policy, and Unix socket forwarding. The VM runs the same privileged manager and
@@ -62,25 +62,25 @@ runsc profile as a Linux execution host.
 `--release` names the manager's root in the VM, the one whose `image/` the
 image build wrote. The script takes these steps:
 
-1. Copies the manager and `demi-server` built for the VM's architecture into
+1. Copies the manager and `jush-server` built for the VM's architecture into
    that root's `bin/`, renaming each into place so that a running manager keeps
    its own file.
 2. Puts the manager's unit in the root's `systemd/`, as a server release
    carries it.
-3. Has `demi-server runtime` fetch the pinned gVisor into `/opt/demi/gvisor/`.
+3. Has `jush-server runtime` fetch the pinned gVisor into `/opt/jush/gvisor/`.
 4. Writes the VM's configuration file with the public URL, the socket and the
    state directory.
-5. Installs the service from the root through `/opt/demi/current`.
+5. Installs the service from the root through `/opt/jush/current`.
 
 The following commands build the two programs and run the script:
 
 ```sh
-bun xtask native build --package demi-machine-manager --package demi-server \
+bun xtask native build --package jush-machine-manager --package jush-server \
   --target aarch64-unknown-linux-musl
 bash crates/machine-manager/scripts/lima-machines.sh \
-  --manager .cache/native-target/aarch64-unknown-linux-musl/release/demi-machine-manager \
-  --server .cache/native-target/aarch64-unknown-linux-musl/release/demi-server \
-  --release /opt/demi/dev-<build> \
+  --manager .cache/native-target/aarch64-unknown-linux-musl/release/jush-machine-manager \
+  --server .cache/native-target/aarch64-unknown-linux-musl/release/jush-server \
+  --release /opt/jush/dev-<build> \
   --public-url http://<the Mac's address>:3271
 ```
 
@@ -88,7 +88,7 @@ bash crates/machine-manager/scripts/lima-machines.sh \
 
 - The Cloud guests reach the backend through its runner socket, which Lima
   forwards into the VM and a systemd relay serves at
-  `/run/demi-backend/runners.sock` (`crates/backend-http/src/lib.rs`), and
+  `/run/jush-backend/runners.sock` (`crates/backend-http/src/lib.rs`), and
   name the URL only as the backend's origin.
 - The Mac's own runner connects to the URL directly, so it names the Mac's
   address on its network, such as Wi-Fi's `192.168.75.36`.
@@ -149,10 +149,10 @@ server-release root from [devices in use](#devices-in-use), and start the backen
 with the three settings the script printed:
 
 ```sh
-DEMI_RELEASE=.cache/release-<build> \
-DEMI_BACKEND_PUBLIC_URL=http://<the Mac's address>:3271 \
-DEMI_MACHINE_MANAGER_SOCKET=~/.lima/demi-machine-manager/sock/demi-machine-manager.sock \
-DEMI_BACKEND_RUNNER_SOCKET=~/.lima/demi-machine-manager/sock/runners.sock \
+JUSH_RELEASE=.cache/release-<build> \
+JUSH_BACKEND_PUBLIC_URL=http://<the Mac's address>:3271 \
+JUSH_MACHINE_MANAGER_SOCKET=~/.lima/jush-machine-manager/sock/jush-machine-manager.sock \
+JUSH_BACKEND_RUNNER_SOCKET=~/.lima/jush-machine-manager/sock/runners.sock \
 ...
 ```
 

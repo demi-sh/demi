@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import AssistantTextBlock from '@demicodes/web-ui/agent/blocks/AssistantTextBlock.vue'
-import { provideMessageFiles } from '@demicodes/web-ui/markdown/message-files'
-import type { ConversationFiles } from '@demicodes/web-ui/markdown/types'
-import type { CodeFile, ReplyPicture } from '@demicodes/protocol'
+import AssistantTextBlock from '@jush-ai/web-ui/agent/blocks/AssistantTextBlock.vue'
+import { provideMessageFiles } from '@jush-ai/web-ui/markdown/message-files'
+import type { ConversationFiles } from '@jush-ai/web-ui/markdown/types'
+import type { CodeFile, ReplyPicture } from '@jush-ai/protocol'
 
 /**
  * A reply that names files: the attachments the agent uploaded, or the

@@ -7,7 +7,7 @@ import { dropSource } from './preview'
 import VideoPlayer from './VideoPlayer.vue'
 
 /**
- * A video in Demi's own player (`VideoPlayer`), which takes the whole space
+ * A video in Jush's own player (`VideoPlayer`), which takes the whole space
  * as its stage, or an audio file in the web browser's, which plays at once
  * when `autoplay` says so, as a video opened large does. Leaving the page
  * stops it. A video shows as large as the space inside its margin lets it,

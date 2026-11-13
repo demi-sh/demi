@@ -7,11 +7,11 @@
 //! - `GET /devices/:id/workflows?directory=` lists those of a new
 //!   conversation's directory before its first message.
 
-use demi_runner_protocol::files::SubscriptionKind;
+use jush_runner_protocol::files::SubscriptionKind;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
+use jush_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
 
 use crate::error::ErrorCode;
 use crate::files::AbsolutePath;
@@ -20,7 +20,7 @@ use crate::files::AbsolutePath;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ConversationWorkflows {
-    /// The `.demi/workflows` directory they are in; null when no directory
+    /// The `.jush/workflows` directory they are in; null when no directory
     /// from the project's directory up to the repository's root has one.
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<String>")]
@@ -110,7 +110,7 @@ pub struct MenuWorkflow {
 pub struct WatchSubject {
     pub kind: SubscriptionKind,
     pub path: String,
-    /// See [`demi_runner_protocol::files::Subject::suffix`].
+    /// See [`jush_runner_protocol::files::Subject::suffix`].
     #[serde(default, skip_serializing_if = "Option::is_none", with = "serde_with::rust::unwrap_or_skip")]
     #[schemars(with = "String")]
     pub suffix: Option<String>,

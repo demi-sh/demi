@@ -25,21 +25,21 @@ use std::ops::{ControlFlow, Range};
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_agent_store::{AgentTreeStore, RunningCommand, SessionStore, StoredCommand, StoredOutput, StoredSubagent, Switched};
-use demi_agent_store::{
+use jush_agent_store::{AgentTreeStore, RunningCommand, SessionStore, StoredCommand, StoredOutput, StoredSubagent, Switched};
+use jush_agent_store::{
     Checkpoint, CheckpointState, CheckpointUpdate, ClosePhase, EarlierRows, Kind, NodeClose, NodeRecord, Reprofile,
     Placement, Rows, SavedVersions, SideOf, StoreError, StoredPrefix, SwitchedBefore, media::BlobStore,
 };
-use demi_runner_client::decode_output;
-use demi_conversation_lane_protocol::{BlockVersions, PAGE_BLOCKS, PageAt, TurnSpeed, page};
-use demi_web_api_protocol::conversations::{CompactionSummary, EndedCommand, TranscriptQuery};
-use demi_shared_types::{
+use jush_runner_client::decode_output;
+use jush_conversation_lane_protocol::{BlockVersions, PAGE_BLOCKS, PageAt, TurnSpeed, page};
+use jush_web_api_protocol::conversations::{CompactionSummary, EndedCommand, TranscriptQuery};
+use jush_shared_types::{
     Block, BlockId, CommandEnd, CommandId, CompletionId, INSTRUCTIONS_SOURCE, InstructionEntry,
     ModelSelection, NodeId, QueuedMessage, Sequence, SessionPhase, Timestamp, ToolCallBlock, TurnId, is_blank,
 };
 use futures_util::future::LocalBoxFuture;
-use demi_web_api_protocol::ids::{ConversationId, ShareToken};
-use demi_agent_store::media::block_blobs;
+use jush_web_api_protocol::ids::{ConversationId, ShareToken};
+use jush_agent_store::media::block_blobs;
 use crate::path::{self, PATH_LENGTH, PATH_ROWS, POSITION, Path, RUN_NODE, Segment};
 use crate::shares;
 use rusqlite::types::Value;
@@ -714,7 +714,7 @@ impl AgentTreeStore for SqliteTreeStore {
         &'a self,
         command: &'a CommandId,
         node: &'a NodeId,
-        seen: demi_device_interface::Seen,
+        seen: jush_device_interface::Seen,
     ) -> LocalBoxFuture<'a, Result<(), StoreError>> {
         Box::pin(async move {
             let (command, node) = (command.clone(), node.clone());
@@ -729,7 +729,7 @@ impl AgentTreeStore for SqliteTreeStore {
         &'a self,
         command: &'a CommandId,
         node: &'a NodeId,
-    ) -> LocalBoxFuture<'a, Result<Option<demi_device_interface::Seen>, StoreError>> {
+    ) -> LocalBoxFuture<'a, Result<Option<jush_device_interface::Seen>, StoreError>> {
         Box::pin(async move {
             let (command, node) = (command.clone(), node.clone());
             Ok(self
@@ -1228,7 +1228,7 @@ fn path_versions(
     connection: &Connection,
     path: &Path,
     range: Range<i64>,
-) -> Result<BTreeMap<usize, demi_conversation_lane_protocol::Versions>, StorageError> {
+) -> Result<BTreeMap<usize, jush_conversation_lane_protocol::Versions>, StorageError> {
     path.versions(connection, range)?
         .into_iter()
         .map(|(position, versions)| Ok((decode("path_runs", "start", usize::try_from(position))?, versions)))

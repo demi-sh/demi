@@ -7,7 +7,7 @@
 //!   detach).
 //! - File transfers, uploads, remote files, user streams and the file watch.
 //! - The shell environments of the agent's nodes over the access.
-//! - The product's `demi device` and `demi attachment` groups.
+//! - The product's `jush device` and `jush attachment` groups.
 //!
 //! The operations are methods of `dyn DeviceShard`, what device access needs of its
 //! user's shard (`crates/backend-user-shard/src/lib.rs`), which the shard
@@ -98,22 +98,22 @@ pub mod uploads;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_backend_blobs::blobs::UserBlobs;
-use demi_backend_cloud::CloudShard;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::conversations::ConversationDb;
-use demi_backend_database::projects::DirectoryNamed;
-use demi_runner_client::Pipes;
-use demi_backend_runners::claims::PendingClaims;
-use demi_backend_runners::devices::Devices;
-use demi_backend_runners::native::NativeCatalog;
-use demi_backend_runners::public_url::PublicUrl;
-use demi_backend_runners::router::CommandRouter;
-use demi_backend_database::conversation_index::ConversationChange;
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_agent_store::Placement;
-use demi_shared_types::{Clock, NodeId};
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_backend_blobs::blobs::UserBlobs;
+use jush_backend_cloud::CloudShard;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::conversations::ConversationDb;
+use jush_backend_database::projects::DirectoryNamed;
+use jush_runner_client::Pipes;
+use jush_backend_runners::claims::PendingClaims;
+use jush_backend_runners::devices::Devices;
+use jush_backend_runners::native::NativeCatalog;
+use jush_backend_runners::public_url::PublicUrl;
+use jush_backend_runners::router::CommandRouter;
+use jush_backend_database::conversation_index::ConversationChange;
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_agent_store::Placement;
+use jush_shared_types::{Clock, NodeId};
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 
@@ -146,7 +146,7 @@ pub trait DeviceShard {
     fn native(&self) -> &NativeCatalog;
     /// Where runners fetch the packages' executables from.
     fn public_url(&self) -> &PublicUrl;
-    /// The runners waiting to be paired, which `demi device pair` claims.
+    /// The runners waiting to be paired, which `jush device pair` claims.
     fn claims(&self) -> &PendingClaims;
     /// Every task the shard spawns, which its close waits for.
     fn tasks(&self) -> &TaskTracker;
@@ -197,17 +197,17 @@ pub trait DeviceShard {
     /// Never waits: the operation that named it holds the conversation's
     /// file gate.
     fn directory_named(&self, conversation: &ConversationId, named: DirectoryNamed);
-    /// The user's port forwards, as `demi device forward list` names them.
-    fn port_forwards(&self) -> LocalBoxFuture<'_, Result<Vec<demi_web_api_protocol::port_forwards::PortForwardDto>, String>>;
+    /// The user's port forwards, as `jush device forward list` names them.
+    fn port_forwards(&self) -> LocalBoxFuture<'_, Result<Vec<jush_web_api_protocol::port_forwards::PortForwardDto>, String>>;
     /// Adds a port forward from its defaults with `patch` over them.
     fn add_port_forward(
         &self,
-        patch: demi_web_api_protocol::port_forwards::PortForwardPatch,
-    ) -> LocalBoxFuture<'_, Result<demi_web_api_protocol::port_forwards::PortForwardDto, String>>;
+        patch: jush_web_api_protocol::port_forwards::PortForwardPatch,
+    ) -> LocalBoxFuture<'_, Result<jush_web_api_protocol::port_forwards::PortForwardDto, String>>;
     /// Removes the port forward `id`.
     fn remove_port_forward(
         &self,
-        id: demi_web_api_protocol::ids::PortForwardId,
+        id: jush_web_api_protocol::ids::PortForwardId,
     ) -> LocalBoxFuture<'_, Result<(), String>>;
 }
 

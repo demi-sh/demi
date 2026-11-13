@@ -10,12 +10,12 @@
 
 use std::{io, path::PathBuf, process::Command};
 
-use demi_supervisor_protocol::{Answer, Request};
+use jush_supervisor_protocol::{Answer, Request};
 
 use crate::layout::Layout;
 
 /// The update screen's transient unit.
-const SCREEN: &str = "demi-update-screen.service";
+const SCREEN: &str = "jush-update-screen.service";
 
 /// What an upgrade asks of the service manager.
 pub trait Services: Sync {
@@ -84,8 +84,8 @@ impl Services for Systemd {
                 "--quiet",
                 "--collect",
                 &format!("--unit={SCREEN}"),
-                "--property=User=demi",
-                "--property=Group=demi",
+                "--property=User=jush",
+                "--property=Group=jush",
                 "--property=AmbientCapabilities=CAP_NET_BIND_SERVICE",
                 "--property=CapabilityBoundingSet=CAP_NET_BIND_SERVICE",
             ])
@@ -122,7 +122,7 @@ pub struct Supervisor {
 
 impl Supervisor {
     fn ask(&self, request: Request) -> io::Result<Answer> {
-        match demi_supervisor_protocol::ask(&self.socket, &request)? {
+        match jush_supervisor_protocol::ask(&self.socket, &request)? {
             Answer::Failed { error } => Err(io::Error::other(error)),
             answer => Ok(answer),
         }

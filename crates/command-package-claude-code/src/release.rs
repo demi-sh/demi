@@ -1,8 +1,8 @@
 //! Which download URLs the release record `claude-code.ensure` installs from
 //! may name; the record's shape is
-//! `demi_command_package_claude_code_protocol::Release`.
+//! `jush_command_package_claude_code_protocol::Release`.
 
-use demi_command_package_claude_code_protocol::{Artifact, Release};
+use jush_command_package_claude_code_protocol::{Artifact, Release};
 
 use crate::install::EnsureError;
 

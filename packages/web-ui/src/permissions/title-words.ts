@@ -1,4 +1,4 @@
-import { fillText } from '@demicodes/utils'
+import { fillText } from '@jush-ai/utils'
 
 /**
  * A request's card title worded from words given whole, with no catalogue

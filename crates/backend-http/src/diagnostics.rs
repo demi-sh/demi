@@ -6,8 +6,8 @@
 
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_shared_types::{LogLine, LogOrigin};
-use demi_web_api_protocol::diagnostics::PageLog;
+use jush_shared_types::{LogLine, LogOrigin};
+use jush_web_api_protocol::diagnostics::PageLog;
 
 use super::AppState;
 use super::body::JsonBody;

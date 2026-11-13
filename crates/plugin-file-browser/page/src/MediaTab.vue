@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { MediaView } from '@demicodes/plugin-sdk'
+import { MediaView } from '@jush-ai/plugin-sdk'
 import type { MediaData } from './media'
 
 /** The Media tab: the medium the conversation's viewer shows, whose place it keeps for a reload. */

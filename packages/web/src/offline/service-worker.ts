@@ -41,25 +41,25 @@ const RAW_ROUTE = /^\/api\/conversations\/[^/]+\/fs\/raw$/
 const HASHED = '/assets/'
 
 /**
- * The prefix of a build's cache, `demi-build-<id>`: the build's page under
+ * The prefix of a build's cache, `jush-build-<id>`: the build's page under
  * `PAGE_KEY`, its hashed files under their own URLs, and, once a page of the
  * build ran, `RAN_KEY`.
  */
-const BUILD_CACHE = 'demi-build-'
+const BUILD_CACHE = 'jush-build-'
 const PAGE_KEY = '/'
 /** Marks the build whose page last ran, the one a failed navigation is answered with. */
-const RAN_KEY = '/.demi-ran'
+const RAN_KEY = '/.jush-ran'
 
 /** What a proxy in front of the backend answers while the backend is away. */
 const PROXY_AWAY = new Set([502, 503, 504])
 
-/** The build a page names in its `<meta name="demi-build">`, which `vite build` writes in. */
-const BUILD_META = /<meta name="demi-build" content="([^"]+)"/
+/** The build a page names in its `<meta name="jush-build">`, which `vite build` writes in. */
+const BUILD_META = /<meta name="jush-build" content="([^"]+)"/
 
 /**
  * The build each page of this origin runs, by its client id, as soon as
  * the worker knows it: from the page its navigation brought, or from the
- * page's own word (`demi-page`) when the worker did not answer its
+ * page's own word (`jush-page`) when the worker did not answer its
  * navigation, as on the first visit. The web browser stops an idle worker
  * while its pages stay open, so each is kept in `CLIENTS` too, which a
  * worker started again reads.
@@ -67,7 +67,7 @@ const BUILD_META = /<meta name="demi-build" content="([^"]+)"/
 const clientBuilds = new Map<string, Promise<string | null>>()
 
 /** The cache of each page's build, under `/<client id>`, for a worker started again. */
-const CLIENTS = 'demi-clients'
+const CLIENTS = 'jush-clients'
 
 /** Notes that client `id` runs the build `build` resolves with, once it does. */
 function setClientBuild(id: string, build: Promise<string | null>): Promise<void> {
@@ -298,8 +298,10 @@ async function ran(build: string, files: string[]): Promise<void> {
     if (!open.has(key))
       await clients.delete(key)
   }
+  // The caches of before the product took the name Jush are no one's either;
+  // this goes with the other migrations when the history starts again.
   for (const other of await caches.keys()) {
-    if (other.startsWith(BUILD_CACHE) && other !== name)
+    if ((other.startsWith(BUILD_CACHE) && other !== name) || other.startsWith('demi-'))
       await caches.delete(other)
   }
   const cache = await caches.open(name)
@@ -324,7 +326,7 @@ async function ran(build: string, files: string[]): Promise<void> {
 
 /** A page's word that it runs `build`, with the hashed files it fetched so far; none for another message. */
 function readPage(value: unknown): { build: string; files: string[] } | null {
-  if (!isRecord(value) || value.type !== 'demi-page' || typeof value.build !== 'string' || !Array.isArray(value.files))
+  if (!isRecord(value) || value.type !== 'jush-page' || typeof value.build !== 'string' || !Array.isArray(value.files))
     return null
   const files: string[] = []
   for (const file of value.files) {
@@ -345,7 +347,7 @@ async function answer(event: FetchEvent): Promise<Response> {
   const replies = replyQueue(port)
   client.postMessage(
     {
-      type: 'demi-direct-raw',
+      type: 'jush-direct-raw',
       url: request.url,
       range: request.headers.get('range'),
       ifNoneMatch: request.headers.get('if-none-match'),

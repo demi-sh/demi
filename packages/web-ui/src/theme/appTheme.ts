@@ -13,7 +13,7 @@ export const themeChoiceSchema = themeModeSchema.or(z.literal('system'))
 export type ThemeMode = z.infer<typeof themeModeSchema>
 export type ThemeChoice = z.infer<typeof themeChoiceSchema>
 
-const STORAGE_KEY = 'demi-theme-mode'
+const STORAGE_KEY = 'jush-theme-mode'
 
 function systemPrefersLight(): boolean {
   return (

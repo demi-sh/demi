@@ -22,7 +22,7 @@ use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 
 use crate::{CommandInput, CommandOutput, Input, Output, ResidentError};
-use demi_command_protocol::{Completion, ProtocolError, Record};
+use jush_command_protocol::{Completion, ProtocolError, Record};
 
 /// Requests waiting for the stream; a full queue holds back their callers,
 /// where an unbounded one would grow memory for a stream that is slow.

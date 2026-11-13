@@ -9,7 +9,7 @@ import { addPasskey, usePasskeys } from './passkeys'
  * it ends with: a handoff lands on its page by loading it. The tab's session
  * storage holds it, so another tab or a later visit is not offered.
  */
-const REQUESTED = 'demi.passkeyOffer.requested'
+const REQUESTED = 'jush.passkeyOffer.requested'
 
 function requestedBefore(): boolean {
   try {

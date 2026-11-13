@@ -1,5 +1,5 @@
 [package]
-name = "demi-plugin-host"
+name = "jush-plugin-host"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,14 +12,14 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-command-declarations = { path = "../command-declarations" }
-demi-device-interface = { path = "../device-interface" }
-demi-device-paths = { path = "../device-paths" }
-demi-plugin-interface = { path = "../plugin-interface" }
-demi-shared-types = { path = "../shared-types" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-command-declarations = { path = "../command-declarations" }
+jush-device-interface = { path = "../device-interface" }
+jush-device-paths = { path = "../device-paths" }
+jush-plugin-interface = { path = "../plugin-interface" }
+jush-shared-types = { path = "../shared-types" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 # The OAuth pieces every sign-in meets.
-demi-provider-common = { path = "../provider-common" }
+jush-provider-common = { path = "../provider-common" }
 base64.workspace = true
 futures-util.workspace = true
 jiff.workspace = true

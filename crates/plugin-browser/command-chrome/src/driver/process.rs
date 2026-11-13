@@ -27,7 +27,7 @@ use crate::driver::operation::Result;
 /// The variable that marks Chrome's processes with the environment they
 /// belong to, named by its runtime directory.
 #[cfg(unix)]
-const PROFILE_ENV: &str = "DEMI_BROWSER_PROFILE";
+const PROFILE_ENV: &str = "JUSH_BROWSER_PROFILE";
 
 /// The variable Chrome takes its temporary directory from, where it makes the
 /// directory of its process-singleton socket.

@@ -2,8 +2,8 @@
 // The frame a demo plays in. The site's page tells it which demo to play
 // (`message.ts`); each time, the scene starts over from nothing.
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { provideBlobUrl } from '@demicodes/web-ui/agent/media-source'
-import { provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
+import { provideBlobUrl } from '@jush-ai/web-ui/agent/media-source'
+import { provideMediaViewer } from '@jush-ai/web-ui/files/media-viewer'
 import { isDemoId, isForm, type DemoId } from '@/features'
 import DemoScene from './DemoScene.vue'
 import { readPlay, tellReady } from './message'

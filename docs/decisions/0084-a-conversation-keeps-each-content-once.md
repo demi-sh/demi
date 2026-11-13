@@ -145,10 +145,10 @@ blobs/<user>/<sha256>                 media and uploads, as today
   is interrupted the next command tries the upgrade again without a new
   snapshot, so a later return needs the same one.
 * A return to a release from before this one is carried out by that
-  release's own `demi-server`, which copies the snapshot back onto each
+  release's own `jush-server`, which copies the snapshot back onto each
   database. A copy truncates its target first, so onto a database the
   snapshot still shares by a hard link it would empty both. The installed
-  `demi-server` therefore gives each such database, one not converted yet,
+  `jush-server` therefore gives each such database, one not converted yet,
   a copy of its own before it hands the return over.
 
 ### What an older server meets

@@ -34,12 +34,12 @@
 
 use std::collections::VecDeque;
 
-use demi_agent_store::SavedVersions;
-use demi_conversation_lane_protocol::{
+use jush_agent_store::SavedVersions;
+use jush_conversation_lane_protocol::{
     Followed, Held, STORED_EPOCH, ServerFrame, ShellStatus, TranscriptPatch, Version,
 };
-use demi_agent_tools::DeviceResolver;
-use demi_shared_types::NodeId;
+use jush_agent_tools::DeviceResolver;
+use jush_shared_types::NodeId;
 
 use super::Tree;
 use crate::server::connection::Follows;

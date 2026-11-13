@@ -9,11 +9,11 @@
 
 use std::sync::Arc;
 
-use demi_runner_protocol::release::{DevicePrefetch, PrefetchProgress, PrefetchState, RunnerRelease};
-use demi_web_api_protocol::ids::DeviceId;
+use jush_runner_protocol::release::{DevicePrefetch, PrefetchProgress, PrefetchState, RunnerRelease};
+use jush_web_api_protocol::ids::DeviceId;
 use tokio::sync::watch;
 
-use demi_runner_client::CommandCatalog;
+use jush_runner_client::CommandCatalog;
 
 use crate::native::{NativeCatalog, StoredBytes};
 use crate::public_url::PublicUrl;

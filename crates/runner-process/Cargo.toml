@@ -1,5 +1,5 @@
 [package]
-name = "demi-runner-process"
+name = "jush-runner-process"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,11 +12,11 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-sdk = { path = "../command-sdk" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-shared-lanes = { path = "../shared-lanes" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-sdk = { path = "../command-sdk" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-shared-lanes = { path = "../shared-lanes" }
 bytes.workspace = true
 futures-util.workspace = true
 # The line counts of a change, the diff gix's blob diff is.

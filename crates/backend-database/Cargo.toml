@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-database"
+name = "jush-backend-database"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,23 +13,23 @@ bench = false
 
 [features]
 # Each database's schemas and its migration, which the crate's test runs
-# (`demi_backend_database::testing`).
+# (`jush_backend_database::testing`).
 testing = []
 
 [dependencies]
-demi-agent-store = { path = "../agent-store" }
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
-demi-shared-types = { path = "../shared-types", features = ["tracing"] }
-demi-shared-gates = { path = "../shared-gates" }
-demi-runner-client = { path = "../runner-client" }
-demi-machine-manager-protocol = { path = "../machine-manager-protocol" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-device-interface = { path = "../device-interface" }
-demi-device-paths = { path = "../device-paths" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
-demi-plugin-interface = { path = "../plugin-interface" }
-demi-plugin-host = { path = "../plugin-host" }
+jush-agent-store = { path = "../agent-store" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
+jush-shared-types = { path = "../shared-types", features = ["tracing"] }
+jush-shared-gates = { path = "../shared-gates" }
+jush-runner-client = { path = "../runner-client" }
+jush-machine-manager-protocol = { path = "../machine-manager-protocol" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-device-interface = { path = "../device-interface" }
+jush-device-paths = { path = "../device-paths" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
+jush-plugin-interface = { path = "../plugin-interface" }
+jush-plugin-host = { path = "../plugin-host" }
 base64.workspace = true
 bytes.workspace = true
 comrak = { version = "0.56", default-features = false }
@@ -49,7 +49,7 @@ thiserror.workspace = true
 tokio.workspace = true
 tokio-rusqlite = "0.8"
 tracing.workspace = true
-# `DEMI_LOG`'s targets, which a page's lines are held to (`server_log`).
+# `JUSH_LOG`'s targets, which a page's lines are held to (`server_log`).
 tracing-subscriber.workspace = true
 uuid = { version = "1", features = ["v4"] }
 # The contents and the records' bodies are stored compressed; the records of a
@@ -64,12 +64,12 @@ zstd = { version = "0.13", default-features = false, features = ["zdict_builder"
 webauthn-rs = { version = "=0.5.5", default-features = false, features = ["conditional-ui", "danger-allow-state-serialisation", "danger-credential-internals"] }
 # `webauthn-rs` signs and verifies with OpenSSL, which it offers no
 # alternative to; built from source, so that the static Linux builds of the
-# backend and `demi-server` need no system OpenSSL. No runner, command
+# backend and `jush-server` need no system OpenSSL. No runner, command
 # package or device program depends on this crate.
 openssl = { version = "0.10", features = ["vendored"] }
 
 [dev-dependencies]
-demi-backend-database = { path = ".", features = ["testing"] }
+jush-backend-database = { path = ".", features = ["testing"] }
 rusqlite = { version = "0.40", default-features = false, features = ["bundled"] }
 
 [[test]]

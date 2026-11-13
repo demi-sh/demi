@@ -11,7 +11,7 @@ import FileTree from './FileTree.vue'
 import TreeFrame from './TreeFrame.vue'
 import { TREE_WIDTH } from './file-view'
 import { t } from './locales/text'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { normalizePath, parentPath } from './paths'
 import type { FileBrowserSource, FileDirectory } from './types'
 

@@ -1,5 +1,5 @@
 [package]
-name = "demi-command-declarations"
+name = "jush-command-declarations"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -14,7 +14,7 @@ export function reloadPage(): void {
 }
 
 /** The `sessionStorage` key that keeps the build the page last loaded itself for. */
-const RELOADED_FOR = 'demi.reloadedFor'
+const RELOADED_FOR = 'jush.reloadedFor'
 
 /**
  * Loads the page again with `reload` for `build`, unless it did so for that

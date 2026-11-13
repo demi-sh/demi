@@ -3,7 +3,7 @@
 //! agent's cache chart, which comes with its node
 //! (`crates/backend-database/src/usage.rs`).
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
+use jush_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

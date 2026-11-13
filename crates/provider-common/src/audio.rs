@@ -13,8 +13,8 @@
 //! in [`crate::media`]. The backend chooses the entry.
 
 use bytes::Bytes;
-use demi_shared_types::audio::Pcm;
-use demi_shared_types::{AudioKind, Cost, TokenUsage};
+use jush_shared_types::audio::Pcm;
+use jush_shared_types::{AudioKind, Cost, TokenUsage};
 use futures_util::future::BoxFuture;
 
 use crate::media::jobs::Jobs;
@@ -130,7 +130,7 @@ impl AudioFormatAsk {
     }
 }
 
-/// An option of `demi audio`, as a shape that has no field for it is said
+/// An option of `jush audio`, as a shape that has no field for it is said
 /// not to take it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 pub enum AudioOption {

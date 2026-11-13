@@ -1,7 +1,7 @@
 import type { ShownComment } from './comments/comments'
-import type { ContextUsage, InstructionEntry, MessageComment, PendingCall, PendingSteer, ProviderFailureFacts, QueuedMessage, SessionPhase, TurnSpeed } from '@demicodes/protocol'
+import type { ContextUsage, InstructionEntry, MessageComment, PendingCall, PendingSteer, ProviderFailureFacts, QueuedMessage, SessionPhase, TurnSpeed } from '@jush-ai/protocol'
 import type { ShownError } from '../infra/errors'
-import type { HeldTranscript, RequestOutputReading } from '@demicodes/conversation-client'
+import type { HeldTranscript, RequestOutputReading } from '@jush-ai/conversation-client'
 import type { PendingAction } from './activity-slot'
 import type { SessionLoad } from './session-status'
 import type { SubagentRecord } from './subagents'
@@ -117,7 +117,7 @@ export interface ConversationState {
    */
   pendingAction: PendingAction
   /**
-   * Demi resumes by itself the root's turn a restart of the backend
+   * Jush resumes by itself the root's turn a restart of the backend
    * interrupted, as the root's entry says beside its phase: the transcript
    * says Resuming and the dock offers no Resume.
    */

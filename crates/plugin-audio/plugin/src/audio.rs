@@ -1,4 +1,4 @@
-//! What `demi audio` does:
+//! What `jush audio` does:
 //!
 //! 1. It reads the call's text or prompt.
 //! 2. It asks the Providers service for the audio.
@@ -12,14 +12,14 @@
 //! It also lists a speech model's voices and the audio models. A failure is
 //! told in the design's words.
 
-use demi_device_interface::RpcInvocation;
-use demi_plugin_interface::{
+use jush_device_interface::RpcInvocation;
+use jush_plugin_interface::{
     AudioAsk, AudioFileFormat, AudioOption, MadeAudio, PluginError, PluginPort, VoiceInfo,
 };
-use demi_plugin_media::{decode_args, models, prompt, refused, required_model};
-use demi_shared_types::audio::{self, AudioFacts, AudioFormat, Pcm};
-use demi_shared_types::output::{Cell, Table, note};
-use demi_shared_types::{AudioKind, MediaKind};
+use jush_plugin_media::{decode_args, models, prompt, refused, required_model};
+use jush_shared_types::audio::{self, AudioFacts, AudioFormat, Pcm};
+use jush_shared_types::output::{Cell, Table, note};
+use jush_shared_types::{AudioKind, MediaKind};
 
 use crate::commands::{EffectArgs, ModelsArgs, MusicArgs, SpeechArgs, VoicesArgs};
 
@@ -99,7 +99,7 @@ pub(crate) async fn run(invocation: RpcInvocation, port: &PluginPort) -> Result<
 /// Asks for the audio, checks the file and writes it to stdout, and says
 /// what came back.
 async fn make(invocation: &RpcInvocation, port: &PluginPort, ask: AudioAsk) -> Result<u8, PluginError> {
-    let command = format!("demi {}", invocation.path.join(" "));
+    let command = format!("jush {}", invocation.path.join(" "));
     let wanted = Wanted { kind: ask.kind, format: ask.format, duration: ask.duration, voice: ask.voice.clone(), speed: ask.speed };
     let made = port
         .make_audio(ask)
@@ -220,10 +220,10 @@ fn summary(command: &str, made: &MadeAudio, facts: &AudioFacts, wanted: &Wanted)
     said
 }
 
-/// `demi audio voices --model <id> [<search>]`: the voices as a table, or
+/// `jush audio voices --model <id> [<search>]`: the voices as a table, or
 /// as JSON with `--json`; an entry that lists none says so on stderr.
 async fn voices(invocation: &RpcInvocation, port: &PluginPort, args: VoicesArgs) -> Result<u8, PluginError> {
-    let command = format!("demi {}", invocation.path.join(" "));
+    let command = format!("jush {}", invocation.path.join(" "));
     let model = required_model(args.model, MediaKind::Audio)?;
     let listing = port
         .audio_voices(model, args.search)

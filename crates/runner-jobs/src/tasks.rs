@@ -41,16 +41,16 @@ use crate::{
     connection::ConnectionHandle,
 };
 use bytes::Bytes;
-use demi_command_protocol::{CommandCaller, CommandContext, Viewable};
-use demi_runner_protocol::manifest::Manifest;
+use jush_command_protocol::{CommandCaller, CommandContext, Viewable};
+use jush_runner_protocol::manifest::Manifest;
 use serde::{Deserialize, Serialize};
-use demi_runner_command_packages::ResidentHandle;
-use demi_runner_process::{
+use jush_runner_command_packages::ResidentHandle;
+use jush_runner_process::{
     job_shell::{JobCommands, JobShell, JobStart, ShellJob},
     pipes::{PipeClient, report_pipe},
     process::{ChildProcess, JOB_ID_ENV, OutputChunk, ProcessExit, ProcessInput, SpawnOptions},
 };
-use demi_runner_protocol::wire::{self, OutputStream, Signal};
+use jush_runner_protocol::wire::{self, OutputStream, Signal};
 use futures_util::{FutureExt, StreamExt};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -78,7 +78,7 @@ pub enum WorkId {
 struct StartRecord {
     job: String,
     conversation: String,
-    edits: demi_command_protocol::EditContext,
+    edits: jush_command_protocol::EditContext,
     /// A job with declared commands' execution context.
     #[serde(default)]
     context: Option<ContextRecord>,
@@ -143,8 +143,8 @@ pub struct Commands {
     pub residents: ResidentHandle,
     /// The local endpoint command clients reach.
     pub endpoint: String,
-    /// The variables that name the installation, `DEMI_HOME` and
-    /// `DEMI_SCRATCH_ROOT`.
+    /// The variables that name the installation, `JUSH_HOME` and
+    /// `JUSH_SCRATCH_ROOT`.
     pub installation: [(String, String); 2],
 }
 
@@ -191,7 +191,7 @@ struct Work {
     stdout: Option<wire::PipeRef>,
     /// A job's logs, edit recorder and hold on its directory; a raw process
     /// has none.
-    job: Option<(Logs, Option<demi_command_sdk::edits::Recorder>, Running)>,
+    job: Option<(Logs, Option<jush_command_sdk::edits::Recorder>, Running)>,
     /// A job's execution context, held until the job has ended.
     execution: Option<Arc<ExecutionContext>>,
     /// The media its commands hand to it, as they arrive.
@@ -205,7 +205,7 @@ pub enum TaskCommand {
     Shell {
         script: String,
         /// The conversation the job belongs to and the agent that started
-        /// it, whose scratch directory `DEMI_SCRATCH` names.
+        /// it, whose scratch directory `JUSH_SCRATCH` names.
         conversation: String,
         caller: CommandCaller,
         stdin: Option<wire::PipeRef>,
@@ -416,7 +416,7 @@ impl JobTable {
             running,
         } = directory;
         let recording = record.edits.clone();
-        let recorder = tokio::task::spawn_blocking(move || demi_command_sdk::edits::Recorder::new(recording))
+        let recorder = tokio::task::spawn_blocking(move || jush_command_sdk::edits::Recorder::new(recording))
             .await
             .map_err(io::Error::other)?
             .ok();
@@ -578,7 +578,7 @@ impl JobConfig {
         job_id: &str,
         manifest: PinnedManifest,
         command: CommandContext,
-        edits: demi_command_protocol::EditContext,
+        edits: jush_command_protocol::EditContext,
         media: Arc<JobMedia>,
         viewable: Option<Viewable>,
         env: &mut BTreeMap<String, String>,
@@ -693,7 +693,7 @@ impl JobConfig {
                 env.insert(JOB_ID_ENV.into(), id.clone());
                 let scratch = self.scratch.create(&conversation, &caller).await?;
                 env.insert(SCRATCH_ENV.into(), scratch.to_string_lossy().into_owned());
-                let edit_context = demi_command_protocol::EditContext {
+                let edit_context = jush_command_protocol::EditContext {
                     directory: path.join("changes").to_string_lossy().into_owned(),
                     lock: self
                         .directories
@@ -705,7 +705,7 @@ impl JobConfig {
                 let recording = edit_context.clone();
                 let edits_recorded = edit_context.clone();
                 let recorder = tokio::task::spawn_blocking(move || {
-                    demi_command_sdk::edits::Recorder::new(recording)
+                    jush_command_sdk::edits::Recorder::new(recording)
                 })
                 .await
                 .map_err(io::Error::other)?;

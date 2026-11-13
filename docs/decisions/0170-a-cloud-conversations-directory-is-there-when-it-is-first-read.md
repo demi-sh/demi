@@ -16,7 +16,7 @@ Changes tab, which says "Can't list changes: No such file or directory (os
 error 2)".
 
 The conversation's directory on the Cloud, `sessions/<id>`, is made at its
-first use by the agent's work, a transfer or a `demi host` command. A read
+first use by the agent's work, a transfer or a `jush host` command. A read
 Alex makes creates nothing (0069), so until the agent runs a command, every
 read of the directory finds it missing, and the panel says so as a failure.
 A new conversation looks broken, though nothing is wrong.
@@ -28,7 +28,7 @@ first use does: the Changes tab of a new Cloud conversation says what it
 says of any directory outside a repository, and the Files tab lists an empty
 folder.
 
-The Cloud is Demi's machine and the directory Demi's to make, so making it
+The Cloud is Jush's machine and the directory Jush's to make, so making it
 for a read takes nothing of the user's. On a paired device a read still
 creates nothing: looking at a conversation never makes a folder on the
 user's computer, and a directory that is not there is shown missing, as
@@ -53,7 +53,7 @@ work, which a read now takes too.
 - GitHub Codespaces clones the repository into `/workspaces` when the
   codespace is made, before anything runs in it
   ([deep dive](https://docs.github.com/en/codespaces/about-codespaces/deep-dive)).
-  Demi departs in making a Cloud conversation's folder at its first read or
+  Jush departs in making a Cloud conversation's folder at its first read or
   work rather than when it is made, since making a conversation never waits
   for the Cloud (0069).
 

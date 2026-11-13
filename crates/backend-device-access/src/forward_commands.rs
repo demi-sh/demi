@@ -1,4 +1,4 @@
-//! `demi device forward`: lists, adds and removes the user's port forwards.
+//! `jush device forward`: lists, adds and removes the user's port forwards.
 //!
 //! `list` needs nothing. `add` and `remove` act only on a forward whose devices
 //! the conversation reaches, since a forward outlives the conversation and
@@ -7,16 +7,16 @@
 
 use std::rc::{Rc, Weak};
 
-use demi_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
-use demi_runner_protocol::forward::ForwardRunState;
-use demi_web_api_protocol::devices::DeviceState;
-use demi_web_api_protocol::ids::DeviceId;
-use demi_web_api_protocol::port_forwards::{ForwardAddress, PortForwardDto, PortForwardPatch};
+use jush_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
+use jush_runner_protocol::forward::ForwardRunState;
+use jush_web_api_protocol::devices::DeviceState;
+use jush_web_api_protocol::ids::DeviceId;
+use jush_web_api_protocol::port_forwards::{ForwardAddress, PortForwardDto, PortForwardPatch};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use demi_shared_types::output::{Cell, Fields, MISSING, Table};
+use jush_shared_types::output::{Cell, Fields, MISSING, Table};
 
 use crate::DeviceShard;
 use crate::device_commands::{NoArgs, conversation_of, device_names, print_json, reachable, resolve_device, verb};
@@ -25,15 +25,15 @@ const SUMMARY: &str = "The user's port forwards between their devices, as ssh -L
 
 const LIST_SUMMARY: &str = "The user's port forwards: id, where it listens (<device>:<port>), where it connects (<device>:<address>, - for a device not chosen yet), and what it is doing.";
 
-const ADD_SUMMARY: &str = "Add a port forward: a program on the --listen device that connects to 127.0.0.1:<port> reaches <address> as the --connect device reaches it, such as `demi device forward add --listen Cloud:11434 --connect \"MacBook Pro:localhost:11434\"`. It runs whenever its listening device's runner runs, until it is removed. Prints the new forward as list shows it, as labelled lines.";
+const ADD_SUMMARY: &str = "Add a port forward: a program on the --listen device that connects to 127.0.0.1:<port> reaches <address> as the --connect device reaches it, such as `jush device forward add --listen Cloud:11434 --connect \"MacBook Pro:localhost:11434\"`. It runs whenever its listening device's runner runs, until it is removed. Prints the new forward as list shows it, as labelled lines.";
 
 const REMOVE_SUMMARY: &str = "Remove a port forward, by its id or where it listens: its listener closes and its connections end.";
 
-/// The input of `demi device forward add`.
+/// The input of `jush device forward add`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct AddArgs {
-    /// <device>:<port>: the device that listens, by name or id from demi device
+    /// <device>:<port>: the device that listens, by name or id from jush device
     /// list (Cloud for the user's Cloud), and the port it listens on, on
     /// 127.0.0.1
     #[schemars(length(min = 3))]
@@ -44,11 +44,11 @@ struct AddArgs {
     connect: String,
 }
 
-/// The input of `demi device forward remove`.
+/// The input of `jush device forward remove`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct RemoveArgs {
-    /// The forward's id from demi device forward list, or where it listens,
+    /// The forward's id from jush device forward list, or where it listens,
     /// <device>:<port>, when one forward listens there
     #[schemars(length(min = 1))]
     forward: String,
@@ -187,7 +187,7 @@ async fn list(shard: Rc<dyn DeviceShard>, call: Call<NoArgs>, port: RpcPort) -> 
 /// reach, naming the first such and how to attach it.
 async fn ends_reached<'a>(
     shard: &dyn DeviceShard,
-    conversation: &demi_web_api_protocol::ids::ConversationId,
+    conversation: &jush_web_api_protocol::ids::ConversationId,
     ends: impl IntoIterator<Item = &'a DeviceId>,
 ) -> Result<(), RpcError> {
     let devices = reachable(shard, conversation).await?;
@@ -196,7 +196,7 @@ async fn ends_reached<'a>(
         if !devices.iter().any(|reached| reached.device == *end) {
             let name = names.name(end);
             return Err(RpcError::Failed(format!(
-                "{name}: this conversation does not reach it; `demi device attach \"{name}\"` attaches it, which asks the user first"
+                "{name}: this conversation does not reach it; `jush device attach \"{name}\"` attaches it, which asks the user first"
             )));
         }
     }
@@ -231,7 +231,7 @@ async fn add(shard: Rc<dyn DeviceShard>, call: Call<AddArgs>, port: RpcPort) -> 
     };
     patch
         .validate()
-        .map_err(|report| RpcError::Failed(demi_web_api_protocol::port_forwards::refusal(&report)))?;
+        .map_err(|report| RpcError::Failed(jush_web_api_protocol::port_forwards::refusal(&report)))?;
     let forward = shard.add_port_forward(patch).await.map_err(RpcError::Failed)?;
     let added = listed(&*shard, std::slice::from_ref(&forward))
         .await?
@@ -272,7 +272,7 @@ async fn remove(shard: Rc<dyn DeviceShard>, call: Call<RemoveArgs>, port: RpcPor
     let forward = match found.len() {
         0 => {
             return Err(RpcError::Failed(format!(
-                "{named}: no port forward has this id or listens there (see `demi device forward list`)"
+                "{named}: no port forward has this id or listens there (see `jush device forward list`)"
             )));
         }
         1 => found.remove(0),

@@ -4,11 +4,11 @@
 
 use std::{net::Ipv4Addr, path::Path, rc::Rc};
 
-use demi_machine_manager_protocol::image::PROGRAMS_PATH;
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::image::PROGRAMS_PATH;
+use jush_machine_manager_protocol::{
     BaseVersion, Capacity, DeviceId, LeftSandbox, MachineImageState, SandboxMachine, Volume,
 };
-use demi_runner_protocol::boot::ManagedBoot;
+use jush_runner_protocol::boot::ManagedBoot;
 
 use super::{DeviceOp, Reports};
 use crate::{
@@ -236,13 +236,19 @@ impl Device {
             return Ok(());
         }
         self.save(Retention::of(machine)).await?;
-        let state = match self.committed().await? {
+        let mut state = match self.committed().await? {
             Some(state) => state,
             None => self.initialize(&self.base.clone(), capacity).await?,
         };
         let bases = self.core.gvisor().store.bases();
+        // A system on a base of before Jush's names goes (`crate::renamed`).
+        if crate::renamed::is_earlier_base(&bases.join(&state.base_version)) {
+            let base = self.base.clone();
+            self.reset(crate::renamed::RESET, &base, capacity, Retention::of(machine)).await?;
+            state = self.committed().await?.ok_or(OpError::MissingBase(base))?;
+        }
         let base = bases.join(&state.base_version);
-        // Demi's own programs come from the configured base, whatever base
+        // Jush's own programs come from the configured base, whatever base
         // the device is pinned to.
         let configured = bases.join(&self.base);
         let runner_release = base::runner_release(&configured).await?;
@@ -357,7 +363,7 @@ impl Device {
             // The home filesystem's root is the sandbox's /home.
             fs_err::create_dir(&prepared)?;
             fs_err::set_permissions(&prepared, std::fs::Permissions::from_mode(0o755))?;
-            tree::copy(off, &skeleton, &prepared.join("demi"), Some(USER_ID), None)
+            tree::copy(off, &skeleton, &prepared.join("jush"), Some(USER_ID), None)
         })
         .await?;
         let images = ImagePair::in_directory(stage);

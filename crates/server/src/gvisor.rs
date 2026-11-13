@@ -1,9 +1,9 @@
 //! The gVisor runtime on a server: each release's machine manager fetches
 //! the runsc version it pins into `gvisor/<version>/`
-//! (`crates/machine-manager/src/gvisor_release.rs`), and `demi-server
+//! (`crates/machine-manager/src/gvisor_release.rs`), and `jush-server
 //! runtime` has the manager of its own release do it.
 //!
-//! Another release's version is that release's own `demi-server`'s to fetch and
+//! Another release's version is that release's own `jush-server`'s to fetch and
 //! name, so a setup or a move asks each release's program, and a move keeps the
 //! versions of its two releases.
 
@@ -24,8 +24,8 @@ pub fn fetch(layout: &Layout) -> io::Result<PathBuf> {
     let program = std::env::current_exe()?;
     let manager = program
         .parent()
-        .map(|bin| bin.join("demi-machine-manager"))
-        .ok_or_else(|| io::Error::other("demi-server lies in no directory"))?;
+        .map(|bin| bin.join("jush-machine-manager"))
+        .ok_or_else(|| io::Error::other("jush-server lies in no directory"))?;
     let output = Command::new(&manager)
         .arg("--fetch-gvisor")
         .arg(layout.gvisor())
@@ -70,10 +70,10 @@ pub fn downloaded(layout: &Layout) -> io::Result<bool> {
     }
 }
 
-/// Has `version`'s own `demi-server` fetch the gVisor version its release
+/// Has `version`'s own `jush-server` fetch the gVisor version its release
 /// pins, and returns its directory.
 pub fn of_release(layout: &Layout, version: &Version) -> io::Result<PathBuf> {
-    let program = layout.release(version).join("bin/demi-server");
+    let program = layout.release(version).join("bin/jush-server");
     let output = Command::new(&program)
         .arg("runtime")
         .arg("--root")

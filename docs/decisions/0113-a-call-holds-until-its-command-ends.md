@@ -13,7 +13,7 @@ the part that only the user's send now returns a call early.
 
 An agent starts a test run that takes six minutes and wants its result
 before it goes on. After 30 seconds the call returns with the command in
-the background. The agent runs `sleep 120; demi shell status 17`, which
+the background. The agent runs `sleep 120; jush shell status 17`, which
 also returns after 30 seconds, still running; so it runs another, and
 another: nine calls in six minutes, each a request that carries the whole
 conversation, and each of those sleeps wakes the agent once more when it
@@ -31,7 +31,7 @@ that holds longer would make it wait longer.
 ## Decision
 
 **A call holds until its command ends, 10 minutes at most.** Waiting in
-the turn is then what it looks like: `sleep 120; demi shell status 17`
+the turn is then what it looks like: `sleep 120; jush shell status 17`
 holds for 120 seconds once, and `while …; do sleep 10; done` holds until
 its loop ends. A command still running after 10 minutes moves to the
 background and wakes the agent when it ends, as today.
@@ -106,7 +106,7 @@ None.
   waits until the call ends; `Ctrl+Enter` moves the running command to the
   background and hands the message over at once
   ([interactive mode](https://code.claude.com/docs/en/interactive-mode)).
-  Demi does that by itself after 10 seconds, so the user never has to know
+  Jush does that by itself after 10 seconds, so the user never has to know
   the key.
 * Codex returns from `exec_command` after 10 seconds by default, and its
   models are trained to read again.

@@ -62,7 +62,7 @@ The script takes these options:
 - `--output` names a new directory on a Linux filesystem. A release is
   immutable, so every build publishes a new one.
 - `--work` names the directory where the script builds the tree. The default is
-  `/var/tmp/demi-cloud-root`. The script removes the tree after a successful
+  `/var/tmp/jush-cloud-root`. The script removes the tree after a successful
   build.
 - `--packages` names a directory where the build keeps the Ubuntu packages it
   downloads, so the next build with the same directory downloads only the
@@ -114,5 +114,5 @@ To change the pin:
 ## The package list
 
 `rootfs/packages.txt` lists the packages the build installs on the container
-image: only what Demi needs in every Cloud and what nearly every task needs.
+image: only what Jush needs in every Cloud and what nearly every task needs.
 The agent or the user installs everything else on demand.

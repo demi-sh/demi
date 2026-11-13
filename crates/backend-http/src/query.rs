@@ -4,7 +4,7 @@
 use axum::extract::{FromRequestParts, Query};
 use axum::http::StatusCode;
 use axum::http::request::Parts;
-use demi_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::error::ErrorCode;
 use serde::de::DeserializeOwned;
 
 use super::error::ApiError;

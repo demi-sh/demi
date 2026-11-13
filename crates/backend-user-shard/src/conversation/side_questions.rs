@@ -10,18 +10,18 @@
 //!   keeps, reach its agent entry as they change
 //!   (`crates/agent-server/src/server/tree/agents.rs`).
 
-use demi_agent_server::{AskError, resolve_content};
-use demi_agent_store::media::HeldMedia;
-use demi_agent_store::SideOf;
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_index::ConversationRecord;
-use demi_backend_database::side_questions;
-use demi_backend_device_access::root_of;
-use demi_conversation_lane_protocol::ClientContent;
-use demi_shared_types::{NodeId, UserContentBlock, markdown_quote};
-use demi_web_api_protocol::ids::ConversationId;
-use demi_conversation_lane_protocol::SideQuestion;
-use demi_web_api_protocol::side_questions::AskRequest;
+use jush_agent_server::{AskError, resolve_content};
+use jush_agent_store::media::HeldMedia;
+use jush_agent_store::SideOf;
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_index::ConversationRecord;
+use jush_backend_database::side_questions;
+use jush_backend_device_access::root_of;
+use jush_conversation_lane_protocol::ClientContent;
+use jush_shared_types::{NodeId, UserContentBlock, markdown_quote};
+use jush_web_api_protocol::ids::ConversationId;
+use jush_conversation_lane_protocol::SideQuestion;
+use jush_web_api_protocol::side_questions::AskRequest;
 
 use crate::shard::Shard;
 
@@ -256,7 +256,7 @@ impl Shard {
         };
         tree.side_card_changed(
             side,
-            demi_agent_server::SideCard {
+            jush_agent_server::SideCard {
                 title: card.title,
                 folded: card.folded,
             },
@@ -278,17 +278,17 @@ impl Told {
     }
 }
 
-impl demi_agent_tools::ContextSource for Told {
+impl jush_agent_tools::ContextSource for Told {
     fn name(&self) -> &str {
-        demi_shared_types::SIDE_QUESTIONS_SOURCE
+        jush_shared_types::SIDE_QUESTIONS_SOURCE
     }
 
     fn context<'a>(
         &'a self,
-        node: demi_agent_tools::NodeContext<'a>,
-        _: &'a demi_shared_types::TurnId,
+        node: jush_agent_tools::NodeContext<'a>,
+        _: &'a jush_shared_types::TurnId,
         seen: &'a [&'a str],
-    ) -> futures_util::future::LocalBoxFuture<'a, Result<Option<demi_agent_tools::ContextAnswer>, String>> {
+    ) -> futures_util::future::LocalBoxFuture<'a, Result<Option<jush_agent_tools::ContextAnswer>, String>> {
         Box::pin(async move {
             let Some(shard) = self.shard.upgrade() else {
                 return Ok(None);
@@ -300,7 +300,7 @@ impl demi_agent_tools::ContextSource for Told {
                 .side_questions_context(node.node, seen)
                 .await
                 .map_err(|error| error.to_string())?
-                .map(demi_agent_tools::ContextAnswer::from))
+                .map(jush_agent_tools::ContextAnswer::from))
         })
     }
 }

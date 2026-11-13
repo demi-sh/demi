@@ -1,4 +1,4 @@
-//! The relay: one Demi server lends a provider entry to another, which uses
+//! The relay: one Jush server lends a provider entry to another, which uses
 //! it as a provider of its own while its conversations stay where they are.
 //!
 //! Only inference and media cross. The borrower's session sends each request
@@ -6,7 +6,7 @@
 //! entry's rotation, device and process placement, and streams the events
 //! back; a tool call comes back as an event and runs where the conversation's
 //! tools run. A media call goes to the lender's maker of its kind, which
-//! answers it with its own methods (`demi_provider_common::media::channel`).
+//! answers it with its own methods (`jush_provider_common::media::channel`).
 //!
 //! ```text
 //! borrower                              lender

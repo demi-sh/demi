@@ -1,11 +1,11 @@
-# Install Demi with an agent
+# Install Jush with an agent
 
-You are an AI agent, and the user asked you to install Demi, a self-hosted AI
+You are an AI agent, and the user asked you to install Jush, a self-hosted AI
 agent on the web, on their Linux server. Follow these steps. The
-[installation guide](https://github.com/demi-sh/demi/blob/main/docs/delivery/installation.md)
+[installation guide](https://github.com/jush-ai/jush/blob/main/docs/delivery/installation.md)
 has every detail they leave out.
 
-Demi is installed when `https://<domain>` opens Demi's setup page and the
+Jush is installed when `https://<domain>` opens Jush's setup page and the
 installer's last step, its check from outside, has passed.
 
 ## 1. Ask the user
@@ -14,16 +14,16 @@ Ask only what you cannot find out yourself:
 
 - **The server.** Whether you run on it already or reach it over SSH, and as
   which user. That user needs root or `sudo`.
-- **The domain.** Demi is reached at `https://<domain>`, never at an IP
+- **The domain.** Jush is reached at `https://<domain>`, never at an IP
   address.
-- **HTTPS.** Demi serves plain HTTP behind something that serves the domain
+- **HTTPS.** Jush serves plain HTTP behind something that serves the domain
   over HTTPS. Ask which one the user has or wants, and offer these:
   - Cloudflare's proxy with the SSL/TLS mode Flexible. It is the simplest:
     nothing to install on the server.
   - Caddy on the server, which gets its own certificate.
   - A reverse proxy the server runs already, such as nginx, or a tunnel, such
     as Cloudflare Tunnel.
-- **The channel.** Beta, the releases Demi publishes, unless the user wants
+- **The channel.** Beta, the releases Jush publishes, unless the user wants
   Canary, which gets every build first.
 
 ## 2. Check the server
@@ -31,23 +31,23 @@ Ask only what you cannot find out yourself:
 On the server, check each of these, and tell the user what fails:
 
 - Linux with systemd, on a
-  [supported distribution](https://github.com/demi-sh/demi/blob/main/docs/delivery/installation.md#distributions)
+  [supported distribution](https://github.com/jush-ai/jush/blob/main/docs/delivery/installation.md#distributions)
   (`/etc/os-release`).
-- No Demi yet: `/opt/demi/current` does not exist. If it does, Demi is
-  installed, and `sudo demi-server upgrade` moves it to a newer release.
+- No Jush yet: `/opt/jush/current` does not exist. If it does, Jush is
+  installed, and `sudo jush-server upgrade` moves it to a newer release.
 - The domain resolves to the server, or to Cloudflare when its proxy is on.
 
 ## 3. Set up HTTPS
 
 Set up the user's choice before you install, and change nothing else on the
 server without asking. Whatever serves HTTPS must pass `Host` and `Origin`
-unchanged, allow WebSocket upgrades and forward to the address Demi listens
+unchanged, allow WebSocket upgrades and forward to the address Jush listens
 on:
 
-- Cloudflare's proxy: Demi listens on `0.0.0.0:80`.
-- A proxy or a tunnel on the server: Demi listens on `127.0.0.1:3271`.
+- Cloudflare's proxy: Jush listens on `0.0.0.0:80`.
+- A proxy or a tunnel on the server: Jush listens on `127.0.0.1:3271`.
 
-[HTTPS](https://github.com/demi-sh/demi/blob/main/docs/delivery/installation.md#https)
+[HTTPS](https://github.com/jush-ai/jush/blob/main/docs/delivery/installation.md#https)
 says how to set up each one.
 
 ## 4. Install
@@ -55,7 +55,7 @@ says how to set up each one.
 Run the installer with the domain and the address:
 
 ```sh
-curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --domain <domain> --listen <address>
+curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --domain <domain> --listen <address>
 ```
 
 For Canary, add `--canary`. Without a terminal, the installer asks nothing:
@@ -76,6 +76,6 @@ Tell the user:
 - To open `https://<domain>` right away and create the admin account. Until
   that account exists, anyone who reaches the domain can create it, so do not
   create it yourself.
-- The channel you installed, and the release that `sudo demi-server status`
+- The channel you installed, and the release that `sudo jush-server status`
   prints.
 - What you set up for HTTPS, and anything else you changed on the server.

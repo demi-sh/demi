@@ -25,7 +25,7 @@ use std::sync::Arc;
 use std::io::Read as _;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     audio::{AudioMaker, AudioOption, AudioRequest, MadeAudio, Voice, searched, unsent_of},
     endpoint_url, json_body,
@@ -36,7 +36,7 @@ use demi_provider_common::{
     media_catalog::{Catalog, MediaKind},
     videos,
 };
-use demi_shared_types::Clock;
+use jush_shared_types::Clock;
 use futures_util::future::BoxFuture;
 use reqwest::Url;
 use reqwest::header::HeaderMap;
@@ -64,13 +64,13 @@ impl MinimaxSpeech {
         }
     }
 
-    async fn get(&self, http: &demi_provider_common::ProviderHttp, path: &str, query: (&str, &str)) -> MediaAnswer<Bytes> {
+    async fn get(&self, http: &jush_provider_common::ProviderHttp, path: &str, query: (&str, &str)) -> MediaAnswer<Bytes> {
         let mut url = endpoint_url(&self.origin, path);
         url.query_pairs_mut().append_pair(query.0, query.1);
         minimax::send_checked(&*self.clock, http, &self.key, Ask::get(&url)).await
     }
 
-    async fn post(&self, http: &demi_provider_common::ProviderHttp, url: &Url, body: Vec<u8>) -> MediaAnswer<Bytes> {
+    async fn post(&self, http: &jush_provider_common::ProviderHttp, url: &Url, body: Vec<u8>) -> MediaAnswer<Bytes> {
         minimax::send_checked(&*self.clock, http, &self.key, Ask::post_json(url, Bytes::from(body))).await
     }
 }
@@ -86,7 +86,7 @@ impl MediaMaker for MinimaxSpeech {
 
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(catalog_models(catalog, self.vendor, MediaKind::Audio))))
@@ -115,7 +115,7 @@ impl AudioMaker for MinimaxSpeech {
 
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         request: AudioRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeAudio>> {
@@ -125,13 +125,13 @@ impl AudioMaker for MinimaxSpeech {
         })
     }
 
-    fn jobs(&self, _: &Catalog, _: demi_shared_types::AudioKind, _: &str) -> Option<&dyn Jobs<AudioRequest, MadeAudio>> {
+    fn jobs(&self, _: &Catalog, _: jush_shared_types::AudioKind, _: &str) -> Option<&dyn Jobs<AudioRequest, MadeAudio>> {
         Some(self)
     }
 
     fn voices<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
         _: &'a str,
         search: Option<&'a str>,
@@ -145,7 +145,7 @@ impl AudioMaker for MinimaxSpeech {
 }
 
 impl Jobs<AudioRequest, MadeAudio> for MinimaxSpeech {
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a Catalog, request: AudioRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a Catalog, request: AudioRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(async move {
             let body = json_body(&Body {
                 model: &request.model,
@@ -158,7 +158,7 @@ impl Jobs<AudioRequest, MadeAudio> for MinimaxSpeech {
         })
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeAudio>>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeAudio>>> {
         Box::pin(async move {
             let read = self.get(http, "/v1/query/t2a_async_query_v2", ("task_id", job.id)).await;
             let mut observed = read.observed;

@@ -25,8 +25,8 @@
  * - A watch that is unavailable says so for each subscription, as a device that
  *   cannot watch does.
  */
-import { previewMediaType, TEXT_FILE_BYTES } from '@demicodes/protocol'
-import { baseName, delay } from '@demicodes/utils'
+import { previewMediaType, TEXT_FILE_BYTES } from '@jush-ai/protocol'
+import { baseName, delay } from '@jush-ai/utils'
 import { DeviceFiles } from './file-cache'
 import { keptSource, type FileReads } from './kept-source'
 import {

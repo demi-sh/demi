@@ -9,8 +9,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use demi_runner_protocol::release::{RestartStepKind, StepProgress, StepState};
-use demi_web_api_protocol::state::UpdateState;
+use jush_runner_protocol::release::{RestartStepKind, StepProgress, StepState};
+use jush_web_api_protocol::state::UpdateState;
 
 /// How often the progress is asked.
 const EVERY: Duration = Duration::from_secs(5);

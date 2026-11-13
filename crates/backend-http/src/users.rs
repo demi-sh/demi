@@ -18,14 +18,14 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_accounts::passwords::generate_first_password;
-use demi_backend_database::accounts::Account;
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::auth::{Role, UserDto};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::sessions::{HandoffCode, ProductPath};
-use demi_web_api_protocol::users::{
+use jush_backend_accounts::passwords::generate_first_password;
+use jush_backend_database::accounts::Account;
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::auth::{Role, UserDto};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::sessions::{HandoffCode, ProductPath};
+use jush_web_api_protocol::users::{
     CreateUser, CreatedUser, FirstPassword, NewFirstPassword, UserChange, Users,
 };
 
@@ -34,7 +34,7 @@ use super::body::JsonBody;
 use super::error::ApiError;
 use super::gate::{AdminUser, CurrentSession};
 use super::sessions::{make_handoff, require_verification};
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 pub(super) async fn list(
     State(services): State<Arc<Services>>,
@@ -42,7 +42,7 @@ pub(super) async fn list(
 ) -> Result<Json<Users>, ApiError> {
     Ok(Json(Users {
         users: services.control.users().await?,
-        cloud_storage_limits: demi_backend_cloud::isolation::storage_limits(&services.control, &services.cloud).await?,
+        cloud_storage_limits: jush_backend_cloud::isolation::storage_limits(&services.control, &services.cloud).await?,
     }))
 }
 
@@ -108,7 +108,7 @@ async fn lower_account(
 
 /// Ends the pages' channels and sockets of the sessions `tokens` name, and
 /// tells the account's pages its sessions changed.
-fn end_sessions(services: &Services, user: &UserId, tokens: &[demi_backend_database::accounts::TokenHash]) {
+fn end_sessions(services: &Services, user: &UserId, tokens: &[jush_backend_database::accounts::TokenHash]) {
     for token in tokens {
         services.sync.end_session(user, token);
     }

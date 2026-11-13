@@ -13,7 +13,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_machine_manager_protocol::{DeviceId, GenerationId, MachineImageState};
+use jush_machine_manager_protocol::{DeviceId, GenerationId, MachineImageState};
 
 use super::{
     durable::{remove_tree, sync},

@@ -754,7 +754,7 @@ pub enum CommandEnd {
         #[garde(skip)]
         exit_code: i32,
     },
-    /// It was stopped: by a page, `demi shell stop`, a Stop of its action,
+    /// It was stopped: by a page, `jush shell stop`, a Stop of its action,
     /// or the end of its node's shells.
     Stopped,
     /// Its device lost it, for this reason (`crates/agent-session/src/reports.rs`).
@@ -909,7 +909,7 @@ pub struct ResumeBlock {
     #[garde(dive)]
     pub model: ModelSelection,
     /// Why the turn is resumed, as the model reads it before "Continue
-    /// from where you left off.": "Demi resumed this turn after the backend
+    /// from where you left off.": "Jush resumed this turn after the backend
     /// restarted."; omitted when the user resumes with nothing to add.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[garde(skip)]
@@ -1086,7 +1086,7 @@ pub struct ThinkingBlock {
 }
 
 /// A step its vendor ran on its side, such as redacted reasoning or a search
-/// at the vendor: Demi keeps the vendor's record of it as entries, which only
+/// at the vendor: Jush keeps the vendor's record of it as entries, which only
 /// their owner reads, and draws it by its view.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, garde::Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -1193,7 +1193,7 @@ pub enum OpaqueStatus {
 }
 
 /// How a page draws a vendor's step: each kind has its own look, and a step
-/// of a kind Demi does not know is `other`.
+/// of a kind Jush does not know is `other`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, garde::Validate)]
 #[serde(
     tag = "kind",
@@ -1212,7 +1212,7 @@ pub enum OpaqueView {
         #[garde(skip)]
         sources: Vec<SearchSource>,
     },
-    /// A step of a kind Demi does not know: the vendor's name, such as `xAI`,
+    /// A step of a kind Jush does not know: the vendor's name, such as `xAI`,
     /// and the step's, such as `code_interpreter`.
     Other {
         #[garde(skip)]
@@ -1511,9 +1511,9 @@ pub struct ResponseBlock {
     pub request: Option<BlockId>,
     #[garde(dive)]
     pub model: ModelSelection,
-    /// When the request left Demi. A later model call the provider made
-    /// within one run, as Claude Code does after Demi returned a batch of calls,
-    /// left when Demi handed over the last result it answers. Null in a block
+    /// When the request left Jush. A later model call the provider made
+    /// within one run, as Claude Code does after Jush returned a batch of calls,
+    /// left when Jush handed over the last result it answers. Null in a block
     /// written before the transcript kept it.
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<Timestamp>")]

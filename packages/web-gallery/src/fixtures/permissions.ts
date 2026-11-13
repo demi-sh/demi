@@ -2,7 +2,7 @@ import type {
   CredentialRequestView,
   PermissionCategoryView,
   PermissionRequestView,
-} from '@demicodes/web-ui/permissions/types'
+} from '@jush-ai/web-ui/permissions/types'
 
 /** Manage Skills, as `plugin-skills` declares it. */
 export const manageSkills: PermissionCategoryView = {
@@ -19,7 +19,7 @@ export const retiredCategory: PermissionCategoryView = {
   description: null,
 }
 
-/** Use Your Credentials, as `demi credentials` declares it. */
+/** Use Your Credentials, as `jush credentials` declares it. */
 export const useCredentials: PermissionCategoryView = {
   id: 'credentials.use',
   action: 'use your credentials',
@@ -33,7 +33,7 @@ export function deviceRequest(): PermissionRequestView {
     kind: 'permission',
     id: 'pr-device',
     categories: [],
-    command: 'demi device shell --device build-box "df -h /srv"',
+    command: 'jush device shell --device build-box "df -h /srv"',
     subagent: null,
     device: { id: 'device-build-box', name: 'build-box' },
   }
@@ -45,7 +45,7 @@ export function credentialsRequest(): PermissionRequestView {
     kind: 'permission',
     id: 'pr-credentials',
     categories: [useCredentials],
-    command: 'demi credentials read "GitHub token for deploys" token | gh auth login --with-token',
+    command: 'jush credentials read "GitHub token for deploys" token | gh auth login --with-token',
     subagent: null,
     device: null,
   }
@@ -57,7 +57,7 @@ export function rootRequest(): PermissionRequestView {
     kind: 'permission',
     id: 'pr-root',
     categories: [manageSkills],
-    command: 'demi skills add vercel-labs/agent-skills --skill web-design-guidelines',
+    command: 'jush skills add vercel-labs/agent-skills --skill web-design-guidelines',
     subagent: null,
     device: null,
   }
@@ -69,7 +69,7 @@ export function subagentRequest(): PermissionRequestView {
     kind: 'permission',
     id: 'pr-subagent',
     categories: [manageSkills],
-    command: 'demi skills enable vercel-labs/agent-skills --skill react-best-practices',
+    command: 'jush skills enable vercel-labs/agent-skills --skill react-best-practices',
     subagent: { number: 2, description: 'Frontend review' },
     device: null,
   }
@@ -84,7 +84,7 @@ export function queuedRequests(): PermissionRequestView[] {
       kind: 'permission',
       id: 'pr-retired',
       categories: [retiredCategory],
-      command: 'demi conversations show 12',
+      command: 'jush conversations show 12',
       subagent: { number: 3, description: 'History search' },
       device: null,
     },

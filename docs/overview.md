@@ -1,6 +1,6 @@
-# Demi overview
+# Jush overview
 
-Demi is a hosted, multi-user coding-agent product that people use in their own
+Jush is a hosted, multi-user coding-agent product that people use in their own
 web browser. The work divides as follows:
 
 - The backend owns conversations and agent execution.
@@ -25,7 +25,7 @@ The execution host starts only when something needs it, as follows:
 
 The following diagram shows application processes and request directions.
 Labels identify the transport, and responses travel over the corresponding
-connection. Provider services are external to Demi.
+connection. Provider services are external to Jush.
 
 ```text
 +--------------------+

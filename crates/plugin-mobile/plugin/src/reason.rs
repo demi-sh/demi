@@ -2,8 +2,8 @@
 //! closed set, which the page's types name, so the page says every reason
 //! in words of its own.
 
-use demi_command_package_mobile_protocol::mobile::MobileErrorCode;
-use demi_web_api_protocol::error::ErrorCode;
+use jush_command_package_mobile_protocol::mobile::MobileErrorCode;
+use jush_web_api_protocol::error::ErrorCode;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

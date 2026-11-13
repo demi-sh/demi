@@ -32,7 +32,7 @@ const MAX_EVAL_BYTES: usize = 1024 * 1024;
 
 /// What the copy in `read-only.js` throws for a value JSON cannot hold, before
 /// the place and the value's kind.
-const UNSUPPORTED: &str = "demi-unsupported-result: ";
+const UNSUPPORTED: &str = "jush-unsupported-result: ";
 
 /// The object group whose last result the Command Line API names `$_`:
 /// Chrome sets it for a call in this group, and a later evaluation in the

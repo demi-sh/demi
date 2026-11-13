@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { clamp } from '@demicodes/utils'
+import { clamp } from '@jush-ai/utils'
 
 /**
  * How far a task has come, as a thin bar: `value` of `max`. Unlike a `Meter`,

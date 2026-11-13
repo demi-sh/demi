@@ -2,14 +2,14 @@
 //! (`crates/plugin-mobile/command/src/devices.rs`), in
 //! `<installation>/mobile/kept.json`:
 //!
-//! - the simulators Demi booted, so a simulator is shut down with its
-//!   device only when Demi booted it. Each names the boot by its mark
+//! - the simulators Jush booted, so a simulator is shut down with its
+//!   device only when Jush booted it. Each names the boot by its mark
 //!   (`driver::Simulator::boot`), so a simulator the user shut down and
 //!   booted again is the user's.
 //! - the devices open, which conversation has each and under which handle,
 //!   so a resident that starts again takes each back under the same handle.
 //!
-//! A `demi-mobile` that stops, updates or is killed shuts nothing down and
+//! A `jush-mobile` that stops, updates or is killed shuts nothing down and
 //! forgets nothing; a device leaves the record when it closes or is lost.
 
 use std::{
@@ -20,12 +20,12 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use demi_command_package_mobile_protocol::mobile::{DeviceId, MobilePlatform};
+use jush_command_package_mobile_protocol::mobile::{DeviceId, MobilePlatform};
 
 /// The record's file in the installation's `mobile/`.
 const FILE: &str = "kept.json";
 
-/// A simulator Demi booted, and the boot.
+/// A simulator Jush booted, and the boot.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Entry {
@@ -82,7 +82,7 @@ impl Kept {
         let record = match &path {
             None => Record::default(),
             Some(path) => match std::fs::read(path) {
-                Ok(bytes) => match demi_shared_types::decode_slice::<Record>(&bytes) {
+                Ok(bytes) => match jush_shared_types::decode_slice::<Record>(&bytes) {
                     Ok(record) => record,
                     Err(error) => {
                         tracing::error!(event = "mobile_state.failed", op = "read_replaced", path = %path.display(), %error, "the record of the devices does not read, and is replaced");
@@ -102,7 +102,7 @@ impl Kept {
         }
     }
 
-    /// Whether Demi booted `native_id` of `platform` in its boot `boot`.
+    /// Whether Jush booted `native_id` of `platform` in its boot `boot`.
     pub fn holds(&self, platform: MobilePlatform, native_id: &str, boot: Option<u64>) -> bool {
         boot.is_some_and(|boot| {
             self.record
@@ -114,7 +114,7 @@ impl Kept {
         })
     }
 
-    /// Demi booted `entry`'s simulator; an older boot of it leaves.
+    /// Jush booted `entry`'s simulator; an older boot of it leaves.
     pub fn booted(&self, entry: Entry) {
         self.change(|record| {
             record
@@ -124,7 +124,7 @@ impl Kept {
         });
     }
 
-    /// `native_id` of `platform` is no longer Demi's to shut down.
+    /// `native_id` of `platform` is no longer Jush's to shut down.
     pub fn unbooted(&self, platform: MobilePlatform, native_id: &str) {
         self.change(|record| {
             record

@@ -13,7 +13,7 @@
 //! background command or a subagent wakes Claude Code's model.
 //!
 //! - Every end of a command whose call returned is reported, except one the
-//!   model saw in a look or caused itself with `demi shell stop`. An end report
+//!   model saw in a look or caused itself with `jush shell stop`. An end report
 //!   carries the output and media a result would, because a model woken by an
 //!   end without its output spent one more request on a look every time.
 //! - A command still running after the silence limit with no output is the one
@@ -42,8 +42,8 @@ use std::{
     time::Duration,
 };
 
-use demi_agent_store::{CommandWatch, Watch};
-use demi_shared_types::{CommandId, ReportEvent};
+use jush_agent_store::{CommandWatch, Watch};
+use jush_shared_types::{CommandId, ReportEvent};
 use tokio::time::Instant;
 use tokio_util::task::AbortOnDropHandle;
 

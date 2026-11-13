@@ -1,8 +1,8 @@
 //! Provider entries, their accounts and logins, and the account-wide model
 //! catalog. No body the backend answers carries key or token material.
 
-pub use demi_shared_types::ProviderHeader;
-use demi_shared_types::{
+pub use jush_shared_types::ProviderHeader;
+use jush_shared_types::{
     AccountInfo, AudioKind, AudioShape, AuthState, CacheTtl, DownloadProgress, FileExtension, ImageShape, LoginStage, MediaKind, ModelSelection, VideoShape,
     ModelWire, Nullable, ProviderModel, QuotaSnapshot, RequestId, RuntimeState, ThinkingForm, Timestamp, WireApi,
 };
@@ -27,7 +27,7 @@ pub enum CredentialKind {
 serde_plain::derive_display_from_serialize!(CredentialKind);
 serde_plain::derive_fromstr_from_deserialize!(CredentialKind);
 
-pub use demi_shared_types::Rotation;
+pub use jush_shared_types::Rotation;
 
 /// What a configured model makes (`crates/backend-user-shard/src/provider_settings.rs`):
 /// text, the model menu's, unless its user added it as an audio model of a
@@ -232,7 +232,7 @@ pub enum CreateProvider {
         #[garde(dive)]
         models: Option<ConfiguredModels>,
     },
-    /// An entry another server shares, named *Another Demi* until its share
+    /// An entry another server shares, named *Another Jush* until its share
     /// key names it after the lender's (`crates/provider-relay/src/lib.rs`).
     Borrowed {
         #[serde(default, with = "unwrap_or_skip")]
@@ -618,7 +618,7 @@ pub struct ProviderDetails {
     pub quota: Option<QuotaSnapshot>,
     pub quota_capability: QuotaCapability,
     /// The command package whose CLI the provider's requests run as a
-    /// process, such as `demi.claude-code`; null when its requests are HTTP.
+    /// process, such as `jush.claude-code`; null when its requests are HTTP.
     #[serde(deserialize_with = "Option::deserialize")]
     #[schemars(with = "Nullable<String>")]
     pub cli_package: Option<String>,

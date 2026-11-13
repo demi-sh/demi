@@ -1,27 +1,27 @@
-//! The real model `xtask dev` can seed, from the `DEMI_DEV_PROVIDER_*`
+//! The real model `xtask dev` can seed, from the `JUSH_DEV_PROVIDER_*`
 //! variables: all four name one model of an OpenAI-compatible Chat
 //! Completions endpoint, or none is set, and two optional ones list the
 //! model's thinking efforts and the file types it reads natively.
 
 use std::num::NonZeroU32;
 
-use demi_shared_types::{ATTACHMENT_FILE_EXTENSIONS, FileExtension, VIDEO_FILE_EXTENSIONS};
+use jush_shared_types::{ATTACHMENT_FILE_EXTENSIONS, FileExtension, VIDEO_FILE_EXTENSIONS};
 use serde_json::json;
 
 /// The variables, in the order the entry needs them.
 const NAMES: [&str; 4] = [
-    "DEMI_DEV_PROVIDER_BASE_URL",
-    "DEMI_DEV_PROVIDER_API_KEY",
-    "DEMI_DEV_PROVIDER_MODEL",
-    "DEMI_DEV_PROVIDER_CONTEXT_WINDOW",
+    "JUSH_DEV_PROVIDER_BASE_URL",
+    "JUSH_DEV_PROVIDER_API_KEY",
+    "JUSH_DEV_PROVIDER_MODEL",
+    "JUSH_DEV_PROVIDER_CONTEXT_WINDOW",
 ];
 /// The model's thinking efforts, comma-separated, as the endpoint names
 /// them; without it the model has none, and the page offers no effort.
-const EFFORTS: &str = "DEMI_DEV_PROVIDER_THINKING_EFFORTS";
+const EFFORTS: &str = "JUSH_DEV_PROVIDER_THINKING_EFFORTS";
 /// The file types the model reads natively, comma-separated, as its
 /// `acceptedExtensions` names them (`crates/shared-types/src/model.rs`);
 /// without it which types the model reads is unknown.
-const ACCEPTED: &str = "DEMI_DEV_PROVIDER_ACCEPTED_EXTENSIONS";
+const ACCEPTED: &str = "JUSH_DEV_PROVIDER_ACCEPTED_EXTENSIONS";
 
 /// The development model the variables name.
 pub struct DevProvider {

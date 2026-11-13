@@ -3,7 +3,7 @@
 //!
 //! The set is closed: bytes are known by their magic numbers or not at all,
 //! never by guessing from a name. The command wire recognizes them
-//! (`demi_command_protocol::sniff_media_type`), so that a runner tells a medium
+//! (`jush_command_protocol::sniff_media_type`), so that a runner tells a medium
 //! without linking this crate.
 
 use schemars::JsonSchema;

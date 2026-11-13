@@ -1,6 +1,6 @@
 # Upgrades
 
-An upgrade moves a server from one release of Demi to another, and with it
+An upgrade moves a server from one release of Jush to another, and with it
 everything that release serves: the web app, every paired device's runner,
 every Cloud and the stored data. One command does it, and a failed upgrade
 leaves the server on the release it ran before.
@@ -10,10 +10,10 @@ the following command, or a master or an administrator clicks **Update Now**
 in Settings › Updates ([From Settings](#from-settings)):
 
 ```sh
-sudo demi-server upgrade
+sudo jush-server upgrade
 ```
 
-`demi-server` takes these steps:
+`jush-server` takes these steps:
 
 1. Downloads 0.2.0, checks it, unpacks it beside 0.1.0 and checks the
    configuration against it, all while 0.1.0 keeps serving.
@@ -24,7 +24,7 @@ sudo demi-server upgrade
 The interruption lasts as long as a restart, plus the copy. After the upgrade,
 the following happens:
 
-- Open pages show the banner "Demi is restarting" over what they show while
+- Open pages show the banner "Jush is restarting" over what they show while
   the backend is away, then load the new web app by themselves
   (`packages/web-ui/src/infra/build-reload.ts`).
 - A turn that was running ends with the shutdown's error record and goes on by
@@ -67,22 +67,22 @@ the following happens:
   conversation's database when the conversation is next opened
   (`crates/backend-database/src/lib.rs`).
 
-If anything fails before 0.2.0 reports ready, `demi-server` puts 0.1.0 back,
+If anything fails before 0.2.0 reports ready, `jush-server` puts 0.1.0 back,
 with the databases as they were, and says what failed. After 0.2.0 runs,
-`demi-server rollback` returns to 0.1.0 in the same way.
+`jush-server rollback` returns to 0.1.0 in the same way.
 
 A server in a container ([In a container](installation.md#in-a-container))
 upgrades the same way, from Settings › Updates. Starting a newer image
 upgrades it too: the image holds one release's assets, and its start upgrades
 a server older than that release from them, with the same steps. An older
 image starts the newer release the server already runs. In the container,
-`demi-server supervise` runs the two services from the release's units in
+`jush-server supervise` runs the two services from the release's units in
 place of systemd, and runs the release's own supervisor after each switch
 (`crates/server/src/supervise.rs`).
 
 ## One release on a server
 
-A server runs one release at a time, and every part of Demi on it, and every
+A server runs one release at a time, and every part of Jush on it, and every
 device it serves, follows that release.
 
 Nothing negotiates versions. The backend, the machine manager, the web app,
@@ -91,28 +91,28 @@ build version, so none of the wires between them needs to accept another
 version. The few things that do cross from one release to the next are listed
 in [What crosses releases](#what-crosses-releases), and each has a rule.
 
-Everything of Demi's on a server lies in one directory, `/opt/demi`, so an
+Everything of Jush's on a server lies in one directory, `/opt/jush`, so an
 operator finds all of it in one place. The services run whichever release
 `current` points to:
 
 ```text
-/opt/demi/
+/opt/jush/
   releases/0.1.0/            a server release root, unpacked, never changed
   releases/0.2.0/
   current -> releases/0.2.0  the release the services run
   gvisor/<runsc version>/    the gVisor runtime a release's manager pins
-  config/demi.env            the configuration, shared by both services
+  config/jush.env            the configuration, shared by both services
   data/backend/              the backend's data directory, with snapshots/
   data/cloud/                the machine manager's state directory
-  server/                    demi-server's lock, an upgrade's journal and a setup's marker
+  server/                    jush-server's lock, an upgrade's journal and a setup's marker
 ```
 
-Only what the system requires elsewhere lives outside `/opt/demi`:
+Only what the system requires elsewhere lives outside `/opt/jush`:
 
 - The two units in `/etc/systemd/system/`.
-- The link `/usr/local/bin/demi-server` to
-  `/opt/demi/current/bin/demi-server`.
-- The system user `demi` with the group `demi-cloud`.
+- The link `/usr/local/bin/jush-server` to
+  `/opt/jush/current/bin/jush-server`.
+- The system user `jush` with the group `jush-cloud`.
 
 `data/cloud` can be another directory, such as one on a dedicated filesystem
 ([Storage and service setup](../cloud/setup.md#storage-and-service-setup)).
@@ -122,30 +122,30 @@ The parts of the layout follow these rules:
 
 - **Releases.** Each root is the server release
   (`crates/xtask/src/server_release.rs`) of the server's Linux target,
-  unpacked from its two archives. `demi-server` never changes a root after it
+  unpacked from its two archives. `jush-server` never changes a root after it
   unpacks it: a new release is a new directory. A server keeps the current
   release, the one a rollback returns to, and at most one ready ahead of an
   update ([Ready ahead](#ready-ahead)).
 - **gVisor.** No release carries gVisor. Each machine manager is built against
-  one pinned version of `runsc`, and `demi-server` fetches that version into
+  one pinned version of `runsc`, and `jush-server` fetches that version into
   `gvisor/<version>/` before a release that needs it runs
   (`crates/server/src/gvisor.rs`). Versions sit beside each other, so a
   rollback finds its own. A move keeps the versions of its two releases and
   removes the others.
 - **`current`.** A symbolic link, replaced atomically by renaming a new link
-  over it. The units run `/opt/demi/current/bin/demi-backend` and
-  `/opt/demi/current/bin/demi-machine-manager`. Each program takes its release
+  over it. The units run `/opt/jush/current/bin/jush-backend` and
+  `/opt/jush/current/bin/jush-machine-manager`. Each program takes its release
   root from the real path of its own executable
   (`crates/backend/src/config/mod.rs`), so both services always run the same
-  release, and the configuration file does not set `DEMI_RELEASE`.
-- **Units.** Each release carries its units in `systemd/`, and `demi-server`
+  release, and the configuration file does not set `JUSH_RELEASE`.
+- **Units.** Each release carries its units in `systemd/`, and `jush-server`
   copies them into place when it switches releases, so a release that changes
   how a service runs brings that change itself. The backend runs as the system
-  user `demi`, a member of the `demi-cloud` group that can use the manager's
+  user `jush`, a member of the `jush-cloud` group that can use the manager's
   socket ([Storage and service setup](../cloud/setup.md#storage-and-service-setup)).
   Both units use `Type=notify` with no start timeout: a service reports ready
   only when it serves, and a long migration or image import is not a failure.
-- **Configuration and data.** `config/demi.env` and the two data directories
+- **Configuration and data.** `config/jush.env` and the two data directories
   belong to the installation, not to a release, and no upgrade rewrites them.
   Moving to a release never edits the configuration. A release that needs a
   new setting fails the check in [Prepare](#prepare) and names the setting,
@@ -160,7 +160,7 @@ The following table shows how each part reaches the new release, and when:
 | Backend and web app | The backend restarts from `current`. An open page shows a spinner over its conversation's end, above the composer, meanwhile and then loads the new build (`packages/web-ui/src/infra/build-reload.ts`) | During the upgrade |
 | Machine manager and `runsc` | The manager restarts from `current`, with the `runsc` version it pins, which the preparation fetched ([Prepare](#prepare)). That `runsc` manages the sandboxes the upgrade kept running too | During the upgrade |
 | Cloud image | The manager imports the release's `image/` before the services stop ([Prepare](#prepare)) | During the upgrade |
-| A Cloud's runner and command programs | The manager mounts the configured image's `/opt/demi` into every Cloud at boot (`crates/machine-manager/src/sandbox/mod.rs`). A Cloud the upgrade kept running downloads the release's runner and replaces its own, and each program the first time it needs it (`crates/runner/src/update.rs`) | The Cloud's next wake, or at once for a Cloud the upgrade kept running |
+| A Cloud's runner and command programs | The manager mounts the configured image's `/opt/jush` into every Cloud at boot (`crates/machine-manager/src/sandbox/mod.rs`). A Cloud the upgrade kept running downloads the release's runner and replaces its own, and each program the first time it needs it (`crates/runner/src/update.rs`) | The Cloud's next wake, or at once for a Cloud the upgrade kept running |
 | A Cloud's system | Stays on the image it is pinned to. Cloud settings says when a newer one is available, and a reset moves to it (`packages/web-ui/src/cloud/CloudSettings.vue`) | When the user resets |
 | A paired device's runner | The runner updates itself when the backend names another runner release (`crates/runner/src/update.rs`) | Its next connection |
 | A paired device's command programs | The backend's catalog names the new packages, and the runner downloads each the first time it needs it (`crates/runner-command-packages/src/cache.rs`) | Each program's next use |
@@ -171,7 +171,7 @@ The following table shows how each part reaches the new release, and when:
 
 A Cloud's system stays on its image because the system image holds the user's
 changes, the package database among them, as an overlay of the base
-(`crates/machine-manager/src/sandbox/mod.rs` says why). Demi's own programs
+(`crates/machine-manager/src/sandbox/mod.rs` says why). Jush's own programs
 follow the release at every wake.
 
 ## What crosses releases
@@ -193,23 +193,23 @@ A server upgrades from any release in the history to any later one directly.
 
 ## The upgrade
 
-`demi-server upgrade` takes the release to move to in one of four ways:
+`jush-server upgrade` takes the release to move to in one of four ways:
 
-- With `--beta`, it moves to the newest release Demi published.
+- With `--beta`, it moves to the newest release Jush published.
 - With `--canary`, it moves to the newest release, the Canary pre-releases
   included.
-- With a version, as in `demi-server upgrade 0.2.0`, it moves to that one.
+- With a version, as in `jush-server upgrade 0.2.0`, it moves to that one.
 - With none of them, it moves to the newest release of the server's update
   channel, the one Settings › Updates shows: the channel an administrator
   chose there, or else the one the server was installed from,
-  `DEMI_UPGRADE_CHANNEL` in the configuration, Beta when that names none.
+  `JUSH_UPGRADE_CHANNEL` in the configuration, Beta when that names none.
 
 The newest release is the highest version among the repository's releases
 tagged `v<version>`. `releases/latest` gives it for published releases, and
 the releases feed (`releases.atom`), which lists the ten published last, gives
 it for all: versions are published in their order, as `release.yml` refuses a
 version below the highest published one. A release of another tag, such as
-the gVisor build's, is no Demi release.
+the gVisor build's, is no Jush release.
 
 `--from <directory>` takes the assets from a directory instead of the
 repository's GitHub releases, as a developer's build or a server without
@@ -217,17 +217,17 @@ internet access provides them.
 
 Two cases do not move the server:
 
-- `demi-server` refuses an older version than the current one: going back is a
+- `jush-server` refuses an older version than the current one: going back is a
   [rollback](#rollback).
 - An upgrade to the current version does nothing, unless an earlier upgrade
   was interrupted ([Interruptions](#interruptions)).
 
-Only one `demi-server` runs at a time: it holds a lock in `/opt/demi/server/`
+Only one `jush-server` runs at a time: it holds a lock in `/opt/jush/server/`
 and refuses to start beside another.
 
 ### Fetch
 
-The installed `demi-server` takes these steps:
+The installed `jush-server` takes these steps:
 
 1. Downloads the server archive and the image archive of the server's
    architecture, and the release's `SHA256SUMS`.
@@ -244,8 +244,8 @@ The fetch follows these rules:
   (`crates/machine-manager/src/storage/base.rs`).
 - It uses a release that is already unpacked under that version as it is.
 
-Then the installed `demi-server` hands the upgrade to the new release's own
-`demi-server`, which carries out the rest. Each release thus moves to itself
+Then the installed `jush-server` hands the upgrade to the new release's own
+`jush-server`, which carries out the rest. Each release thus moves to itself
 with its own knowledge: its units, its programs' checks, its schema versions.
 
 Only the fetch is done by an older release, which is why the assets are a
@@ -258,40 +258,40 @@ current release serves. Settings › Updates lists these steps, with their
 progress where they have any ([From Settings](#from-settings)), all but the
 runners', which no step waits for:
 
-1. **Runners.** As the preparation starts, `demi-server` tells the running
+1. **Runners.** As the preparation starts, `jush-server` tells the running
    backend the next runner release and the new release's directory that holds
    its executables.
    - It does so over the backend's management socket,
-     `/run/demi-backend-manage/manage.sock`, which only the backend's user and
+     `/run/jush-backend-manage/manage.sock`, which only the backend's user and
      root can open.
    - The socket's directory is the backend unit's second runtime directory,
-     apart from `/run/demi-backend/`, which every Cloud mounts
+     apart from `/run/jush-backend/`, which every Cloud mounts
      (`crates/backend-http/src/lib.rs`). A Cloud's root must never reach the
      socket, because it takes requests without credentials and acts on every
      user's devices.
    - The backend has its connected paired runners download the release ahead
      (`crates/runner/src/update.rs`) and answers as they finish.
-   - `demi-server` prints how many have, *3 of 4 devices have the new runner*,
+   - `jush-server` prints how many have, *3 of 4 devices have the new runner*,
      while the next steps run, and waits for none of them. A device that has
      not finished by the restart downloads after it, and shows as updating
      until its runner is back.
    - A backend of a release without the socket is told nothing, and its
      runners update after the switch as before.
 2. **Configuration.** The new backend and the new machine manager each check
-   `/opt/demi/config/demi.env` with `--check-config`, which validates every
+   `/opt/jush/config/jush.env` with `--check-config`, which validates every
    setting as a start would and exits. A failure names the variable.
-3. **gVisor.** On a server that has downloaded gVisor before, `demi-server`
+3. **gVisor.** On a server that has downloaded gVisor before, `jush-server`
    has the new manager fetch the version it pins into
-   `/opt/demi/gvisor/<version>/`, unless it is there
+   `/opt/jush/gvisor/<version>/`, unless it is there
    (`crates/server/src/gvisor.rs`). A server that never downloaded gVisor
    skips this step: its Clouds run on Simple Isolation.
 4. **Cloud image.** The new manager imports the release's `image/` with
-   `demi-machine-manager --import`, beside the running manager. Bases are
+   `jush-machine-manager --import`, beside the running manager. Bases are
    immutable directories named by their `baseVersion` and published
    atomically, and the running manager never reads one it was not configured
    with, so the two do not meet. The import is the slow step of a manager's
    start, and doing it now keeps it out of the interruption.
-5. **Data.** `demi-server` reads the schema version of each database in the
+5. **Data.** `jush-server` reads the schema version of each database in the
    data directory that the configuration names, and compares it with the new
    backend's. It knows them, because it is built from the same workspace.
    - The databases whose versions differ are migrated, so they are copied, and
@@ -300,31 +300,31 @@ runners', which no step waits for:
      stops the upgrade here, naming the file, before anything is interrupted:
      the new backend could not open it. A development build of another
      unpublished schema can make such a database.
-6. **Manager state.** `demi-server` reads the format of the manager's state
+6. **Manager state.** `jush-server` reads the format of the manager's state
    directory. A release that changes the format is marked as one a rollback
-   cannot cross ([Rollback](#rollback)), and `demi-server` says so before it
+   cannot cross ([Rollback](#rollback)), and `jush-server` says so before it
    goes on.
 
 ### Switch
 
-From here the server is interrupted. `demi-server` records each step in its
-journal, `/opt/demi/server/upgrade.json`, before it takes the step:
+From here the server is interrupted. `jush-server` records each step in its
+journal, `/opt/jush/server/upgrade.json`, before it takes the step:
 
 1. Stop the backend. Its shutdown ends every turn with the shutdown record
    and closes every runner connection
    (`crates/backend/src/backend.rs`).
 2. Stop the machine manager. When the new release reads the manager's state
-   as it stands and the store needs no move, `demi-server` first writes the
-   leave request `/run/demi-machine-manager/leave`, and removes it once the
+   as it stands and the store needs no move, `jush-server` first writes the
+   leave request `/run/jush-machine-manager/leave`, and removes it once the
    manager stopped. A manager that finds it records the sandboxes that run in
-   `/run/demi-machine-manager/left.json` and leaves them running for the new
+   `/run/jush-machine-manager/left.json` and leaves them running for the new
    manager. Otherwise its stop saves and stops every device that is still
    running, so each Cloud boots with the new release's programs. The manager
    writes how many of the running Clouds it has saved to
-   `/run/demi-machine-manager/drain.json`, which `demi-server` reads while it
+   `/run/jush-machine-manager/drain.json`, which `jush-server` reads while it
    waits for the stop.
 3. Keep the databases that the new release changes in
-   `<DEMI_BACKEND_DATA>/snapshots/<old version>/`, and sync them: a copy of
+   `<JUSH_BACKEND_DATA>/snapshots/<old version>/`, and sync them: a copy of
    each, cloned where the file system can. With both services stopped, the
    files are consistent.
 4. Point `current` at the new release and copy its units into place.
@@ -333,23 +333,23 @@ journal, `/opt/demi/server/upgrade.json`, before it takes the step:
    conversation database, and only then reports ready
    (`crates/backend-http/src/update.rs`). Until then it answers every page
    with the update's progress, which each page shows over the app, and
-   `demi-server` prints it, `Updating conversations: 41 of 73 (2.7 GB of
+   `jush-server` prints it, `Updating conversations: 41 of 73 (2.7 GB of
    6.6 GB), about 3 minutes left`.
 6. Remove the journal, then every release and snapshot other than the new
    release and the one it replaced.
 
 From step 1 until the new backend listens, no backend answers the pages. The
 new release's backend then runs in its update screen's mode,
-`demi-backend --update-screen <record>`, as the transient unit
-`demi-update-screen.service` with the backend unit's user, capability and
+`jush-backend --update-screen <record>`, as the transient unit
+`jush-update-screen.service` with the backend unit's user, capability and
 configuration. It opens no database: it serves the web app and answers
-`GET /api/update` with the update's steps, which `demi-server` keeps in
-`<DEMI_BACKEND_DATA>/update.json` as it takes them. `demi-server` stops the
+`GET /api/update` with the update's steps, which `jush-server` keeps in
+`<JUSH_BACKEND_DATA>/update.json` as it takes them. `jush-server` stops the
 screen just before it starts the backend, which reads the same file, goes on
 with its own steps and removes the file once it serves. A return shows the
 screen again while it runs.
 
-If step 5 fails, `demi-server` returns to the old release at once (see
+If step 5 fails, `jush-server` returns to the old release at once (see
 [Rollback](#rollback)), prints the last lines of the failing service's log,
 and exits with a failure.
 
@@ -358,9 +358,9 @@ upgrade when they choose, and the user resumes an interrupted turn.
 
 ### Interruptions
 
-The journal lets `demi-server` finish an upgrade that was terminated at any
-point. The next `demi-server` command finds the journal and hands the upgrade
-to the `demi-server` of the release the move goes to. That one takes the
+The journal lets `jush-server` finish an upgrade that was terminated at any
+point. The next `jush-server` command finds the journal and hands the upgrade
+to the `jush-server` of the release the move goes to. That one takes the
 recorded step again and the steps after it.
 
 - A step after step 1 that fails leaves the update screen running, with
@@ -387,9 +387,9 @@ A master or an administrator updates the server from Settings › Updates,
 without a shell on the machine. The page shows the release the server runs
 and the newest release of its channel:
 
-- **Beta** offers the releases Demi publishes, which GitHub marks *latest*.
+- **Beta** offers the releases Jush publishes, which GitHub marks *latest*.
 - **Canary** offers every release, including the pre-release that each push
-  to `main` that changes Demi publishes once it passes its checks.
+  to `main` that changes Jush publishes once it passes its checks.
 
 The backend looks for the newest release when it starts, when the channel
 changes, on **Check Now**, and then every hour on Canary and every day on
@@ -402,14 +402,14 @@ After every check that finds a newer release, the server gets it ready while
 the current one serves, so **Update Now** has only the checks and the restart
 left:
 
-1. The backend writes the version to `/run/demi-upgrade/prepare`.
-2. The path unit `demi-prepare.path` sees the file and starts
-   `demi-prepare.service`, which runs `demi-server prepare --requested` as
+1. The backend writes the version to `/run/jush-upgrade/prepare`.
+2. The path unit `jush-prepare.path` sees the file and starts
+   `jush-prepare.service`, which runs `jush-server prepare --requested` as
    root.
-3. `demi-server` removes the request and does nothing while another run of it
+3. `jush-server` removes the request and does nothing while another run of it
    holds its lock, or while a move is interrupted. Otherwise it removes a
    release that was ready before this one, fetches the release as
-   [Fetch](#fetch) does, and hands over to the release's own `demi-server
+   [Fetch](#fetch) does, and hands over to the release's own `jush-server
    prepare`. That one downloads its gVisor version, imports its image, and
    tells the running backend its runner release, which the connected devices
    download ([Prepare](#prepare)).
@@ -431,17 +431,17 @@ programs of the release it runs and of the one ready ahead; its download of a
 newer one removes the earlier one's.
 
 **Update Now** asks first, then runs the same upgrade as
-`sudo demi-server upgrade <version>`:
+`sudo jush-server upgrade <version>`:
 
-1. The backend writes the version to `/run/demi-upgrade/version`. It runs as
+1. The backend writes the version to `/run/jush-upgrade/version`. It runs as
    an unprivileged user, so it cannot upgrade the server itself.
-2. The path unit `demi-upgrade.path` sees the file and starts
-   `demi-upgrade.service`. That unit runs
-   `demi-server upgrade --requested` as root, apart from the backend that the
+2. The path unit `jush-upgrade.path` sees the file and starts
+   `jush-upgrade.service`. That unit runs
+   `jush-server upgrade --requested` as root, apart from the backend that the
    upgrade stops.
-3. `demi-server` removes the request, refuses a version that is not newer
+3. `jush-server` removes the request, refuses a version that is not newer
    than the current one, and upgrades as above.
-4. While it runs, `demi-server` tells the backend every step of the update
+4. While it runs, `jush-server` tells the backend every step of the update
    over the backend's management socket, each with its state and its
    progress: the bytes downloaded, the Clouds saved or kept running, the
    databases copied.
@@ -449,15 +449,15 @@ newer one removes the earlier one's.
    [Prepare](#prepare) in Settings › Updates. From the stop on, every page
    shows the update's screen, which lists the steps of [Switch](#switch) and
    the new backend's own. Once the new release serves, the screen shows every
-   step done and waits for the user to open Demi. A step that fails is marked
+   step done and waits for the user to open Jush. A step that fails is marked
    as failed with its reason.
 
 The units come with the release, as the services' units do. A server on an
-earlier release gets them with one `sudo demi-server upgrade` to a release
+earlier release gets them with one `sudo jush-server upgrade` to a release
 that has them. Without them,
 or on a developer's machine, Settings has no Updates.
 
-`journalctl -u demi-upgrade` shows what an update from Settings did.
+`journalctl -u jush-upgrade` shows what an update from Settings did.
 
 ## A development build on a server
 
@@ -525,27 +525,27 @@ pre-release, `v$version` (`.github/workflows/release.yml`):
 
 A pre-release is never the latest release, which `releases/latest` gives, so
 Beta never offers one: Canary does, from the installer's `--canary`,
-`demi-server upgrade --canary` and Settings › Updates, until it is published.
+`jush-server upgrade --canary` and Settings › Updates, until it is published.
 A run that fails touches no server. A release refuses a version that has a
 release already.
 
-Then move the server, the SSH host that `DEMI_DEPLOY_HOST` names in the
-developer's `.env`. It must already run Demi
+Then move the server, the SSH host that `JUSH_DEPLOY_HOST` names in the
+developer's `.env`. It must already run Jush
 ([Installation](installation.md)), and the SSH user must be able to use
 `sudo`:
 
 ```sh
-ssh "$DEMI_DEPLOY_HOST" \
-  "sudo /usr/local/bin/demi-server upgrade $version && sudo /usr/local/bin/demi-server status"
+ssh "$JUSH_DEPLOY_HOST" \
+  "sudo /usr/local/bin/jush-server upgrade $version && sudo /usr/local/bin/jush-server status"
 ```
 
 A server on the Canary channel offers the pre-release in Settings › Updates
 once it exists, so **Update Now** there moves it as this command does.
 
-`demi-server upgrade` downloads the pre-release from GitHub as it downloads a
+`jush-server upgrade` downloads the pre-release from GitHub as it downloads a
 published one and carries it out ([The upgrade](#the-upgrade)): the checks,
 the database copies, the switch and the return on failure are an upgrade's.
-`demi-server rollback` returns to the release before it.
+`jush-server rollback` returns to the release before it.
 
 - **Its version.** A Beta that holds a new feature or a change on screen,
   anything since the Beta before it beyond bug fixes, is a new minor: before
@@ -559,7 +559,7 @@ the database copies, the switch and the return on failure are an upgrade's.
   notes.md`. The files users install are then the ones the server ran, built
   once. Every version is kept, published or not.
 - **Its notes.** A Beta's release says what changed since the Beta before it,
-  for the people who use Demi; a Canary keeps the notes GitHub generates.
+  for the people who use Jush; a Canary keeps the notes GitHub generates.
   Whoever publishes reads every work package merged between the two versions,
   its commit message and its decision record, drafts the notes, and publishes
   them only once the user agrees. They live only in the release, in this
@@ -568,11 +568,11 @@ the database copies, the switch and the return on failure are an upgrade's.
   2. **Highlights**: three to five changes that matter most, each a bold name
      and one or two sentences on what the user can now do.
   3. **New**, **Improved** and **Fixed**: one line each, in the words of the
-     screen and of someone using Demi, never a module's or a commit's.
-  4. How to update, Settings › Updates or `sudo demi-server upgrade`, and the
+     screen and of someone using Jush, never a module's or a commit's.
+  4. How to update, Settings › Updates or `sudo jush-server upgrade`, and the
      link that compares the two versions.
 
-  A change no one using Demi meets, such as one to the website, the
+  A change no one using Jush meets, such as one to the website, the
   documents, the build, the tests, the logs or the code's structure, has no
   line. Each line is checked against its change before it is written: it
   says what the change does, not what its title suggests.
@@ -595,11 +595,11 @@ the database copies, the switch and the return on failure are an upgrade's.
 
 ## Rollback
 
-`demi-server rollback` returns to the release that the last upgrade replaced,
+`jush-server rollback` returns to the release that the last upgrade replaced,
 the other directory under `releases/`. It refuses when that release is the
 newer one, as after a rollback, because going forward is an upgrade.
 
-The earlier release's own `demi-server` carries out the return, as each release
+The earlier release's own `jush-server` carries out the return, as each release
 carries out the move to itself.
 
 1. It stops both services.
@@ -616,7 +616,7 @@ A return whose services do not start leaves its journal, and the next command
 tries it again.
 
 Restoring a snapshot loses what the backend wrote since the upgrade, such as
-the conversations of that time. `demi-server` says when it took the snapshot
+the conversations of that time. `jush-server` says when it took the snapshot
 and asks before it restores one. The databases it replaces move to
 `snapshots/abandoned-<new version>/`, so nothing is deleted. An upgrade that
 migrated nothing took no snapshot, and its rollback loses nothing.
@@ -627,31 +627,31 @@ A rollback leaves two things as they are:
   wrote after the upgrade. Its runner and programs return to the old release
   at its next wake, because they come from the configured image.
 - **The manager's state format.** A release that changed it cannot be rolled
-  back, because its disks and records are in the new format. `demi-server`
+  back, because its disks and records are in the new format. `jush-server`
   refuses and names that release. Such a release says so before it is
   installed ([Prepare](#prepare)).
 
-## The `demi-server` program
+## The `jush-server` program
 
-`demi-server` is a Linux executable of the server release, built for the two
+`jush-server` is a Linux executable of the server release, built for the two
 Linux targets with the backend and the manager. It is the server's program for
 its own installation: it owns the layout in
 [One release on a server](#one-release-on-a-server), fetching, preparing,
 switching and rolling back, and the units.
 
-`demi-server status` prints:
+`jush-server status` prints:
 
 - The current release.
 - The one a rollback returns to, and whether that rollback restores a
   snapshot.
 - An interrupted upgrade, if there is one.
 
-`demi-server` changes nothing outside that layout:
+`jush-server` changes nothing outside that layout:
 
 - It never edits the configuration.
 - It never touches a data directory except for its `snapshots/` and a restore.
 - It asks systemd, or the supervisor in a container, to start and stop only
-  Demi's two services, and to run the path unit of an update from Settings.
+  Jush's two services, and to run the path unit of an update from Settings.
 
 Setting a server up, the first time, is its `setup`
 ([Installation](installation.md)).

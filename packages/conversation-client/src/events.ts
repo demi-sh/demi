@@ -11,7 +11,7 @@ import type {
   ServerFrame,
   TranscriptPatch,
   Version,
-} from '@demicodes/protocol'
+} from '@jush-ai/protocol'
 
 export type ServerFrameOf<Type extends ServerFrame['type']> = Extract<ServerFrame, { type: Type }>
 

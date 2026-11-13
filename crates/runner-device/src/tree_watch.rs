@@ -317,7 +317,7 @@ mod platform {
                 // The worker already exited, so there is nothing to stop.
             }
             if let Some(thread) = self.thread.take() {
-                let _step = demi_runner_process::steps::step("watch_teardown", "folder_adder");
+                let _step = jush_runner_process::steps::step("watch_teardown", "folder_adder");
                 // A thread that panicked has nothing left to release.
                 let _ = thread.join();
             }
@@ -674,7 +674,7 @@ mod fsevents {
                 cf::CFRunLoopStop(self.run_loop.0);
             }
             if let Some(thread) = self.thread.take() {
-                let _step = demi_runner_process::steps::step("watch_teardown", "fsevents");
+                let _step = jush_runner_process::steps::step("watch_teardown", "fsevents");
                 // A thread that panicked has nothing left to release.
                 let _ = thread.join();
             }
@@ -906,7 +906,7 @@ mod kqueue {
             // has a thread that ended already.
             let _ = unsafe { kq::kevent(&*self.queue, &[stop], &mut Vec::<Event>::new(), None) };
             if let Some(thread) = self.thread.take() {
-                let _step = demi_runner_process::steps::step("watch_teardown", "kqueue");
+                let _step = jush_runner_process::steps::step("watch_teardown", "kqueue");
                 // A thread that panicked has nothing left to release.
                 let _ = thread.join();
             }

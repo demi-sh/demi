@@ -6,7 +6,7 @@
  * folder listed again, which reads each link's target, and the caller acts on what
  * that found.
  */
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { parentPath } from './paths'
 import { FileBrowserError, type FileBrowserEntry, type FileBrowserSource } from './types'
 

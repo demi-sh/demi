@@ -51,7 +51,7 @@ pub const STATE_FORMAT: u32 = 1;
 /// Where a stopping manager says how many Clouds it has saved of those it
 /// saves, which an upgrade reads while the stop runs: in its runtime
 /// directory, which the host sees.
-pub const DRAIN_RECORD: &str = "/run/demi-machine-manager/drain.json";
+pub const DRAIN_RECORD: &str = "/run/jush-machine-manager/drain.json";
 
 /// What [`DRAIN_RECORD`] holds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -62,18 +62,18 @@ pub struct DrainRecord {
 
 /// The manager's systemd unit, which an upgrade stops and starts, and which
 /// a manager restarts to run the gVisor release it fetched.
-pub const MANAGER_UNIT: &str = "demi-machine-manager.service";
+pub const MANAGER_UNIT: &str = "jush-machine-manager.service";
 
 /// What an upgrade writes before it stops the manager when the release it
 /// moves to keeps [`STATE_FORMAT`]: the manager that stops then leaves its
 /// running sandboxes to the next one, which takes them over, rather than
 /// saving them (`crates/machine-manager/src/handover.rs`). A manager that
 /// knows no such request saves them, as before.
-pub const LEAVE_REQUEST: &str = "/run/demi-machine-manager/leave";
+pub const LEAVE_REQUEST: &str = "/run/jush-machine-manager/leave";
 
 /// Where a manager that left its sandboxes records them for the next one,
 /// in its runtime directory, which a reboot empties as it ends them.
-pub const LEFT_RECORD: &str = "/run/demi-machine-manager/left.json";
+pub const LEFT_RECORD: &str = "/run/jush-machine-manager/left.json";
 
 /// What [`LEFT_RECORD`] holds: each sandbox the manager left running, gVisor
 /// sandboxes and Simple Isolation Clouds.
@@ -97,7 +97,7 @@ pub struct LeftSimple {
 }
 
 /// A sandbox a manager left running: its device, the boot its working pair
-/// records, the base whose `/opt/demi` it mounts, which the next manager
+/// records, the base whose `/opt/jush` it mounts, which the next manager
 /// keeps while the sandbox runs, and which machine it is, which decides
 /// whether the network policy applies to it.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -136,6 +136,6 @@ pub use wire::{
 /// databases and logs keep writing while it runs, and a full disk breaks them,
 /// as the search index and the system log broke on a server whose disk a
 /// checkpoint and an update's preparation filled together. The machine
-/// manager's writes to its store and `demi-server`'s fetch of a release check
+/// manager's writes to its store and `jush-server`'s fetch of a release check
 /// for it.
 pub const ROOM_RESERVE: u64 = 2 << 30;

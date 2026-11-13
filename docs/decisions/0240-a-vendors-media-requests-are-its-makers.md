@@ -28,7 +28,7 @@ vendor's crate actually sends, which only that crate's code shows.
 
 ## Decision
 
-Nothing the user or the model sees changes: `demi audio` and `demi video`
+Nothing the user or the model sees changes: `jush audio` and `jush video`
 warn of the same unsent options with the same names.
 
 - `AudioMaker` and `VideoMaker` answer, with no default:

@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { DOCS, REPOSITORY } from '@/links'
-import DemiLogo from './DemiLogo.vue'
+import JushLogo from './JushLogo.vue'
 import GitHubMark from './GitHubMark.vue'
 </script>
 
 <template>
   <header class="nav">
-    <a class="brand" href="/"><DemiLogo otter /></a>
+    <a class="brand" href="/"><JushLogo otter /></a>
     <nav class="links" aria-label="Site">
       <a href="#features">Features</a>
       <a :href="DOCS">Docs</a>
     </nav>
-    <a class="repo" :href="REPOSITORY" aria-label="Demi on GitHub">
+    <a class="repo" :href="REPOSITORY" aria-label="Jush on GitHub">
       <GitHubMark class="mark" />
     </a>
   </header>

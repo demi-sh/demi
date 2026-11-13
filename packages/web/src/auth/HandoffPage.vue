@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import HandoffPage, { type HandoffPagePhase } from '@demicodes/web-ui/auth/HandoffPage.vue'
+import HandoffPage, { type HandoffPagePhase } from '@jush-ai/web-ui/auth/HandoffPage.vue'
 import { spendHandoffCode } from './handoff'
 import { usePasskeyOffer } from './passkey-offer'
 

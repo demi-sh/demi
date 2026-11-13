@@ -1,5 +1,5 @@
 //! HTTP/2 command residents over caller-owned duplex transports: the SDK of the
-//! command wire that `demi_command_protocol` defines.
+//! command wire that `jush_command_protocol` defines.
 //!
 //! The SDK handles framing, HTTP/2, byte IO and cancellation over a transport
 //! it is given, and nothing else. It installs no artifact and starts no process
@@ -11,7 +11,7 @@
 //!
 //! The runner and every command program use this one SDK. A command program
 //! depends on it and on `command-protocol` without depending on the runner or
-//! on Demi's command implementations. The SDK holds no credentials.
+//! on Jush's command implementations. The SDK holds no credentials.
 //!
 //! # Cancellation
 //!

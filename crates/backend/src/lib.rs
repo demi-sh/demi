@@ -1,4 +1,4 @@
-//! The product server, the executable `demi-backend`.
+//! The product server, the executable `jush-backend`.
 //!
 //! The backend does four things:
 //!
@@ -67,7 +67,7 @@
 //! backend's crates knows only the layers beneath it:
 //!
 //! ```text
-//! demi-backend (configuration, composition)
+//! jush-backend (configuration, composition)
 //!   |-- backend-providers (the credential vault)
 //!   `-- backend-http (the HTTP edge)
 //!         `-- backend-user-shard (the user's shard, conversations)

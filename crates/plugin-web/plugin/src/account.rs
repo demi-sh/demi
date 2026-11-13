@@ -12,7 +12,7 @@
 //! used up, the call says so and names the sign-in, rather than routing the
 //! request through a device to find another address.
 
-use demi_plugin_interface::{PluginError, PluginPort, PortFailure, PortRefusal, SecretName};
+use jush_plugin_interface::{PluginError, PluginPort, PortFailure, PortRefusal, SecretName};
 use serde_json::json;
 
 use crate::search::Failure;

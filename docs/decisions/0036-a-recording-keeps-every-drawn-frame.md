@@ -9,8 +9,8 @@ status: accepted
 An agent checks what a screen does over time, such as a rotation, a tab
 switch or an animation, with single screenshots. A defect that lasts one or
 two frames, a frame that jumps or a picture that blinks, falls between them.
-`demi mobile record` runs each system's own recorder and writes an MP4 a
-model cannot read, and `demi browser` cannot record at all.
+`jush mobile record` runs each system's own recorder and writes an MP4 a
+model cannot read, and `jush browser` cannot record at all.
 
 The work panel already captures each device's and each tab's picture on the
 Host and streams it. That capture takes pictures at the stream's rate, which
@@ -27,7 +27,7 @@ falls with the network, so a frame that shows for 16 ms can be skipped.
 * idb's `record-video` and `simctl io recordVideo` write the Simulator's
   frames as H.264 with VideoToolbox.
 
-Demi departs from them in three ways: the stream and the recording share
+Jush departs from them in three ways: the stream and the recording share
 one capture, a frame identical to the last is not kept, and a frame the
 capture or the encoder could not take is counted and placed in the index.
 
@@ -85,7 +85,7 @@ device or a tab       +-> recording: every frame that differs
   could not take, or the encoder dropped, is counted, and the index marks
   where it fell. A recording keeps the screen's own size while a view of
   it is looked at; the view is scaled from it.
-* **Commands.** `demi browser` and `demi mobile` record the same way:
+* **Commands.** `jush browser` and `jush mobile` record the same way:
   * `record <tab or device> start [--duration <time>]` answers a recording
     id at once. A recording with a duration stops itself when it is over;
     one without runs until it is stopped or reaches the limit below.
@@ -96,7 +96,7 @@ device or a tab       +-> recording: every frame that differs
     changed area, as text.
   * `record <id> export` writes the chosen frames as images, one image per
     frame, and prints one path per line, so
-    `... export --frames f005-f010 | xargs demi file view` shows them.
+    `... export --frames f005-f010 | xargs jush file view` shows them.
     `--frames` takes ranges and single frames separated by commas
     (`f005-f010,f020`). The frames of one export share one crop, the
     union of the areas they changed in, so they compare; `--whole` and
@@ -116,7 +116,7 @@ device or a tab       +-> recording: every frame that differs
   deleting the conversation removes them all.
 * The panel's Record button records the same way and saves the video. The
   systems' own recorders are no longer used. `bun browse` does not record;
-  it is to be replaced by `demi browser`.
+  it is to be replaced by `jush browser`.
 
 ### Consequences
 

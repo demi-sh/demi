@@ -1,4 +1,4 @@
-//! The product's `demi device` group: commands on the devices a conversation
+//! The product's `jush device` group: commands on the devices a conversation
 //! reaches.
 //!
 //! - `list` lists the user's devices, each with what it is to the calling
@@ -43,7 +43,7 @@
 //! agent                          the computer                   backend
 //!   | ssh ... '<install command>' -> runner starts, waits
 //!   | <-- "Enter this pairing code in Add Device: WCXP-..."
-//!   | demi device pair WCXP-... -----------------------------------> claim
+//!   | jush device pair WCXP-... -----------------------------------> claim
 //!   |                              runner gets its device token <-+
 //!   | <-- "Paired as DESKTOP-PLU; attached as DESKTOP-PLU"
 //! ```
@@ -52,25 +52,25 @@ use std::collections::BTreeMap;
 use std::future::Future;
 use std::rc::{Rc, Weak};
 
-use demi_runner_protocol::pairs::PairRoute;
-use demi_backend_database::conversation_index::{
+use jush_runner_protocol::pairs::PairRoute;
+use jush_backend_database::conversation_index::{
     AttachedDeviceRecord, ExecutionTarget, RecordChange,
 };
-use demi_runner_client::{JobEnd, JobStart, Pipe, RemoteJob, Withdrawal};
-use demi_command_declarations::MAX_STDIN_BODY;
-use demi_device_interface::{
+use jush_runner_client::{JobEnd, JobStart, Pipe, RemoteJob, Withdrawal};
+use jush_command_declarations::MAX_STDIN_BODY;
+use jush_device_interface::{
     Call, GroupBuilder, LeafBuilder, ProcessEnd, RpcError,
     BroughtDevice, RpcInvocation, RpcPort, TypedRpc,
 };
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_shared_types::{
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_shared_types::{
     StreamKind, Timestamp,
     output::{Cell, Fields, Table, warning},
 };
-use demi_backend_runners::claims::ClaimRefusal;
-use demi_backend_runners::install::install_commands;
-use demi_web_api_protocol::devices::{DeviceKind, DeviceState};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_backend_runners::claims::ClaimRefusal;
+use jush_backend_runners::install::install_commands;
+use jush_web_api_protocol::devices::{DeviceKind, DeviceState};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::LocalBoxFuture;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -87,42 +87,42 @@ const SUMMARY: &str =
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "Devices and their machines: list, show, run a command on another, attach, detach, move the conversation, forward ports, pair.";
 
-const MOVE_SUMMARY: &str = "Make another device where this conversation runs, or another directory there: `demi device move <device> <directory>`, the device by name or id from `demi device list` (`Cloud` for the user's Cloud), the directory an absolute path that exists there. The move applies at once: commands already running finish where they are, every later command runs there, and the device it leaves stays attached.";
+const MOVE_SUMMARY: &str = "Make another device where this conversation runs, or another directory there: `jush device move <device> <directory>`, the device by name or id from `jush device list` (`Cloud` for the user's Cloud), the directory an absolute path that exists there. The move applies at once: commands already running finish where they are, every later command runs there, and the device it leaves stays attached.";
 
-const ATTACH_SUMMARY: &str = "Attach one of the user's devices or the Cloud to this conversation, by name or id from `demi device list`, so `demi device shell --device` reaches it; `shell` and `move` attach one themselves.";
+const ATTACH_SUMMARY: &str = "Attach one of the user's devices or the Cloud to this conversation, by name or id from `jush device list`, so `jush device shell --device` reaches it; `shell` and `move` attach one themselves.";
 
-const INSTALL_COMMAND_SUMMARY: &str = "The command that installs the runner on a computer, as Add Device shows it; run it there and pass the pairing code it shows to `demi device pair`.";
+const INSTALL_COMMAND_SUMMARY: &str = "The command that installs the runner on a computer, as Add Device shows it; run it there and pass the pairing code it shows to `jush device pair`.";
 
-const PAIR_SUMMARY: &str = "Pair the computer whose installer shows `<code>` with the user's account and attach it to this conversation, so `demi device shell --device` reaches it.";
+const PAIR_SUMMARY: &str = "Pair the computer whose installer shows `<code>` with the user's account and attach it to this conversation, so `jush device shell --device` reaches it.";
 
-const DETACH_SUMMARY: &str = "Detach an attached device, by name or id from `demi device list`, at once; this conversation's commands that run there end.";
+const DETACH_SUMMARY: &str = "Detach an attached device, by name or id from `jush device list`, at once; this conversation's commands that run there end.";
 
-const LIST_SUMMARY: &str = "List the user's devices and the Cloud, each with what it is to this conversation: name, id, status (a stopped Cloud wakes for work), role (primary, attached, subagent for a device only a subagent works on, or none), its system, CPU, memory and disk with how busy each is now, and the directory commands start in. `demi device shell --device` and `demi device move` take any of them; one the conversation does not reach asks the user once.";
+const LIST_SUMMARY: &str = "List the user's devices and the Cloud, each with what it is to this conversation: name, id, status (a stopped Cloud wakes for work), role (primary, attached, subagent for a device only a subagent works on, or none), its system, CPU, memory and disk with how busy each is now, and the directory commands start in. `jush device shell --device` and `jush device move` take any of them; one the conversation does not reach asks the user once.";
 
-const SHOW_SUMMARY: &str = "Show one device of `demi device list`, by name or id, in full: its system, processor, GPUs, memory, disk, uptime and runner release, with how busy it is now.";
+const SHOW_SUMMARY: &str = "Show one device of `jush device list`, by name or id, in full: its system, processor, GPUs, memory, disk, uptime and runner release, with how busy it is now.";
 
 const CURRENT_SUMMARY: &str = "Show the primary device, where the shell tool's commands run: its name, id, status, project and directory.";
 
-const SHELL_SUMMARY: &str = "Run a script in another device's bash, as ssh does: `demi device shell --device <name|id> <script>`, or without the script argument, the script on stdin, so one with quotes of its own needs no escaping (`demi device shell --device ci <<'EOF'` … `EOF`). Any device `demi device list` shows: one this conversation does not reach is attached first, which asks the user once. The script starts in that device's directory, which `demi device list` shows and no `cd` changes. With a script argument, this command's stdin and stdout are the script's, byte-faithfully and streaming, so archives pipe cleanly both ways (`demi device shell --device ci \"tar c -C /work .\" | tar x`, `tar c . | demi device shell --device ci \"tar x -C /work\"`); a script read from stdin has no stdin of its own. stderr and the exit code pass through.";
+const SHELL_SUMMARY: &str = "Run a script in another device's bash, as ssh does: `jush device shell --device <name|id> <script>`, or without the script argument, the script on stdin, so one with quotes of its own needs no escaping (`jush device shell --device ci <<'EOF'` … `EOF`). Any device `jush device list` shows: one this conversation does not reach is attached first, which asks the user once. The script starts in that device's directory, which `jush device list` shows and no `cd` changes. With a script argument, this command's stdin and stdout are the script's, byte-faithfully and streaming, so archives pipe cleanly both ways (`jush device shell --device ci \"tar c -C /work .\" | tar x`, `tar c . | jush device shell --device ci \"tar x -C /work\"`); a script read from stdin has no stdin of its own. stderr and the exit code pass through.";
 
-/// The input of a leaf that takes none, such as `demi device list`.
+/// The input of a leaf that takes none, such as `jush device list`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct NoArgs {}
 
-/// The input of `demi device show`.
+/// The input of `jush device show`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ShowArgs {
-    /// Device name or id from demi device list
+    /// Device name or id from jush device list
     device: String,
 }
 
-/// The input of `demi device attach`.
+/// The input of `jush device attach`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct AttachArgs {
-    /// Device name or id from demi device list
+    /// Device name or id from jush device list
     #[expect(dead_code, reason = "the dispatch resolves it, as the call's `brought`")]
     device: String,
 }
@@ -136,7 +136,7 @@ enum System {
     Windows,
 }
 
-/// The input of `demi device install-command`.
+/// The input of `jush device install-command`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct InstallCommandArgs {
@@ -145,7 +145,7 @@ struct InstallCommandArgs {
     system: Option<System>,
 }
 
-/// The input of `demi device pair`.
+/// The input of `jush device pair`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct PairArgs {
@@ -154,11 +154,11 @@ struct PairArgs {
     code: String,
 }
 
-/// The input of `demi device move`.
+/// The input of `jush device move`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct MoveArgs {
-    /// Device name or device id from demi device list; Cloud for the user's Cloud
+    /// Device name or device id from jush device list; Cloud for the user's Cloud
     #[expect(dead_code, reason = "the dispatch resolves it, as the call's `brought`")]
     device: String,
     /// An absolute directory on that device, which must exist
@@ -166,19 +166,19 @@ struct MoveArgs {
     directory: String,
 }
 
-/// The input of `demi device detach`.
+/// The input of `jush device detach`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct DetachArgs {
-    /// Device name or device id from demi device list
+    /// Device name or device id from jush device list
     device: String,
 }
 
-/// The input of `demi device shell`.
+/// The input of `jush device shell`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ShellArgs {
-    /// Device name or device id from demi device list; Cloud for the user's Cloud
+    /// Device name or device id from jush device list; Cloud for the user's Cloud
     #[expect(dead_code, reason = "the dispatch resolves it, as the call's `brought`")]
     device: String,
     /// One quoted shell script argument, to which stdin is streamed; without
@@ -252,7 +252,7 @@ pub fn device_group(shard: Weak<dyn DeviceShard>) -> GroupBuilder {
         )
 }
 
-/// A device a device name or id names, as `demi device move` and the dispatch
+/// A device a device name or id names, as `jush device move` and the dispatch
 /// read it: the device, and the name the user knows it by.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NamedDevice {
@@ -280,7 +280,7 @@ pub async fn resolve_device(
         .await?
         .into_iter()
         .next()
-        .ok_or_else(|| RpcError::Failed(format!("{wanted}: no device of this name or id (see `demi device list`)")))
+        .ok_or_else(|| RpcError::Failed(format!("{wanted}: no device of this name or id (see `jush device list`)")))
 }
 
 /// The device the dispatch resolved for the call's `bringsDevice` argument.
@@ -297,7 +297,7 @@ async fn devices_named(
     conversation: &ConversationId,
     wanted: &str,
 ) -> Result<Vec<NamedDevice>, RpcError> {
-    let failed = |error: demi_backend_database::StorageError| RpcError::Failed(error.to_string());
+    let failed = |error: jush_backend_database::StorageError| RpcError::Failed(error.to_string());
     let control = shard.control();
     let mut found: Vec<NamedDevice> = Vec::new();
     let mut push = |named: NamedDevice| {
@@ -360,8 +360,8 @@ where
     }
 }
 
-/// The user's devices, each by the name `demi device list` gives it.
-pub(crate) struct DeviceNames(Vec<demi_backend_database::devices::DeviceRecord>);
+/// The user's devices, each by the name `jush device list` gives it.
+pub(crate) struct DeviceNames(Vec<jush_backend_database::devices::DeviceRecord>);
 
 impl DeviceNames {
     /// The name of device `id`: `Cloud` for the Cloud, the id for a device the
@@ -390,7 +390,7 @@ impl DeviceNames {
 /// The user's devices, paired devices and the Cloud, for naming them.
 pub(crate) async fn device_names(shard: &dyn DeviceShard) -> Result<DeviceNames, RpcError> {
     let control = shard.control();
-    let failed = |error: demi_backend_database::StorageError| RpcError::Failed(error.to_string());
+    let failed = |error: jush_backend_database::StorageError| RpcError::Failed(error.to_string());
     let mut devices = control.paired_devices(shard.user().clone()).await.map_err(failed)?;
     devices.extend(control.managed_device(shard.user().clone()).await.map_err(failed)?);
     Ok(DeviceNames(devices))
@@ -424,7 +424,7 @@ pub(crate) fn named_device<'a>(
         .or_else(|| devices.iter().find(|reached| reached.device.as_str() == wanted))
 }
 
-/// A device as `demi device list` lists it.
+/// A device as `jush device list` lists it.
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct ListedDevice {
@@ -510,7 +510,7 @@ async fn show(shard: Rc<dyn DeviceShard>, call: Call<ShowArgs>, port: RpcPort) -
         .find(|device| device.name == wanted)
         .or_else(|| listed.iter().find(|device| device.id == wanted))
     else {
-        return Err(RpcError::Failed(format!("{wanted}: no device of this name or id (see `demi device list`)")));
+        return Err(RpcError::Failed(format!("{wanted}: no device of this name or id (see `jush device list`)")));
     };
     if call.invocation.json {
         return print_json(&port, device).await;
@@ -553,7 +553,7 @@ async fn listed_devices(
 ) -> Result<(Vec<ListedDevice>, bool), RpcError> {
     let reached = reachable(shard, conversation).await?;
     let control = shard.control();
-    let failed = |error: demi_backend_database::StorageError| RpcError::Failed(error.to_string());
+    let failed = |error: jush_backend_database::StorageError| RpcError::Failed(error.to_string());
     let cloud = control
         .managed_device(shard.user().clone())
         .await
@@ -616,7 +616,7 @@ async fn attach(
         .map_err(|_| RpcError::Failed("the dispatch resolved no device".into()))?;
     let attached = attach_device(&*shard, &conversation, &device, &named.name).await?;
     port.stdout(format!(
-        "Attached {} as {attached}; run commands there with `demi device shell --device {attached} <script>`.\n",
+        "Attached {} as {attached}; run commands there with `jush device shell --device {attached} <script>`.\n",
         named.name
     ))
     .await?;
@@ -722,7 +722,7 @@ async fn detach(
     let wanted = &call.args.device;
     let Some(reached) = named_device(&devices, wanted) else {
         return Err(RpcError::Failed(format!(
-            "{wanted}: not attached to this conversation (see `demi device list`)"
+            "{wanted}: not attached to this conversation (see `jush device list`)"
         )));
     };
     if reached.role == DeviceRole::Primary {
@@ -745,7 +745,7 @@ async fn detach(
     Ok(0)
 }
 
-/// `demi device move`: moves the conversation to the directory on the device
+/// `jush device move`: moves the conversation to the directory on the device
 /// through the one move operation, which checks the directory, and answers
 /// once it is made. A command stopped before the move's commit starts moves
 /// nothing.
@@ -850,7 +850,7 @@ async fn current(
     Ok(0)
 }
 
-/// `demi device current`: the primary device.
+/// `jush device current`: the primary device.
 #[derive(Serialize, JsonSchema)]
 struct CurrentDevice {
     name: String,
@@ -900,7 +900,7 @@ async fn shell(
     }
     let Some(target) = reached(&devices).map(|at| &devices[at]) else {
         return Err(RpcError::Failed(format!(
-            "{}: not reachable from this conversation (see `demi device list`)",
+            "{}: not reachable from this conversation (see `jush device list`)",
             wanted.name
         )));
     };
@@ -1031,7 +1031,7 @@ async fn run_on_device(
                 .map_err(|error| error.message)?;
             shard.check_installed(&target.device);
             let start = JobStart {
-                id: demi_runner_client::RemoteDevice::job_id(),
+                id: jush_runner_client::RemoteDevice::job_id(),
                 script,
                 cwd: target.path.clone(),
                 env: BTreeMap::new(),

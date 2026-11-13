@@ -1,5 +1,5 @@
 [package]
-name = "demi-mobile"
+name = "jush-mobile"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,24 +12,24 @@ doctest = false
 bench = false
 
 [[bin]]
-name = "demi-mobile"
+name = "jush-mobile"
 path = "src/main.rs"
 test = false
 
 [dependencies]
 bytes.workspace = true
-demi-command-package-mobile-protocol = { path = "../protocol" }
-demi-command-protocol = { path = "../../command-protocol" }
-demi-command-sdk = { path = "../../command-sdk" }
-demi-live-view = { path = "../../live-view" }
-demi-live-view-protocol = { path = "../../live-view-protocol" }
-demi-shared-artifacts = { path = "../../shared-artifacts" }
-demi-shared-h264 = { path = "../../shared-h264" }
-demi-shared-openh264 = { path = "../../shared-openh264" }
-demi-shared-recording = { path = "../../shared-recording" }
-demi-shared-recording-protocol = { path = "../../shared-recording-protocol" }
-demi-shared-cli = { path = "../../shared-cli", features = ["device-allocator"] }
-demi-shared-types = { path = "../../shared-types" }
+jush-command-package-mobile-protocol = { path = "../protocol" }
+jush-command-protocol = { path = "../../command-protocol" }
+jush-command-sdk = { path = "../../command-sdk" }
+jush-live-view = { path = "../../live-view" }
+jush-live-view-protocol = { path = "../../live-view-protocol" }
+jush-shared-artifacts = { path = "../../shared-artifacts" }
+jush-shared-h264 = { path = "../../shared-h264" }
+jush-shared-openh264 = { path = "../../shared-openh264" }
+jush-shared-recording = { path = "../../shared-recording" }
+jush-shared-recording-protocol = { path = "../../shared-recording-protocol" }
+jush-shared-cli = { path = "../../shared-cli", features = ["device-allocator"] }
+jush-shared-types = { path = "../../shared-types" }
 base64.workspace = true
 futures-util.workspace = true
 garde.workspace = true
@@ -42,7 +42,7 @@ tracing.workspace = true
 # The Android driver (`crates/plugin-mobile/command/src/android/mod.rs`): the
 # emulator's gRPC interface,
 # its JWT signed with ES256, and the UI tree's XML. Its pictures are coded by
-# `demi-shared-h264`, and scaled for the live view by `fast_image_resize`.
+# `jush-shared-h264`, and scaled for the live view by `fast_image_resize`.
 aws-lc-rs = "1"
 prost = "0.14"
 http.workspace = true

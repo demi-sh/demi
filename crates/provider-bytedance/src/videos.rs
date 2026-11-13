@@ -22,14 +22,14 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret, endpoint_url, request_id_in,
     json_body,
     media::{Ask, Holding, MediaAnswer, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor, catalog_models, unreadable},
     media_catalog::{Catalog, MediaKind, PriceUnit, Tokens},
     videos::{self, Content, Done, DoneVideo, JobRef, JobState, VideoMaker, VideoRequest, content},
 };
-use demi_shared_types::{Clock, TokenUsage, VendorTrace, VideoResolution};
+use jush_shared_types::{Clock, TokenUsage, VendorTrace, VideoResolution};
 use futures_util::future::BoxFuture;
 use reqwest::{Url, header::HeaderMap};
 use serde::{Deserialize, Serialize};
@@ -57,7 +57,7 @@ impl ArkVideos {
         }
     }
 
-    async fn send(&self, http: &demi_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
+    async fn send(&self, http: &jush_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
         let headers = ark::headers(&self.key);
         ark::call(&*self.clock)
             .send(http, ask, Holding::Json, |_| std::future::ready(Ok((headers.clone(), None))))
@@ -65,7 +65,7 @@ impl ArkVideos {
             .and_then(|answered| Ok(answered.body))
     }
 
-    async fn read_state(&self, http: &demi_provider_common::ProviderHttp, job: JobRef<'_>) -> MediaAnswer<JobState> {
+    async fn read_state(&self, http: &jush_provider_common::ProviderHttp, job: JobRef<'_>) -> MediaAnswer<JobState> {
         let price = job.catalog.model(self.vendor.id(), job.model).and_then(|known| job.catalog.price(known));
         self.send(http, Ask::get(&self.tasks(Some(job.id)))).await.and_then(|body| {
             read_state(&body).map(|state| match state {
@@ -99,7 +99,7 @@ impl MediaMaker for ArkVideos {
     /// The catalog's models of the key's Ark, which lists none to a key.
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(catalog_models(catalog, self.vendor, MediaKind::Video))))
@@ -108,13 +108,13 @@ impl MediaMaker for ArkVideos {
 
 impl VideoMaker for ArkVideos {
     /// The video's address is temporary and takes no header.
-    fn download<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, url: &'a reqwest::Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
+    fn download<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, url: &'a reqwest::Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
         Box::pin(videos::download("Ark", &*self.clock, http, url, &self.base, HeaderMap::new()))
     }
 
     /// Deletes the task while it is still queued; a running one runs to its
     /// end, which Ark cannot stop, and a finished one is left as it is.
-    fn cancel<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> Option<BoxFuture<'a, MediaAnswer<()>>>  {
+    fn cancel<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> Option<BoxFuture<'a, MediaAnswer<()>>>  {
         Some(Box::pin(async move {
             let read = self.read_state(http, job).await;
             match read.result {
@@ -125,14 +125,14 @@ impl VideoMaker for ArkVideos {
         }))
     }
 
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a demi_provider_common::media_catalog::Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a jush_provider_common::media_catalog::Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(async move {
             let body = Bytes::from(encode(&request));
             self.send(http, Ask::post_json(&self.tasks(None), body)).await.and_then(|body| read_asked(&body))
         })
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>>  {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>>  {
         Box::pin(self.read_state(http, job))
     }
 }

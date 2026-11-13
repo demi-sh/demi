@@ -21,7 +21,7 @@ pub use audio::compatible_audio;
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     Capabilities, InferenceRequest, OfferedModel, Provider, ProviderHttp, ProviderRun, ProviderRuntime,
     ModelWires, RequestLimits, ToolResultKinds, RuntimeEnv, RuntimeError, Secret, endpoint_url, read_http_failure,
     audio::AudioMaker,
@@ -29,7 +29,7 @@ use demi_provider_common::{
     media::MediaVendor,
     videos::VideoMaker,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     AuthState, CacheTtl, Clock, Model, ProviderErrorDiagnostics, ProviderFailureFacts,
     RuntimeState, Timestamp, WireApi,
 };
@@ -243,7 +243,7 @@ impl Provider for OpenAiProvider {
 /// A session's runtime: it holds nothing between runs.
 struct OpenAiRuntime {
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
 }
 
 impl ProviderRuntime for OpenAiRuntime {

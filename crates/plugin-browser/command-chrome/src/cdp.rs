@@ -23,7 +23,7 @@ pub mod webmcp;
 
 use crate::driver::operation::Result;
 use chromiumoxide::Page;
-use demi_command_package_browser_protocol::browser as protocol;
+use jush_command_package_browser_protocol::browser as protocol;
 
 use crate::cdp::protocol::Capability;
 

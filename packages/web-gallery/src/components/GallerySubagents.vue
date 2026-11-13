@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsSubagents from '@demicodes/web-ui/settings/SettingsSubagents.vue'
-import type { SettingsSubagentDraft } from '@demicodes/web-ui/settings/types'
-import type { LimitValue } from '@demicodes/web-ui/ui/limit-field'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsSubagents from '@jush-ai/web-ui/settings/SettingsSubagents.vue'
+import type { SettingsSubagentDraft } from '@jush-ai/web-ui/settings/types'
+import type { LimitValue } from '@jush-ai/web-ui/ui/limit-field'
 import { demoProviders } from '../fixtures/catalog'
 import { composerModels } from '../fixtures/context-limits'
 import type { SubagentState } from '../fixtures/subagent-profiles'

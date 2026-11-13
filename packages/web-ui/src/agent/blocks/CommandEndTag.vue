@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { upperFirst } from '@demicodes/utils'
+import { upperFirst } from '@jush-ai/utils'
 import type { CommandEndMark } from '../command-end'
 import RunEndTag from './RunEndTag.vue'
 import { t } from '../locales/text'

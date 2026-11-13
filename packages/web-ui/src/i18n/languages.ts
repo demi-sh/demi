@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 /**
- * The languages Demi speaks and how the page chooses one.
+ * The languages Jush speaks and how the page chooses one.
  *
  * The page alone resolves System, and reports the language it resolved with the
  * browser's other facts in the `locale` preference, so the backend's emails read
@@ -18,7 +18,7 @@ import { z } from 'zod'
 /** In the language menu's order: English, the languages in Latin letters by their own names, then the others. */
 export const LANGUAGES = ['en', 'de', 'es-419', 'fr', 'pt-BR', 'zh-Hans', 'zh-Hant', 'ja', 'ko'] as const
 
-/** A language Demi speaks, by its BCP 47 tag, as the `language` preference and the catalogues name it. */
+/** A language Jush speaks, by its BCP 47 tag, as the `language` preference and the catalogues name it. */
 export type Language = (typeof LANGUAGES)[number]
 
 /** What the user chose in Settings › General: a language, or the system's. */
@@ -41,14 +41,14 @@ export const LANGUAGE_NAMES: Readonly<Record<Language, string>> = {
 const TRADITIONAL_REGIONS = new Set(['TW', 'HK', 'MO'])
 
 /**
- * The language Demi speaks for the BCP 47 tag `tag`, if any:
+ * The language Jush speaks for the BCP 47 tag `tag`, if any:
  *
  * - Traditional Chinese for `zh-Hant` and the Chinese of Taiwan, Hong Kong and
  *   Macao.
  * - Simplified for any other `zh`.
  * - A script the tag names wins over its region.
  * - Every Spanish is Latin America's and every Portuguese Brazil's, the one
- *   variant Demi speaks of each, which a reader of another region reads too.
+ *   variant Jush speaks of each, which a reader of another region reads too.
  * - A tag that is not one speaks none.
  */
 function spokenFor(tag: string): Language | null {
@@ -81,7 +81,7 @@ function spokenFor(tag: string): Language | null {
 
 /**
  * The language `choice` speaks: itself, or for `system` the first of the
- * browser's languages `browser` that Demi speaks, else English.
+ * browser's languages `browser` that Jush speaks, else English.
  */
 export function resolveLanguage(choice: LanguageChoice, browser: readonly string[]): Language {
   if (choice !== 'system') {
@@ -96,7 +96,7 @@ export function resolveLanguage(choice: LanguageChoice, browser: readonly string
   return 'en'
 }
 
-const SHOWN_LANGUAGE_KEY = 'demi-language'
+const SHOWN_LANGUAGE_KEY = 'jush-language'
 const languageSchema = z.enum(LANGUAGES)
 
 /**

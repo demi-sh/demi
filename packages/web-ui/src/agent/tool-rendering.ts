@@ -1,4 +1,4 @@
-import { nonEmptyString, truncate } from '@demicodes/utils'
+import { nonEmptyString, truncate } from '@jush-ai/utils'
 import { t } from './locales/text'
 
 /**
@@ -21,15 +21,15 @@ export function shellTitle(input: Record<string, unknown>): string {
 }
 
 /**
- * The options of `demi shell status` that take a value, as the next word or
+ * The options of `jush shell status` that take a value, as the next word or
  * after `=`.
  */
 const STATUS_VALUE_OPTIONS = new Set(['--interval'])
-/** The options of `demi shell status` that take no value. */
+/** The options of `jush shell status` that take no value. */
 const STATUS_FLAGS = new Set(['--resident', '--json'])
 
 /**
- * The commands a script looks at when all it runs is `demi shell status`,
+ * The commands a script looks at when all it runs is `jush shell status`,
  * by their numbers, each once; null for a script that does anything else,
  * which runs a command of its own. Commands joined by a new line, `;`,
  * `&&` or `||` are each a look; a pipe, a redirection or a substitution
@@ -49,8 +49,8 @@ export function shellStatusLooks(script: string): string[] | null {
   for (const command of commands) {
     if (/[|<>$`()]/.test(command))
       return null
-    const [demi, shell, status, ...words] = command.split(/\s+/)
-    if (demi !== 'demi' || shell !== 'shell' || status !== 'status')
+    const [jush, shell, status, ...words] = command.split(/\s+/)
+    if (jush !== 'jush' || shell !== 'shell' || status !== 'status')
       return null
     for (let at = 0; at < words.length; at += 1) {
       const word = words[at]!

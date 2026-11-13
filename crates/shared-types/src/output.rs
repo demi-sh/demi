@@ -1,4 +1,4 @@
-//! How every `demi` command prints its data: a list as a table whose columns
+//! How every `jush` command prints its data: a list as a table whose columns
 //! are aligned by the terminal width of their text, one object as labelled
 //! lines, each value exact, an instant in RFC 3339 UTC.
 //!
@@ -15,7 +15,7 @@
 //! # Lists
 //!
 //! - A list's first column is the ID the group's `show` takes, and every ID a
-//!   list prints, `show` finds (but the root agent, which `demi agent list`
+//!   list prints, `show` finds (but the root agent, which `jush agent list`
 //!   lists for its place in the tree only).
 //! - A cell holds one value, and nested data is `show`'s, never a column.
 //! - A list shows what is current, with objects kept as history behind `--all`.
@@ -30,7 +30,7 @@
 //! - Output is the same in a terminal and a pipe and has no colour, so what the
 //!   agent reads is what the user sees.
 //!
-//! Tables and labelled lines are for Demi's own objects (agents, providers,
+//! Tables and labelled lines are for Jush's own objects (agents, providers,
 //! credentials, devices). A command that prints content, such as a page or a
 //! file's text, keeps the content's own form.
 
@@ -118,15 +118,15 @@ pub fn instant(time: impl Into<jiff::Timestamp>) -> String {
     second.to_string()
 }
 
-/// A note, a warning or progress as `command`, such as `demi agent list`,
-/// writes it to stderr: `demi agent list: warning: <what>`, on a line of its
+/// A note, a warning or progress as `command`, such as `jush agent list`,
+/// writes it to stderr: `jush agent list: warning: <what>`, on a line of its
 /// own.
 pub fn warning(command: &str, what: &str) -> String {
     format!("{command}: warning: {what}\n")
 }
 
 /// A note as `command` writes it to stderr, such as the page a list shows
-/// and the call that gives the next: `demi <command>: note: <what>`.
+/// and the call that gives the next: `jush <command>: note: <what>`.
 pub fn note(command: &str, what: &str) -> String {
     format!("{command}: note: {what}\n")
 }

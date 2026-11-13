@@ -1,4 +1,4 @@
-import { coded, shownError, type ShownError } from '@demicodes/web-ui/infra/errors'
+import { coded, shownError, type ShownError } from '@jush-ai/web-ui/infra/errors'
 
 /** Lowercase Crockford base-32, the alphabet of the backend's request IDs. */
 const ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz'

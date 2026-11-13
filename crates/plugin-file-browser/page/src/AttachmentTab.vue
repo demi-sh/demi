@@ -7,7 +7,7 @@ const mode = ref<'preview' | 'source'>('preview')
 </script>
 
 <script setup lang="ts">
-import { AttachmentView } from '@demicodes/plugin-sdk'
+import { AttachmentView } from '@jush-ai/plugin-sdk'
 import type { AttachmentData } from './attachment'
 
 /** An attachment's tab: its stored copy, previewed as the File view previews a file. */

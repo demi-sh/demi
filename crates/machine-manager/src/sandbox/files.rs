@@ -26,7 +26,7 @@
 //!
 //! ```text
 //! <data>/working/<device>/sandbox.json      {id, slot}: which boot, which network slot
-//! /run/demi-machine-manager/<sandbox>/
+//! /run/jush-machine-manager/<sandbox>/
 //!     base/ system/ home/ rootfs/ credentials/   mount points
 //!     config.json runtime.log                    the OCI bundle and runsc's output
 //! ```
@@ -40,16 +40,16 @@ use std::{
 
 use fs_err::os::unix::fs::OpenOptionsExt;
 
-use demi_machine_manager_protocol::Volume;
-use demi_runner_protocol::boot::ManagedBoot;
+use jush_machine_manager_protocol::Volume;
+use jush_runner_protocol::boot::ManagedBoot;
 use serde::{Deserialize, Serialize};
 
 use crate::blocking::OffLoop;
 
-/// The UID and GID of the sandbox's user, `demi`.
+/// The UID and GID of the sandbox's user, `jush`.
 pub const USER_ID: u32 = 1000;
 
-/// One boot's id, `demi-` and a UUID: it names the runtime directory, the
+/// One boot's id, `jush-` and a UUID: it names the runtime directory, the
 /// runsc container and the cgroup.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "String")]
@@ -61,7 +61,7 @@ pub struct InvalidSandboxId(String);
 
 impl SandboxId {
     pub fn new() -> Self {
-        Self(format!("demi-{}", uuid::Uuid::new_v4()))
+        Self(format!("jush-{}", uuid::Uuid::new_v4()))
     }
 
     pub fn as_str(&self) -> &str {
@@ -80,8 +80,8 @@ impl TryFrom<String> for SandboxId {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let valid = value
-            .strip_prefix("demi-")
-            .is_some_and(demi_machine_manager_protocol::is_image_name);
+            .strip_prefix("jush-")
+            .is_some_and(jush_machine_manager_protocol::is_image_name);
         if !valid {
             return Err(InvalidSandboxId(value));
         }
@@ -111,7 +111,7 @@ pub struct SandboxRecord {
     pub slot: u16,
 }
 
-/// A boot's runtime directory, `/run/demi-machine-manager/<sandbox>`.
+/// A boot's runtime directory, `/run/jush-machine-manager/<sandbox>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuntimeDirectory {
     root: PathBuf,
@@ -144,7 +144,7 @@ impl RuntimeDirectory {
         self.root.join("base")
     }
 
-    /// The read-only bind of the configured base's `/opt/demi`, which the
+    /// The read-only bind of the configured base's `/opt/jush`, which the
     /// sandbox sees in place of its own base's.
     pub fn programs(&self) -> PathBuf {
         self.root.join("programs")
@@ -245,7 +245,7 @@ pub fn resolver(dns: &[Ipv4Addr]) -> String {
 
 /// A Cloud's `/etc/hosts`: its own name, and `names` beside it.
 pub fn hosts(names: &[&str]) -> String {
-    let mut own = vec!["demi-cloud"];
+    let mut own = vec!["jush-cloud"];
     own.extend(names);
     format!("127.0.0.1 localhost\n127.0.1.1 {}\n", own.join(" "))
 }

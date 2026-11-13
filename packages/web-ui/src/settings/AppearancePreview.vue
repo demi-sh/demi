@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import StreamedMarkdown from '@demicodes/web-ui/ui/StreamedMarkdown.vue'
-import Switch from '@demicodes/web-ui/ui/Switch.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import StreamedMarkdown from '@jush-ai/web-ui/ui/StreamedMarkdown.vue'
+import Switch from '@jush-ai/web-ui/ui/Switch.vue'
 import { t } from '../locales/text'
 
 /**

@@ -11,17 +11,17 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::credentials::{
+use jush_backend_database::StorageError;
+use jush_backend_database::credentials::{
     CredentialChange, CredentialRefusal, CredentialSeal, NewCredential as NewRecord, Saved,
     keep_until,
 };
-use demi_backend_page_sync::Part;
-use demi_backend_providers::vault::seal::{Row, VaultKey};
-use demi_web_api_protocol::credentials::{
+use jush_backend_page_sync::Part;
+use jush_backend_providers::vault::seal::{Row, VaultKey};
+use jush_web_api_protocol::credentials::{
     CredentialDto, CredentialField, CredentialPatch, NewCredential,
 };
-use demi_web_api_protocol::ids::{UserCredentialId, UserId};
+use jush_web_api_protocol::ids::{UserCredentialId, UserId};
 use tokio::sync::Notify;
 
 use super::Shard;
@@ -142,13 +142,13 @@ impl Shard {
     /// requests again, whose renewal follows it.
     fn saved(&self, saved: Saved) -> CredentialDto {
         for conversation in &saved.conversations {
-            demi_backend_permissions::changed(self.permission_shard(), conversation);
+            jush_backend_permissions::changed(self.permission_shard(), conversation);
         }
         self.mark_credentials();
         saved.credential
     }
 
-    /// `DELETE /credentials/:id`, and `demi credentials remove`: the
+    /// `DELETE /credentials/:id`, and `jush credentials remove`: the
     /// credential goes, and a waiting request of its name no longer renews it.
     pub async fn remove_credential(&self, id: UserCredentialId) -> Result<(), CredentialError> {
         let removed = self
@@ -158,7 +158,7 @@ impl Shard {
             .await?
             .ok_or(CredentialRefusal::NotFound)?;
         for conversation in &removed {
-            demi_backend_permissions::changed(self.permission_shard(), conversation);
+            jush_backend_permissions::changed(self.permission_shard(), conversation);
         }
         self.mark_credentials();
         Ok(())
@@ -179,7 +179,7 @@ impl Shard {
                     if expired.removed {
                         self.services().sync.mark(self.user(), Part::Credentials);
                         for conversation in &expired.conversations {
-                            demi_backend_permissions::changed(self.permission_shard(), conversation);
+                            jush_backend_permissions::changed(self.permission_shard(), conversation);
                         }
                     }
                     expired.next

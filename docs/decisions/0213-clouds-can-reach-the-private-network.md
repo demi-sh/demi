@@ -6,7 +6,7 @@ status: proposed
 
 ## Problem
 
-A company runs Demi on its own network, with its Git server at
+A company runs Jush on its own network, with its Git server at
 `git.example.internal`, `10.20.0.7`. An agent in a Cloud runs
 `git clone git@git.example.internal:team/app.git`. The name resolves, but the
 firewall drops every packet to a private range, so the clone hangs until it
@@ -27,7 +27,7 @@ Settings › Cloud Network
                                Entire Private Network
                                Only These Addresses
 
-  Clouds reach only the internet by default. If Demi runs on
+  Clouds reach only the internet by default. If Jush runs on
   your company's network, turn this on so Clouds can reach its
   Git servers, internal services and proxies. The server itself,
   cloud metadata services and other people's Clouds stay
@@ -61,7 +61,7 @@ the field, with why under it.
   person's and an integration's, and never to the Claude Code machine,
   which reaches only its vendor.
 - **Names** are not entries. A Cloud resolves an internal name through the
-  resolvers `DEMI_MANAGED_DNS` names, and the firewall checks the address the
+  resolvers `JUSH_MANAGED_DNS` names, and the firewall checks the address the
   connection goes to, so a public name that resolves to a private address
   still opens nothing the setting did not.
 
@@ -137,7 +137,7 @@ pub struct SetPrivateNetworkParams { pub private_network: PrivateNetwork }
 A Cloud uses an HTTP proxy as any Linux machine does: an agent or a person
 exports `HTTPS_PROXY` in the Cloud's `~/.profile`, which every command reads,
 since a job's shell is a login shell. The setting only needs to allow the
-proxy's address. Demi adds no proxy setting.
+proxy's address. Jush adds no proxy setting.
 
 ## Spike
 
@@ -168,16 +168,16 @@ proxy's address. Demi adds no proxy setting.
 ## Prior art
 
 - **macOS** asks once whether an app may reach the local network, an on or
-  off choice a person understands, and keeps the addresses out of it. Demi's
+  off choice a person understands, and keeps the addresses out of it. Jush's
   first two choices are that switch.
 - **Anthropic's sandbox-runtime** keeps a list of allowed destinations, with
-  `host:port` entries; Demi's Only These Addresses takes its `:port` form.
+  `host:port` entries; Jush's Only These Addresses takes its `:port` form.
   sandbox-runtime also takes names, through an HTTP and a SOCKS proxy every
-  connection goes through; Demi leaves names out, since a Cloud is a whole
+  connection goes through; Jush leaves names out, since a Cloud is a whole
   machine whose programs, `ssh` among them, do not all take a proxy.
 - **Cilium** allows names by watching the answers of a DNS proxy
   ([DNS-based policies](https://docs.cilium.io/en/stable/security/dns/)).
-  That is how Demi would add names later, if Only These Addresses turns out
+  That is how Jush would add names later, if Only These Addresses turns out
   to need them.
 
 ## Alternatives
@@ -188,10 +188,10 @@ proxy's address. Demi adds no proxy setting.
 - **Names in the list now.** The manager would answer the Clouds' DNS itself,
   so that only an answer for an allowed name opens its address; Entire
   Private Network covers most cases without it.
-- **An environment variable on the manager, as `DEMI_MANAGED_DNS` is.** The
+- **An environment variable on the manager, as `JUSH_MANAGED_DNS` is.** The
   master would need the host and a restart of the manager, and the page
   could not show the choice.
-- **A proxy setting in Demi.** `~/.profile` already does it, per Cloud.
+- **A proxy setting in Jush.** `~/.profile` already does it, per Cloud.
 - **Each address an editable field.** A list of text fields, each saved
   when its edit ends, reads as a form inside the card and doubles the
   states a row has, for an address that is short to type again.

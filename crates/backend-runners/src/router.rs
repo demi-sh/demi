@@ -12,9 +12,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::{Rc, Weak};
 
-use demi_runner_client::{CommandSelection, JobOrigin};
-use demi_device_interface::CommandSet;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_runner_client::{CommandSelection, JobOrigin};
+use jush_device_interface::CommandSet;
+use jush_web_api_protocol::ids::ConversationId;
 
 /// The registered nodes of one user's shard.
 #[derive(Default)]

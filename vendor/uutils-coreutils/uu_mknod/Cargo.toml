@@ -133,8 +133,8 @@ check-cfg = [
     "cfg(wasi_runner)",
 ]
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "Files, streams, the environment, printing and exit go through uucore::context, so a run embedded in a shell job uses the job's working directory, environment, standard streams and cancellation, and exit ends only the utility",
     "The process's umask is not changed, as it is the embedding owner's: the node is made at a path resolved against the job's directory and then given its mode, with the job's umask applied unless the mode is exact",

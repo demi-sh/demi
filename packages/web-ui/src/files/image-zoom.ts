@@ -1,4 +1,4 @@
-import { clamp } from '@demicodes/utils'
+import { clamp } from '@jush-ai/utils'
 import type { PixelSize } from './thumbnail'
 
 /**

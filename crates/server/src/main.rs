@@ -1,17 +1,17 @@
-//! `demi-server`: the server's program for its own installation. Its commands:
+//! `jush-server`: the server's program for its own installation. Its commands:
 //!
 //! - `upgrade` fetches a release beside the current one and hands the move to
-//!   that release's own `demi-server`. With `--requested` it moves to the
-//!   version an administrator's Update Now asked for, as `demi-upgrade.service`
+//!   that release's own `jush-server`. With `--requested` it moves to the
+//!   version an administrator's Update Now asked for, as `jush-upgrade.service`
 //!   runs it when the backend writes the request (`notices`).
 //! - `prepare --requested` gets the newest release ready ahead of an update,
-//!   as `demi-prepare.service` runs it after the backend's check found one
+//!   as `jush-prepare.service` runs it after the backend's check found one
 //!   (`preparing`).
 //! - `rollback` hands the move to the release the last upgrade replaced.
 //! - `status` says where the server is.
 //! - `runtime` fetches the gVisor version this release pins.
 //! - `setup` installs a first release.
-//! - `container` is the entry point of Demi's container image (`container`),
+//! - `container` is the entry point of Jush's container image (`container`),
 //!   and `supervise` runs the services there, where no systemd runs
 //!   (`supervise`).
 //!
@@ -19,9 +19,9 @@
 //! downloads through the artifact library, changes nothing outside the layout
 //! (`layout`), never edits the configuration but a container's, touches no
 //! data directory but `snapshots/` and a restore, and asks systemd, or a
-//! container's supervisor, to start and stop only Demi's two services.
+//! container's supervisor, to start and stop only Jush's two services.
 //!
-//! A server runs one release at a time, and every part of Demi on it follows
+//! A server runs one release at a time, and every part of Jush on it follows
 //! that release. Nothing negotiates versions: the backend, the machine manager,
 //! the web app, the runners and the command programs of a deployment are always
 //! built from one build version, so none of the wires between them accepts
@@ -30,10 +30,10 @@
 //! Only these meet a part of another release, each a contract that a release
 //! never breaks:
 //!
-//! - The release's assets: the installed `demi-server` downloads the next release
+//! - The release's assets: the installed `jush-server` downloads the next release
 //!   by the asset names and the `SHA256SUMS` file of the release workflow, so
 //!   their names and that file's format never change.
-//! - The management socket's lines: the next release's `demi-server` tells the
+//! - The management socket's lines: the next release's `jush-server` tells the
 //!   running backend the runner release that comes next and how far the
 //!   upgrade is, so the lines' fields and steps are only ever added.
 //! - A runner's update: a paired device's runner of any earlier release must
@@ -47,10 +47,10 @@
 //! - A pinned Cloud base: the manager boots a Cloud on the base it is pinned to,
 //!   which an earlier release built, so what it needs of a base is the base's
 //!   format.
-//! - The supervisor's socket: in a container, the next release's `demi-server`
+//! - The supervisor's socket: in a container, the next release's `jush-server`
 //!   asks the running release's supervisor to stop, start and reload the
 //!   services until it execs into the next release's, so a request's and an
-//!   answer's fields are only ever added (`demi_supervisor_protocol`).
+//!   answer's fields are only ever added (`jush_supervisor_protocol`).
 //! - The configuration file belongs to the installation: each program refuses a
 //!   setting it does not read, so a renamed or removed setting is reported, never
 //!   silently ignored.
@@ -73,6 +73,7 @@ mod moving;
 mod notices;
 mod preparing;
 mod progress;
+mod renamed;
 mod runners;
 mod services;
 mod settings;
@@ -92,15 +93,15 @@ use clap::{Parser, Subcommand};
 use semver::Version;
 use tokio_util::sync::CancellationToken;
 
-use demi_runner_protocol::release::{SkipReason, StepProgress, StepState, StepSummary, UpgradeStepKind};
-use demi_shared_artifacts::releases::Channel;
-use demi_web_api_protocol::server_upgrade::UpgradeChannel;
+use jush_runner_protocol::release::{SkipReason, StepProgress, StepState, StepSummary, UpgradeStepKind};
+use jush_shared_artifacts::releases::Channel;
+use jush_web_api_protocol::server_upgrade::UpgradeChannel;
 
 use crate::{journal::Journal, layout::Layout, notices::Notices, settings::Settings};
 
-/// Installs, upgrades and rolls back this Demi server.
+/// Installs, upgrades and rolls back this Jush server.
 #[derive(Parser)]
-#[command(name = "demi-server", version = demi_shared_artifacts::BUILD_VERSION)]
+#[command(name = "jush-server", version = jush_shared_artifacts::BUILD_VERSION)]
 struct Cli {
     #[command(subcommand)]
     command: Action,
@@ -113,7 +114,7 @@ struct Cli {
 #[derive(clap::Args)]
 #[group(multiple = false)]
 pub(crate) struct Channels {
-    /// The newest of the releases Demi publishes, each a beta.
+    /// The newest of the releases Jush publishes, each a beta.
     #[arg(long, conflicts_with = "version")]
     beta: bool,
     /// The newest build, a deploy's pre-releases included.
@@ -134,7 +135,7 @@ impl Channels {
 
 #[derive(Subcommand)]
 enum Action {
-    /// Sets this Linux machine up as a Demi server.
+    /// Sets this Linux machine up as a Jush server.
     #[command(long_about = setup::GUIDE)]
     Setup(setup::Options),
     /// Moves the server to a newer release: the one named, or the newest of
@@ -144,7 +145,7 @@ enum Action {
         #[command(flatten)]
         channel: Channels,
         /// Moves to the version the backend's request file names, as
-        /// `demi-upgrade.service` asks.
+        /// `jush-upgrade.service` asks.
         #[arg(long, hide = true, conflicts_with_all = ["version", "beta", "canary", "from"])]
         requested: bool,
         /// A directory holding the release's assets instead of the
@@ -172,14 +173,14 @@ enum Action {
     #[command(hide = true)]
     Resume,
     /// Gets a newer release ready ahead of an update: with `--requested` the
-    /// one the backend's request file names, as `demi-prepare.service` asks,
+    /// one the backend's request file names, as `jush-prepare.service` asks,
     /// which hands over to that release's own `prepare`.
     #[command(hide = true)]
     Prepare {
         #[arg(long)]
         requested: bool,
     },
-    /// The entry point of Demi's container image: sets up or upgrades the
+    /// The entry point of Jush's container image: sets up or upgrades the
     /// server on its volume from the image's release, then supervises it.
     #[command(hide = true)]
     Container,
@@ -194,7 +195,7 @@ enum Action {
 fn main() -> ExitCode {
     // A panic leaves its report on standard error
     // (`crates/xtask/src/native/build.rs`).
-    demi_shared_cli::install_panic_hook();
+    jush_shared_cli::install_panic_hook();
     // What this program writes, releases, units, snapshots and the update's
     // record, is read by the services' own users, so its modes never follow
     // the umask of the shell that ran it, as dpkg's do not.
@@ -202,6 +203,16 @@ fn main() -> ExitCode {
     take_handed_lock();
     let cli = Cli::parse();
     let layout = Layout::new(cli.root.clone());
+    if renamed::pending(&layout) {
+        match earlier_names(&layout, &cli.command) {
+            Ok(true) => {}
+            Ok(false) => return ExitCode::SUCCESS,
+            Err(error) => {
+                eprintln!("jush-server: {error}");
+                return ExitCode::FAILURE;
+            }
+        }
+    }
     let requested = matches!(cli.command, Action::Upgrade { requested: true, .. });
     let result = match cli.command {
         Action::Status => status(&layout),
@@ -220,7 +231,7 @@ fn main() -> ExitCode {
                 if requested {
                     let _ = std::fs::remove_file(layout.prepare_request());
                 }
-                println!("Another run of demi-server holds the server; the next check asks again");
+                println!("Another run of jush-server holds the server; the next check asks again");
                 Ok(())
             }
         }),
@@ -246,18 +257,45 @@ fn main() -> ExitCode {
                 let _ = std::fs::remove_file(layout.upgrade_request());
                 Notices::new(&layout).failed(error.to_string(), false);
             }
-            eprintln!("demi-server: {error}");
+            eprintln!("jush-server: {error}");
             ExitCode::FAILURE
         }
     }
 }
 
-/// This program's release.
-pub(crate) fn own_version() -> Version {
-    Version::parse(demi_shared_artifacts::BUILD_VERSION).expect("the build version is a version")
+/// An installation of before the rename (`renamed`): the move that the
+/// installed `demi-server` hands over moves it first, under the lock it
+/// handed over or its own, and then goes on; whether `command` goes on.
+fn earlier_names(layout: &Layout, command: &Action) -> Result<bool, Box<dyn std::error::Error>> {
+    match command {
+        Action::Move | Action::Resume => {
+            require_root(layout)?;
+            let mut handed = HANDED.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+            if handed.is_none() {
+                *handed = Some(renamed::lock(layout)?);
+            }
+            drop(handed);
+            renamed::migrate(layout, &own_version())?;
+            Ok(true)
+        }
+        // The work ahead of the update waits for the move; the request goes,
+        // or the earlier path unit would start the run again.
+        Action::Prepare { .. } => {
+            let request = layout.root().join("run/demi-upgrade").join(jush_runner_protocol::release::PREPARE_REQUEST_NAME);
+            let _ = std::fs::remove_file(request);
+            println!("This server moves to Jush's names with its update, which gets the release ready itself");
+            Ok(false)
+        }
+        _ => Err("this server still has the names of before Jush: its demi-server's update moves it".into()),
+    }
 }
 
-/// Runs `work` holding the lock that keeps one `demi-server` at a time,
+/// This program's release.
+pub(crate) fn own_version() -> Version {
+    Version::parse(jush_shared_artifacts::BUILD_VERSION).expect("the build version is a version")
+}
+
+/// Runs `work` holding the lock that keeps one `jush-server` at a time,
 /// waiting for it when `wait`.
 fn locked(
     layout: &Layout,
@@ -269,8 +307,12 @@ fn locked(
 }
 
 /// The variable that names the descriptor of the lock a run handed over
-/// with it to a newer release's `demi-server`.
-const HANDED_LOCK: &str = "DEMI_SERVER_LOCK_FD";
+/// with it to a newer release's `jush-server`.
+const HANDED_LOCK: &str = "JUSH_SERVER_LOCK_FD";
+
+/// The variable a `demi-server` of before the rename names it in
+/// (`renamed`).
+const EARLIER_HANDED_LOCK: &str = "DEMI_SERVER_LOCK_FD";
 
 /// The descriptor of the lock this run holds, which a hand-over passes on.
 static HELD_LOCK: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
@@ -282,11 +324,16 @@ static HANDED: std::sync::Mutex<Option<std::fs::File>> = std::sync::Mutex::new(N
 /// any thread starts, so no other run takes it between the two.
 fn take_handed_lock() {
     use std::os::fd::FromRawFd as _;
-    let Some(fd) = std::env::var(HANDED_LOCK).ok().and_then(|fd| fd.parse::<i32>().ok()) else {
+    let Some(fd) = [HANDED_LOCK, EARLIER_HANDED_LOCK]
+        .into_iter()
+        .find_map(|name| std::env::var(name).ok().and_then(|fd| fd.parse::<i32>().ok()))
+    else {
         return;
     };
-    // SAFETY: no other thread runs yet, so none reads the environment.
-    unsafe { std::env::remove_var(HANDED_LOCK) };
+    for name in [HANDED_LOCK, EARLIER_HANDED_LOCK] {
+        // SAFETY: no other thread runs yet, so none reads the environment.
+        unsafe { std::env::remove_var(name) };
+    }
     // SAFETY: the run that handed over left this descriptor open for this
     // program alone, and nothing else here owns it.
     let lock = unsafe { std::fs::File::from_raw_fd(fd) };
@@ -296,7 +343,7 @@ fn take_handed_lock() {
     }
 }
 
-/// The lock that keeps one `demi-server` at a time, held until dropped; a
+/// The lock that keeps one `jush-server` at a time, held until dropped; a
 /// run that does not `wait` fails while another holds it. A run handed
 /// over to holds its predecessor's lock already.
 fn lock(layout: &Layout, wait: bool) -> Result<std::fs::File, Box<dyn std::error::Error>> {
@@ -314,7 +361,7 @@ fn lock(layout: &Layout, wait: bool) -> Result<std::fs::File, Box<dyn std::error
     if wait {
         lock.lock()?;
     } else if let Err(std::fs::TryLockError::WouldBlock) = lock.try_lock() {
-        return Err("another demi-server is running".into());
+        return Err("another jush-server is running".into());
     }
     HELD_LOCK.store(lock.as_raw_fd(), std::sync::atomic::Ordering::Relaxed);
     Ok(lock)
@@ -357,7 +404,7 @@ fn set_up_container(layout: &Layout) -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(not(target_os = "linux"))]
 fn in_container(_: &Layout) -> Result<(), Box<dyn std::error::Error>> {
-    Err("a container runs Demi only on Linux".into())
+    Err("a container runs Jush only on Linux".into())
 }
 
 #[cfg(not(target_os = "linux"))]
@@ -387,7 +434,7 @@ fn setup(layout: &Layout, options: setup::Options) -> Result<(), Box<dyn std::er
                 .chain(missing.iter().map(|parameter| parameter.to_string()))
                 .collect();
             println!(
-                "\nThis run is missing {}. Run it again with them:\n  demi-server setup {}",
+                "\nThis run is missing {}. Run it again with them:\n  jush-server setup {}",
                 missing.join(", "),
                 command.join(" ")
             );
@@ -464,7 +511,7 @@ impl std::error::Error for moving::Failure {}
 fn server_channel(layout: &Layout) -> Result<Channel, Box<dyn std::error::Error>> {
     let settings = Settings::read(&layout.config())?;
     let control = settings.backend_data()?.join("control.sqlite");
-    let channel = match demi_backend_database::control::stored_upgrade_channel(&control)? {
+    let channel = match jush_backend_database::control::stored_upgrade_channel(&control)? {
         Some(channel) => channel,
         None => settings.upgrade_channel()?,
     };
@@ -509,7 +556,7 @@ fn upgrade(
     let mut notices = Notices::new(layout);
     notices.moving(&current, &version);
     let fetched = if version < current {
-        Err(format!("{version} is older than {current}: `demi-server rollback` goes back").into())
+        Err(format!("{version} is older than {current}: `jush-server rollback` goes back").into())
     } else {
         fetch_telling(layout, &source, &version, &mut notices)
     };
@@ -608,13 +655,16 @@ fn rollback(layout: &Layout, yes: bool) -> Result<(), Box<dyn std::error::Error>
         .filter(|version| version < &current)
         .max()
         .ok_or("there is no earlier release to return to")?;
+    if !renamed::runs_here(layout, &earlier) {
+        return Err(format!("{earlier} is from before Jush's names and cannot run in this installation").into());
+    }
     let backend = Settings::read(&layout.config())?.backend_data()?;
     let snapshot = data::snapshot(&backend, &earlier);
     if snapshot.exists() && !yes {
         let taken = std::fs::metadata(&snapshot)?.modified()?;
         let taken = jiff::Timestamp::try_from(taken)?;
         print!(
-            "Returning to {earlier} restores its databases as they were at {taken}: what Demi wrote since is set aside. Continue? [y/N] "
+            "Returning to {earlier} restores its databases as they were at {taken}: what Jush wrote since is set aside. Continue? [y/N] "
         );
         io::stdout().flush()?;
         let mut answer = String::new();
@@ -626,10 +676,10 @@ fn rollback(layout: &Layout, yes: bool) -> Result<(), Box<dyn std::error::Error>
     Err(hand_over(layout, &earlier, "move").into())
 }
 
-/// Runs `action` of `version`'s own `demi-server` in this process's place;
+/// Runs `action` of `version`'s own `jush-server` in this process's place;
 /// it returns only an error.
 pub(crate) fn hand_over(layout: &Layout, version: &Version, action: &str) -> io::Error {
-    let program = layout.release(version).join("bin/demi-server");
+    let program = layout.release(version).join("bin/jush-server");
     let mut command = Command::new(program);
     command.arg(action).arg("--root").arg(layout.root());
     // A release from this one on takes the lock this run holds, so no other
@@ -655,6 +705,9 @@ fn status(layout: &Layout) -> Result<(), Box<dyn std::error::Error>> {
         .filter(|version| version < &current)
         .max();
     match earlier {
+        Some(earlier) if !renamed::runs_here(layout, &earlier) => {
+            println!("Rollback: none; {earlier} is from before Jush's names and cannot run in this installation");
+        }
         Some(earlier) => {
             let backend = Settings::read(&layout.config())?.backend_data()?;
             let restores = data::snapshot(&backend, &earlier).exists();

@@ -1,7 +1,7 @@
 use std::{future::Future, pin::Pin, sync::Arc, time::Duration};
 
 use bytes::Bytes;
-use demi_command_protocol::{
+use jush_command_protocol::{
     ARTIFACTS_PATH, CONVERSATION_PATH, is_conversation_scope, CommandError, Completion, ConversationRequest, INFO_PATH,
     INVOKE_PATH, Invocation, MAX_MEDIUM_BYTES, MAX_METADATA_BYTES, MAX_RECORD_BYTES, MediumFacts, Metadata,
     MESSAGES_PATH, NUMBERS_PATH,

@@ -31,7 +31,7 @@
 use std::sync::{Arc, LazyLock, Mutex, PoisonError, Weak};
 use std::time::Duration;
 
-use demi_shared_types::{Cost, Timestamp};
+use jush_shared_types::{Cost, Timestamp};
 use reqwest::Url;
 use serde::Deserialize;
 use tokio::runtime::Handle;
@@ -42,7 +42,7 @@ use crate::conditional::{self, Answer, Failure, Validators};
 
 /// The repository the catalog is downloaded from, and the file of the
 /// schema version this backend reads, under a branch.
-const REPOSITORY: &str = "https://raw.githubusercontent.com/demi-sh/demi";
+const REPOSITORY: &str = "https://raw.githubusercontent.com/jush-ai/jush";
 const FILE: [&str; 4] = ["catalog", "media", "v1", "models.json"];
 
 /// How often the file is downloaded again after the start.
@@ -139,13 +139,13 @@ pub enum MediaKind {
     Other,
 }
 
-impl From<demi_shared_types::MediaKind> for MediaKind {
+impl From<jush_shared_types::MediaKind> for MediaKind {
     /// The catalog's kind of the models an entry makes of `kind`.
-    fn from(kind: demi_shared_types::MediaKind) -> Self {
+    fn from(kind: jush_shared_types::MediaKind) -> Self {
         match kind {
-            demi_shared_types::MediaKind::Image => Self::Image,
-            demi_shared_types::MediaKind::Video => Self::Video,
-            demi_shared_types::MediaKind::Audio => Self::Audio,
+            jush_shared_types::MediaKind::Image => Self::Image,
+            jush_shared_types::MediaKind::Video => Self::Video,
+            jush_shared_types::MediaKind::Audio => Self::Audio,
         }
     }
 }
@@ -371,8 +371,8 @@ impl Price {
                 .find(|rate| count.modality.is_some() && rate.modality == count.modality)
                 .or_else(|| rates().find(|rate| rate.modality.is_none()))?;
             let rate_currency = match rate.currency {
-                Currency::Usd => demi_shared_types::Currency::Usd,
-                Currency::Cny => demi_shared_types::Currency::Cny,
+                Currency::Usd => jush_shared_types::Currency::Usd,
+                Currency::Cny => jush_shared_types::Currency::Cny,
                 Currency::Other => return None,
             };
             if currency.replace(rate_currency).is_some_and(|before| before != rate_currency) {
@@ -380,7 +380,7 @@ impl Price {
             }
             amount += count.count as f64 * rate.amount / 1e6;
         }
-        Some(Cost { amount, currency: currency.unwrap_or(demi_shared_types::Currency::Usd) })
+        Some(Cost { amount, currency: currency.unwrap_or(jush_shared_types::Currency::Usd) })
     }
 }
 

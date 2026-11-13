@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-providers"
+name = "jush-backend-providers"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,12 +12,12 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-backend-database = { path = "../backend-database" }
-demi-backend-page-sync = { path = "../backend-page-sync" }
-demi-shared-types = { path = "../shared-types" }
-demi-provider-common = { path = "../provider-common" }
-demi-provider-registry = { path = "../provider-registry" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-backend-database = { path = "../backend-database" }
+jush-backend-page-sync = { path = "../backend-page-sync" }
+jush-shared-types = { path = "../shared-types" }
+jush-provider-common = { path = "../provider-common" }
+jush-provider-registry = { path = "../provider-registry" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 aes-gcm = "0.10"
 async-stream = "0.3"
 futures-util.workspace = true

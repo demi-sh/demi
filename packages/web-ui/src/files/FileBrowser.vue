@@ -47,7 +47,7 @@ import {
   type FileBrowserSort,
   type FileBrowserSortKey,
 } from './file-browser-state'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { directoryParts, joinPath, normalizePath, parentPath } from './paths'
 import { readLinkAgain } from './link-activation'
 import { linkSentence } from './format'

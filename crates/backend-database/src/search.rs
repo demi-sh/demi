@@ -6,7 +6,7 @@
 //! each agent's transcript it was built from.
 //!
 //! - The product's search finds titles and the root's messages and answers.
-//! - `demi conversation history search` finds an agent's own rows.
+//! - `jush conversation history search` finds an agent's own rows.
 //!
 //! Without an index a search would open every conversation's database for each
 //! query.
@@ -31,10 +31,10 @@ use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use demi_shared_gates::KeyedSerialGate;
-use demi_shared_types::{Block, BlockId, Timestamp, UserContentBlock};
-use demi_web_api_protocol::ids::{ConversationId, UserId};
-use demi_web_api_protocol::search::LINE_MAX;
+use jush_shared_gates::KeyedSerialGate;
+use jush_shared_types::{Block, BlockId, Timestamp, UserContentBlock};
+use jush_web_api_protocol::ids::{ConversationId, UserId};
+use jush_web_api_protocol::search::LINE_MAX;
 use tokio::sync::broadcast;
 use rusqlite::types::Value;
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params, params_from_iter};
@@ -191,7 +191,7 @@ impl SearchKind {
     }
 }
 
-/// What `demi conversation history search` looks for in an agent's
+/// What `jush conversation history search` looks for in an agent's
 /// rows.
 #[derive(Debug, Clone)]
 pub struct HistoryQuery {
@@ -535,7 +535,7 @@ impl SearchIndexes {
     }
 
     /// The texts of the conversation's agent `agent` that `query` finds: what
-    /// `demi conversation history search` finds, and the search of one
+    /// `jush conversation history search` finds, and the search of one
     /// conversation in the search window.
     ///
     /// They are those of its kinds and between its bounds that hold every one of

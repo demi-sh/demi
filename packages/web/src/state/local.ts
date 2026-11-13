@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { logStorageFailed } from '@demicodes/web-ui/infra/log'
-import { SIDEBAR_GROUPS } from '@demicodes/web-ui/sidebar/list-model'
+import { logStorageFailed } from '@jush-ai/web-ui/infra/log'
+import { SIDEBAR_GROUPS } from '@jush-ai/web-ui/sidebar/list-model'
 import { holds } from './account-owner'
 
 const localStateSchema = z.object({
@@ -37,7 +37,7 @@ export function emptyLocalState(): LocalState {
 
 export function readLocalState(userId: string): LocalState {
   try {
-    const raw = localStorage.getItem(`demi.preferences.${userId}`)
+    const raw = localStorage.getItem(`jush.preferences.${userId}`)
     return raw ? localStateSchema.parse(renamed(JSON.parse(raw))) : emptyLocalState()
   } catch (error) {
     // The web browser's storage is optional. Invalid external entries are
@@ -67,7 +67,7 @@ export function writeLocalState(userId: string, value: LocalState): void {
     return
   }
   try {
-    localStorage.setItem(`demi.preferences.${userId}`, JSON.stringify(value))
+    localStorage.setItem(`jush.preferences.${userId}`, JSON.stringify(value))
   } catch (error) {
     // Private browsing and storage quotas must not prevent server operations.
     logStorageFailed('local_preferences', 'write', error)

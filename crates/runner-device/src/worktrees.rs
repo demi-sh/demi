@@ -7,9 +7,9 @@
 //! each one's worktrees whole (`worktrees`) when it is named, and again when
 //! they changed, checked at the moments a change could lead to a move: before
 //! a command's request, a job's end and a folder's listing reach the backend
-//! ([`demi_runner_protocol::wire::Backlog::report`]). The report goes into the
+//! ([`jush_runner_protocol::wire::Backlog::report`]). The report goes into the
 //! backlog ahead of that message, so the backend has it first. For example,
-//! `git worktree add ../app-2 && demi device move ../app-2` reports `app-2`
+//! `git worktree add ../app-2 && jush device move ../app-2` reports `app-2`
 //! before the move's request.
 //!
 //! A check reads no repository: it compares what git's worktree commands
@@ -31,7 +31,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::SystemTime;
 
-use demi_runner_protocol::wire::{self, Backlog, LinkedWorktree, Outbound};
+use jush_runner_protocol::wire::{self, Backlog, LinkedWorktree, Outbound};
 
 /// The projects' directories and what was reported of each; shared by every
 /// connection of the registration.

@@ -4,10 +4,10 @@
 //! `rate_limit_info`, which the CLI prints on the assistant line it makes up
 //! for the refusal. Any other failure is read by the HTTP rules.
 
-use demi_provider_common::quota::unix_seconds;
-use demi_provider_common::read_http_failure;
-use demi_provider_common::wire::ReportedString;
-use demi_shared_types::{FailureSource, ProviderErrorDiagnostics, ProviderFailureFacts, Timestamp};
+use jush_provider_common::quota::unix_seconds;
+use jush_provider_common::read_http_failure;
+use jush_provider_common::wire::ReportedString;
+use jush_shared_types::{FailureSource, ProviderErrorDiagnostics, ProviderFailureFacts, Timestamp};
 use serde::Deserialize;
 
 /// The `api_error` the CLI names a call with that its account's own usage limit

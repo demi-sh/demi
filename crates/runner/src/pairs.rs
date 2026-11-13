@@ -18,12 +18,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock};
 
 use bytes::Bytes;
-use demi_runner_direct::measure::{self, ProbedPath};
-use demi_runner_direct::{Dial, Direct, PairChannel, PairPeer, Pairs, PathGuard, PeerLink, Received};
-use demi_runner_process::pipes::{Carried, PairPlace, PipeChannel, PipePairs};
-use demi_runner_protocol::direct::{CONNECT_TIMEOUT, DialRefusal, StunUrl};
-use demi_runner_protocol::pairs::{PairHeader, PairReason, PairRoute};
-use demi_runner_protocol::wire::{self, Inbound, Outbound};
+use jush_runner_direct::measure::{self, ProbedPath};
+use jush_runner_direct::{Dial, Direct, PairChannel, PairPeer, Pairs, PathGuard, PeerLink, Received};
+use jush_runner_process::pipes::{Carried, PairPlace, PipeChannel, PipePairs};
+use jush_runner_protocol::direct::{CONNECT_TIMEOUT, DialRefusal, StunUrl};
+use jush_runner_protocol::pairs::{PairHeader, PairReason, PairRoute};
+use jush_runner_protocol::wire::{self, Inbound, Outbound};
 use futures_util::future::BoxFuture;
 use tokio::sync::{mpsc, oneshot, watch};
 use tokio_util::sync::CancellationToken;

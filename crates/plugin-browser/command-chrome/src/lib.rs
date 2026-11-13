@@ -10,7 +10,7 @@
 //! driver   Chrome, its process and profile, the operation every command runs as
 //! ```
 //!
-//! The `demi.browser` program (`command-package-browser`) composes them.
+//! The `jush.browser` program (`command-package-browser`) composes them.
 //!
 //! # Layer rules
 //!
@@ -22,7 +22,7 @@
 //! # Design rules
 //!
 //! - chromiumoxide (vendored) integrates the process, CDP calls and events.
-//!   Demi owns targeting, actionability, input ownership and retirement. A
+//!   Jush owns targeting, actionability, input ownership and retirement. A
 //!   library helper is used only when it matches the command contract: a
 //!   successful input dispatch does not prove the control was enabled or
 //!   unobstructed.

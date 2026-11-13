@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import { Button, LiveActivityOverlay, observeSettledSize, touchInput, wheelInput, type DeviceDownload } from '@demicodes/plugin-sdk'
+import { Button, LiveActivityOverlay, observeSettledSize, touchInput, wheelInput, type DeviceDownload } from '@jush-ai/plugin-sdk'
 import { quartersBetween, type DeviceSession } from './session'
 import type { LiveFold } from '../generated/plugin'
 import DeviceKeys from './DeviceKeys.vue'

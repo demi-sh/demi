@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 
-use demi_shared_types::ModelWire;
+use jush_shared_types::ModelWire;
 
 /// The wire facts of an entry's models, by model id, which each protocol's
 /// provider reads for the model a request names.

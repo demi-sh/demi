@@ -12,7 +12,7 @@ while a call waits for the user returns it once the user has decided.
 
 ## Problem
 
-An agent waits for a download with `sleep 180; demi shell output 17`.
+An agent waits for a download with `sleep 180; jush shell output 17`.
 After 30 seconds the call goes to the background, and its end will report
 later; the agent waits again. A report arrives, the end of an earlier
 wait, and returns the new call after a second or two with
@@ -46,7 +46,7 @@ in general.
 
 **What else ends a call before its command ends is the user's or an
 agent's own act, and stays:** the user's Stop, a Cloud reset, a
-conversation's deletion, a detach, and a parent's `demi agent abort` of
+conversation's deletion, a detach, and a parent's `jush agent abort` of
 its child. A backend that stops ends its calls too, and their commands
 report when it is back.
 
@@ -70,7 +70,7 @@ None.
 
 ## Prior art
 
-* Demi's own steer: a message the user sends during a call joins the turn
+* Jush's own steer: a message the user sends during a call joins the turn
   at its next boundary, and only Send Now interrupts the call.
 
 ## Alternatives

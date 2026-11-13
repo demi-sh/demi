@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { provideOriginRevealer } from '@demicodes/web-ui/agent/agent-receipts'
-import { agentLinkWindow, findAgent, provideMessageAgents } from '@demicodes/web-ui/agent/agent-links'
-import type { TranscriptReveal } from '@demicodes/web-ui/agent/history'
-import type { SubagentRecord } from '@demicodes/web-ui/agent/subagents'
+import { provideOriginRevealer } from '@jush-ai/web-ui/agent/agent-receipts'
+import { agentLinkWindow, findAgent, provideMessageAgents } from '@jush-ai/web-ui/agent/agent-links'
+import type { TranscriptReveal } from '@jush-ai/web-ui/agent/history'
+import type { SubagentRecord } from '@jush-ai/web-ui/agent/subagents'
 import { productWould } from '../product-would'
 import GalleryOwnWindows from './GalleryOwnWindows.vue'
 

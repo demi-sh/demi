@@ -2,7 +2,7 @@
 //! family reports it: to a run as its error, to the entry's status, to a
 //! quota probe and to a catalog read. No message holds a token.
 
-use demi_shared_types::AuthState;
+use jush_shared_types::AuthState;
 
 use crate::{
     CatalogError, ErrorCode, ProviderFailure,

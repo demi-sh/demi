@@ -12,7 +12,7 @@ use crate::Error;
 /// How a staged file's name starts, before its random part: a process
 /// killed while it writes leaves the file behind, and the name says whose it
 /// is (`crates/runner-device/src/files.rs`).
-const STAGED_PREFIX: &str = ".demi-partial-";
+const STAGED_PREFIX: &str = ".jush-partial-";
 
 /// Whether a publication may replace what is at its path.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

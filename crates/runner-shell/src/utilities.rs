@@ -4,10 +4,10 @@
 //!
 //! Two rules decide which utility runs:
 //!
-//! 1. Demi's own, on every system: the job's shell, `sh` and `bash`, and every
+//! 1. Jush's own, on every system: the job's shell, `sh` and `bash`, and every
 //!    utility that can write files or start programs, so that what it writes,
 //!    and what the programs it starts write, are the command's edits, which
-//!    only Demi's own utilities record. [`UTILITIES`] lists them.
+//!    only Jush's own utilities record. [`UTILITIES`] lists them.
 //! 2. Every other utility is the system's own: GNU's on Linux, macOS's on a
 //!    Mac, Git for Windows' on Windows (`crates/runner/src/git.rs`). One the
 //!    device lacks is missing, as it is on the machine itself.

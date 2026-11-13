@@ -31,7 +31,7 @@ with no other card.
 
 | Capability | Category | Card asks to | Covers |
 | --- | --- | --- | --- |
-| Credentials | `credentials.use` | use your credentials | every `demi credentials` command: list, show, request, save, read, remove |
+| Credentials | `credentials.use` | use your credentials | every `jush credentials` command: list, show, request, save, read, remove |
 | Devices | `host.use` | use your devices | bringing in any of the user's devices, the Cloud included (attach, move), pairing a computer, port forwards |
 | Conversations | `conversation.use` | use your other conversations | listing the user's conversations, reading another's transcript, sending to another |
 
@@ -80,7 +80,7 @@ with no other card.
   the host of a permission request, and `ErrorCode` loses
   `credential_removed`; `web-ui` loses `AllowanceRequestCard.vue` and the host
   body of `PermissionRequestCard.vue`, and the gallery their specimens.
-- The help of `demi credentials` says its commands need the permission once
+- The help of `jush credentials` says its commands need the permission once
   for the conversation; the other groups' help stays, since a card asks when
   a command needs it.
 

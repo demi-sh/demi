@@ -11,7 +11,7 @@ code said: the panel opens no device, the agent does.
 
 Alex wants to try the app on an iPhone 17 Pro next to the conversation. The
 taskbar's Open (+) lists Simulators, but choosing it opens an empty window:
-a simulator tab appears only when the agent runs `demi mobile open`. Alex
+a simulator tab appears only when the agent runs `jush mobile open`. Alex
 has to ask the agent to open the device, and wait a turn for it.
 
 ## Decision
@@ -19,7 +19,7 @@ has to ask the agent to open the device, and wait a turn for it.
 Simulators in Open has a submenu of the conversation's device's simulators
 and emulators, as Simulator.app's File > Open Simulator lists them. Choosing
 one opens it in the Simulators window, booting it first when it is shut
-down, as `demi mobile open` does.
+down, as `jush mobile open` does.
 
 ```text
 +  ──────────────────────
@@ -95,7 +95,7 @@ route to them, as Close and Rotate do.
 - VS Code's Flutter and React Native extensions: a device picker in the
   status bar that boots the chosen emulator.
 
-Demi departs in where the device shows: in the conversation's Simulators
+Jush departs in where the device shows: in the conversation's Simulators
 window, not a window of the system's.
 
 ## Alternatives

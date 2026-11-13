@@ -6,7 +6,7 @@ status: proposed
 
 ## Problem
 
-Alex runs Demi on a 38 GB server whose disk is ext4. Bo's Cloud holds 3.4 GB
+Alex runs Jush on a 38 GB server whose disk is ext4. Bo's Cloud holds 3.4 GB
 of data, and the machine manager keeps three full copies of it: the working
 copy the running Cloud writes, its latest save, and the save before it,
 which a start falls back to when the latest is damaged. Every 15 minutes a
@@ -42,12 +42,12 @@ failed step today:
 ```
 
 **The store shares extents.** The manager's data directory,
-`/opt/demi/data/cloud`, with its bases, saves and working copies, is on a
+`/opt/jush/data/cloud`, with its bases, saves and working copies, is on a
 filesystem that clones a file by sharing its extents:
 
 * The host's own, when it can, which a clone of a small file there tells.
 * Otherwise an XFS filesystem with `reflink=1` in a sparse file beside it,
-  `/opt/demi/data/cloud.xfs`, as Incus makes a storage pool without a disk of
+  `/opt/jush/data/cloud.xfs`, as Incus makes a storage pool without a disk of
   its own:
   * The file is as large as the host's filesystem and takes only what XFS
     holds.
@@ -64,7 +64,7 @@ filesystem that clones a file by sharing its extents:
 * A store that is a filesystem of its own, such as a disk mounted there,
   stays as it is.
 
-`demi-server setup` makes the store, and installs `xfsprogs` with the other
+`jush-server setup` makes the store, and installs `xfsprogs` with the other
 packages. With it, the copies the manager already makes are clones: a
 wake's working copy and a checkpoint's save. The previous save stays, as
 today, since it holds only what changed since it.
@@ -117,7 +117,7 @@ counts space the host may not have. The large writes are:
 * the databases an update keeps, whose check gains the reserve;
 * a move of the store, as above.
 
-`demi-server setup` makes the store before it checks that the machine can
+`jush-server setup` makes the store before it checks that the machine can
 run Cloud, so the check runs on the store the manager will use. A setup that
 continues and finds a store holding anything leaves it, for an update to
 move in while no manager runs on it.
@@ -145,7 +145,7 @@ What an older piece meets:
 * A rollback to an earlier release keeps the store where it is: its manager
   works on the mounted directory as on any other.
 * The move needs no new step and no new journal entry, so an older
-  `demi-server`, a page loaded before the update and an older backend read
+  `jush-server`, a page loaded before the update and an older backend read
   every record of it.
 
 ## Spike
@@ -184,7 +184,7 @@ defragmented.
   `imageGCHighThresholdPercent`, and evicts pods under `nodefs.available`
   ([Garbage collection](https://kubernetes.io/docs/concepts/architecture/garbage-collection/#containers-images)).
 
-Demi departs from Incus in the filesystem, XFS, whose clones a disk file
+Jush departs from Incus in the filesystem, XFS, whose clones a disk file
 uses without turning sharing off and which needs no balancing, and in the
 file's size, the host's, since the room check guards the host. It departs
 from the kubelet in checking before each large write, by what that write

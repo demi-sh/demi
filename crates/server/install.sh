@@ -1,26 +1,26 @@
 #!/bin/sh
-# Installs demi-server of the release a channel names, or of the version
+# Installs jush-server of the release a channel names, or of the version
 # given, and goes on into its setup (docs/delivery/installation.md § The
 # bootstrap):
 #
-#   curl -fsSL https://demi.sh/install.sh | sudo bash
+#   curl -fsSL https://jush.ai/install.sh | sudo bash
 #
-# Without a parameter, as with `--beta`, it installs the newest release Demi
+# Without a parameter, as with `--beta`, it installs the newest release Jush
 # publishes; `--canary` installs the newest build, the Canary pre-releases
 # included, and `--version <version>` that release.
-# The other parameters go to `demi-server setup`. At a terminal, setup asks
+# The other parameters go to `jush-server setup`. At a terminal, setup asks
 # for what is missing; without one, as an agent runs it, it prints its
 # guide.
 set -eu
-repository=demi-sh/demi
+repository=jush-ai/jush
 fail() {
   echo "install.sh: $1" >&2
   exit 1
 }
 
 # The highest version among the repository's releases tagged v<version>, as
-# demi-server's fetch.rs picks it: other tags, such as the gVisor build's
-# runsc-release-*, are no Demi release, and versions sort by their numbers,
+# jush-server's fetch.rs picks it: other tags, such as the gVisor build's
+# runsc-release-*, are no Jush release, and versions sort by their numbers,
 # a version above its own pre-releases.
 newest() {
   page=1
@@ -38,8 +38,8 @@ newest() {
     sort -k1,1n -k2,2n -k3,3n -k4,4n -k5,5 | tail -n 1 | cut -d' ' -f5
 }
 
-# The tag of the repository's latest release, the newest Demi published,
-# without its v; nothing while Demi has published none, which GitHub answers
+# The tag of the repository's latest release, the newest Jush published,
+# without its v; nothing while Jush has published none, which GitHub answers
 # with 404. Any other failure, such as GitHub's limit on requests, stops the
 # script with its reason.
 latest() {
@@ -80,21 +80,21 @@ done
 [ -z "$versioned" ] || [ -n "$version" ] || fail '--version names a version, such as --version 0.1.22'
 [ -z "$channel" ] || [ -z "$versioned" ] || fail "--$channel installs the newest release of its channel: give it or --version, not both"
 [ -n "$channel" ] || [ -n "$versioned" ] || channel=beta
-[ "$(uname -s)" = Linux ] || fail 'Demi servers run on Linux'
+[ "$(uname -s)" = Linux ] || fail 'Jush servers run on Linux'
 [ "$(id -u)" = 0 ] || fail 'run as root: curl ... | sudo bash'
 case "$(uname -m)" in
   x86_64 | amd64) target=x86_64-unknown-linux-musl ;;
   aarch64 | arm64) target=aarch64-unknown-linux-musl ;;
-  *) fail "Demi runs on no $(uname -m) server" ;;
+  *) fail "Jush runs on no $(uname -m) server" ;;
 esac
-if [ -e /opt/demi/current ] && [ ! -e /opt/demi/server/setup ]; then
-  echo 'This machine is a Demi server already: `demi-server upgrade` moves it to a later release.'
+if [ -e /opt/jush/current ] && [ ! -e /opt/jush/server/setup ]; then
+  echo 'This machine is a Jush server already: `jush-server upgrade` moves it to a later release.'
   exit 0
 fi
 case "$channel" in
   beta)
     version=$(latest)
-    [ -n "$version" ] || fail 'Demi has published no beta release yet: --canary installs the newest build'
+    [ -n "$version" ] || fail 'Jush has published no beta release yet: --canary installs the newest build'
     ;;
   canary)
     version=$(newest)
@@ -112,13 +112,13 @@ base="https://github.com/$repository/releases/download/v$version"
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 curl -fsSL "$base/SHA256SUMS" -o "$stage/SHA256SUMS"
-curl -fsSL "$base/demi-server-$target" -o "$stage/demi-server-$target"
-(cd "$stage" && grep " demi-server-$target\$" SHA256SUMS | sha256sum -c - > /dev/null) ||
-  fail "demi-server-$target does not match its SHA-256 in SHA256SUMS"
-install -m 0755 "$stage/demi-server-$target" /usr/local/bin/demi-server
+curl -fsSL "$base/jush-server-$target" -o "$stage/jush-server-$target"
+(cd "$stage" && grep " jush-server-$target\$" SHA256SUMS | sha256sum -c - > /dev/null) ||
+  fail "jush-server-$target does not match its SHA-256 in SHA256SUMS"
+install -m 0755 "$stage/jush-server-$target" /usr/local/bin/jush-server
 # This script's own input is the script; setup asks at the session's
 # terminal when there is one.
 if (: < /dev/tty) 2> /dev/null; then
-  exec /usr/local/bin/demi-server setup "$@" < /dev/tty
+  exec /usr/local/bin/jush-server setup "$@" < /dev/tty
 fi
-exec /usr/local/bin/demi-server setup "$@"
+exec /usr/local/bin/jush-server setup "$@"

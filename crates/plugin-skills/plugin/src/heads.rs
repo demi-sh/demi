@@ -12,7 +12,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
-use demi_shared_types::Timestamp;
+use jush_shared_types::Timestamp;
 use tokio::sync::broadcast;
 
 /// How long a check of a source's default branch counts before the backend

@@ -1,7 +1,7 @@
 //! How an operation fails, in the words the agent reads and with the code a
 //! script branches on.
 
-use demi_command_package_mobile_protocol::mobile::{
+use jush_command_package_mobile_protocol::mobile::{
     DeviceId, ElementRef, MobileErrorCode,
 };
 
@@ -11,7 +11,7 @@ use crate::driver::DriverError;
 pub enum MobileError {
     #[error("{0}")]
     Usage(String),
-    #[error("{0} is not open in this conversation on this device; demi mobile list shows what is")]
+    #[error("{0} is not open in this conversation on this device; jush mobile list shows what is")]
     NotOpen(DeviceId),
     #[error("{}", no_simulator(.query, .unavailable))]
     NoSimulator {
@@ -27,7 +27,7 @@ pub enum MobileError {
     },
     #[error("{0} is open in another conversation; close it there first")]
     Busy(String),
-    #[error("{0} is not an element of the last inspect; run demi mobile inspect again")]
+    #[error("{0} is not an element of the last inspect; run jush mobile inspect again")]
     StaleRef(ElementRef),
     #[error("{0}")]
     Timeout(String),
@@ -37,7 +37,7 @@ pub enum MobileError {
     Recording(DeviceId),
     #[error("{0}")]
     NoRecording(String),
-    #[error("five recordings are running, so no other can start; stop one with demi mobile record <r> stop")]
+    #[error("five recordings are running, so no other can start; stop one with jush mobile record <r> stop")]
     TooManyRecordings,
     #[error("{0} exists; pass --overwrite to replace it")]
     OutputExists(String),
@@ -52,7 +52,7 @@ pub enum MobileError {
 }
 
 fn no_simulator(query: &str, unavailable: &[String]) -> String {
-    let mut message = format!("no simulator named {query:?} on this device; demi mobile list shows them");
+    let mut message = format!("no simulator named {query:?} on this device; jush mobile list shows them");
     for reason in unavailable {
         message.push_str("; ");
         message.push_str(reason);
@@ -111,9 +111,9 @@ impl From<std::io::Error> for MobileError {
     }
 }
 
-impl From<demi_shared_recording::Error> for MobileError {
-    fn from(error: demi_shared_recording::Error) -> Self {
-        use demi_shared_recording::Error;
+impl From<jush_shared_recording::Error> for MobileError {
+    fn from(error: jush_shared_recording::Error) -> Self {
+        use jush_shared_recording::Error;
         match error {
             Error::NoRecording(_) | Error::Removed(_) => Self::NoRecording(error.to_string()),
             Error::TooManyRunning => Self::TooManyRecordings,

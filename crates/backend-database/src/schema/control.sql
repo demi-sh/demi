@@ -215,7 +215,7 @@ CREATE TABLE devices (
   -- before its runner first reported it since the release that began
   -- keeping it.
   hardware TEXT,
-  -- What Demi keeps on it, as its runner last measured, JSON, the web
+  -- What Jush keeps on it, as its runner last measured, JSON, the web
   -- contract's `DeviceStorageReport`; none before its runner first measured.
   storage TEXT
 ) STRICT;
@@ -517,7 +517,7 @@ CREATE TABLE conversations (
   devices_revision    INTEGER NOT NULL DEFAULT 0 CHECK (devices_revision >= 0),
   -- Its Workflow menu choice (subagents.md § Workflows of a project): the
   -- user's settings, No Subagents, or the workflow whose file is
-  -- .demi/workflows/<workflow_id>.yaml.
+  -- .jush/workflows/<workflow_id>.yaml.
   workflow_kind TEXT NOT NULL DEFAULT 'default' CHECK (workflow_kind IN ('default', 'none', 'workflow')),
   workflow_id   TEXT CHECK ((workflow_kind = 'workflow') = (workflow_id IS NOT NULL)),
   last_switch_revision INTEGER,
@@ -1043,8 +1043,8 @@ CREATE TABLE usage_costs (
 ) STRICT;
 CREATE UNIQUE INDEX usage_costs_by_agent ON usage_costs (conversation_id, ifnull(agent, -1));
 
--- The media jobs vendors took for the calls of `demi image`, `demi video`
--- and `demi audio`, each followed to its end across restarts
+-- The media jobs vendors took for the calls of `jush image`, `jush video`
+-- and `jush audio`, each followed to its end across restarts
 -- (`crates/backend-database/src/media_jobs.rs`): written with the vendor's
 -- id of the job, ended with its file in the user's blobs or why it failed,
 -- and deleted when its call collects it, or with its conversation. A call

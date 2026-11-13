@@ -1,4 +1,4 @@
-import type { WorkBackend, WorkChange } from '@demicodes/web-ui/agent/work-changes'
+import type { WorkBackend, WorkChange } from '@jush-ai/web-ui/agent/work-changes'
 import { apiRequest, jsonBody, readResponse } from './client'
 import { workAnswerSchema, workChangesSchema } from './generated/web-api'
 

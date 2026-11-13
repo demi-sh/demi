@@ -7,9 +7,9 @@
 //! when the list differs from what was kept: the pages that show a
 //! conversation in the directory hear of it in its metadata.
 
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::ids::DeviceId;
-use demi_web_api_protocol::workflows::ConversationWorkflows;
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::ids::DeviceId;
+use jush_web_api_protocol::workflows::ConversationWorkflows;
 use rusqlite::{OptionalExtension, params};
 
 use super::StorageError;

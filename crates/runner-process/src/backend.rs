@@ -8,8 +8,8 @@
 
 use std::{io, path::PathBuf, str::FromStr, sync::Arc};
 
-use demi_runner_protocol::values::{BackendUrl, ValueError};
-use demi_runner_protocol::wire::{Watched, WriteProgress};
+use jush_runner_protocol::values::{BackendUrl, ValueError};
+use jush_runner_protocol::wire::{Watched, WriteProgress};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream,

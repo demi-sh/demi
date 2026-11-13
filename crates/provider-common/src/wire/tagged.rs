@@ -2,7 +2,7 @@
 //! the payload the tag names.
 //!
 //! - An unregistered tag decodes to nothing, so a vendor that adds an event
-//!   does not break a stream Demi otherwise reads.
+//!   does not break a stream Jush otherwise reads.
 //! - A registered tag with a malformed payload is an error that names the
 //!   field.
 //! - A payload without a tag is an error.
@@ -146,7 +146,7 @@ impl<'de, T: TaggedWire> Deserialize<'de> for Tagged<T> {
     }
 }
 
-/// A field Demi only reads to report or to label, such as a vendor error's
+/// A field Jush only reads to report or to label, such as a vendor error's
 /// message or a claim of a token.
 ///
 /// A value that is not a `T` reads as absent, so a malformed error payload

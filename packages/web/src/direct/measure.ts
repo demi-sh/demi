@@ -5,9 +5,9 @@
  * with the same figures (`crates/runner-direct/src/measure.rs`), which the
  * runner protocol defines.
  */
-import { MEASURE_PROBES, PROBE_EVERY_MS, PROBE_LOST_MS, WORSE_LATENCY_MS, WORSE_LOST_PROBES } from '@demicodes/protocol'
-import type { PathFigures } from '@demicodes/web-ui/devices/direct'
-import { nextPingId } from '@demicodes/web-ui/transport/liveness'
+import { MEASURE_PROBES, PROBE_EVERY_MS, PROBE_LOST_MS, WORSE_LATENCY_MS, WORSE_LOST_PROBES } from '@jush-ai/protocol'
+import type { PathFigures } from '@jush-ai/web-ui/devices/direct'
+import { nextPingId } from '@jush-ai/web-ui/transport/liveness'
 
 /** One path a measurement probes: how a probe goes, and who hears the answers. */
 export interface ProbedPath {

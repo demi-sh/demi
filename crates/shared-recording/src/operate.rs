@@ -7,7 +7,7 @@
 
 use std::path::{Path, PathBuf};
 
-use demi_shared_recording_protocol::{
+use jush_shared_recording_protocol::{
     ExportedFrame, FrameSet, Input, InputRow, RecordAction, RecordResult, RecordingId, Region, text,
 };
 
@@ -19,7 +19,7 @@ use crate::{
 
 /// What `frames` and `export` ask for.
 pub struct Reading<'a> {
-    /// The command's path, such as `demi mobile record`, which the text
+    /// The command's path, such as `jush mobile record`, which the text
     /// names the commands to go on with by.
     pub command: &'a str,
     pub frames: Option<&'a FrameSet>,
@@ -61,7 +61,7 @@ impl Library {
     /// Stops the recording `id`, or answers for one that stopped already.
     pub async fn stop(&self, id: &RecordingId) -> Result<Answer, Error> {
         let info = match self.live(id) {
-            Some(live) => live.stop(demi_shared_recording_protocol::EndReason::Stopped).await?,
+            Some(live) => live.stop(jush_shared_recording_protocol::EndReason::Stopped).await?,
             None => self.stored(id).await?.info()?,
         };
         Ok(answer(RecordAction::Stop, "", RecordResult::of(info)))
@@ -216,7 +216,7 @@ impl Library {
                 },
             };
             let (fast_waits, drawn) = (reading.fast_waits, !reading.plain);
-            let write = |load: Option<demi_shared_openh264::Load>| {
+            let write = |load: Option<jush_shared_openh264::Load>| {
                 let (parts, written) = (parts.clone(), target.clone());
                 tokio::task::spawn_blocking(move || {
                     video::write(&written, &video::Video { parts: &parts, load: load.as_ref(), drawn, fast_waits })

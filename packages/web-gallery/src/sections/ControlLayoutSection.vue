@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Code, Eye, Globe, RefreshCw, Search, X } from '@lucide/vue'
-import Menu from '@demicodes/web-ui/ui/Menu.vue'
-import MenuItem from '@demicodes/web-ui/ui/MenuItem.vue'
-import Segmented, { type SegmentedOption } from '@demicodes/web-ui/ui/Segmented.vue'
-import TextInput from '@demicodes/web-ui/ui/TextInput.vue'
-import IconButton from '@demicodes/web-ui/ui/IconButton.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import CopyCode from '@demicodes/web-ui/ui/CopyCode.vue'
+import Menu from '@jush-ai/web-ui/ui/Menu.vue'
+import MenuItem from '@jush-ai/web-ui/ui/MenuItem.vue'
+import Segmented, { type SegmentedOption } from '@jush-ai/web-ui/ui/Segmented.vue'
+import TextInput from '@jush-ai/web-ui/ui/TextInput.vue'
+import IconButton from '@jush-ai/web-ui/ui/IconButton.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import CopyCode from '@jush-ai/web-ui/ui/CopyCode.vue'
 import GalleryLoadingStates from '../components/GalleryLoadingStates.vue'
 import GalleryRegionForms from '../components/GalleryRegionForms.vue'
 import GallerySection from '../components/GallerySection.vue'
@@ -153,11 +153,11 @@ const surfaces = [
             />
           </div>
           <div data-command-layout="single">
-            <CopyCode code="demi-runner --version" />
+            <CopyCode code="jush-runner --version" />
           </div>
           <div data-command-layout="wrapped">
             <CopyCode
-              code="demi-runner run --backend https://backend.example.test/acceptance"
+              code="jush-runner run --backend https://backend.example.test/acceptance"
             />
           </div>
         </div>

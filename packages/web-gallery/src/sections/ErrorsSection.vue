@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGalleryView } from '../gallery-views'
-import AutofocusScope from '@demicodes/web-ui/ui/AutofocusScope.vue'
-import ScrollArea from '@demicodes/web-ui/ui/ScrollArea.vue'
+import AutofocusScope from '@jush-ai/web-ui/ui/AutofocusScope.vue'
+import ScrollArea from '@jush-ai/web-ui/ui/ScrollArea.vue'
 import GalleryErrorSession from '../components/GalleryErrorSession.vue'
 import GalleryErrorMessages from '../components/GalleryErrorMessages.vue'
 import GalleryErrorForms from '../components/GalleryErrorForms.vue'

@@ -48,32 +48,32 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
-use demi_backend_blobs::ObjectError;
-use demi_backend_blobs::store as objects;
-use demi_backend_runners::install::{RunnerReleases, read_runner_release};
-use demi_backend_runners::native::NativeCatalog;
-use demi_backend_runners::public_url::PublicUrl;
-use demi_runner_protocol::release::{RunnerRelease, UPDATE_RECORD, UpdateRecord};
-use demi_backend_runners::publication::{PublicationError, publish_native};
-use demi_backend_cloud::CloudServices;
-use demi_backend_cloud::client::MachinesClient;
-use demi_backend_cloud::isolation as cloud_isolation;
-use demi_backend_cloud::network::{self as cloud_network, stored_network_rules};
-use demi_backend_cloud::reset::recover_clouds;
-use demi_backend_database::StorageError;
-use demi_backend_database::update::Update;
-use demi_backend_http::{AppState, Edge, Listening, Site, WebBuildError, manage_socket, runner_socket, web_build};
-use demi_backend_user_shard::conversation::cost::follow_usage;
-use demi_backend_user_shard::conversation::search::{follow_resets, index_at_start};
-use demi_backend_user_shard::conversation::{
+use jush_backend_blobs::ObjectError;
+use jush_backend_blobs::store as objects;
+use jush_backend_runners::install::{RunnerReleases, read_runner_release};
+use jush_backend_runners::native::NativeCatalog;
+use jush_backend_runners::public_url::PublicUrl;
+use jush_runner_protocol::release::{RunnerRelease, UPDATE_RECORD, UpdateRecord};
+use jush_backend_runners::publication::{PublicationError, publish_native};
+use jush_backend_cloud::CloudServices;
+use jush_backend_cloud::client::MachinesClient;
+use jush_backend_cloud::isolation as cloud_isolation;
+use jush_backend_cloud::network::{self as cloud_network, stored_network_rules};
+use jush_backend_cloud::reset::recover_clouds;
+use jush_backend_database::StorageError;
+use jush_backend_database::update::Update;
+use jush_backend_http::{AppState, Edge, Listening, Site, WebBuildError, manage_socket, runner_socket, web_build};
+use jush_backend_user_shard::conversation::cost::follow_usage;
+use jush_backend_user_shard::conversation::search::{follow_resets, index_at_start};
+use jush_backend_user_shard::conversation::{
     arm_idle_compactions, finish_deletions, recover_forks, resume_after_restart,
 };
-use demi_backend_user_shard::shard::deliver_decisions;
-use demi_backend_user_shard::services::{
+use jush_backend_user_shard::shard::deliver_decisions;
+use jush_backend_user_shard::services::{
     CloseError, ProviderSetup, ServiceKeys, ServiceSettings, Services, ServicesError, Storage,
 };
-use demi_backend_user_shard::shard::ShardPool;
-use demi_backend_user_shard::shard::cloud::{route_deaths, route_statuses};
+use jush_backend_user_shard::shard::ShardPool;
+use jush_backend_user_shard::shard::cloud::{route_deaths, route_statuses};
 use tokio_util::task::AbortOnDropHandle;
 
 use crate::config::BackendConfig;
@@ -237,14 +237,14 @@ async fn announce_runtimes(mut runtimes: tokio::sync::mpsc::Receiver<()>, servic
 }
 
 async fn recover_in_background(
-    services: Arc<demi_backend_user_shard::services::Services>,
-    shards: demi_backend_user_shard::shard::Shards,
+    services: Arc<jush_backend_user_shard::services::Services>,
+    shards: jush_backend_user_shard::shard::Shards,
 ) {
     let running = loop {
         match recover_clouds(&services.control, &services.cloud).await {
             Ok(running) => break running,
-            Err(demi_backend_cloud::reset::RecoveryError::Machines(
-                error @ demi_backend_cloud::client::MachinesError::Unavailable { .. },
+            Err(jush_backend_cloud::reset::RecoveryError::Machines(
+                error @ jush_backend_cloud::client::MachinesError::Unavailable { .. },
             )) => {
                 tracing::warn!(event = "startup.cloud_recovery_waiting", %error, "the machine manager is unreachable; the Clouds are recovered once it answers");
                 tokio::time::sleep(RECOVERY_RETRY).await;
@@ -265,8 +265,8 @@ async fn recover_in_background(
 /// Hands each running Cloud to its owner's shard, which takes it over
 /// (`crates/machine-manager-protocol/src/lib.rs`).
 async fn take_over_clouds(
-    running: Vec<demi_backend_database::devices::DeviceRecord>,
-    shards: &demi_backend_user_shard::shard::Shards,
+    running: Vec<jush_backend_database::devices::DeviceRecord>,
+    shards: &jush_backend_user_shard::shard::Shards,
 ) -> Result<(), String> {
     for device in running {
         let owner = device.user.clone();
@@ -284,9 +284,9 @@ async fn take_over_clouds(
 /// after an upgrade stopped it: no operation waits for its runner, which
 /// does not come back by itself (`crates/runner-client/src/device_jobs.rs`).
 async fn forget_stopped_clouds(
-    running: &[demi_backend_database::devices::DeviceRecord],
-    services: &demi_backend_user_shard::services::Services,
-) -> Result<(), demi_backend_database::StorageError> {
+    running: &[jush_backend_database::devices::DeviceRecord],
+    services: &jush_backend_user_shard::services::Services,
+) -> Result<(), jush_backend_database::StorageError> {
     for device in services.returning.devices() {
         if running.iter().any(|running| running.id == device) {
             continue;
@@ -295,7 +295,7 @@ async fn forget_stopped_clouds(
             .control
             .device(device.clone())
             .await?
-            .is_some_and(|record| record.kind == demi_web_api_protocol::devices::DeviceKind::Managed);
+            .is_some_and(|record| record.kind == jush_web_api_protocol::devices::DeviceKind::Managed);
         if managed {
             services.returning.forget(&device);
         }
@@ -306,9 +306,9 @@ async fn forget_stopped_clouds(
 /// Restores the trees whose commands ran on a Cloud that does not run, other
 /// than the `taken` ones, so their agents learn what became of them.
 async fn take_up_stopped_clouds(
-    taken: &[demi_web_api_protocol::ids::DeviceId],
-    control: &demi_backend_database::control::ControlService,
-    shards: &demi_backend_user_shard::shard::Shards,
+    taken: &[jush_web_api_protocol::ids::DeviceId],
+    control: &jush_backend_database::control::ControlService,
+    shards: &jush_backend_user_shard::shard::Shards,
 ) -> Result<(), String> {
     let stopped = control
         .clouds_with_running_jobs()
@@ -336,16 +336,16 @@ pub async fn publish_commands(
     release: &std::path::Path,
     cancel: &tokio_util::sync::CancellationToken,
 ) -> Result<NativeCatalog, StartError> {
-    let files = release.join(demi_runner_protocol::release::FILES);
+    let files = release.join(jush_runner_protocol::release::FILES);
     let objects = objects::open(&config.data_dir, &config.storage).await?;
-    let commands = release.join(demi_runner_protocol::release::COMMANDS);
+    let commands = release.join(jush_runner_protocol::release::COMMANDS);
     let runners = read_runner_release(&release.join("runners/manifest.json"), RunnerRelease::decode)
         .await
         .map_err(StartError::RunnerRelease)?;
     Ok(publish_native(
         &commands,
         files,
-        demi_shared_artifacts::BUILD_VERSION,
+        jush_shared_artifacts::BUILD_VERSION,
         runners.as_ref(),
         &objects,
         cancel,
@@ -374,7 +374,7 @@ impl Backend {
         if let Some(recorded) = std::fs::read(&record)
             .ok()
             .and_then(|bytes| serde_json::from_slice::<UpdateRecord>(&bytes).ok())
-            .filter(|recorded| recorded.to == demi_shared_artifacts::BUILD_VERSION)
+            .filter(|recorded| recorded.to == jush_shared_artifacts::BUILD_VERSION)
         {
             update.recorded(recorded);
         }
@@ -462,7 +462,7 @@ impl Backend {
         let providers = ProviderSetup {
             families: config
                 .families
-                .with(demi_provider_relay::borrow::FAMILY, RelayFamily(public_url.clone())),
+                .with(jush_provider_relay::borrow::FAMILY, RelayFamily(public_url.clone())),
             models_dev_url: config.models_dev_url,
             model_shutdowns_url: config.model_shutdowns_url,
             media_catalog_url: config.media_catalog_url,
@@ -484,7 +484,7 @@ impl Backend {
             .as_deref()
             .map(web_build)
             .transpose()?;
-        demi_backend_database::shares::register_block_tags(
+        jush_backend_database::shares::register_block_tags(
             config
                 .plugins
                 .iter()
@@ -582,7 +582,7 @@ impl Backend {
         // user's next call starts them.
         start_step(
             "schedule_users",
-            demi_backend_user_shard::schedules::start_schedulers(&services.control, &shards.shards()),
+            jush_backend_user_shard::schedules::start_schedulers(&services.control, &shards.shards()),
         )
         .await;
         // Each media job a vendor took before the restart is followed to
@@ -590,7 +590,7 @@ impl Backend {
         // stop the start: a user's next call follows them.
         start_step(
             "media_jobs",
-            demi_backend_user_shard::shard::start_media_followers(&services.control, &shards.shards()),
+            jush_backend_user_shard::shard::start_media_followers(&services.control, &shards.shards()),
         )
         .await;
         // Each user's search index catches up with the conversations, in the
@@ -663,13 +663,13 @@ impl Backend {
     }
 
     /// What the shards hold now: the live trees and the work they run.
-    pub async fn census(&self) -> demi_backend_user_shard::shard::Census {
+    pub async fn census(&self) -> jush_backend_user_shard::shard::Census {
         self.shards.shards().census().await
     }
 
     /// The address the listener is bound to.
     /// The instance mode the master chose, as it is now.
-    pub fn instance_mode(&self) -> demi_web_api_protocol::settings::InstanceMode {
+    pub fn instance_mode(&self) -> jush_web_api_protocol::settings::InstanceMode {
         self.services.vault.mode()
     }
 

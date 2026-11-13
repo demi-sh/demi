@@ -10,7 +10,7 @@
 //!   Tracking](https://docs.x.ai/developers/cost-tracking)).
 
 use bytes::Bytes;
-use demi_shared_types::{TokenUsage, VendorTrace, VideoResolution};
+use jush_shared_types::{TokenUsage, VendorTrace, VideoResolution};
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 

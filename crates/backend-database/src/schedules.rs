@@ -7,9 +7,9 @@
 //! what it needs of these when it starts and when one changes; nothing here
 //! polls.
 
-use demi_shared_types::{ScheduleId, ScheduleRunId, Timestamp, TurnId};
-use demi_web_api_protocol::ids::{ConversationId, UserId};
-use demi_web_api_protocol::schedules::{IfBusy, RunNote, RunState, Trigger};
+use jush_shared_types::{ScheduleId, ScheduleRunId, Timestamp, TurnId};
+use jush_web_api_protocol::ids::{ConversationId, UserId};
+use jush_web_api_protocol::schedules::{IfBusy, RunNote, RunState, Trigger};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::StorageError;
@@ -107,7 +107,7 @@ pub enum RunCause {
     Time,
     Change,
     Url,
-    /// An agent's `demi schedule run`.
+    /// An agent's `jush schedule run`.
     Now,
 }
 
@@ -151,7 +151,7 @@ pub struct StoredRun {
     pub line: Option<String>,
     /// The turn its message started; none for a run skipped before it.
     pub turn: Option<TurnId>,
-    /// Its agent ran `demi notify send` while it worked: it ends Notified.
+    /// Its agent ran `jush notify send` while it worked: it ends Notified.
     pub notified: bool,
 }
 
@@ -498,7 +498,7 @@ impl ControlService {
         .await
     }
 
-    /// The agent working for the run `id` ran `demi notify send`: the run
+    /// The agent working for the run `id` ran `jush notify send`: the run
     /// notified; one that already ended Done ends Notified. Answers whether
     /// the run is there.
     pub async fn notify_run(&self, id: ScheduleRunId) -> Result<bool, StorageError> {

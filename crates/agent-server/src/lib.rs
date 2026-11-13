@@ -1,9 +1,9 @@
 //! The agent server: the agents of every conversation of one user shard.
 //!
 //! An [`AgentServer`] holds each open conversation's [`Tree`]. A tree's
-//! [`Node`]s each run an [`AgentSession`](demi_agent_session::AgentSession)
-//! with the standard tools (`demi_agent_tools`), and save their checkpoints
-//! through the tree store (`demi_agent_store`). A [`Connection`] handles the
+//! [`Node`]s each run an [`AgentSession`](jush_agent_session::AgentSession)
+//! with the standard tools (`jush_agent_tools`), and save their checkpoints
+//! through the tree store (`jush_agent_store`). A [`Connection`] handles the
 //! decoded frames of one conversation lane, which the backend owns.
 //!
 //! ```text
@@ -22,7 +22,7 @@
 //!   is assembled with;
 //! - the user's subagent settings each spawn reads;
 //! - the device its shell tools reach
-//!   ([`DeviceResolver`](demi_agent_tools::DeviceResolver));
+//!   ([`DeviceResolver`](jush_agent_tools::DeviceResolver));
 //! - each conversation's model selection and the provider runtimes
 //!   ([`ProviderResolver`]);
 //! - a tree store per conversation.

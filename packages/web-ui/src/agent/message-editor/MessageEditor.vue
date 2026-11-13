@@ -97,7 +97,7 @@ const emit = defineEmits<{
    */
   files: [files: File[]]
   /**
-   * A copied message pasted or dropped, in Demi's own form, with the picture
+   * A copied message pasted or dropped, in Jush's own form, with the picture
    * a copy of a lone image carried: the owner takes its files and gives the
    * message back to `insertMessage`, where it was pasted or dropped.
    */
@@ -402,7 +402,7 @@ function insertContent(markdown: string, taken: File[]): void {
 }
 
 /**
- * A drag out of a message carries Demi's own form beside ProseMirror's, as
+ * A drag out of a message carries Jush's own form beside ProseMirror's, as
  * a copy does, so another composer brings its files back as capsules
  * without uploading them; this composer moves what it dragged by
  * ProseMirror's own record of the drag.
@@ -438,7 +438,7 @@ function currentFiles(content: Fragment): Fragment {
 }
 
 /**
- * A copy or a cut carries Demi's own form beside ProseMirror's, as a drag
+ * A copy or a cut carries Jush's own form beside ProseMirror's, as a drag
  * does, so another conversation's composer brings its files back as capsules
  * without uploading them. It runs once ProseMirror has written the clipboard,
  * from the slice it copied, which a cut has already taken from the message.

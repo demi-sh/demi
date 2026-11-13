@@ -181,10 +181,10 @@ above and below the box leave 11 px over it and 10 px under it to the text.
   message field.
 * Notion's Ask AI field opens under the selected text, one line wide.
 * macOS changes a menu item while Option is held, such as Finder's Close
-  Window becoming Close All; Demi's message field already names its other
+  Window becoming Close All; Jush's message field already names its other
   way in its send button's tooltip.
 
-Demi departs in cutting a paragraph of prose at a line, which code review
+Jush departs in cutting a paragraph of prose at a line, which code review
 never has to do.
 
 ## Alternatives

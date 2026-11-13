@@ -18,7 +18,7 @@ export function thinkingFaceLabel(streaming: boolean, elapsedMs: number | null):
 
 /**
  * The tail row while it waits for `kind`: while the provider is asked, with
- * how long the request has waited; while Demi resumes a turn, with no time.
+ * how long the request has waited; while Jush resumes a turn, with no time.
  */
 export function activityLabel(kind: ActivityKind, elapsedMs: number): string {
   if (kind === 'resuming')

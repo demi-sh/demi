@@ -8,7 +8,7 @@
 //! call's title, its event and the output and media it carried, and the text is
 //! rendered from them in this one place.
 
-use demi_shared_types::{CommandId, CommandReport, ReportEvent, StoppedBy};
+use jush_shared_types::{CommandId, CommandReport, ReportEvent, StoppedBy};
 
 /// A duration as the model reads it: `45s`, `4m`, `1m5s`, `2h` or `1h3m`,
 /// rounded to the nearest second.

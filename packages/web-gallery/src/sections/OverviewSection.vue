@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AgentMessageVirtualBlock from '@demicodes/web-ui/agent/blocks/AgentMessageVirtualBlock.vue'
+import AgentMessageVirtualBlock from '@jush-ai/web-ui/agent/blocks/AgentMessageVirtualBlock.vue'
 import { PARADIGMS, applyParadigm, galleryState } from '../gallery-state'
 import { transcriptDemoBlocks } from '../fixtures/blocks'
 import { computed } from 'vue'
@@ -16,7 +16,7 @@ const sampleBlocks = computed(() => transcriptDemoBlocks().filter((block) => (
   <div class="space-y-8">
     <div class="max-w-3xl space-y-3 text-[13px] leading-6 text-fg-body">
       <p>
-        Live catalog of <code class="rounded bg-overlay/8 px-1">@demicodes/web-ui</code>.
+        Live catalog of <code class="rounded bg-overlay/8 px-1">@jush-ai/web-ui</code>.
         Every specimen is the same component the product mounts.
       </p>
       <p>

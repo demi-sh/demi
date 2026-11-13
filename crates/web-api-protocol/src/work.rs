@@ -3,7 +3,7 @@
 //! counted by the work's revision. The backend checks their shape and bounds and never
 //! interprets a tab's `kind` or `data`, or the layout.
 
-use demi_shared_types::MAX_SAFE_INTEGER;
+use jush_shared_types::MAX_SAFE_INTEGER;
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

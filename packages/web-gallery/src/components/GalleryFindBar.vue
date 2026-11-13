@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import SearchPanel from '@demicodes/web-ui/editor/components/SearchPanel.vue'
-import type { FindOptions } from '@demicodes/web-ui/editor/searchPanel'
+import SearchPanel from '@jush-ai/web-ui/editor/components/SearchPanel.vue'
+import type { FindOptions } from '@jush-ai/web-ui/editor/searchPanel'
 import GallerySpecimen from './GallerySpecimen.vue'
 
 function find(search: string, patch: Partial<FindOptions> = {}): FindOptions {

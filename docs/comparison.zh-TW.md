@@ -1,8 +1,8 @@
-# Demi 比較
+# Jush 比較
 
 [English](comparison.md) · [Deutsch](comparison.de.md) · [Español](comparison.es.md) · [Français](comparison.fr.md) · [Português](comparison.pt-BR.md) · [简体中文](comparison.zh-CN.md) · **繁體中文** · [日本語](comparison.ja.md) · [한국어](comparison.ko.md)
 
-Demi 與同類智慧體應用程式的差異，截至 2026 年 10 月，依據各產品的文件和原始碼整理。只列出各產品之間有差異的項目，以及一項目前都不支援的能力。各欄按與 Demi 的接近程度，從最接近排到最不接近。
+Jush 與同類智慧體應用程式的差異，截至 2026 年 10 月，依據各產品的文件和原始碼整理。只列出各產品之間有差異的項目，以及一項目前都不支援的能力。各欄按與 Jush 的接近程度，從最接近排到最不接近。
 
 表中使用以下符號和標籤：
 
@@ -14,7 +14,7 @@ Demi 與同類智慧體應用程式的差異，截至 2026 年 10 月，依據�
 
 下表逐項比較各產品：
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **模型與訂閱** | | | | | | | | |
 | Claude 訂閱 | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@ Demi 與同類智慧體應用程式的差異，截至 2026 年 10 月，依據�
 - **在 diff 的行上留言**：對變更的某一行寫留言，留言會交給智慧體。
 - **自行開發的智慧體**：由產品自己的智慧體驅動模型，而不是執行 Claude Code、Codex 等現成的智慧體。
 - **只用 Shell 一個工具**：模型只拿到一個工具，就是 Shell，所有能力都是 Shell 裡的指令。
-- **第三方外掛**：使用者能安裝別人寫的程式碼，替產品加上工具或介面，不算 Skills 和 MCP。Demi 自己的功能都是外掛，但不載入別人的外掛。
+- **第三方外掛**：使用者能安裝別人寫的程式碼，替產品加上工具或介面，不算 Skills 和 MCP。Jush 自己的功能都是外掛，但不載入別人的外掛。
 - **給智慧體用的密鑰**：使用者按名稱儲存的密鑰，智慧體在指令裡使用。
 - **即時查看和操作瀏覽器**：使用者能即時看到智慧體在用的瀏覽器，也能自己動手操作。
 - **電腦操作**：智慧體透過截圖、滑鼠和鍵盤操作電腦桌面，不限於瀏覽器。

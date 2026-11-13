@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { correction, requestFailure } from '../fixtures/request-failures'
 import { computed, ref, watch } from 'vue'
-import EmailLoginPage, { type EmailLoginPhase } from '@demicodes/web-ui/auth/EmailLoginPage.vue'
-import SetupPage, { type SetupPhase } from '@demicodes/web-ui/auth/SetupPage.vue'
-import HandoffPage, { type HandoffPagePhase } from '@demicodes/web-ui/auth/HandoffPage.vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
-import StartingScreen from '@demicodes/web-ui/ui/StartingScreen.vue'
-import type { TitleText } from '@demicodes/web-ui/ui/ui-text'
+import EmailLoginPage, { type EmailLoginPhase } from '@jush-ai/web-ui/auth/EmailLoginPage.vue'
+import SetupPage, { type SetupPhase } from '@jush-ai/web-ui/auth/SetupPage.vue'
+import HandoffPage, { type HandoffPagePhase } from '@jush-ai/web-ui/auth/HandoffPage.vue'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
+import StartingScreen from '@jush-ai/web-ui/ui/StartingScreen.vue'
+import type { TitleText } from '@jush-ai/web-ui/ui/ui-text'
 import GallerySection from '../components/GallerySection.vue'
 import GallerySpecimen from '../components/GallerySpecimen.vue'
 import { useGalleryView } from '../gallery-views'
@@ -29,7 +29,7 @@ const anatomy: [string, string][] = [
   ],
   [
     'Setup',
-    'What the first visitor of a Demi without accounts sees instead of signing in: a name, an email, a password and its confirmation create the master account, which signs in. Where passkeys are offered, an optional Add a Passkey step follows, using the password just entered, with Skip. Once the account exists, the page is gone and every visitor signs in.'
+    'What the first visitor of a Jush without accounts sees instead of signing in: a name, an email, a password and its confirmation create the master account, which signs in. Where passkeys are offered, an optional Add a Passkey step follows, using the password just entered, with Skip. Once the account exists, the page is gone and every visitor signs in.'
   ],
   [
     'Handoff',
@@ -37,7 +37,7 @@ const anatomy: [string, string][] = [
   ],
   [
     'Starting',
-    'What a page shows where the app will be until it knows who is signed in. While the page cannot reach Demi, as when it is loaded during a restart, it says it connects and waits; it shows the sign-in page only when Demi answers that nobody is signed in, and any other failure Demi answers with Retry.'
+    'What a page shows where the app will be until it knows who is signed in. While the page cannot reach Jush, as when it is loaded during a restart, it says it connects and waits; it shows the sign-in page only when Jush answers that nobody is signed in, and any other failure Jush answers with Retry.'
   ],
 ]
 
@@ -143,7 +143,7 @@ const setupStates: {
     value: 'error',
     label: 'Error',
     // No answer came, so no request names it.
-    phase: { error: { message: 'Couldn’t reach Demi. Check the connection and try again.', requestId: null } },
+    phase: { error: { message: 'Couldn’t reach Jush. Check the connection and try again.', requestId: null } },
   },
   { value: 'taken', label: 'Set Up Already', phase: { taken: true } },
   { value: 'passkey', label: 'Add a Passkey', phase: { passkey: {} } },
@@ -182,7 +182,7 @@ function showSetupState(value: string) {
 const handoffStates: { value: string; label: TitleText; phase: HandoffPagePhase }[] = [
   { value: 'opening', label: 'Opening', phase: { kind: 'opening' } },
   { value: 'expired', label: 'Expired', phase: { kind: 'expired' } },
-  { value: 'failed', label: 'Failed', phase: { kind: 'failed', message: 'Couldn’t reach Demi. Check the connection and try again.', requestId: null } },
+  { value: 'failed', label: 'Failed', phase: { kind: 'failed', message: 'Couldn’t reach Jush. Check the connection and try again.', requestId: null } },
 ]
 const handoffState = ref('expired')
 const handoffPhase = computed(() => handoffStates.find((entry) => entry.value === handoffState.value)!.phase)
@@ -277,7 +277,7 @@ function createAccount(name: string, address: string) {
     <GallerySection
       v-else
       title="Starting"
-      note="The product’s StartingScreen, pinned in each state. Loading and Connecting go on by themselves once Demi answers; Failed offers Retry, which here fails again after a moment."
+      note="The product’s StartingScreen, pinned in each state. Loading and Connecting go on by themselves once Jush answers; Failed offers Retry, which here fails again after a moment."
     >
       <div class="grid gap-6 xl:grid-cols-2">
         <GallerySpecimen wide variant="Loading · checking who is signed in">
@@ -285,12 +285,12 @@ function createAccount(name: string, address: string) {
             <StartingScreen class="h-full" :connecting="false" />
           </div>
         </GallerySpecimen>
-        <GallerySpecimen wide variant="Connecting · Demi cannot be reached yet">
+        <GallerySpecimen wide variant="Connecting · Jush cannot be reached yet">
           <div class="h-[20rem] overflow-hidden rounded-xl border border-line bg-surface-base">
             <StartingScreen class="h-full" connecting />
           </div>
         </GallerySpecimen>
-        <GallerySpecimen wide variant="Failed · Demi answered the check with its own error">
+        <GallerySpecimen wide variant="Failed · Jush answered the check with its own error">
           <div class="h-[20rem] overflow-hidden rounded-xl border border-line bg-surface-base">
             <!-- Retry checks again and, as the gallery has no backend, fails the same way after a moment. -->
             <StartingScreen

@@ -67,7 +67,7 @@ wrong for a slow turn.
   messages that queue during a turn and lists them in its result. Tests cover
   a merged turn, a merged turn that calls a tool and ends in the next run, and
   a further run in the same process.
-* A check with the real CLI (Claude Code 2.1.296, run as Demi runs it)
+* A check with the real CLI (Claude Code 2.1.296, run as Jush runs it)
   confirmed the field: three messages written while the first turn ran gave a
   result naming the first, then one result naming the other two; a turn that
   called a tool and a slash command the CLI answered itself each named their
@@ -81,4 +81,4 @@ wrong for a slow turn.
 * Good, because one rule replaces a count and its exceptions.
 * Bad, because the run depends on a field the CLI's output marks optional. A
   CLI release that stops writing it would leave runs waiting again, so a new
-  CLI version is checked for it before Demi installs it.
+  CLI version is checked for it before Jush installs it.

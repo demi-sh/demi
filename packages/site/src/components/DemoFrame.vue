@@ -47,7 +47,7 @@ let near: IntersectionObserver | undefined
 function hear(event: MessageEvent<unknown>): void {
   if (event.source !== frame.value?.contentWindow)
     return
-  const data = event.data as { demi?: string } | null
+  const data = event.data as { jush?: string } | null
   const shot = cameraOf(data)
   if (shot !== undefined)
     emit('focus', shot.rect !== null, shot.cut)
@@ -57,7 +57,7 @@ function hear(event: MessageEvent<unknown>): void {
   const device = shotOf(data)
   if (device !== undefined)
     emit('shot', device)
-  if (data?.demi !== 'ready')
+  if (data?.jush !== 'ready')
     return
   ready.value = true
   emit('ready')

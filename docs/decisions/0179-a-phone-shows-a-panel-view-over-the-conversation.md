@@ -130,7 +130,7 @@ None. The overlay reuses the panel's history, its views and their bars.
 - **iOS sheets:** a view presented over another closes with a control in its
   own bar, back to where it was presented from, not step by step.
 - **Mobile Safari:** its tab button opens the tabs, and a link opens a page,
-  not the tab overview; Demi's Tabs button and an open from the conversation
+  not the tab overview; Jush's Tabs button and an open from the conversation
   part the same way.
 
 This departs from them in that the series a swipe steps is the conversation's

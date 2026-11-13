@@ -13,7 +13,7 @@
 use std::future::Future;
 
 use bytes::{Bytes, BytesMut};
-use demi_command_protocol::{Completion, MediumFacts, ProtocolError, Record};
+use jush_command_protocol::{Completion, MediumFacts, ProtocolError, Record};
 use tokio::sync::mpsc;
 
 use crate::{CommandInput, CommandOutput, ResidentError};

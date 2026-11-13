@@ -8,7 +8,7 @@ status: proposed
 
 The agent copies a new `logo.png` into the project. Under the command, a pill
 names `logo.png`. A click on it opens the Change view, which has no diff to
-show for a binary file and says so: "Demi keeps the text of the changes a
+show for a binary file and says so: "Jush keeps the text of the changes a
 conversation makes, not pictures or other binary files.", with Open File
 under it. The user clicks twice to see the picture, and reads a sentence
 about what is missing on the way.
@@ -66,7 +66,7 @@ None.
   ([`binaryEditor.ts`](https://github.com/microsoft/vscode/blob/e8db8ed8/src/vs/workbench/browser/parts/editor/binaryEditor.ts)).
 
 Both show the binary file's place in the diff and say why it has no text.
-Demi departs for its pill: the pill already names one file and asks to see
+Jush departs for its pill: the pill already names one file and asks to see
 it, and a diff with nothing to compare would only say so, so it opens the
 file itself, as GitHub shows an image.
 

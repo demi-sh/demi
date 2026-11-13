@@ -28,27 +28,27 @@ use std::{
     time::Duration,
 };
 
-use demi_agent_server::{
+use jush_agent_server::{
     AgentServer, ProviderResolver, ResolveError, ServerConfig, ServerDeps,
     testing::{TestClient, client_text},
 };
-use demi_agent_store::{
+use jush_agent_store::{
     AgentTreeStore, Checkpoint, CheckpointState, CheckpointUpdate, NodeRecord,
     testing::MemoryTreeStore,
 };
-use demi_agent_tools::{
+use jush_agent_tools::{
     DeviceResolver, ProfileModel, SubagentSettings, Toolset, Unavailable,
     testing::{NoDevice, NoShells},
 };
-use demi_agent_transcript::RandomIds;
-use demi_conversation_lane_protocol::{ClientFrame, ServerFrame};
-use demi_device_interface::CommandSet;
-use demi_provider_common::{
+use jush_agent_transcript::RandomIds;
+use jush_conversation_lane_protocol::{ClientFrame, ServerFrame};
+use jush_device_interface::CommandSet;
+use jush_provider_common::{
     InferenceItem, InferenceRequest, Provider, ProviderEvent, ProviderRun, ProviderRuntime,
     ModelWires, RequestLimits, RuntimeEnv, Secret,
 };
-use demi_provider_openai_api::{OpenAiConfig, OpenAiProvider};
-use demi_shared_types::{
+use jush_provider_openai_api::{OpenAiConfig, OpenAiProvider};
+use jush_shared_types::{
     Block, Clock, ContextUsage, Model, ModelSelection, ModelWire, NodeId, SessionPhase, SystemClock,
     TokenUsage, ToolResultContentBlock, TurnId, UserContentBlock, WireApi,
 };
@@ -369,7 +369,7 @@ impl ProviderResolver for DeepSeek {
         let runtime = self
             .provider
             .runtime(RuntimeEnv {
-                http: demi_provider_common::ProviderHttp::new(self.http.clone()),
+                http: jush_provider_common::ProviderHttp::new(self.http.clone()),
             })
             .map(|inner| {
                 Box::new(Recorded {
@@ -531,8 +531,8 @@ impl Conversation {
             // No product shows the conversations' statuses.
             status_changed: Rc::new(|_| {}),
             idle_compaction_due: Rc::new(|_, _| {}),
-            agents: Rc::new(demi_agent_server::testing::NoKeptAgents),
-            reply_files: Rc::new(demi_agent_server::testing::NoDeviceFiles),
+            agents: Rc::new(jush_agent_server::testing::NoKeptAgents),
+            reply_files: Rc::new(jush_agent_server::testing::NoDeviceFiles),
         });
         let client = open_client(&server, &root).await;
         Ok(Self {
@@ -611,7 +611,7 @@ impl Conversation {
         self.copies += 1;
         let copy = NodeId::try_from(format!("{}-check-{}", self.root, self.copies))
             .expect("the id is not empty");
-        let seed = demi_agent_session::ForkSeed {
+        let seed = jush_agent_session::ForkSeed {
             prefix: None,
             checkpoint: Checkpoint {
                 start: 0,
@@ -790,7 +790,7 @@ async fn send(
     let id = TurnId::try_from(uuid()).expect("a uuid is not empty");
     act(
         client,
-        ClientFrame::Send(demi_conversation_lane_protocol::SendMessage {
+        ClientFrame::Send(jush_conversation_lane_protocol::SendMessage {
             comments: Vec::new(),
             message_id: id.clone(),
             content: client_text(text),
@@ -867,7 +867,7 @@ fn head(text: &str, chars: usize) -> String {
 }
 
 fn uuid() -> String {
-    demi_agent_transcript::IdSource::next_id(&RandomIds)
+    jush_agent_transcript::IdSource::next_id(&RandomIds)
 }
 
 /// How many of the secrets `answer` names, with or without their hyphen.

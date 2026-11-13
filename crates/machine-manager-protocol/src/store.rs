@@ -1,6 +1,6 @@
 //! Where the manager's store is when the host's filesystem shares no
 //! extents: an XFS filesystem in a file beside the store's directory, which
-//! `demi-server` makes and mounts there (`crates/server/src/store.rs`) and
+//! `jush-server` makes and mounts there (`crates/server/src/store.rs`) and
 //! which the manager requires mounted (`crates/machine-manager/src/storage/room.rs`).
 
 use std::{

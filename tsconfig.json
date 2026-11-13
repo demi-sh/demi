@@ -15,7 +15,7 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "paths": {
-      "@demicodes/*": ["./packages/*/src/index.ts", "./crates/*/page/src/index.ts"]
+      "@jush-ai/*": ["./packages/*/src/index.ts", "./crates/*/page/src/index.ts"]
     }
   },
   "include": ["packages/*/src", "scripts", "crates/plugin-browser/command-chrome/src/driver/capture"],

@@ -15,7 +15,7 @@ export const USER_INPUT_EVENTS = ['keydown', 'pointerdown', 'pointermove', 'whee
 export const USER_ACTION_EVENTS = ['keydown', 'pointerdown', 'wheel', 'touchstart'] as const
 
 /** What a frame of the page's own dispatches on the page's window at the user's input to it: a `CustomEvent` whose detail is the input's type. */
-export const FRAME_INPUT = 'demi-frame-input'
+export const FRAME_INPUT = 'jush-frame-input'
 
 /** Tells `page` of each input to `frame`, a window of the page's own, until the answer is called. */
 export function passInput(frame: Window, page: Window): () => void {

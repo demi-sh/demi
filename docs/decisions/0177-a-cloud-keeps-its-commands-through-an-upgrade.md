@@ -22,7 +22,7 @@ jobs to the runner that replaces it (0174). A Cloud cannot, for three reasons:
 - A sandbox ends with its runner: the sandbox's init starts the runner, and the
   runner's exit ends the sandbox.
 - A Cloud's runner never replaces itself. It comes from the base's
-  `/opt/demi`, which the manager mounts read-only at each boot, so a new
+  `/opt/jush`, which the manager mounts read-only at each boot, so a new
   release reaches a Cloud only by a restart.
 
 ## Decision
@@ -41,7 +41,7 @@ The Clouds restart as now in four cases:
 - A stop of the server that is no upgrade, such as `systemctl stop` or a
   reboot: the manager saves every running Cloud, as now.
 - The first upgrade from a release whose manager saves the Clouds as it stops,
-  and a rollback to such a release, whose `demi-server` asks for no handover.
+  and a rollback to such a release, whose `jush-server` asks for no handover.
 - An upgrade whose new release does not start, which returns to the release it
   left: the release that returns cannot tell whether the manager it returns to
   takes Clouds over, so it stops the manager as any stop does.
@@ -58,13 +58,13 @@ writes a leave request, a file in the manager's runtime directory, only when
 the release it moves to reads the manager's state format as it stands, no
 move of the store is due and a manager ran since the machine started, and
 deletes it once the manager stopped. The release it moves to decides, since
-its `demi-server` runs the move. A rollback
+its `jush-server` runs the move. A rollback
 that moves back writes it too. A file rather than a request on the manager's
 socket, so that a manager that knows none ignores it and saves its Clouds as
 before, and a stop that no upgrade made never finds one.
 
 ```text
-demi-server upgrade        old manager                 new manager
+jush-server upgrade        old manager                 new manager
   |-- writes leave request ->|
   |-- stop (SIGTERM) ------>| waits for its operations,
   |                         | records the sandboxes it
@@ -109,7 +109,7 @@ demi-server upgrade        old manager                 new manager
   `runsc` started.
 - **Bases.** The bases the manager keeps after an import include each base a
   running sandbox's programs come from, so a Cloud that two upgrades pass
-  keeps its `/opt/demi`.
+  keeps its `/opt/jush`.
 
 ### The Cloud's runner replaces itself
 
@@ -120,7 +120,7 @@ names another runner release, as it does to a paired device, and the runner:
 
 1. downloads the release's runner through the runner socket, its only way to
    the backend, onto the Cloud's system image, and moves it to one path there,
-   `/var/lib/demi/runner/demi-runner`, as an installation's, so the command
+   `/var/lib/jush/runner/jush-runner`, as an installation's, so the command
    aliases of a job a replaced runner started name a file every later release
    keeps;
 2. replaces its program with it in its own process, which keeps its process
@@ -163,7 +163,7 @@ From the code:
 
 - The firewall table is installed whole with the slots of the sandboxes that
   keep running, which a `reconcile` relies on already.
-- `runsc` keeps its state in `/run/demi-machine-manager/runsc`, which no stop
+- `runsc` keeps its state in `/run/jush-machine-manager/runsc`, which no stop
   of the unit removes.
 - The manager's state format has been 1 since it was introduced.
 - A Cloud reaches the backend only through the runner socket, which the
@@ -183,7 +183,7 @@ From the code:
 - gVisor's `runsc` is a command over the state of its root directory, which
   any later invocation reads, as the spike's eight pairs of releases showed.
 
-Demi departs in three ways:
+Jush departs in three ways:
 
 - The manager hands its sandboxes over only in an upgrade that asks it to,
   and saves them on any other stop, where Docker keeps them on every stop: a

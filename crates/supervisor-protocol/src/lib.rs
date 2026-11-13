@@ -1,11 +1,11 @@
-//! The socket of `demi-server supervise`, which runs a server's services in a
+//! The socket of `jush-server supervise`, which runs a server's services in a
 //! container, where no systemd runs, and the programs that ask it to act on
-//! them: `demi-server` while it sets the server up or moves it to a release,
+//! them: `jush-server` while it sets the server up or moves it to a release,
 //! and the machine manager when it restarts itself.
 //!
 //! A connection carries one request and its answer, a line of JSON each way.
 //! The socket meets programs of two releases: a move runs the next release's
-//! `demi-server`, which asks the supervisor of the release before it until
+//! `jush-server`, which asks the supervisor of the release before it until
 //! that supervisor execs into the next release's. So a request's and an
 //! answer's fields are only ever added, never renamed or removed.
 //!
@@ -25,7 +25,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 /// Where the supervisor listens, for root alone.
-pub const SOCKET: &str = "/run/demi-server/supervisor.sock";
+pub const SOCKET: &str = "/run/jush-server/supervisor.sock";
 
 /// What a program asks the supervisor.
 #[derive(Debug, Serialize, Deserialize)]

@@ -38,7 +38,7 @@ import {
 } from './storage'
 
 /**
- * Settings › Storage: what Demi keeps on the server, the rules every device
+ * Settings › Storage: what Jush keeps on the server, the rules every device
  * cleans up by, and each device's use; a device's page cleans it up by hand.
  *
  * A device's request walks its files again, which takes a while, so each of its
@@ -116,7 +116,7 @@ function setLog(change: Partial<LogRetention>) {
 const reportOf = (device: string): DeviceStorageReport | null =>
   props.storage?.devices.find((entry) => entry.deviceId === device)?.report ?? null
 
-/** Each device's row: its system, its disk's use and what Demi keeps on it. */
+/** Each device's row: its system, its disk's use and what Jush keeps on it. */
 const deviceRows = computed(() =>
   props.devices.map((device) => {
     const report = reportOf(device.id)
@@ -125,7 +125,7 @@ const deviceRows = computed(() =>
       : null
     const diskUsed = disk ? t('storage.diskUsed', { percent: formatPercent(disk.used, disk.total) }) : null
     const description = [device.system, report ? diskUsed : t('storage.notMeasured')].filter(Boolean).join(' · ')
-    return { device, disk, diskUsed, description, demi: report ? reportTotals(report).demi : null }
+    return { device, disk, diskUsed, description, jush: report ? reportTotals(report).jush : null }
   }),
 )
 
@@ -230,7 +230,7 @@ async function confirm() {
     </template>
     <template v-if="device.system" #status>{{ device.system }}</template>
     <SettingsGroup>
-      <SettingsRow :label="report ? (used(report.diskBytes, report.diskAvailableBytes) ?? t('storage.demiSize', { size: formatBytes(totals!.demi) })) : t('storage.notMeasured')">
+      <SettingsRow :label="report ? (used(report.diskBytes, report.diskAvailableBytes) ?? t('storage.jushSize', { size: formatBytes(totals!.jush) })) : t('storage.notMeasured')">
         <template #description>
           <template v-if="report">{{ t('storage.measured') }} <RelativeTime :timestamp="report.measuredAt" /></template>
           <template v-if="report?.lastCleanup"> · {{ t('storage.lastCleanup', { size: formatBytes(report.lastCleanup.removedBytes) }) }} <RelativeTime :timestamp="report.lastCleanup.at" /></template>
@@ -328,7 +328,7 @@ async function confirm() {
     <AsyncRegion :state="load" :label="t('storage.loading')" :detail="error ?? null" @retry="emit('retry')">
       <div v-if="storage && server" class="flex flex-col gap-6">
         <SettingsGroup :title="t('storage.server')">
-          <SettingsRow :label="used(server.diskBytes, server.diskAvailableBytes) ?? t('storage.demiSize', { size: formatBytes(serverParts.reduce((sum, part) => sum + part.bytes, 0)) })">
+          <SettingsRow :label="used(server.diskBytes, server.diskAvailableBytes) ?? t('storage.jushSize', { size: formatBytes(serverParts.reduce((sum, part) => sum + part.bytes, 0)) })">
             <template #description>{{ t('storage.measured') }} <RelativeTime :timestamp="server.measuredAt" /></template>
             <template #below>
               <StorageBar
@@ -403,7 +403,7 @@ async function confirm() {
               <Meter v-if="row.disk" :value="row.disk.used" :max="row.disk.total" :label="row.diskUsed ?? undefined" />
             </div>
             <span class="w-24 text-right text-[13px] tabular-nums text-fg-muted">
-              <template v-if="row.demi !== null">{{ t('storage.demiSize', { size: formatBytes(row.demi) }) }}</template>
+              <template v-if="row.jush !== null">{{ t('storage.jushSize', { size: formatBytes(row.jush) }) }}</template>
             </span>
           </SettingsRow>
         </SettingsGroup>

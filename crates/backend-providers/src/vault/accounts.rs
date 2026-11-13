@@ -10,14 +10,14 @@
 //! next request builds its runtime anew, while a running one finishes with its
 //! own.
 
-use demi_backend_database::StorageError;
-use demi_provider_common::credentials::AccountsError;
-use demi_web_api_protocol::ids::CredentialId;
-use demi_web_api_protocol::providers::Accounts;
+use jush_backend_database::StorageError;
+use jush_provider_common::credentials::AccountsError;
+use jush_web_api_protocol::ids::CredentialId;
+use jush_web_api_protocol::providers::Accounts;
 
-use demi_provider_registry::entry::{EntryCredential, ProviderEntry};
-use demi_provider_registry::registry::{LoginAccounts, ProviderRegistry, RegistryError};
-use demi_provider_registry::store::StoreError;
+use jush_provider_registry::entry::{EntryCredential, ProviderEntry};
+use jush_provider_registry::registry::{LoginAccounts, ProviderRegistry, RegistryError};
+use jush_provider_registry::store::StoreError;
 
 use super::entries::Vault;
 use super::pool::meta;

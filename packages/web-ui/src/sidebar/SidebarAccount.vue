@@ -2,17 +2,17 @@
 import { t } from './locales/text'
 import { computed } from 'vue';
 import { accountDisplayName } from '../auth/account-display';
-import Avatar from '@demicodes/web-ui/ui/Avatar.vue';
+import Avatar from '@jush-ai/web-ui/ui/Avatar.vue';
 import { CircleUser, LogOut, Settings } from '@lucide/vue';
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay';
-import Dropdown from '@demicodes/web-ui/ui/Dropdown.vue';
-import Menu from '@demicodes/web-ui/ui/Menu.vue';
-import MenuDivider from '@demicodes/web-ui/ui/MenuDivider.vue';
-import MenuItem from '@demicodes/web-ui/ui/MenuItem.vue';
-import { pressOnKey } from '@demicodes/web-ui/ui/button-events';
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics';
-import { provideRowTarget, type Action } from '@demicodes/web-ui/ui/operations';
-import RowSpinner from '@demicodes/web-ui/ui/RowSpinner.vue';
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay';
+import Dropdown from '@jush-ai/web-ui/ui/Dropdown.vue';
+import Menu from '@jush-ai/web-ui/ui/Menu.vue';
+import MenuDivider from '@jush-ai/web-ui/ui/MenuDivider.vue';
+import MenuItem from '@jush-ai/web-ui/ui/MenuItem.vue';
+import { pressOnKey } from '@jush-ai/web-ui/ui/button-events';
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics';
+import { provideRowTarget, type Action } from '@jush-ai/web-ui/ui/operations';
+import RowSpinner from '@jush-ai/web-ui/ui/RowSpinner.vue';
 import type { SidebarAccount } from './types';
 import { THIS_SESSION } from './session-target';
 

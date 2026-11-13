@@ -1,4 +1,4 @@
-//! The `demi-machine-manager` executable: the one place the manager is
+//! The `jush-machine-manager` executable: the one place the manager is
 //! assembled.
 //!
 //! Before it serves a request, the manager does these in order:
@@ -46,7 +46,7 @@
 
 #[cfg(not(target_os = "linux"))]
 fn main() -> std::process::ExitCode {
-    eprintln!("demi-machine-manager: the Cloud manager runs only on Linux");
+    eprintln!("jush-machine-manager: the Cloud manager runs only on Linux");
     std::process::ExitCode::FAILURE
 }
 
@@ -59,20 +59,20 @@ const LOG_LINES: usize = 256;
 fn main() -> std::process::ExitCode {
     // A panic leaves its report on standard error
     // (`crates/xtask/src/native/build.rs`).
-    demi_shared_cli::install_panic_hook();
-    use demi_shared_types::{LogOrigin, log_layer::LineLayer};
+    jush_shared_cli::install_panic_hook();
+    use jush_shared_types::{LogOrigin, log_layer::LineLayer};
     use tracing_subscriber::{
         filter::{LevelFilter, Targets},
         fmt,
         prelude::*,
     };
 
-    let config = match demi_machine_manager::config::Invocation::from_env() {
-        Ok(demi_machine_manager::config::Invocation::Manage(config)) => config,
-        Ok(demi_machine_manager::config::Invocation::FetchGvisor(directory)) => return fetch_gvisor(&directory),
-        Err(demi_machine_manager::config::ConfigError::Invalid(error)) => error.exit(),
+    let config = match jush_machine_manager::config::Invocation::from_env() {
+        Ok(jush_machine_manager::config::Invocation::Manage(config)) => config,
+        Ok(jush_machine_manager::config::Invocation::FetchGvisor(directory)) => return fetch_gvisor(&directory),
+        Err(jush_machine_manager::config::ConfigError::Invalid(error)) => error.exit(),
         Err(error) => {
-            eprintln!("demi-machine-manager: {error}");
+            eprintln!("jush-machine-manager: {error}");
             return std::process::ExitCode::FAILURE;
         }
     };
@@ -89,7 +89,7 @@ fn main() -> std::process::ExitCode {
                 .with_writer(std::io::stderr)
                 .without_time()
                 .with_target(false)
-                .with_filter(Targets::new().with_target("demi_machine_manager", LevelFilter::DEBUG).with_default(LevelFilter::INFO)),
+                .with_filter(Targets::new().with_target("jush_machine_manager", LevelFilter::DEBUG).with_default(LevelFilter::INFO)),
         )
         .with(
             LineLayer::new(LogOrigin::MachineManager, move |line| {
@@ -110,17 +110,17 @@ fn main() -> std::process::ExitCode {
     let mut namespace = Ok(());
     if !rustix::process::geteuid().is_root() {
         namespace = Err("the machine manager does not run as root".to_owned());
-    } else if config.mode == demi_machine_manager::config::Mode::Serve {
-        let entered = match demi_machine_manager::handover::read_left() {
+    } else if config.mode == jush_machine_manager::config::Mode::Serve {
+        let entered = match jush_machine_manager::handover::read_left() {
             // Only gVisor sandboxes live in the saved namespace; Simple
             // Isolation Clouds a manager left need none.
             Ok(Some(left)) if !left.sandboxes.is_empty() => {
-                let namespace = demi_machine_manager::namespace::SavedNamespace::new(&config);
+                let namespace = jush_machine_manager::namespace::SavedNamespace::new(&config);
                 // A namespace that holds another state directory's
                 // sandboxes is refused, as its recovery refuses it.
                 match namespace
                     .owned()
-                    .and_then(|owned| owned.then(|| demi_machine_manager::handover::enter_saved_namespace(namespace.handle())).transpose())
+                    .and_then(|owned| owned.then(|| jush_machine_manager::handover::enter_saved_namespace(namespace.handle())).transpose())
                 {
                     Ok(Some(())) => true,
                     Ok(None) => {
@@ -141,7 +141,7 @@ fn main() -> std::process::ExitCode {
         };
         adopting = entered;
         if !entered
-            && let Err(error) = demi_machine_manager::namespace::number_after_host()
+            && let Err(error) = jush_machine_manager::namespace::number_after_host()
         {
             namespace = Err(format!("the mount namespace cannot be copied: {error}"));
         }
@@ -160,7 +160,7 @@ fn main() -> std::process::ExitCode {
         Err(error) => {
             tracing::error!(
                 event = "machine_manager.exited",
-                error_chain = %demi_machine_manager::server::chain(&*error),
+                error_chain = %jush_machine_manager::server::chain(&*error),
                 "the machine manager ended with an error"
             );
             std::process::ExitCode::FAILURE
@@ -169,7 +169,7 @@ fn main() -> std::process::ExitCode {
 }
 
 /// Fetches the pinned gVisor release into `directory` and prints the
-/// version's directory, for `demi-server runtime`.
+/// version's directory, for `jush-server runtime`.
 #[cfg(target_os = "linux")]
 fn fetch_gvisor(directory: &std::path::Path) -> std::process::ExitCode {
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -177,13 +177,13 @@ fn fetch_gvisor(directory: &std::path::Path) -> std::process::ExitCode {
         .build()
         .expect("the fetch's runtime");
     let cancel = tokio_util::sync::CancellationToken::new();
-    match runtime.block_on(demi_machine_manager::gvisor_release::fetch(directory, &cancel, |_, _| {})) {
+    match runtime.block_on(jush_machine_manager::gvisor_release::fetch(directory, &cancel, |_, _| {})) {
         Ok(fetched) => {
             println!("{}", fetched.display());
             std::process::ExitCode::SUCCESS
         }
         Err(error) => {
-            eprintln!("demi-machine-manager: {error}");
+            eprintln!("jush-machine-manager: {error}");
             std::process::ExitCode::FAILURE
         }
     }
@@ -193,7 +193,7 @@ fn fetch_gvisor(directory: &std::path::Path) -> std::process::ExitCode {
 mod service {
     use std::{error::Error, net::Ipv4Addr, rc::Rc};
 
-    use demi_machine_manager::{
+    use jush_machine_manager::{
         blocking,
         config::{Config, Mode},
         handover,
@@ -208,10 +208,10 @@ mod service {
         storage::{base, durable, room, state, store::ImageStore},
         tools::{Tool, Tools},
     };
-    use demi_machine_manager_protocol::{
+    use jush_machine_manager_protocol::{
         Download, Enforces, Isolation, LeftSandbox, LeftSimple, NetworkRules, Offer, RuntimeOffer, Unavailable,
     };
-    use demi_shared_types::LogLine;
+    use jush_shared_types::LogLine;
     use tokio::signal::unix::{SignalKind, signal};
     use tokio::sync::mpsc::Receiver;
 
@@ -286,6 +286,7 @@ mod service {
             cgroup::check().await.map_err(|error| error.to_string())?;
         }
         let network = CloudNetwork::new(config.subnet, dns.clone(), tools.path(Tool::Nft).to_owned());
+        network.clear_earlier().await.map_err(|error| error.to_string())?;
         network.check().await.map_err(|error| error.to_string())?;
         let (working, images) = (config.working(), config.images());
         blocking::run(move |off| preflight::require_one_filesystem(off, &working, &images))
@@ -475,7 +476,7 @@ mod service {
                 Some(_) => cgroup::prepare().await?,
                 None => tracing::warn!(
                     event = "machine_manager.limits_off",
-                    "DEMI_MANAGED_LIMITS=off: Clouds run without CPU, memory or PID limits"
+                    "JUSH_MANAGED_LIMITS=off: Clouds run without CPU, memory or PID limits"
                 ),
             }
             recovery::fence_and_save(&core, &running).await?;

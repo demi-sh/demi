@@ -5,9 +5,9 @@
 //! installs as the package's artifact `Claude Code`, and the versions of it the
 //! runner has. Nothing here downloads or looks for the CLI.
 
-use demi_command_package_claude_code_protocol::{ErrorCode, Installed, Release, Status};
-use demi_command_protocol::{ArtifactForm, ArtifactInstall};
-use demi_command_sdk::{Artifacts, ResidentError};
+use jush_command_package_claude_code_protocol::{ErrorCode, Installed, Release, Status};
+use jush_command_protocol::{ArtifactForm, ArtifactInstall};
+use jush_command_sdk::{Artifacts, ResidentError};
 
 use crate::{platform, release};
 

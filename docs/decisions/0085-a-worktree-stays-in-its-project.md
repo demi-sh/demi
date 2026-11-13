@@ -9,7 +9,7 @@ status: proposed
 The user's project `app` is `~/Projects/app` on their Mac. An agent of a
 conversation in it moves itself to `~/Projects/app-worktrees/1`, a linked
 worktree of the same repository that `git worktree add` made, with
-`demi host move`. A directory that is no project and not the Host's home
+`jush host move`. A directory that is no project and not the Host's home
 becomes a project of its own, so the sidebar gains a project named `1`, the
 conversation leaves `app` for it, and the header shows `1`. The user still
 works on `app`, and finds the conversation under a name that says nothing.
@@ -59,14 +59,14 @@ moves it back to the project's directory.
 
 **The Workflow menu offers the project's workflows, and the worktree's
 when they differ.** A conversation in a worktree uses the workflows of its
-project's directory, the nearest `.demi/workflows/` from there up to the
+project's directory, the nearest `.jush/workflows/` from there up to the
 repository's root, as a conversation in the project does. A worktree checked
 out at an older commit, or on a branch without a workflow file, still offers
 the project's. When the worktree's own workflows differ from the project's,
 the menu lists both, each under its directory's name, and the choice records
 which one it is. The agent's commands see and pick the same:
-`demi agent workflows list` marks the worktree's in its `worktree` column,
-and `demi agent workflows use <id>` picks the project's, the worktree's with
+`jush agent workflows list` marks the worktree's in its `worktree` column,
+and `jush agent workflows use <id>` picks the project's, the worktree's with
 `--worktree`, or the worktree's when only the worktree has that id.
 
 ```text
@@ -97,12 +97,12 @@ The design to build from:
   Host's projects at its hello and again when they change.
 * **A report comes before what follows the change.** The runner checks the
   repositories before it sends anything through which a change it made
-  could lead to a move: its hello, a `demi` command's request, a job's end,
+  could lead to a move: its hello, a `jush` command's request, a job's end,
   and its answer to a folder's listing. A repository whose `.git`, its
   `worktrees/` folder or a worktree's `gitdir` file changed since its last
   report is read again with gix, which reads git's own files, relative
   worktree paths included, and its list is sent whole, on the same
-  connection, before that message. So `git worktree add ../w && demi host
+  connection, before that message. So `git worktree add ../w && jush host
   move ../w` finds the worktree, and so does a move to `../w` after the
   job that added it ended, from the same Host or another.
 
@@ -216,7 +216,7 @@ worktree folders alone.
   ([microsoft/vscode#284224](https://github.com/microsoft/vscode/pull/284224)).
 * Conductor nests each workspace, a worktree, under its repository.
 
-Demi departs from all three in that a worktree is no place the user picks:
+Jush departs from all three in that a worktree is no place the user picks:
 it is where an agent works, which the row and the header show.
 
 ## Alternatives

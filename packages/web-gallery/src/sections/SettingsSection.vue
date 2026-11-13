@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsDialog from '@demicodes/web-ui/settings/SettingsDialog.vue'
-import SettingsAccount from '@demicodes/web-ui/settings/SettingsAccount.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import type { SettingsTab } from '@demicodes/web-ui/settings/types'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsDialog from '@jush-ai/web-ui/settings/SettingsDialog.vue'
+import SettingsAccount from '@jush-ai/web-ui/settings/SettingsAccount.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import type { SettingsTab } from '@jush-ai/web-ui/settings/types'
 import GalleryOverlayWell from '../components/GalleryOverlayWell.vue'
 import GallerySection from '../components/GallerySection.vue'
 import GalleryAbout from '../components/GalleryAbout.vue'
@@ -23,12 +23,12 @@ import {
   withCloudSection,
   withUpdatesSection,
   withUsersSection,
-} from '@demicodes/web-ui/settings/sections'
+} from '@jush-ai/web-ui/settings/sections'
 import GallerySettingsProviders from '../components/GallerySettingsProviders.vue'
 import { createSettingsState, gallerySessions, incompleteProviders, mockProviders } from '../fixtures/settings'
 import { galleryPageHost, openExaSignIn, skillsPlugin, webPlugin } from '../fixtures/plugins'
 import { PLUGIN_PAGES } from '../generated/pages'
-import { providePageHost, withPluginSections } from '@demicodes/web-ui/plugins/page'
+import { providePageHost, withPluginSections } from '@jush-ai/web-ui/plugins/page'
 import { useGalleryView } from '../gallery-views'
 import GalleryCredentials from '../components/GalleryCredentials.vue'
 import GalleryUsers from '../components/GalleryUsers.vue'
@@ -40,13 +40,13 @@ import { createSmallModelState } from '../fixtures/small-model'
 import { createCredentialState } from '../fixtures/credentials'
 import { createSubagentState } from '../fixtures/subagent-profiles'
 import { productWould } from '../product-would'
-import { t as webSearchText } from '@demicodes/plugin-web/locales/text'
-import SettingsDevices from '@demicodes/web-ui/settings/SettingsDevices.vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
-import type { SettingsSessionHost } from '@demicodes/web-ui/settings/types'
+import { t as webSearchText } from '@jush-ai/plugin-web/locales/text'
+import SettingsDevices from '@jush-ai/web-ui/settings/SettingsDevices.vue'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
+import type { SettingsSessionHost } from '@jush-ai/web-ui/settings/types'
 import { demoInstallCommands, demoDeviceReport } from '../fixtures/device-installation'
 import { DEMO_RUNNER_RELEASE, DIRECT_SCENARIOS, galleryDevices, useGalleryDevices, type DirectScenario } from '../fixtures/devices'
-import type { CloudState } from '@demicodes/web-ui/cloud/types'
+import type { CloudState } from '@jush-ai/web-ui/cloud/types'
 
 const { view } = useGalleryView()
 
@@ -329,7 +329,7 @@ const noCredentials = createCredentialState([])
 
       <GallerySection
         title="Devices · Direct Channel"
-        note="A device’s row names it and says its system and its state; the reason waits on the device’s own page, which the row opens and whose back button returns to the list. The page’s header names the device and its state, Connected via This Computer, LAN or P2P by the kind of path the peer stands on, or Connected via relay, its dot the state’s colour, green while online whichever path; its icon is as tall as the name and status lines together. Connection is one group of rows, as macOS’s Wi-Fi settings: Route, Automatic, Prefer P2P or Relay Only, with one line for the chosen one; P2P, while the device is online and not Relay Only, its subtitle why it is not connected, in the design table’s words, or the kind and the address it is connected through, LAN · 192.168.1.20, with Try Again, there without a P2P connection and loading only for the attempt it started, and Details…, which opens Connection Details; and Latency, both paths’ figures from this browser’s last measurement, the peer’s path by its kind, with when they were taken under them, Not measured before the first and Measuring… while it runs, with Measure, which measures again and is loading only for the measurement it started; showing the page measures nothing, only Measure and a change of the path in use do, and the figures stay until the new ones replace them. studio-pc was never measured from this browser. Rename… renames; Revoke… asks first, and the device leaves the list. build-01 is offline: its header gives the command that starts it, with Copy, and, since lingering is off for its user, says it starts only once alex logs in, with the command that turns lingering on. lab-workstation-with-a-long-hostname runs no systemd: its header says that it won’t start Demi by itself after a restart, and why, whatever its state. Set alex-mbp’s path to see each state, LAN, This Computer and P2P being the three kinds of P2P path; the Cloud’s page says only that it is connected via relay."
+        note="A device’s row names it and says its system and its state; the reason waits on the device’s own page, which the row opens and whose back button returns to the list. The page’s header names the device and its state, Connected via This Computer, LAN or P2P by the kind of path the peer stands on, or Connected via relay, its dot the state’s colour, green while online whichever path; its icon is as tall as the name and status lines together. Connection is one group of rows, as macOS’s Wi-Fi settings: Route, Automatic, Prefer P2P or Relay Only, with one line for the chosen one; P2P, while the device is online and not Relay Only, its subtitle why it is not connected, in the design table’s words, or the kind and the address it is connected through, LAN · 192.168.1.20, with Try Again, there without a P2P connection and loading only for the attempt it started, and Details…, which opens Connection Details; and Latency, both paths’ figures from this browser’s last measurement, the peer’s path by its kind, with when they were taken under them, Not measured before the first and Measuring… while it runs, with Measure, which measures again and is loading only for the measurement it started; showing the page measures nothing, only Measure and a change of the path in use do, and the figures stay until the new ones replace them. studio-pc was never measured from this browser. Rename… renames; Revoke… asks first, and the device leaves the list. build-01 is offline: its header gives the command that starts it, with Copy, and, since lingering is off for its user, says it starts only once alex logs in, with the command that turns lingering on. lab-workstation-with-a-long-hostname runs no systemd: its header says that it won’t start Jush by itself after a restart, and why, whatever its state. Set alex-mbp’s path to see each state, LAN, This Computer and P2P being the three kinds of P2P path; the Cloud’s page says only that it is connected via relay."
       >
         <div class="flex w-full max-w-2xl flex-col gap-4">
           <Segmented v-model="directScenario" :options="DIRECT_SCENARIOS" size="sm" />
@@ -357,7 +357,7 @@ const noCredentials = createCredentialState([])
 
       <GallerySection
         title="Storage"
-        note="The server first: its disk as one bar, Demi’s kinds in color, what other programs take in grey and the free room, with a row for each kind; an administrator sets how long the log is kept and how large it grows, and a member sees only their own conversations and attachments. Then the rules every device cleans up by, for temporary files and for the cache, each an age and a size per device, and the devices, each with what Demi keeps on it. A device’s page has its disk, the three kinds with Clean Up…, Clear… and Delete…, each asking first, and its conversations, largest first, each with Empty…, or Clean Up while it runs. Each button measures again and keeps its spinner until the device answers; build-01 is offline, so its buttons are off; studio-pc never measured."
+        note="The server first: its disk as one bar, Jush’s kinds in color, what other programs take in grey and the free room, with a row for each kind; an administrator sets how long the log is kept and how large it grows, and a member sees only their own conversations and attachments. Then the rules every device cleans up by, for temporary files and for the cache, each an age and a size per device, and the devices, each with what Jush keeps on it. A device’s page has its disk, the three kinds with Clean Up…, Clear… and Delete…, each asking first, and its conversations, largest first, each with Empty…, or Clean Up while it runs. Each button measures again and keeps its spinner until the device answers; build-01 is offline, so its buttons are off; studio-pc never measured."
       >
         <div class="flex w-full max-w-2xl flex-col gap-4">
           <Segmented v-model="storageViewer" :options="STORAGE_VIEWERS" size="sm" />
@@ -426,7 +426,7 @@ const noCredentials = createCredentialState([])
 
       <GallerySection
         title="Notifications"
-        note="Notifications come by push, so they reach the user with every Demi page closed. They are off until turned on, and belong to this browser. Turning them on asks the browser; switch the stand-in browser to see each. Blocked, the switch goes back off and the row says where to allow them again; a browser that already blocks the site answers without asking. Safari on iPhone pushes only to Demi on the Home Screen: there turning notifications on shows how to add it, Share, Add to Home Screen, then Demi itself, and the row then says so with How to Add, which shows the steps again. Quiet While I’m on Another Device, on until turned off, keeps this browser from notifying of a turn’s end while the user is using Demi on another device, that is, acted on it in the last 10 minutes; nothing comes later. Permission requests and the agent’s notifications always come. The four switches under it choose what notifies, the agent’s own demi notify send among them, and wait for notifications to be on."
+        note="Notifications come by push, so they reach the user with every Jush page closed. They are off until turned on, and belong to this browser. Turning them on asks the browser; switch the stand-in browser to see each. Blocked, the switch goes back off and the row says where to allow them again; a browser that already blocks the site answers without asking. Safari on iPhone pushes only to Jush on the Home Screen: there turning notifications on shows how to add it, Share, Add to Home Screen, then Jush itself, and the row then says so with How to Add, which shows the steps again. Quiet While I’m on Another Device, on until turned off, keeps this browser from notifying of a turn’s end while the user is using Jush on another device, that is, acted on it in the last 10 minutes; nothing comes later. Permission requests and the agent’s notifications always come. The four switches under it choose what notifies, the agent’s own jush notify send among them, and wait for notifications to be on."
       >
         <div class="flex w-full max-w-2xl flex-col gap-4">
           <Segmented
@@ -459,7 +459,7 @@ const noCredentials = createCredentialState([])
 
       <GallerySection
         title="Updates"
-        note="For the master and admins of a server that demi-server installed, before About: the release it runs, the newest of its channel with Update Now, Check Now with when it last looked, the channel, Beta or Canary, and Download updates automatically, off at first. A check runs every hour on Canary and every day on Beta; with the switch on, a newer release it finds is got ready in the background, and turning it on gets the one offered ready at once: downloaded, unpacked, its gVisor and Cloud image installed and its runner on the devices, which the second line follows, a bar with its bytes while it downloads, Installing in the background, then Ready to install, or why it could not, tried again at the next check. The release offered says how long ago it was published, and the third line links its notes, or those of the release the server runs, so the row keeps its height in every state. Update Now counts the agents at work, then asks, naming them; then the row lists every step of the update, what was got ready ahead already installed, each with what it did and how long it took or how far it is, under a bar of the whole, and says which step runs. The paired devices download the new runner meanwhile, and no step waits for them: a device not done by the restart updates after it. From the restart every page shows the Updating Demi screen (Overlays). An update that failed keeps its list, the failed step saying why, until the next one. Until the page holds the server's state, as after an update reloads it here, the title shows over Loading…, or over Retry when the read failed. The stand-in server runs 0.1.5469: Beta has nothing newer, Canary offers 0.1.5500, and Update Now runs it through."
+        note="For the master and admins of a server that jush-server installed, before About: the release it runs, the newest of its channel with Update Now, Check Now with when it last looked, the channel, Beta or Canary, and Download updates automatically, off at first. A check runs every hour on Canary and every day on Beta; with the switch on, a newer release it finds is got ready in the background, and turning it on gets the one offered ready at once: downloaded, unpacked, its gVisor and Cloud image installed and its runner on the devices, which the second line follows, a bar with its bytes while it downloads, Installing in the background, then Ready to install, or why it could not, tried again at the next check. The release offered says how long ago it was published, and the third line links its notes, or those of the release the server runs, so the row keeps its height in every state. Update Now counts the agents at work, then asks, naming them; then the row lists every step of the update, what was got ready ahead already installed, each with what it did and how long it took or how far it is, under a bar of the whole, and says which step runs. The paired devices download the new runner meanwhile, and no step waits for them: a device not done by the restart updates after it. From the restart every page shows the Updating Jush screen (Overlays). An update that failed keeps its list, the failed step saying why, until the next one. Until the page holds the server's state, as after an update reloads it here, the title shows over Loading…, or over Retry when the read failed. The stand-in server runs 0.1.5469: Beta has nothing newer, Canary offers 0.1.5500, and Update Now runs it through."
       >
         <div class="flex w-full max-w-2xl flex-col gap-4">
           <Segmented

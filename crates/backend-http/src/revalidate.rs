@@ -8,7 +8,7 @@
 //!   private, no-cache`. The browser asks again on every use, with
 //!   `If-None-Match`, and an unchanged answer is a 304 with the headers the
 //!   full answer would have had, such as the device's number
-//!   (`X-Demi-Read-At`), and no body. The page reads the answer it gets and
+//!   (`X-Jush-Read-At`), and no body. The page reads the answer it gets and
 //!   knows nothing of tags.
 //! - An answer that already names its version, such as a file's text or a
 //!   raw file, keeps the `ETag` its route made, compared by the route, and
@@ -27,7 +27,7 @@ use axum::http::{HeaderValue, Method, StatusCode};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use axum_extra::headers::{ETag, HeaderMapExt as _, IfNoneMatch};
-use demi_backend_user_shard::sync::etag_of_json;
+use jush_backend_user_shard::sync::etag_of_json;
 
 /// Whether the answer of a `GET` of `path`, relative to `/api`, holds a secret
 /// or is a session's own: the authentication routes except the passkey list,

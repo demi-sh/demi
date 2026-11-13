@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { t } from './locales/text'
 import { Trash2 } from '@lucide/vue'
-import { pressOnKey } from '@demicodes/web-ui/ui/button-events'
-import IconButton from '@demicodes/web-ui/ui/IconButton.vue'
-import Tooltip from '@demicodes/web-ui/ui/Tooltip.vue'
-import TruncatedText from '@demicodes/web-ui/ui/TruncatedText.vue'
-import { usePhone } from '@demicodes/web-ui/ui/phone'
+import { pressOnKey } from '@jush-ai/web-ui/ui/button-events'
+import IconButton from '@jush-ai/web-ui/ui/IconButton.vue'
+import Tooltip from '@jush-ai/web-ui/ui/Tooltip.vue'
+import TruncatedText from '@jush-ai/web-ui/ui/TruncatedText.vue'
+import { usePhone } from '@jush-ai/web-ui/ui/phone'
 import type { SentenceText } from '../ui/ui-text'
 
 /**

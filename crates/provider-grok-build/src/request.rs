@@ -2,14 +2,14 @@
 //! it, and the headers the Grok CLI identifies itself and its session with
 //! (`crates/shared-types/src/model.rs`).
 
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceRequest, Searches, json_body,
     openai_request::{
         AssistantReplay, InputItem, Reasoning, ReasoningReplay, ResponsesDialect, ResponsesTool,
         SummaryOff, ToolMedia, responses_input, responses_reasoning,
     },
 };
-use demi_shared_types::is_blank;
+use jush_shared_types::is_blank;
 use http::{
     HeaderMap, HeaderValue,
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
@@ -22,7 +22,7 @@ use crate::{SIGNATURE_TAG, auth::Credentials, releases::GrokReleases};
 /// tool's output, but no PDFs or video, and takes no output limit or service
 /// tier.
 /// xAI's own searches go with every request while the entry turns them on,
-/// beside Demi's tools, and run at xAI (`crates/provider-common/src/wire/responses.rs`).
+/// beside Jush's tools, and run at xAI (`crates/provider-common/src/wire/responses.rs`).
 pub(crate) fn encode(request: &InferenceRequest, searches: Searches) -> Vec<u8> {
     let dialect = ResponsesDialect {
         signature_tag: SIGNATURE_TAG,
@@ -70,7 +70,7 @@ struct Body<'a> {
     reasoning: Option<Reasoning<'a>>,
 }
 
-/// A tool of a request: one of Demi's, or a search xAI runs.
+/// A tool of a request: one of Jush's, or a search xAI runs.
 #[derive(Serialize)]
 #[serde(untagged)]
 enum Tool<'a> {
@@ -107,7 +107,7 @@ impl HostedTool {
 }
 
 /// The headers every request of the account carries: its session and the
-/// identity of the Grok CLI, whose chat proxy Demi talks to, in the newest
+/// identity of the Grok CLI, whose chat proxy Jush talks to, in the newest
 /// release `releases` knows.
 pub(crate) fn identity_headers(credentials: &Credentials, releases: &GrokReleases) -> HeaderMap {
     let mut headers = HeaderMap::new();

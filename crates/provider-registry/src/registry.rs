@@ -15,22 +15,22 @@
 //! - Selecting another account builds a new provider. A running request
 //!   finishes with its own.
 
-use demi_provider_common::media_catalog::MediaCatalog;
-use demi_provider_common::Searches;
+use jush_provider_common::media_catalog::MediaCatalog;
+use jush_provider_common::Searches;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
-use demi_provider_common::credentials::{CredentialPool, SubscriptionAccounts};
-use demi_provider_common::images::ImageMaker;
-use demi_provider_common::media::{MediaMaker, MediaModelInfo};
-use demi_provider_common::audio::AudioMaker;
-use demi_provider_common::videos::VideoMaker;
-use demi_provider_common::{DeviceRoute, ModelWires, Provider, ProviderHttp};
-use demi_shared_types::{AudioShape, CacheTtl, Clock, MediaKind, MediaShapes, Model, Rotation};
-use demi_web_api_protocol::ids::{CredentialId, ProviderId};
-use demi_provider_common::models_dev::ModelsDevError;
-use demi_web_api_protocol::providers::{ModelKind, ProviderDto, SETUP_MESSAGE, SetupPart, Vendor};
-use demi_web_api_protocol::text::EndpointUrl;
+use jush_provider_common::credentials::{CredentialPool, SubscriptionAccounts};
+use jush_provider_common::images::ImageMaker;
+use jush_provider_common::media::{MediaMaker, MediaModelInfo};
+use jush_provider_common::audio::AudioMaker;
+use jush_provider_common::videos::VideoMaker;
+use jush_provider_common::{DeviceRoute, ModelWires, Provider, ProviderHttp};
+use jush_shared_types::{AudioShape, CacheTtl, Clock, MediaKind, MediaShapes, Model, Rotation};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId};
+use jush_provider_common::models_dev::ModelsDevError;
+use jush_web_api_protocol::providers::{ModelKind, ProviderDto, SETUP_MESSAGE, SetupPart, Vendor};
+use jush_web_api_protocol::text::EndpointUrl;
 
 use crate::catalog_cache::ModelCatalogCache;
 use crate::rotation::{AccountRotation, Candidate, Choice};
@@ -241,7 +241,7 @@ impl ProviderRegistry {
     /// `source` says where `until` comes from: `vendor_refusal` when the
     /// failure named it, `snapshot` when the account's quota did, `default`
     /// when neither did.
-    pub fn mark_used_up(&self, entry: &ProviderId, account: &CredentialId, until: demi_shared_types::Timestamp, source: &'static str) {
+    pub fn mark_used_up(&self, entry: &ProviderId, account: &CredentialId, until: jush_shared_types::Timestamp, source: &'static str) {
         tracing::info!(
             event = "account.used_up",
             provider = %entry,
@@ -255,7 +255,7 @@ impl ProviderRegistry {
     }
 
     /// Now, by the clock the registry's choices read.
-    pub fn now(&self) -> demi_shared_types::Timestamp {
+    pub fn now(&self) -> jush_shared_types::Timestamp {
         self.clock.now()
     }
 

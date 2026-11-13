@@ -6,7 +6,7 @@
 //! crash leaves a gap and never gives a number twice. A Fork's destination goes on
 //! from its source's next numbers.
 
-use demi_shared_types::Sequence;
+use jush_shared_types::Sequence;
 use rusqlite::{Connection, params};
 
 use super::StorageError;

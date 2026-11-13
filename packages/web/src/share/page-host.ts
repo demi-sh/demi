@@ -1,6 +1,6 @@
 import { createPinia } from 'pinia'
-import { PluginCallError, type PageHost } from '@demicodes/web-ui/plugins/page'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
+import { PluginCallError, type PageHost } from '@jush-ai/web-ui/plugins/page'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
 import { BLOCK_PAGES } from '../plugins/generated/blocks'
 
 /**

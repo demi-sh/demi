@@ -274,7 +274,7 @@ pub(crate) fn answer(parsed: &Parsed, stdout: &mut impl Write, stderr: &mut impl
     let _unwritten = match parsed {
         Parsed::Run(_) => Ok(()),
         Parsed::Help => stdout.write_all(HELP.as_bytes()),
-        Parsed::Version => writeln!(stdout, "timeout (Demi)"),
+        Parsed::Version => writeln!(stdout, "timeout (Jush)"),
         Parsed::Usage(message) => message
             .iter()
             .try_for_each(|message| writeln!(stderr, "timeout: {message}"))

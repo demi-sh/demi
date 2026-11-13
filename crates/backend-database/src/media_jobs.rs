@@ -13,9 +13,9 @@
 //! backend's stop cuts short, records its cost once. A job whose
 //! conversation was deleted records its cost all the same.
 
-use demi_plugin_interface::{MadeAudio, MadeImage, MadeVideo, MediaRefusal};
-use demi_shared_types::{AudioKind, BlobRef, Cost, MediaKind, Timestamp, TokenUsage};
-use demi_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
+use jush_plugin_interface::{MadeAudio, MadeImage, MadeVideo, MediaRefusal};
+use jush_shared_types::{AudioKind, BlobRef, Cost, MediaKind, Timestamp, TokenUsage};
+use jush_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
 use rusqlite::{OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 

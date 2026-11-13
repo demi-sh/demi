@@ -8,23 +8,23 @@
 use std::{cell::RefCell, collections::BTreeMap, future::Future, rc::Rc, time::Duration};
 
 use bytes::{Bytes, BytesMut};
-use demi_command_protocol::{
+use jush_command_protocol::{
     ArtifactLocation, CommandContext, MAX_MEDIUM_BYTES, Viewable, PackageArtifact, PackageDescriptor,
 };
-use demi_device_interface::{
+use jush_device_interface::{
     ByteRange, ByteStream, CpOptions, DirEntry, FileContents, FileKind, FileStat, Device, DeviceError,
     DeviceErrorKind, DeviceFs, DeviceIdentity, DeviceKey, DeviceProcess, JobCaller, LinkTarget, MkdirOptions, Process,
     ProcessControl, ProcessEnd, ProcessOutput, RmOptions, Signal, SpawnEnv, SpawnRequest,
     SymbolicLink, WhenExists, WholeOutput, WriteOptions,
 };
-use demi_device_paths::DevicePaths;
-use demi_runner_protocol::search::SearchQuery;
-use demi_runner_protocol::wire::{
+use jush_device_paths::DevicePaths;
+use jush_runner_protocol::search::SearchQuery;
+use jush_runner_protocol::wire::{
     self, FsResult, GitBranches, GitChanges, GitCommit, GitLog, GitRepositories, GitResult, Inbound, PipeRef, ReadAt, STDIN_CHUNK_BYTES,
     WireBytes,
 };
-use demi_shared_gates::GateLease;
-use demi_shared_types::Timestamp;
+use jush_shared_gates::GateLease;
+use jush_shared_types::Timestamp;
 use futures_util::{StreamExt, future::LocalBoxFuture};
 use serde_json::{Map, Value};
 use tokio::sync::{oneshot, watch};
@@ -465,7 +465,7 @@ impl RemoteDevice {
     }
 
     /// Writes the file `path` with `bytes`, whose SHA-256 is `sha256`, which
-    /// the runner downloads from this backend as every file Demi downloads
+    /// the runner downloads from this backend as every file Jush downloads
     /// (`crates/shared-artifacts/src/download.rs`).
     ///
     /// The download resumes after a break or a stall, has no overall deadline,
@@ -1014,7 +1014,7 @@ pub struct JobStart {
     pub env: BTreeMap<String, String>,
     pub context: CommandContext,
     /// The media types the job may show the model; none for a job whose
-    /// media reach no model, as one `demi device shell` runs.
+    /// media reach no model, as one `jush device shell` runs.
     pub viewable: Option<Viewable>,
     pub caller: Option<JobCaller>,
     /// The commands the job may run; none for a job without declared

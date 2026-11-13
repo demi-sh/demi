@@ -20,11 +20,11 @@
 //!   home.
 //! - A workspace selection keeps its device and directory.
 //! - A Cloud conversation in a directory of its own choosing moves to the Cloud's
-//!   home, `/home/demi`, a conversation's directory under
-//!   `/home/demi/sessions`, or else the workspace of its directory, made when
+//!   home, `/home/jush`, a conversation's directory under
+//!   `/home/jush/sessions`, or else the workspace of its directory, made when
 //!   there is none.
 //! - A permission request of a category and a host at once, which only the
-//!   removed `demi conversation move` raised, goes.
+//!   removed `jush conversation move` raised, goes.
 //!
 //! A paired device's workspaces and conversations wait for its runner to resolve
 //! their directories when it first reports its home (`devices.rs`).
@@ -187,7 +187,7 @@ UPDATE conversations SET pending_kind = 'cloud', pending_path = '/home/demi', pe
 DELETE FROM workspaces WHERE id IN (SELECT id FROM cloud_homes);
 DROP TABLE cloud_homes;
 -- A permission request asks for one category or one host now. Only
--- `demi conversation move`, which this release removes, asked for a
+-- `jush conversation move`, which this release removes, asked for a
 -- category and a host at once; such a request goes, as the command did.
 DELETE FROM permission_requests WHERE kind = 'permission'
   AND json_array_length(categories) + (host_device_id IS NOT NULL) + (pairing_code IS NOT NULL) <> 1;
@@ -214,7 +214,7 @@ DELETE FROM permission_requests WHERE kind = 'permission'
 
 /// The selection of the Cloud directory `path` for `owner`'s conversation
 /// `id`, as the rule of 0.1.22 made it and its columns kept it, the Cloud's
-/// home being `/home/demi` until its runner reported one: the conversation's
+/// home being `/home/jush` until its runner reported one: the conversation's
 /// directory of its own or another session's, the home, or else the user's
 /// workspace of the directory, made when there was none.
 fn select_cloud_directory_of_0_1_22(

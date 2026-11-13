@@ -1,4 +1,4 @@
-// Demi's otter, as the brand's lockup draws it, for every place the site
+// Jush's otter, as the brand's lockup draws it, for every place the site
 // shows it apart from the wordmark.
 import lockup from '../../../docs/assets/brand/lockup-light.svg?raw'
 

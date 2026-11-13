@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Tag from '@demicodes/web-ui/ui/Tag.vue'
+import Tag from '@jush-ai/web-ui/ui/Tag.vue'
 import type { ToolCallBlock } from '../block-types'
 import { runningTime } from '../command-end'
 import { useLiveCalls } from '../live-calls'

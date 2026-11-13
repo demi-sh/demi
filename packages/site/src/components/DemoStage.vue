@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// A demo's demo: Demi in a desktop browser window, and on a phone in front
+// A demo's demo: Jush in a desktop browser window, and on a phone in front
 // of it, showing the same conversation. The two appear together, once both
 // apps have loaded, rather than as empty frames first; a narrow screen hides
 // the desktop, and the phone appears alone once it has loaded. The demo and
@@ -74,7 +74,7 @@ function focus(close: boolean, at: boolean): void {
         <span class="tools" aria-hidden="true">
           <ChevronLeftIcon :size="20" /><ChevronRightIcon :size="20" /><PanelLeftIcon :size="18" />
         </span>
-        <span class="address"><LockIcon :size="13" />demi.example.com</span>
+        <span class="address"><LockIcon :size="13" />jush.example.com</span>
         <span class="tools end" aria-hidden="true">
           <ShareIcon :size="18" /><PlusIcon :size="20" /><CopyIcon :size="18" />
         </span>

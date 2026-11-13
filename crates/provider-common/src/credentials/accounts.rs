@@ -9,7 +9,7 @@
 use std::future::Future;
 use std::sync::Arc;
 
-use demi_shared_types::{AccountInfo, Clock, DownloadProgress, LoginPending, LoginStage};
+use jush_shared_types::{AccountInfo, Clock, DownloadProgress, LoginPending, LoginStage};
 use futures_util::future::BoxFuture;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -63,7 +63,7 @@ pub enum LoginKind {
     /// on any device.
     Device,
     /// The user signs in at the vendor's page on any device and pastes the
-    /// code the page shows back into Demi, which hands it to the login.
+    /// code the page shows back into Jush, which hands it to the login.
     PastedCode,
 }
 

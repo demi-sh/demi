@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { IN_USE_MINUTES } from '@demicodes/protocol'
+import { IN_USE_MINUTES } from '@jush-ai/protocol'
 import type { OverlayStore } from '../overlay/overlayStore'
 import Button from '../ui/Button.vue'
 import Switch from '../ui/Switch.vue'
@@ -12,14 +12,14 @@ import SettingsRow from './SettingsRow.vue'
 
 /**
  * Settings › Notifications: whether this browser notifies at all, by push, so
- * with every Demi page closed too, whether the end of a turn notifies while
+ * with every Jush page closed too, whether the end of a turn notifies while
  * the user is on another device, and what notifies, the agent's own
  * notifications among it.
  *
  * - The setting belongs to the browser. Turning it on asks the browser for
  *   permission, and a refusal turns the switch back off and says how to allow
  *   notifications again.
- * - Safari on an iPhone or iPad pushes only to Demi added to the Home Screen.
+ * - Safari on an iPhone or iPad pushes only to Jush added to the Home Screen.
  *   There, turning it on shows how to add it instead, and the row then says so
  *   with How to Add.
  */
@@ -33,7 +33,7 @@ const props = defineProps<{
   requestPermission: () => Promise<NotificationPermission>
   /**
    * Safari on an iPhone or iPad, outside the Home Screen, which cannot push:
-   * Demi's Home Screen icon, which the steps to add Demi show; none
+   * Jush's Home Screen icon, which the steps to add Jush show; none
    * elsewhere.
    */
   homeScreenIcon?: string
@@ -44,17 +44,17 @@ const enabled = defineModel<boolean>('enabled', { required: true })
 const turnFinishes = defineModel<boolean>('turnFinishes', { required: true })
 const turnFails = defineModel<boolean>('turnFails', { required: true })
 const needsPermission = defineModel<boolean>('needsPermission', { required: true })
-/** The agent's own notifications, `demi notify send`. */
+/** The agent's own notifications, `jush notify send`. */
 const agentNotifies = defineModel<boolean>('agentNotifies', { required: true })
 /** The end of a turn does not notify while the user is on another device. */
 const quietWhileElsewhere = defineModel<boolean>('quietWhileElsewhere', { required: true })
 
-/** The steps to add Demi to the Home Screen are open. */
+/** The steps to add Jush to the Home Screen are open. */
 const sheetOpen = ref(false)
 /** The steps were shown once: the row says what to do instead of offering the switch. */
 const toldHowToAdd = ref(false)
 
-/** The browser cannot push; Safari outside the Home Screen can once Demi is added there. */
+/** The browser cannot push; Safari outside the Home Screen can once Jush is added there. */
 const unsupported = computed(() => props.permission === 'unsupported' && !props.homeScreenIcon)
 /** The browser is asking the user: the switch shows on until it answers. */
 const asking = ref(false)

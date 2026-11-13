@@ -15,7 +15,7 @@ Android Studio's emulator window snaps the same way.
 
 The delay is Android's own. The emulator turns its pictures as soon as its
 sensors say the device turned, and Android waits for the sensor's reading to
-settle before it turns its windows, a reading Demi sets as Android Studio
+settle before it turns its windows, a reading Jush sets as Android Studio
 does. Turning the sensor gradually, as Android Studio's default does, makes
 the wait longer: about 1.6 seconds.
 
@@ -34,7 +34,7 @@ the iOS Simulator turns its window:
 ```
 
 - It applies to every turn the view shows: one the viewer presses, one the
-  agent makes (`demi mobile rotate`), and one the device makes itself.
+  agent makes (`jush mobile rotate`), and one the device makes itself.
 - The device turns the shorter way, and grows or shrinks during the turn
   to the size its new orientation fits the panel at.
 - The screen shows the device's pictures throughout. A picture that is
@@ -76,9 +76,9 @@ orientation at once.
   with it.
 - Android Studio's emulator window turns at once on the emulator's answer
   (`EmulatorRotateAction.kt`, `EmulatorView.kt`), and its content waits for
-  Android as Demi's does.
+  Android as Jush's does.
 
-Where this departs: Android Studio does not animate; Demi does, as the iOS
+Where this departs: Android Studio does not animate; Jush does, as the iOS
 Simulator does, since a turn without motion shows Android's wait.
 
 ## Alternatives

@@ -14,7 +14,7 @@ fn used_up() -> Turn {
 }
 
 /// Whether the request `request` shows the model the text `read`.
-fn asks(request: &demi_provider_common::InferenceRequest, read: &str) -> bool {
+fn asks(request: &jush_provider_common::InferenceRequest, read: &str) -> bool {
     // The items' debug form escapes the text as a string literal does.
     let escaped = format!("{read:?}");
     format!("{:?}", request.items).contains(&escaped[1..escaped.len() - 1])

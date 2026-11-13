@@ -6,14 +6,14 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_accounts::settings;
-use demi_backend_cloud::client::MachinesError;
-use demi_backend_cloud::isolation;
-use demi_backend_cloud::network::{self, AllowedError};
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::auth::Role;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::settings::{
+use jush_backend_accounts::settings;
+use jush_backend_cloud::client::MachinesError;
+use jush_backend_cloud::isolation;
+use jush_backend_cloud::network::{self, AllowedError};
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::auth::Role;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::settings::{
     CloudIsolation, CloudNetwork, PreferencesPatch, SetCloudIsolation, SetCloudNetwork, SetInstanceMode, Settings,
     UserPreferences,
 };
@@ -21,7 +21,7 @@ use demi_web_api_protocol::settings::{
 use super::body::JsonBody;
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 pub(super) async fn settings(State(services): State<Arc<Services>>) -> Json<Settings> {
     Json(Settings {

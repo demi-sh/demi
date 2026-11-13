@@ -8,7 +8,7 @@
 //   `keep` for the next server, which goes on from them with the new code.
 //   It does this when the tool's code changes, and when a script runs into
 //   its time limit, since only the end of the process stops a script.
-// - It ends with the browser on `demi.stop()` or `demi.down()`, or after 30
+// - It ends with the browser on `jush.stop()` or `jush.down()`, or after 30
 //   minutes without a call.
 //
 // The next call starts the server again, also after a crash.
@@ -47,14 +47,14 @@ if (existsSync(paths.socket)) {
  * with. A slot's change of branch changes those too, and a server that kept
  * the old ones would reject the new backend's answers.
  */
-const webApi = Bun.resolveSync('@demicodes/web/src/api/generated/web-api', import.meta.dir)
+const webApi = Bun.resolveSync('@jush-ai/web/src/api/generated/web-api', import.meta.dir)
 const code = [
   import.meta.dir,
   webApi,
-  Bun.resolveSync('@demicodes/protocol', dirname(webApi)),
+  Bun.resolveSync('@jush-ai/protocol', dirname(webApi)),
   // What the transcript's rules read of the product: where a reader is at the end, and how long a fold takes.
-  Bun.resolveSync('@demicodes/web-ui/composables/scroll-bottom', import.meta.dir),
-  Bun.resolveSync('@demicodes/web-ui/ui/fold', import.meta.dir),
+  Bun.resolveSync('@jush-ai/web-ui/composables/scroll-bottom', import.meta.dir),
+  Bun.resolveSync('@jush-ai/web-ui/ui/fold', import.meta.dir),
 ]
 
 /** When the tool's code last changed as this server started; a later change ends it. */
@@ -212,7 +212,7 @@ async function leave(send: (reply: Reply) => void, why: string): Promise<void> {
 
 function openNetwork(): Promise<Network> {
   if (!network) {
-    // The conditions `demi.net` set, which a server that started again keeps.
+    // The conditions `jush.net` set, which a server that started again keeps.
     network = Network.listen(slot.ports.network, slot.ports.web, readState(slot).net)
     network.catch(() => {
       network = null
@@ -258,7 +258,7 @@ async function end(how: 'with the browser' | 'leaving the browser'): Promise<voi
   await closeNetwork()
   if (how === 'with the browser') {
     await browser.close()
-    // `demi.net`'s conditions are the browser's: the next browser starts online.
+    // `jush.net`'s conditions are the browser's: the next browser starts online.
     updateState(slot, (state) => {
       delete state.net
     })

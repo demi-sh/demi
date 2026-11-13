@@ -1,6 +1,6 @@
 import { useLocalStorage } from '@vueuse/core'
 import { inject, provide, type InjectionKey, type Ref } from 'vue'
-import type { AgentCost, CacheChart, CostPrice, CostTotals } from '@demicodes/protocol'
+import type { AgentCost, CacheChart, CostPrice, CostTotals } from '@jush-ai/protocol'
 import { t } from './locales/text'
 
 /**
@@ -84,7 +84,7 @@ export function shownRange(range: CostRange, firstCallAt: string | null, now: nu
 }
 
 /** Where the browser keeps the range the Cost section counts, for every conversation. */
-const COST_RANGE_KEY = 'demi-cost-range'
+const COST_RANGE_KEY = 'jush-cost-range'
 
 /** The range the Cost section counts, All until the user chooses. */
 export function useCostRange(): Ref<CostRange> {

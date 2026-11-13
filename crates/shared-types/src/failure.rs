@@ -12,7 +12,7 @@ use crate::{Nullable, Timestamp};
 pub enum FailureSource {
     /// A request the vendor answered with a failure status.
     Http,
-    /// An error event inside a streamed response, or a frame Demi could not
+    /// An error event inside a streamed response, or a frame Jush could not
     /// decode.
     Stream,
     /// No answer from the vendor.
@@ -27,7 +27,7 @@ serde_plain::derive_fromstr_from_deserialize!(FailureSource);
 /// vendor's answer is in `upstream` exactly as it arrived: a stream's frame
 /// text, or the JSON `{ status, headers, body }` of an HTTP failure; only the
 /// provider that produced it reads it. The record holds only what the vendor
-/// sent back, never the request Demi sent, so a credential Demi used is never
+/// sent back, never the request Jush sent, so a credential Jush used is never
 /// recorded, and a vendor's messages are shown as sent, not redacted:
 /// mainstream vendors do not echo a full key in an error, so a filter would
 /// aim at nothing. What a reader needs is read out of the record when it is
@@ -160,7 +160,7 @@ pub struct ContinueWith {
 /// MiniMax's `trace_id` or Seed speech's `X-Tt-Logid`, which the vendor's
 /// support asks for first.
 ///
-/// A failure's sentence is Demi's; what the vendor said follows it, never
+/// A failure's sentence is Jush's; what the vendor said follows it, never
 /// in its place.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

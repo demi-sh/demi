@@ -1,6 +1,6 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { statusPath, type DeviceRoute, type DirectAttempt, type DirectStatus, type PathFigures } from '@demicodes/web-ui/devices/direct'
-import type { SettingsDevice } from '@demicodes/web-ui/settings/types'
+import { statusPath, type DeviceRoute, type DirectAttempt, type DirectStatus, type PathFigures } from '@jush-ai/web-ui/devices/direct'
+import type { SettingsDevice } from '@jush-ai/web-ui/settings/types'
 import { demoDeviceReport, demoDeviceStart } from './device-installation'
 import { ago } from './time'
 import { shownAmong } from './device-marks'
@@ -163,7 +163,7 @@ export function galleryDevices(): GalleryDevice[] {
     ),
     demoDevice(
       // Its server switched: it downloads the new runner, a quarter so far.
-      // It runs no systemd, so it will not start Demi by itself.
+      // It runs no systemd, so it will not start Jush by itself.
       { id: 'lab', name: 'lab-workstation-with-a-long-hostname', state: 'updating', downloadPercent: 26, seen: ago(minutes(2)), autostartUnavailable: { cause: 'noSystemd' }, mark: { logo: 'ubuntu', number: 2 }, ...current('linux') },
       'notOffered',
       2 * day,

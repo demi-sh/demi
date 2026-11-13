@@ -6,11 +6,11 @@ status: proposed
 
 ## Problem
 
-Alex wants Demi on a container platform such as Railway, where a service is a
+Alex wants Jush on a container platform such as Railway, where a service is a
 container without root. The machine manager runs every Cloud as a gVisor
 sandbox, which needs root, loop devices, network namespaces and cgroups, so
 `setup` refuses the machine and the manager does not start. Alex cannot use
-Demi there at all, even to drive a laptop Alex paired:
+Jush there at all, even to drive a laptop Alex paired:
 
 - Every deployment has Cloud, and gVisor is its only platform, with no
   fallback (`crates/machine-manager/src/lib.rs`).
@@ -42,8 +42,8 @@ Cloud
 
 - **Simple Isolation** gives each Cloud its own Ubuntu system, with `sudo`
   and `apt`, and its own home. It needs no root on the server. Inside, the
-  Cloud's user is root with `/home/demi` as its home, where gVisor's is
-  `demi`.
+  Cloud's user is root with `/home/jush` as its home, where gVisor's is
+  `jush`.
 - **gVisor** is what every Cloud runs on today. It is offered only where the
   manager has what it needs; otherwise the option is disabled and its tooltip
   says what is missing, in the manager's words.
@@ -79,7 +79,7 @@ Cloud runs a build and Alex's Cloud is stopped:
 - After a switch, a toast says that stopped Clouds move now and running ones
   once they stop.
 - The first switch to gVisor on a server downloads the gVisor release this
-  Demi release pins, as the next section says.
+  Jush release pins, as the next section says.
 
 ### Downloading gVisor
 
@@ -111,7 +111,7 @@ Isolation, so a server downloads it only when it needs it:
   itself: gVisor stays unavailable, with the reason that the manager must
   restart.
 
-The manager owns the download: `demi-server runtime`, which a setup and an
+The manager owns the download: `jush-server runtime`, which a setup and an
 upgrade run, asks its release's manager to download into the server's
 gVisor directory, so the two share one implementation.
 
@@ -123,7 +123,7 @@ gVisor directory, so the two share one implementation.
 | A Cloud's system | A full copy of the base, about 300 MB | The base under the Cloud's own layer |
 | `rm -rf /` in a Cloud | Removes that Cloud's system and home only | Same |
 | A program that tries to escape | Not stopped; with root, the kernel's file permissions still keep it from other Clouds and the server's data | Stopped |
-| The Cloud's user | root | `demi`, with `sudo` |
+| The Cloud's user | root | `jush`, with `sudo` |
 | Checkpoints every 15 minutes | No: a stop stops the processes | Yes |
 | Storage limits, CPU and memory limits | No | Yes |
 | Private Network rules | No: Clouds share the server's network and ports | Yes |
@@ -215,7 +215,7 @@ A device's storage is a directory tree:
 ```
 
 - **Boot.** The manager copies, never binds, what the device must not change
-  into `system`: the configured base's `/opt/demi` (the runner and its
+  into `system`: the configured base's `/opt/jush` (the runner and its
   programs), the boot record, and the resolver and hosts files. A bound
   directory is writable through proot, so `rm -rf /` would reach it. It then
   starts `proot --kill-on-exit -0 -r system`, in a session of its own,
@@ -223,12 +223,12 @@ A device's storage is a directory tree:
   `rm -rf /` cannot empty: their files are the kernel's. The first process is
   `tini`, which starts the runner, as on gVisor.
 - **The user.** proot fakes the owner of every file as the user it runs as,
-  so `sudo` under a faked `demi` finds its configuration owned by `demi` and
+  so `sudo` under a faked `jush` finds its configuration owned by `jush` and
   refuses. The Cloud's processes therefore run as a faked root, with `HOME`
-  `/home/demi`.
+  `/home/jush`.
 - **The runner's connection.** The runner reaches the backend on an abstract
   Unix socket named after the backend's socket file,
-  `demi-runners:<path of the file>`, which the backend listens on beside the
+  `jush-runners:<path of the file>`, which the backend listens on beside the
   file. An abstract socket has no file that `rm -rf /` can remove.
 - **Users.** A manager with root runs each device as a user of its own,
   allocated from a range and recorded with the device. The device's
@@ -236,7 +236,7 @@ A device's storage is a directory tree:
   only that user's group may pass through, and the manager's and the
   backend's files stay root's. A manager without root runs every device as
   its own user.
-- **Chrome.** `demi browser` already starts Chrome with `--no-sandbox` on
+- **Chrome.** `jush browser` already starts Chrome with `--no-sandbox` on
   Linux, which Simple Isolation needs, since Chrome's own sandbox needs
   namespaces proot does not give.
 - **Stop.** The manager signals the Cloud's first process, `SIGTERM` and then
@@ -252,7 +252,7 @@ A device's storage is a directory tree:
   manager ends every process whose program, as the kernel names it in
   `/proc/<pid>/exe`, is a file under the device's directory: proot runs
   every program through its loader, which it writes into the device's
-  `proot/`. The runner removes every `DEMI_*` name from the environment of
+  `proot/`. The runner removes every `JUSH_*` name from the environment of
   the programs it starts, so an environment variable would not find them.
   A program that gets past proot and runs one of the host's escapes this
   fence, which is one more way Simple Isolation protects against mistakes
@@ -272,7 +272,7 @@ A device's storage is a directory tree:
   on Simple Isolation; a Cloud whose storage is gVisor's fails to start, with
   that reason, until gVisor is available again. A host that runs neither
   stops the manager, with both reasons.
-- **proot.** Demi pins a commit of Termux's fork of proot, which is
+- **proot.** Jush pins a commit of Termux's fork of proot, which is
   maintained and tested on amd64 and arm64 Linux, and builds it statically
   for both architectures from its source, with its one library, talloc, and
   glibc linked in, in a pinned Ubuntu container: proot publishes no builds.
@@ -298,7 +298,7 @@ A device's storage is a directory tree:
   keeps the one recorded last, the move's result, and removes the other.
 - A Simple Isolation tree records no owners: all of a device's files are its
   user's. A move to gVisor gives a changed system file its owner in the base,
-  a new one its directory's owner, and the home to `demi`: whoever writes in a
+  a new one its directory's owner, and the home to `jush`: whoever writes in a
   directory only its owner may write in owns what it writes there, such as
   the log the runner keeps in its own directory.
 - A move from gVisor reads the Cloud's images as gVisor does, through loop
@@ -314,15 +314,15 @@ A device's storage is a directory tree:
 | Question | What ran | Result |
 | --- | --- | --- |
 | Does proot run on a container platform? | A probe service on Railway | `ptrace` is allowed on every host it landed on. User namespaces, mounts, loop devices, cgroups and `/dev/fuse` are not, so bubblewrap and gVisor cannot run |
-| Does the Cloud base work under proot? | proot as an ordinary user on Railway (x86_64) and in Docker (arm64), with the Ubuntu 26.04 base and Demi's Cloud image | Fake root, `sudo`, `apt-get install`, `git`, Python, listening ports and the runner work. Chrome needs `--no-sandbox`. proot 5.1 and 5.4 fail on the base; 5.5.0 passes |
+| Does the Cloud base work under proot? | proot as an ordinary user on Railway (x86_64) and in Docker (arm64), with the Ubuntu 26.04 base and Jush's Cloud image | Fake root, `sudo`, `apt-get install`, `git`, Python, listening ports and the runner work. Chrome needs `--no-sandbox`. proot 5.1 and 5.4 fail on the base; 5.5.0 passes |
 | How much slower is it? | The same file workloads with and without proot | 1.5 to 4 times slower on file-heavy work, close to native on CPU work |
 | What does `rm -rf /` reach? | `rm -rf --no-preserve-root /` inside proot, natively on arm64, with the server's files owned by the same user | Only the device's tree and what was bound into it. Files outside it, the same user's, were untouched. Under x86 emulation on macOS it also removed files outside, which shows proot is no boundary against a program that gets past it |
-| Can proot ship with Demi? | A static build of Termux's proot with glibc and talloc | 1.1 MB, no dynamic dependencies. The fork uses glibc's interfaces, so it does not build with musl |
+| Can proot ship with Jush? | A static build of Termux's proot with glibc and talloc | 1.1 MB, no dynamic dependencies. The fork uses glibc's interfaces, so it does not build with musl |
 | Does a Cloud run the product's commands under proot? | The runner in a Simple Isolation Cloud, in Docker on arm64, running commands and `apt-get install` for an agent | Under proot-me's 5.5.0, proot crashed at the first command, and `test -w` failed in package scripts. Under Termux's fork, both work |
 | Can the runner reach the backend without a bound file? | A process inside proot connecting to an abstract socket outside | It connects |
 | How does a Cloud stop whole? | Background processes, some started with `setsid`, then the first process ended, or proot ended | Ending the first process ends every traced process and proot. Ending proot leaves every one of them running |
-| Can the user be `demi`, with `sudo`? | proot with `-i 1000:1000`, then `sudo -n id` | `sudo` refuses: its files appear owned by uid 1000. As a faked root, `sudo` and `apt` work |
-| Does an environment variable find a Cloud's processes? | `DEMI_CLOUD` in the first process's environment, then `/proc/<pid>/environ` read by the same user | A descendant holds it; one started with `env -u DEMI_CLOUD` does not, and neither does a program the runner starts, since the runner removes `DEMI_*` names |
+| Can the user be `jush`, with `sudo`? | proot with `-i 1000:1000`, then `sudo -n id` | `sudo` refuses: its files appear owned by uid 1000. As a faked root, `sudo` and `apt` work |
+| Does an environment variable find a Cloud's processes? | `JUSH_CLOUD` in the first process's environment, then `/proc/<pid>/environ` read by the same user | A descendant holds it; one started with `env -u JUSH_CLOUD` does not, and neither does a program the runner starts, since the runner removes `JUSH_*` names |
 | Does a Cloud's program name its device? | `/proc/<pid>/exe` of the programs a Cloud's runner started, read by the same user | Each names the loader in the device's `proot/`, also after proot was killed |
 | Does a base unpack without root? | `bsdtar -xpf --xattrs` of the Cloud image as an ordinary user | It succeeds without a warning |
 | How large is a device's system? | The 0.1.6001 arm64 Cloud image, unpacked | About 300 MB |
@@ -334,15 +334,15 @@ A device's storage is a directory tree:
   Modal, E2B, Daytona and others, chosen by configuration.
 - [ComputeSDK](https://www.computesdk.com/docs/reference/adding-a-provider)
   asks each provider for create, get and destroy, with snapshots only where a
-  provider has them. Demi's runtimes declare what they enforce in the same
+  provider has them. Jush's runtimes declare what they enforce in the same
   spirit, since checkpoints, limits and network rules exist on one runtime
   only.
 - [proot-distro](https://github.com/termux/proot-distro), from Termux, runs
   full Linux distributions as one directory tree each, without root, on
-  Android. Demi's Simple Isolation is the same arrangement.
+  Android. Jush's Simple Isolation is the same arrangement.
 
-Where Demi departs: both projects pick a runtime when a sandbox is made, and
-neither moves one between runtimes. Demi moves a Cloud, since a Cloud is a
+Where Jush departs: both projects pick a runtime when a sandbox is made, and
+neither moves one between runtimes. Jush moves a Cloud, since a Cloud is a
 user's long-lived machine, not a disposable sandbox.
 
 ## Alternatives
@@ -351,7 +351,7 @@ user's long-lived machine, not a disposable sandbox.
   already owns every device's processes and storage, and its protocol is
   already the interface the backend needs, so the split would only copy it.
 - **bubblewrap.** It needs user namespaces and mounts, which Railway refuses.
-- **fakechroot.** It rewrites paths through `LD_PRELOAD`, which Demi's
+- **fakechroot.** It rewrites paths through `LD_PRELOAD`, which Jush's
   statically linked runner and programs ignore.
 - **Claude Code as a process of the backend.** It would free Claude Code
   from the manager, but it needs a second way to run an isolated process, and

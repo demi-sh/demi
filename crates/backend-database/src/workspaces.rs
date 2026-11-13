@@ -11,9 +11,9 @@
 //!   directory, made when there is none; a project that moves merges into
 //!   the other workspace's project of its directory, or moves whole.
 
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::ids::{ConversationId, ProjectId, UserId, WorkspaceId};
-use demi_web_api_protocol::workspaces::{WorkspaceColor, WorkspaceDto, WorkspaceIcon};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::ids::{ConversationId, ProjectId, UserId, WorkspaceId};
+use jush_web_api_protocol::workspaces::{WorkspaceColor, WorkspaceDto, WorkspaceIcon};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::StorageError;
@@ -29,7 +29,7 @@ pub fn new_workspace_id() -> WorkspaceId {
 }
 
 /// The name of the workspace an account starts with while the user has not
-/// named it, as Demi's commands say it; each page says it in its language.
+/// named it, as Jush's commands say it; each page says it in its language.
 pub const FIRST_WORKSPACE_NAME: &str = "Personal";
 
 /// A `workspaces` row.
@@ -44,7 +44,7 @@ pub struct WorkspaceRecord {
 }
 
 impl WorkspaceRecord {
-    /// Its name as Demi's commands say it.
+    /// Its name as Jush's commands say it.
     pub fn shown_name(&self) -> &str {
         self.name.as_deref().unwrap_or(FIRST_WORKSPACE_NAME)
     }

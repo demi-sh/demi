@@ -5,10 +5,10 @@
 # The script:
 #
 # - Starts or creates the VM.
-# - Copies the manager and demi-server built for its Linux target into the bin/
+# - Copies the manager and jush-server built for its Linux target into the bin/
 #   of the manager's server release root in the VM, whose image/ the image build
 #   wrote.
-# - Has demi-server fetch the pinned gVisor version.
+# - Has jush-server fetch the pinned gVisor version.
 # - Writes the VM's configuration file.
 # - Runs the host install script there.
 #
@@ -23,14 +23,14 @@
 # inside the VM for review; the manager still goes into the release.
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
-instance=demi-machine-manager
+instance=jush-machine-manager
 public_url=""
 slots=16
 manager=""
 server=""
 release=""
 # The data disk, which Lima mounts at /mnt/lima-<name>.
-disk=demi-cloud
+disk=jush-cloud
 mount_point=/mnt/lima-$disk
 data=$mount_point/state
 data_size=100GiB
@@ -74,7 +74,7 @@ case "$(limactl list --format '{{.Status}}' "$instance" 2>/dev/null)" in
     if ! limactl disk ls --json | jq -r .name | grep -x "$disk" >/dev/null; then
       limactl disk create "$disk" --size "$data_size"
     fi
-    limactl start --name "$instance" "$here/lima/demi-machine-manager.yaml"
+    limactl start --name "$instance" "$here/lima/jush-machine-manager.yaml"
     ;;
 esac
 guest_user=$(limactl shell "$instance" -- id -un)
@@ -83,17 +83,17 @@ prefix=${root%/}
 # The VM's configuration file. Without --dns the Clouds use the VM's own
 # resolver, the manager's default.
 settings=(
-  "DEMI_BACKEND_PUBLIC_URL=$public_url"
-  "DEMI_MACHINE_MANAGER_SOCKET=/run/user/$uid/demi-machine-manager.sock"
-  "DEMI_MANAGED_DATA=$data"
-  "DEMI_MANAGED_SLOTS=$slots"
+  "JUSH_BACKEND_PUBLIC_URL=$public_url"
+  "JUSH_MACHINE_MANAGER_SOCKET=/run/user/$uid/jush-machine-manager.sock"
+  "JUSH_MANAGED_DATA=$data"
+  "JUSH_MANAGED_SLOTS=$slots"
 )
 if [ -n "$dns" ]; then
-  settings+=("DEMI_MANAGED_DNS=$dns")
+  settings+=("JUSH_MANAGED_DNS=$dns")
 fi
-limactl shell "$instance" -- sudo install -d "$prefix/opt/demi/config"
+limactl shell "$instance" -- sudo install -d "$prefix/opt/jush/config"
 printf '%s\n' "${settings[@]}" |
-  limactl shell "$instance" -- sudo tee "$prefix/opt/demi/config/demi.env" >/dev/null
+  limactl shell "$instance" -- sudo tee "$prefix/opt/jush/config/jush.env" >/dev/null
 # Each program is renamed into place, so a running one keeps its own file.
 for program in "$manager" "$server"; do
   name=$(basename "$program")
@@ -102,8 +102,8 @@ for program in "$manager" "$server"; do
 done
 # The root the image build made holds no unit; a server release carries it,
 # and so does this one from here on.
-limactl shell "$instance" -- sudo install -D -m 0644 "$here/systemd/demi-machine-manager.service" "$release/systemd/demi-machine-manager.service"
-limactl shell "$instance" -- sudo "$release/bin/demi-server" runtime
+limactl shell "$instance" -- sudo install -D -m 0644 "$here/systemd/jush-machine-manager.service" "$release/systemd/jush-machine-manager.service"
+limactl shell "$instance" -- sudo "$release/bin/jush-server" runtime
 if [ -n "$root" ]; then
   # The VM sees this Mac's home at the same path, so the script is read there.
   limactl shell "$instance" -- bash "$here/scripts/install-managed-hosts.sh" \
@@ -119,15 +119,15 @@ if [ "$data" = "$mount_point/state" ]; then
   # which it does in cloud-init's final stage; the manager would make its
   # state directory on the root filesystem beneath the mount point. So the
   # unit starts only on a mounted disk, and the VM's provisioning starts it
-  # after the mount (demi-machine-manager.yaml).
-  drop_in=/etc/systemd/system/demi-machine-manager.service.d
+  # after the mount (jush-machine-manager.yaml).
+  drop_in=/etc/systemd/system/jush-machine-manager.service.d
   limactl shell "$instance" -- sudo install -d "$drop_in"
   printf '%s\n' '[Unit]' "ConditionPathIsMountPoint=$mount_point" |
     limactl shell "$instance" -- sudo tee "$drop_in/lima-data-disk.conf" >/dev/null
 fi
 limactl shell "$instance" -- sudo bash "$here/scripts/install-managed-hosts.sh" \
   --user "$guest_user" --release "$release"
-echo "DEMI_MACHINE_MANAGER_SOCKET=$HOME/.lima/$instance/sock/demi-machine-manager.sock"
-echo "DEMI_BACKEND_RUNNER_SOCKET=$HOME/.lima/$instance/sock/runners.sock"
-echo "DEMI_BACKEND_PUBLIC_URL=$public_url"
-limactl shell "$instance" -- sudo journalctl -u demi-machine-manager.service -n 10 --no-pager
+echo "JUSH_MACHINE_MANAGER_SOCKET=$HOME/.lima/$instance/sock/jush-machine-manager.sock"
+echo "JUSH_BACKEND_RUNNER_SOCKET=$HOME/.lima/$instance/sock/runners.sock"
+echo "JUSH_BACKEND_PUBLIC_URL=$public_url"
+limactl shell "$instance" -- sudo journalctl -u jush-machine-manager.service -n 10 --no-pager

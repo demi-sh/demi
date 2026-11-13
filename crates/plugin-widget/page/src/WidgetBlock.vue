@@ -7,7 +7,7 @@
  * is meant to reach the edges can.
  *
  * - The frame, inside the card's line, has the size the page declares
- *   (`demi-frame`) from the first moment: the reply's data brings each
+ *   (`jush-frame`) from the first moment: the reply's data brings each
  *   widget's frame and title with the reply (`facts`), as it brings the
  *   attachments a reply names, and the block asks nothing of the plugin.
  *   One that declares none starts 320px
@@ -54,7 +54,7 @@ const grown = new Set<string>()
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { Check, Images, Share } from '@lucide/vue'
-import { IconButton, useCopy, usePage, windowHeight } from '@demicodes/plugin-sdk'
+import { IconButton, useCopy, usePage, windowHeight } from '@jush-ai/plugin-sdk'
 import { widgetFactsSchema, type FrameSize, type WidgetFacts } from './generated/plugin'
 import { t } from './locales/text'
 import WidgetFrame from './WidgetFrame.vue'

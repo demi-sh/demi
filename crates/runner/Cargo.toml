@@ -1,5 +1,5 @@
 [package]
-name = "demi-runner"
+name = "jush-runner"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -7,19 +7,19 @@ publish.workspace = true
 
 [dependencies]
 bytes.workspace = true
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-sdk = { path = "../command-sdk" }
-demi-runner-direct = { path = "../runner-direct" }
-demi-runner-device = { path = "../runner-device" }
-demi-runner-jobs = { path = "../runner-jobs" }
-demi-runner-process = { path = "../runner-process" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-shared-recording-protocol = { path = "../shared-recording-protocol" }
-demi-runner-command-packages = { path = "../runner-command-packages" }
-demi-runner-shell = { path = "../runner-shell" }
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-shared-cli = { path = "../shared-cli", features = ["device-allocator"] }
-demi-shared-types = { path = "../shared-types", features = ["tracing"] }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-sdk = { path = "../command-sdk" }
+jush-runner-direct = { path = "../runner-direct" }
+jush-runner-device = { path = "../runner-device" }
+jush-runner-jobs = { path = "../runner-jobs" }
+jush-runner-process = { path = "../runner-process" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-shared-recording-protocol = { path = "../shared-recording-protocol" }
+jush-runner-command-packages = { path = "../runner-command-packages" }
+jush-runner-shell = { path = "../runner-shell" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-shared-cli = { path = "../shared-cli", features = ["device-allocator"] }
+jush-shared-types = { path = "../shared-types", features = ["tracing"] }
 clap = { version = "4", features = ["derive", "env"] }
 # The home reported canonically, without Windows' verbatim prefix.
 dunce = "1"
@@ -66,6 +66,6 @@ windows-sys = { version = "0.61", features = ["Win32_Devices_DeviceAndDriverInst
 sha2 = { version = "0.10", features = ["asm"] }
 
 [[bin]]
-name = "demi-runner"
+name = "jush-runner"
 path = "src/main.rs"
 test = false

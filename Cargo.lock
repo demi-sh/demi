@@ -1735,1960 +1735,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "demi-agent-server"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "comrak",
- "demi-agent-server",
- "demi-agent-session",
- "demi-agent-store",
- "demi-agent-tools",
- "demi-agent-transcript",
- "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-device-paths",
- "demi-provider-common",
- "demi-provider-openai-api",
- "demi-shared-gates",
- "demi-shared-types",
- "flate2",
- "futures-util",
- "regex",
- "reqwest",
- "schemars",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-agent-session"
-version = "0.1.65"
-dependencies = [
- "demi-agent-session",
- "demi-agent-store",
- "demi-agent-transcript",
- "demi-command-protocol",
- "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-provider-claude-code",
- "demi-provider-common",
- "demi-shared-gates",
- "demi-shared-types",
- "futures-util",
- "garde",
- "jiter",
- "rand 0.9.5",
- "schemars",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-agent-store"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-protocol",
- "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-device-paths",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "garde",
- "image",
- "nom-exif",
- "serde",
- "thiserror 2.0.20",
- "tokio",
-]
-
-[[package]]
-name = "demi-agent-tools"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-agent-session",
- "demi-agent-store",
- "demi-agent-transcript",
- "demi-command-protocol",
- "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "garde",
- "schemars",
- "serde",
- "serde-saphyr",
- "serde_json",
- "serde_path_to_error",
- "serde_with",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-agent-transcript"
-version = "0.1.65"
-dependencies = [
- "comrak",
- "demi-agent-store",
- "demi-conversation-lane-protocol",
- "demi-provider-common",
- "demi-shared-types",
- "percent-encoding",
- "regex",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "uuid",
-]
-
-[[package]]
-name = "demi-backend"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "clap",
- "demi-backend-accounts",
- "demi-backend-blobs",
- "demi-backend-cloud",
- "demi-backend-database",
- "demi-backend-device-access",
- "demi-backend-http",
- "demi-backend-providers",
- "demi-backend-runners",
- "demi-backend-user-shard",
- "demi-command-declarations",
- "demi-command-package-browser-protocol",
- "demi-command-protocol",
- "demi-device-interface",
- "demi-machine-manager-protocol",
- "demi-plugin-audio",
- "demi-plugin-browser",
- "demi-plugin-changes",
- "demi-plugin-file",
- "demi-plugin-file-browser",
- "demi-plugin-image",
- "demi-plugin-interface",
- "demi-plugin-mobile",
- "demi-plugin-skills",
- "demi-plugin-video",
- "demi-plugin-web",
- "demi-plugin-widget",
- "demi-provider-anthropic-api",
- "demi-provider-bytedance",
- "demi-provider-claude-code",
- "demi-provider-codex",
- "demi-provider-common",
- "demi-provider-elevenlabs",
- "demi-provider-google",
- "demi-provider-grok-build",
- "demi-provider-minimax",
- "demi-provider-openai-api",
- "demi-provider-registry",
- "demi-provider-relay",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-cli",
- "demi-shared-gates",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "hex",
- "hkdf 0.12.4",
- "rand 0.9.5",
- "reqwest",
- "rustix",
- "sd-notify",
- "serde_json",
- "sha2 0.10.9",
- "sysinfo",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "url",
-]
-
-[[package]]
-name = "demi-backend-accounts"
-version = "0.1.65"
-dependencies = [
- "argon2",
- "base64 0.22.1",
- "demi-backend-database",
- "demi-command-protocol",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "hex",
- "http",
- "icu_locale",
- "icu_time",
- "jiff",
- "password-hash",
- "rand 0.9.5",
- "reqwest",
- "rust-i18n",
- "serde",
- "serde_cbor_2",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tracing",
- "url",
- "uuid",
- "web-push-native",
- "webauthn-rs",
- "webauthn-rs-core",
-]
-
-[[package]]
-name = "demi-backend-blobs"
-version = "0.1.65"
-dependencies = [
- "async-trait",
- "bytes",
- "demi-agent-store",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "object_store",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "demi-backend-cloud"
-version = "0.1.65"
-dependencies = [
- "demi-backend-database",
- "demi-backend-idle-watch",
- "demi-backend-page-sync",
- "demi-backend-providers",
- "demi-backend-runners",
- "demi-device-interface",
- "demi-machine-manager-protocol",
- "demi-provider-registry",
- "demi-runner-client",
- "demi-runner-protocol",
- "demi-shared-gates",
- "demi-web-api-protocol",
- "futures-util",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-backend-database"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "comrak",
- "demi-agent-store",
- "demi-backend-database",
- "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-device-paths",
- "demi-machine-manager-protocol",
- "demi-plugin-host",
- "demi-plugin-interface",
- "demi-runner-client",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-gates",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "hashlink",
- "hex",
- "hmac 0.12.1",
- "jiff",
- "openssl",
- "password-hash",
- "rusqlite",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "subtle",
- "thiserror 2.0.20",
- "tokio",
- "tokio-rusqlite",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "webauthn-rs",
- "zstd 0.13.3",
-]
-
-[[package]]
-name = "demi-backend-device-access"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-agent-store",
- "demi-agent-tools",
- "demi-backend-blobs",
- "demi-backend-cloud",
- "demi-backend-database",
- "demi-backend-runners",
- "demi-command-declarations",
- "demi-command-protocol",
- "demi-device-interface",
- "demi-device-paths",
- "demi-plugin-interface",
- "demi-runner-client",
- "demi-runner-protocol",
- "demi-shared-gates",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "http",
- "schemars",
- "serde",
- "serde_json",
- "shlex",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "demi-backend-http"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "axum",
- "axum-extra",
- "bytes",
- "cookie",
- "data-encoding",
- "demi-agent-store",
- "demi-backend-accounts",
- "demi-backend-blobs",
- "demi-backend-cloud",
- "demi-backend-database",
- "demi-backend-device-access",
- "demi-backend-page-sync",
- "demi-backend-permissions",
- "demi-backend-providers",
- "demi-backend-runners",
- "demi-backend-user-shard",
- "demi-command-protocol",
- "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-plugin-host",
- "demi-plugin-interface",
- "demi-provider-common",
- "demi-provider-registry",
- "demi-provider-relay",
- "demi-runner-client",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-lanes",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "http-body",
- "hyper",
- "hyper-util",
- "mime",
- "object_store",
- "percent-encoding",
- "rand 0.9.5",
- "rust-i18n",
- "rustix",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tower",
- "tower-http",
- "tracing",
- "typed-path",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "demi-backend-idle-watch"
-version = "0.1.65"
-dependencies = [
- "demi-shared-gates",
- "futures-util",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-backend-page-sync"
-version = "0.1.65"
-dependencies = [
- "demi-backend-database",
- "demi-plugin-host",
- "demi-web-api-protocol",
- "tokio",
-]
-
-[[package]]
-name = "demi-backend-permissions"
-version = "0.1.65"
-dependencies = [
- "demi-backend-database",
- "demi-backend-page-sync",
- "demi-command-declarations",
- "demi-device-interface",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "shlex",
- "thiserror 2.0.20",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "demi-backend-providers"
-version = "0.1.65"
-dependencies = [
- "aes-gcm 0.10.3",
- "async-stream",
- "demi-backend-database",
- "demi-backend-page-sync",
- "demi-provider-common",
- "demi-provider-registry",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "rand 0.9.5",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "demi-backend-runners"
-version = "0.1.65"
-dependencies = [
- "axum",
- "bytes",
- "data-encoding",
- "demi-backend-blobs",
- "demi-backend-database",
- "demi-backend-page-sync",
- "demi-command-protocol",
- "demi-device-interface",
- "demi-runner-client",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-gates",
- "demi-web-api-protocol",
- "futures-util",
- "hex",
- "jiff",
- "object_store",
- "percent-encoding",
- "rand 0.9.5",
- "semver",
- "serde",
- "serde_json",
- "serde_json_canonicalizer",
- "shlex",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "demi-backend-user-shard"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "axum",
- "base64 0.22.1",
- "bytes",
- "demi-agent-server",
- "demi-agent-session",
- "demi-agent-store",
- "demi-agent-tools",
- "demi-agent-transcript",
- "demi-backend-accounts",
- "demi-backend-blobs",
- "demi-backend-cloud",
- "demi-backend-database",
- "demi-backend-device-access",
- "demi-backend-idle-watch",
- "demi-backend-page-sync",
- "demi-backend-permissions",
- "demi-backend-providers",
- "demi-backend-runners",
- "demi-command-declarations",
- "demi-command-package-claude-code-protocol",
- "demi-command-protocol",
- "demi-conversation-lane-protocol",
- "demi-device-interface",
- "demi-device-paths",
- "demi-machine-manager-protocol",
- "demi-plugin-host",
- "demi-plugin-interface",
- "demi-provider-claude-code",
- "demi-provider-common",
- "demi-provider-registry",
- "demi-provider-relay",
- "demi-runner-client",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-gates",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "hex",
- "hmac 0.12.1",
- "http",
- "jiff",
- "object_store",
- "rand 0.9.5",
- "reqwest",
- "schemars",
- "semver",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "subtle",
- "sysinfo",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
- "uuid",
- "zstd 0.13.3",
-]
-
-[[package]]
-name = "demi-browser"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-package-browser-chrome",
- "demi-command-package-browser-protocol",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-shared-cli",
- "demi-shared-openh264",
- "demi-shared-recording",
- "demi-shared-recording-protocol",
- "futures-util",
- "png",
- "serde",
- "serde_json",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-claude-code"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-package-claude-code-protocol",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-shared-cli",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "demi-command-declarations"
-version = "0.1.65"
-dependencies = [
- "clap",
- "jsonschema",
- "schemars",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-command-package-browser-chrome"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "chromiumoxide",
- "demi-command-package-browser-protocol",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-live-view",
- "demi-live-view-protocol",
- "demi-shared-artifacts",
- "demi-shared-recording",
- "demi-shared-recording-protocol",
- "demi-shared-types",
- "futures-util",
- "garde",
- "getrandom 0.4.3",
- "image",
- "jsonschema",
- "libc",
- "png",
- "regex",
- "resvg",
- "serde",
- "serde_json",
- "sysinfo",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "demi-command-package-browser-protocol"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "demi-live-view-protocol",
- "demi-shared-recording-protocol",
- "demi-shared-types",
- "garde",
- "regex",
- "schemars",
- "serde",
- "serde_json",
- "serde_plain",
- "serde_with",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-command-package-claude-code-protocol"
-version = "0.1.65"
-dependencies = [
- "garde",
- "semver",
- "serde",
- "serde_json",
- "serde_plain",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-command-package-fetch-protocol"
-version = "0.1.65"
-dependencies = [
- "demi-shared-types",
- "garde",
- "schemars",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-command-package-file-protocol"
-version = "0.1.65"
-dependencies = [
- "demi-shared-types",
- "garde",
- "schemars",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-command-package-mobile-protocol"
-version = "0.1.65"
-dependencies = [
- "demi-live-view-protocol",
- "demi-shared-recording-protocol",
- "demi-shared-types",
- "garde",
- "schemars",
- "serde",
- "serde_json",
- "serde_plain",
- "serde_with",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-command-protocol"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "garde",
- "gix-imara-diff",
- "jiff",
- "schemars",
- "serde",
- "serde_json",
- "serde_json_canonicalizer",
- "serde_with",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "url",
-]
-
-[[package]]
-name = "demi-command-sdk"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "clap",
- "demi-command-protocol",
- "demi-shared-artifacts",
- "demi-shared-types",
- "futures-util",
- "h2",
- "http",
- "libc",
- "serde",
- "serde_json",
- "sync_wrapper",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "demi-conversation-lane-protocol"
-version = "0.1.65"
-dependencies = [
- "demi-shared-types",
- "garde",
- "schemars",
- "serde",
- "serde_json",
- "serde_plain",
- "serde_with",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-device-interface"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-declarations",
- "demi-command-protocol",
- "demi-device-paths",
- "demi-shared-types",
- "futures-util",
- "garde",
- "schemars",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
-]
-
-[[package]]
-name = "demi-device-paths"
-version = "0.1.65"
-dependencies = [
- "serde",
- "typed-path",
-]
-
-[[package]]
-name = "demi-fetch"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-package-fetch-protocol",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-shared-artifacts",
- "demi-shared-cli",
- "demi-shared-types",
- "encoding_rs",
- "htmd",
- "markup5ever_rcdom",
- "mime",
- "mime_guess",
- "percent-encoding",
- "reqwest",
- "serde",
- "serde_json",
- "shlex",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-file"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-package-file-protocol",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-shared-artifacts",
- "demi-shared-cli",
- "demi-shared-gates",
- "demi-shared-types",
- "image",
- "nom-exif",
- "regex",
- "shlex",
- "similar",
- "strsim",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-live-view"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-sdk",
- "demi-live-view",
- "demi-live-view-protocol",
- "demi-shared-types",
- "garde",
- "serde",
- "serde_json",
- "str0m-proto",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-live-view-protocol"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-shared-types",
- "garde",
- "schemars",
- "serde",
- "serde_json",
- "serde_with",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-machine-manager"
-version = "0.1.65"
-dependencies = [
- "bzip2",
- "clap",
- "demi-machine-manager-protocol",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-cli",
- "demi-shared-processes",
- "demi-shared-types",
- "demi-supervisor-protocol",
- "fs-err",
- "futures-util",
- "hickory-proto",
- "ipnet",
- "libc",
- "linux-raw-sys",
- "nftables",
- "oci-spec",
- "rtnetlink",
- "rustix",
- "sd-notify",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "tar",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "url",
- "uuid",
- "walkdir",
- "which",
- "zstd 0.13.3",
-]
-
-[[package]]
-name = "demi-machine-manager-protocol"
-version = "0.1.65"
-dependencies = [
- "demi-command-protocol",
- "demi-runner-protocol",
- "demi-shared-types",
- "garde",
- "ipnet",
- "serde",
- "serde_json",
- "serde_plain",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "demi-mobile"
-version = "0.1.65"
-dependencies = [
- "aws-lc-rs",
- "base64 0.22.1",
- "bytes",
- "demi-command-package-mobile-protocol",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-live-view",
- "demi-live-view-protocol",
- "demi-shared-artifacts",
- "demi-shared-cli",
- "demi-shared-h264",
- "demi-shared-openh264",
- "demi-shared-recording",
- "demi-shared-recording-protocol",
- "demi-shared-types",
- "fast_image_resize",
- "flate2",
- "futures-util",
- "garde",
- "http",
- "http-body-util",
- "hyper",
- "hyper-util",
- "image",
- "jiff",
- "kqueue",
- "kurbo",
- "libc",
- "notify",
- "prost",
- "protox",
- "roxmltree",
- "rustix",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "sysinfo",
- "tar",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
- "tracing",
- "windows-sys 0.61.2",
- "zip",
- "zstd 0.13.3",
-]
-
-[[package]]
-name = "demi-plugin-audio"
-version = "0.1.65"
-dependencies = [
- "demi-device-interface",
- "demi-plugin-interface",
- "demi-plugin-media",
- "demi-shared-types",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "demi-plugin-browser"
-version = "0.1.65"
-dependencies = [
- "demi-command-declarations",
- "demi-command-package-browser-protocol",
- "demi-device-interface",
- "demi-plugin-interface",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
- "serde_plain",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-plugin-changes"
-version = "0.1.65"
-dependencies = [
- "demi-plugin-interface",
-]
-
-[[package]]
-name = "demi-plugin-file"
-version = "0.1.65"
-dependencies = [
- "demi-command-declarations",
- "demi-command-package-file-protocol",
- "demi-device-interface",
- "demi-plugin-interface",
-]
-
-[[package]]
-name = "demi-plugin-file-browser"
-version = "0.1.65"
-dependencies = [
- "demi-plugin-interface",
- "futures-util",
-]
-
-[[package]]
-name = "demi-plugin-host"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "demi-command-declarations",
- "demi-device-interface",
- "demi-device-paths",
- "demi-plugin-interface",
- "demi-provider-common",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "jiff",
- "rand 0.9.5",
- "reqwest",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "demi-plugin-image"
-version = "0.1.65"
-dependencies = [
- "demi-device-interface",
- "demi-plugin-interface",
- "demi-plugin-media",
- "demi-shared-types",
- "futures-util",
- "image",
- "schemars",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "demi-plugin-interface"
-version = "0.1.65"
-dependencies = [
- "demi-command-declarations",
- "demi-device-interface",
- "demi-device-paths",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio-util",
- "url",
-]
-
-[[package]]
-name = "demi-plugin-media"
-version = "0.1.65"
-dependencies = [
- "demi-device-interface",
- "demi-plugin-interface",
- "demi-shared-types",
- "image",
- "jiff",
- "schemars",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "demi-plugin-mobile"
-version = "0.1.65"
-dependencies = [
- "demi-command-declarations",
- "demi-command-package-mobile-protocol",
- "demi-device-interface",
- "demi-live-view-protocol",
- "demi-plugin-interface",
- "demi-web-api-protocol",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
- "serde_plain",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "demi-plugin-skills"
-version = "0.1.65"
-dependencies = [
- "demi-device-interface",
- "demi-device-paths",
- "demi-plugin-interface",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "gix",
- "schemars",
- "serde",
- "serde-saphyr",
- "serde_json",
- "sha2 0.10.9",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "demi-plugin-video"
-version = "0.1.65"
-dependencies = [
- "demi-device-interface",
- "demi-plugin-interface",
- "demi-plugin-media",
- "demi-shared-types",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "demi-plugin-web"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "demi-command-declarations",
- "demi-command-package-fetch-protocol",
- "demi-device-interface",
- "demi-plugin-interface",
- "eventsource-stream",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "url",
-]
-
-[[package]]
-name = "demi-plugin-widget"
-version = "0.1.65"
-dependencies = [
- "demi-command-declarations",
- "demi-command-package-browser-protocol",
- "demi-command-protocol",
- "demi-device-interface",
- "demi-plugin-interface",
- "demi-shared-types",
- "entities",
- "flate2",
- "futures-util",
- "schemars",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "demi-provider-anthropic-api"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "demi-provider-bytedance"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "uuid",
-]
-
-[[package]]
-name = "demi-provider-claude-code"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "base64 0.22.1",
- "bytes",
- "demi-command-package-claude-code-protocol",
- "demi-device-interface",
- "demi-provider-common",
- "demi-shared-artifacts",
- "demi-shared-types",
- "futures-channel",
- "futures-util",
- "garde",
- "jiff",
- "reqwest",
- "rmcp",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "demi-provider-codex"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "bytes",
- "demi-provider-common",
- "demi-shared-artifacts",
- "demi-shared-types",
- "futures-util",
- "http",
- "reqwest",
- "semver",
- "serde",
- "serde_json",
- "serde_with",
- "tokio",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-provider-common"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "base64 0.22.1",
- "bytes",
- "demi-shared-artifacts",
- "demi-shared-gates",
- "demi-shared-types",
- "eventsource-stream",
- "futures-util",
- "http",
- "httpdate",
- "indexmap",
- "jiff",
- "regex",
- "reqwest",
- "schemars",
- "semver",
- "serde",
- "serde_json",
- "serde_path_to_error",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "demi-provider-elevenlabs"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "demi-provider-google"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "base64 0.22.1",
- "bytes",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "uuid",
-]
-
-[[package]]
-name = "demi-provider-grok-build"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "bytes",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "http",
- "reqwest",
- "semver",
- "serde",
- "serde_json",
- "serde_with",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "demi-provider-minimax"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "tar",
-]
-
-[[package]]
-name = "demi-provider-openai-api"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "bytes",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "demi-provider-registry"
-version = "0.1.65"
-dependencies = [
- "demi-provider-anthropic-api",
- "demi-provider-common",
- "demi-provider-openai-api",
- "demi-shared-types",
- "demi-web-api-protocol",
- "futures-util",
- "garde",
- "hex",
- "icu_collator",
- "jiff",
- "reqwest",
- "serde",
- "serde_json",
- "serde_json_canonicalizer",
- "serde_with",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "demi-provider-relay"
-version = "0.1.65"
-dependencies = [
- "async-stream",
- "base64 0.22.1",
- "bytes",
- "demi-provider-common",
- "demi-shared-types",
- "futures-util",
- "hex",
- "hostname",
- "http",
- "reqwest",
- "rmp-serde",
- "schemars",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "demi-runner"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "clap",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-runner-command-packages",
- "demi-runner-device",
- "demi-runner-direct",
- "demi-runner-jobs",
- "demi-runner-process",
- "demi-runner-protocol",
- "demi-runner-shell",
- "demi-shared-artifacts",
- "demi-shared-cli",
- "demi-shared-recording-protocol",
- "demi-shared-types",
- "dunce",
- "futures-util",
- "hostname",
- "libc",
- "objc2-core-foundation",
- "objc2-io-kit",
- "reqwest",
- "rustix",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "shlex",
- "subtle",
- "sysinfo",
- "thiserror 2.0.20",
- "tokio",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "url",
- "uuid",
- "uzers",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "demi-runner-client"
-version = "0.1.65"
-dependencies = [
- "axum",
- "bytes",
- "demi-command-declarations",
- "demi-command-protocol",
- "demi-device-interface",
- "demi-device-paths",
- "demi-runner-protocol",
- "demi-shared-gates",
- "demi-shared-types",
- "futures-util",
- "garde",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "demi-runner-command-packages"
-version = "0.1.65"
-dependencies = [
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-runner-process",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "futures-util",
- "process-wrap",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-runner-device"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-runner-process",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "dunce",
- "filetime",
- "fsevent-sys",
- "futures-util",
- "gix",
- "grep-matcher",
- "grep-regex",
- "grep-searcher",
- "ignore",
- "libc",
- "notify",
- "rustix",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "demi-runner-direct"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-live-view-protocol",
- "demi-runner-protocol",
- "futures-util",
- "garde",
- "if-addrs",
- "serde",
- "serde_json",
- "str0m",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "demi-runner-jobs"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-declarations",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-runner-command-packages",
- "demi-runner-process",
- "demi-runner-protocol",
- "futures-util",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "demi-runner-process"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "command-fds",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-lanes",
- "futures-util",
- "libc",
- "mach2",
- "process-wrap",
- "procfs",
- "reqwest",
- "rlimit",
- "rustix",
- "serde",
- "serde_json",
- "sysinfo",
- "tempfile",
- "tokio",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "uuid",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "demi-runner-protocol"
-version = "0.1.65"
-dependencies = [
- "bytes",
- "demi-command-declarations",
- "demi-command-protocol",
- "demi-device-paths",
- "demi-shared-types",
- "garde",
- "jiff",
- "rmp-serde",
- "schemars",
- "serde",
- "serde_bytes",
- "serde_json",
- "serde_plain",
- "serde_with",
- "sha2 0.10.9",
- "thiserror 2.0.20",
- "tokio",
- "typed-path",
- "url",
-]
-
-[[package]]
-name = "demi-runner-shell"
-version = "0.1.65"
-dependencies = [
- "brush-builtins",
- "brush-core",
- "bytes",
- "clap",
- "demi-command-protocol",
- "demi-command-sdk",
- "demi-runner-process",
- "demi-runner-protocol",
- "findutils",
- "futures-util",
- "libc",
- "process-wrap",
- "rlimit",
- "rustix",
- "sed",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "tracing",
- "uu_chgrp",
- "uu_chmod",
- "uu_chown",
- "uu_cp",
- "uu_csplit",
- "uu_dd",
- "uu_env",
- "uu_install",
- "uu_link",
- "uu_ln",
- "uu_mkdir",
- "uu_mkfifo",
- "uu_mknod",
- "uu_mktemp",
- "uu_mv",
- "uu_rm",
- "uu_rmdir",
- "uu_shred",
- "uu_shuf",
- "uu_sort",
- "uu_split",
- "uu_tee",
- "uu_touch",
- "uu_truncate",
- "uu_uniq",
- "uu_unlink",
- "uucore",
- "uuid",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "demi-server"
-version = "0.1.65"
-dependencies = [
- "clap",
- "demi-backend-database",
- "demi-machine-manager-protocol",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-cli",
- "demi-shared-processes",
- "demi-shared-types",
- "demi-supervisor-protocol",
- "demi-web-api-protocol",
- "dotenvy",
- "jiff",
- "rustix",
- "semver",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "tar",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "url",
- "which",
- "zstd 0.13.3",
-]
-
-[[package]]
-name = "demi-shared-artifacts"
-version = "0.1.65"
-dependencies = [
- "async-compression",
- "bytes",
- "futures-util",
- "jiff",
- "reqwest",
- "roxmltree",
- "semver",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "tar",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
- "zip",
- "zstd 0.13.3",
-]
-
-[[package]]
-name = "demi-shared-cli"
-version = "0.1.65"
-dependencies = [
- "clap",
- "mimalloc",
- "rlimit",
-]
-
-[[package]]
-name = "demi-shared-gates"
-version = "0.1.65"
-dependencies = [
- "tokio",
-]
-
-[[package]]
-name = "demi-shared-h264"
-version = "0.1.65"
-dependencies = [
- "demi-shared-openh264",
- "openh264",
- "openh264-sys2",
- "thiserror 2.0.20",
- "tracing",
- "windows 0.62.2",
- "yuv",
-]
-
-[[package]]
-name = "demi-shared-lanes"
-version = "0.1.65"
-dependencies = [
- "bytes",
-]
-
-[[package]]
-name = "demi-shared-openh264"
-version = "0.1.65"
-dependencies = [
- "aws-lc-rs",
- "bzip2",
- "demi-shared-artifacts",
- "futures-util",
- "openh264",
- "thiserror 2.0.20",
- "tokio",
- "tokio-util",
-]
-
-[[package]]
-name = "demi-shared-processes"
-version = "0.1.65"
-dependencies = [
- "fs-err",
- "libc",
- "rustix",
-]
-
-[[package]]
-name = "demi-shared-recording"
-version = "0.1.65"
-dependencies = [
- "ab_glyph",
- "demi-shared-h264",
- "demi-shared-openh264",
- "demi-shared-recording-protocol",
- "image",
- "openh264",
- "serde",
- "serde_json",
- "thiserror 2.0.20",
- "tiny-skia",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "demi-shared-recording-protocol"
-version = "0.1.65"
-dependencies = [
- "demi-shared-types",
- "schemars",
- "serde",
- "serde_json",
- "serde_with",
-]
-
-[[package]]
-name = "demi-shared-types"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "garde",
- "image",
- "jiff",
- "mp4parse",
- "regex",
- "schemars",
- "serde",
- "serde_json",
- "serde_plain",
- "serde_with",
- "sha2 0.10.9",
- "symphonia",
- "thiserror 2.0.20",
- "tracing",
- "tracing-subscriber",
- "unicode-width 0.2.2",
-]
-
-[[package]]
-name = "demi-supervisor-protocol"
-version = "0.1.65"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "demi-web-api-protocol"
-version = "0.1.65"
-dependencies = [
- "base64 0.22.1",
- "demi-command-protocol",
- "demi-conversation-lane-protocol",
- "demi-runner-protocol",
- "demi-shared-types",
- "garde",
- "jiff",
- "p256",
- "regex",
- "schemars",
- "serde",
- "serde_json",
- "serde_plain",
- "serde_with",
- "thiserror 2.0.20",
- "typed-path",
- "url",
- "webauthn-rs-proto",
-]
-
-[[package]]
 name = "der"
 version = "0.7.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6778,6 +4824,1960 @@ dependencies = [
  "num-traits",
  "serde_json",
  "zmij",
+]
+
+[[package]]
+name = "jush-agent-server"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "comrak",
+ "flate2",
+ "futures-util",
+ "jush-agent-server",
+ "jush-agent-session",
+ "jush-agent-store",
+ "jush-agent-tools",
+ "jush-agent-transcript",
+ "jush-conversation-lane-protocol",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-provider-common",
+ "jush-provider-openai-api",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "regex",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-agent-session"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "garde",
+ "jiter",
+ "jush-agent-session",
+ "jush-agent-store",
+ "jush-agent-transcript",
+ "jush-command-protocol",
+ "jush-conversation-lane-protocol",
+ "jush-device-interface",
+ "jush-provider-claude-code",
+ "jush-provider-common",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "rand 0.9.5",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-agent-store"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "garde",
+ "image",
+ "jush-command-protocol",
+ "jush-conversation-lane-protocol",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-provider-common",
+ "jush-shared-types",
+ "nom-exif",
+ "serde",
+ "thiserror 2.0.20",
+ "tokio",
+]
+
+[[package]]
+name = "jush-agent-tools"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "garde",
+ "jush-agent-session",
+ "jush-agent-store",
+ "jush-agent-transcript",
+ "jush-command-protocol",
+ "jush-conversation-lane-protocol",
+ "jush-device-interface",
+ "jush-provider-common",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde-saphyr",
+ "serde_json",
+ "serde_path_to_error",
+ "serde_with",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-agent-transcript"
+version = "0.1.65"
+dependencies = [
+ "comrak",
+ "jush-agent-store",
+ "jush-conversation-lane-protocol",
+ "jush-provider-common",
+ "jush-shared-types",
+ "percent-encoding",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "uuid",
+]
+
+[[package]]
+name = "jush-backend"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "clap",
+ "futures-util",
+ "hex",
+ "hkdf 0.12.4",
+ "jush-backend-accounts",
+ "jush-backend-blobs",
+ "jush-backend-cloud",
+ "jush-backend-database",
+ "jush-backend-device-access",
+ "jush-backend-http",
+ "jush-backend-providers",
+ "jush-backend-runners",
+ "jush-backend-user-shard",
+ "jush-command-declarations",
+ "jush-command-package-browser-protocol",
+ "jush-command-protocol",
+ "jush-device-interface",
+ "jush-machine-manager-protocol",
+ "jush-plugin-audio",
+ "jush-plugin-browser",
+ "jush-plugin-changes",
+ "jush-plugin-file",
+ "jush-plugin-file-browser",
+ "jush-plugin-image",
+ "jush-plugin-interface",
+ "jush-plugin-mobile",
+ "jush-plugin-skills",
+ "jush-plugin-video",
+ "jush-plugin-web",
+ "jush-plugin-widget",
+ "jush-provider-anthropic-api",
+ "jush-provider-bytedance",
+ "jush-provider-claude-code",
+ "jush-provider-codex",
+ "jush-provider-common",
+ "jush-provider-elevenlabs",
+ "jush-provider-google",
+ "jush-provider-grok-build",
+ "jush-provider-minimax",
+ "jush-provider-openai-api",
+ "jush-provider-registry",
+ "jush-provider-relay",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-cli",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "rand 0.9.5",
+ "reqwest",
+ "rustix",
+ "sd-notify",
+ "serde_json",
+ "sha2 0.10.9",
+ "sysinfo",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+]
+
+[[package]]
+name = "jush-backend-accounts"
+version = "0.1.65"
+dependencies = [
+ "argon2",
+ "base64 0.22.1",
+ "futures-util",
+ "hex",
+ "http",
+ "icu_locale",
+ "icu_time",
+ "jiff",
+ "jush-backend-database",
+ "jush-command-protocol",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "password-hash",
+ "rand 0.9.5",
+ "reqwest",
+ "rust-i18n",
+ "serde",
+ "serde_cbor_2",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+ "web-push-native",
+ "webauthn-rs",
+ "webauthn-rs-core",
+]
+
+[[package]]
+name = "jush-backend-blobs"
+version = "0.1.65"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "futures-util",
+ "jush-agent-store",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "object_store",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "jush-backend-cloud"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-backend-database",
+ "jush-backend-idle-watch",
+ "jush-backend-page-sync",
+ "jush-backend-providers",
+ "jush-backend-runners",
+ "jush-device-interface",
+ "jush-machine-manager-protocol",
+ "jush-provider-registry",
+ "jush-runner-client",
+ "jush-runner-protocol",
+ "jush-shared-gates",
+ "jush-web-api-protocol",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-backend-database"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "comrak",
+ "futures-util",
+ "garde",
+ "hashlink",
+ "hex",
+ "hmac 0.12.1",
+ "jiff",
+ "jush-agent-store",
+ "jush-backend-database",
+ "jush-conversation-lane-protocol",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-machine-manager-protocol",
+ "jush-plugin-host",
+ "jush-plugin-interface",
+ "jush-runner-client",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "openssl",
+ "password-hash",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "subtle",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-rusqlite",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "webauthn-rs",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "jush-backend-device-access"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "garde",
+ "http",
+ "jush-agent-store",
+ "jush-agent-tools",
+ "jush-backend-blobs",
+ "jush-backend-cloud",
+ "jush-backend-database",
+ "jush-backend-runners",
+ "jush-command-declarations",
+ "jush-command-protocol",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-plugin-interface",
+ "jush-runner-client",
+ "jush-runner-protocol",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "schemars",
+ "serde",
+ "serde_json",
+ "shlex",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "jush-backend-http"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "axum",
+ "axum-extra",
+ "bytes",
+ "cookie",
+ "data-encoding",
+ "futures-util",
+ "garde",
+ "http-body",
+ "hyper",
+ "hyper-util",
+ "jush-agent-store",
+ "jush-backend-accounts",
+ "jush-backend-blobs",
+ "jush-backend-cloud",
+ "jush-backend-database",
+ "jush-backend-device-access",
+ "jush-backend-page-sync",
+ "jush-backend-permissions",
+ "jush-backend-providers",
+ "jush-backend-runners",
+ "jush-backend-user-shard",
+ "jush-command-protocol",
+ "jush-conversation-lane-protocol",
+ "jush-device-interface",
+ "jush-plugin-host",
+ "jush-plugin-interface",
+ "jush-provider-common",
+ "jush-provider-registry",
+ "jush-provider-relay",
+ "jush-runner-client",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-lanes",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "mime",
+ "object_store",
+ "percent-encoding",
+ "rand 0.9.5",
+ "rust-i18n",
+ "rustix",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tower",
+ "tower-http",
+ "tracing",
+ "typed-path",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "jush-backend-idle-watch"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-shared-gates",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-backend-page-sync"
+version = "0.1.65"
+dependencies = [
+ "jush-backend-database",
+ "jush-plugin-host",
+ "jush-web-api-protocol",
+ "tokio",
+]
+
+[[package]]
+name = "jush-backend-permissions"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-backend-database",
+ "jush-backend-page-sync",
+ "jush-command-declarations",
+ "jush-device-interface",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "shlex",
+ "thiserror 2.0.20",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "jush-backend-providers"
+version = "0.1.65"
+dependencies = [
+ "aes-gcm 0.10.3",
+ "async-stream",
+ "futures-util",
+ "garde",
+ "jush-backend-database",
+ "jush-backend-page-sync",
+ "jush-provider-common",
+ "jush-provider-registry",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "rand 0.9.5",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "jush-backend-runners"
+version = "0.1.65"
+dependencies = [
+ "axum",
+ "bytes",
+ "data-encoding",
+ "futures-util",
+ "hex",
+ "jiff",
+ "jush-backend-blobs",
+ "jush-backend-database",
+ "jush-backend-page-sync",
+ "jush-command-protocol",
+ "jush-device-interface",
+ "jush-runner-client",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-gates",
+ "jush-web-api-protocol",
+ "object_store",
+ "percent-encoding",
+ "rand 0.9.5",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_json_canonicalizer",
+ "shlex",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "jush-backend-user-shard"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "futures-util",
+ "garde",
+ "hex",
+ "hmac 0.12.1",
+ "http",
+ "jiff",
+ "jush-agent-server",
+ "jush-agent-session",
+ "jush-agent-store",
+ "jush-agent-tools",
+ "jush-agent-transcript",
+ "jush-backend-accounts",
+ "jush-backend-blobs",
+ "jush-backend-cloud",
+ "jush-backend-database",
+ "jush-backend-device-access",
+ "jush-backend-idle-watch",
+ "jush-backend-page-sync",
+ "jush-backend-permissions",
+ "jush-backend-providers",
+ "jush-backend-runners",
+ "jush-command-declarations",
+ "jush-command-package-claude-code-protocol",
+ "jush-command-protocol",
+ "jush-conversation-lane-protocol",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-machine-manager-protocol",
+ "jush-plugin-host",
+ "jush-plugin-interface",
+ "jush-provider-claude-code",
+ "jush-provider-common",
+ "jush-provider-registry",
+ "jush-provider-relay",
+ "jush-runner-client",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "object_store",
+ "rand 0.9.5",
+ "reqwest",
+ "schemars",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "subtle",
+ "sysinfo",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "uuid",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "jush-browser"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "jush-command-package-browser-chrome",
+ "jush-command-package-browser-protocol",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-shared-cli",
+ "jush-shared-openh264",
+ "jush-shared-recording",
+ "jush-shared-recording-protocol",
+ "png",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-claude-code"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "jush-command-package-claude-code-protocol",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-shared-cli",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "jush-command-declarations"
+version = "0.1.65"
+dependencies = [
+ "clap",
+ "jsonschema",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-command-package-browser-chrome"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "chromiumoxide",
+ "futures-util",
+ "garde",
+ "getrandom 0.4.3",
+ "image",
+ "jsonschema",
+ "jush-command-package-browser-protocol",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-live-view",
+ "jush-live-view-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-recording",
+ "jush-shared-recording-protocol",
+ "jush-shared-types",
+ "libc",
+ "png",
+ "regex",
+ "resvg",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "jush-command-package-browser-protocol"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "garde",
+ "jush-live-view-protocol",
+ "jush-shared-recording-protocol",
+ "jush-shared-types",
+ "regex",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "serde_with",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-command-package-claude-code-protocol"
+version = "0.1.65"
+dependencies = [
+ "garde",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-command-package-fetch-protocol"
+version = "0.1.65"
+dependencies = [
+ "garde",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-command-package-file-protocol"
+version = "0.1.65"
+dependencies = [
+ "garde",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-command-package-mobile-protocol"
+version = "0.1.65"
+dependencies = [
+ "garde",
+ "jush-live-view-protocol",
+ "jush-shared-recording-protocol",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "serde_with",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-command-protocol"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "garde",
+ "gix-imara-diff",
+ "jiff",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_json_canonicalizer",
+ "serde_with",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "url",
+]
+
+[[package]]
+name = "jush-command-sdk"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "clap",
+ "futures-util",
+ "h2",
+ "http",
+ "jush-command-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-types",
+ "libc",
+ "serde",
+ "serde_json",
+ "sync_wrapper",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "jush-conversation-lane-protocol"
+version = "0.1.65"
+dependencies = [
+ "garde",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "serde_with",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-device-interface"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "garde",
+ "jush-command-declarations",
+ "jush-command-protocol",
+ "jush-device-paths",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
+name = "jush-device-paths"
+version = "0.1.65"
+dependencies = [
+ "serde",
+ "typed-path",
+]
+
+[[package]]
+name = "jush-fetch"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "encoding_rs",
+ "htmd",
+ "jush-command-package-fetch-protocol",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-shared-artifacts",
+ "jush-shared-cli",
+ "jush-shared-types",
+ "markup5ever_rcdom",
+ "mime",
+ "mime_guess",
+ "percent-encoding",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "shlex",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-file"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "image",
+ "jush-command-package-file-protocol",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-shared-artifacts",
+ "jush-shared-cli",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "nom-exif",
+ "regex",
+ "shlex",
+ "similar",
+ "strsim",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-live-view"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "garde",
+ "jush-command-sdk",
+ "jush-live-view",
+ "jush-live-view-protocol",
+ "jush-shared-types",
+ "serde",
+ "serde_json",
+ "str0m-proto",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-live-view-protocol"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "garde",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-machine-manager"
+version = "0.1.65"
+dependencies = [
+ "bzip2",
+ "clap",
+ "fs-err",
+ "futures-util",
+ "hickory-proto",
+ "ipnet",
+ "jush-machine-manager-protocol",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-cli",
+ "jush-shared-processes",
+ "jush-shared-types",
+ "jush-supervisor-protocol",
+ "libc",
+ "linux-raw-sys",
+ "nftables",
+ "oci-spec",
+ "rtnetlink",
+ "rustix",
+ "sd-notify",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tar",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "uuid",
+ "walkdir",
+ "which",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "jush-machine-manager-protocol"
+version = "0.1.65"
+dependencies = [
+ "garde",
+ "ipnet",
+ "jush-command-protocol",
+ "jush-runner-protocol",
+ "jush-shared-types",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "thiserror 2.0.20",
+]
+
+[[package]]
+name = "jush-mobile"
+version = "0.1.65"
+dependencies = [
+ "aws-lc-rs",
+ "base64 0.22.1",
+ "bytes",
+ "fast_image_resize",
+ "flate2",
+ "futures-util",
+ "garde",
+ "http",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "image",
+ "jiff",
+ "jush-command-package-mobile-protocol",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-live-view",
+ "jush-live-view-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-cli",
+ "jush-shared-h264",
+ "jush-shared-openh264",
+ "jush-shared-recording",
+ "jush-shared-recording-protocol",
+ "jush-shared-types",
+ "kqueue",
+ "kurbo",
+ "libc",
+ "notify",
+ "prost",
+ "protox",
+ "roxmltree",
+ "rustix",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "sysinfo",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+ "tracing",
+ "windows-sys 0.61.2",
+ "zip",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "jush-plugin-audio"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-device-interface",
+ "jush-plugin-interface",
+ "jush-plugin-media",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jush-plugin-browser"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-command-declarations",
+ "jush-command-package-browser-protocol",
+ "jush-device-interface",
+ "jush-plugin-interface",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-plugin-changes"
+version = "0.1.65"
+dependencies = [
+ "jush-plugin-interface",
+]
+
+[[package]]
+name = "jush-plugin-file"
+version = "0.1.65"
+dependencies = [
+ "jush-command-declarations",
+ "jush-command-package-file-protocol",
+ "jush-device-interface",
+ "jush-plugin-interface",
+]
+
+[[package]]
+name = "jush-plugin-file-browser"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-plugin-interface",
+]
+
+[[package]]
+name = "jush-plugin-host"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "futures-util",
+ "jiff",
+ "jush-command-declarations",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-plugin-interface",
+ "jush-provider-common",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "rand 0.9.5",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "jush-plugin-image"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "image",
+ "jush-device-interface",
+ "jush-plugin-interface",
+ "jush-plugin-media",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "jush-plugin-interface"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-command-declarations",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
+name = "jush-plugin-media"
+version = "0.1.65"
+dependencies = [
+ "image",
+ "jiff",
+ "jush-device-interface",
+ "jush-plugin-interface",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jush-plugin-mobile"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-command-declarations",
+ "jush-command-package-mobile-protocol",
+ "jush-device-interface",
+ "jush-live-view-protocol",
+ "jush-plugin-interface",
+ "jush-web-api-protocol",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "jush-plugin-skills"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "gix",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-plugin-interface",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "schemars",
+ "serde",
+ "serde-saphyr",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "jush-plugin-video"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-device-interface",
+ "jush-plugin-interface",
+ "jush-plugin-media",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jush-plugin-web"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "eventsource-stream",
+ "futures-util",
+ "jush-command-declarations",
+ "jush-command-package-fetch-protocol",
+ "jush-device-interface",
+ "jush-plugin-interface",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "url",
+]
+
+[[package]]
+name = "jush-plugin-widget"
+version = "0.1.65"
+dependencies = [
+ "entities",
+ "flate2",
+ "futures-util",
+ "jush-command-declarations",
+ "jush-command-package-browser-protocol",
+ "jush-command-protocol",
+ "jush-device-interface",
+ "jush-plugin-interface",
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jush-provider-anthropic-api"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "futures-util",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "jush-provider-bytedance"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "futures-util",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "jush-provider-claude-code"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "base64 0.22.1",
+ "bytes",
+ "futures-channel",
+ "futures-util",
+ "garde",
+ "jiff",
+ "jush-command-package-claude-code-protocol",
+ "jush-device-interface",
+ "jush-provider-common",
+ "jush-shared-artifacts",
+ "jush-shared-types",
+ "reqwest",
+ "rmcp",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "jush-provider-codex"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "bytes",
+ "futures-util",
+ "http",
+ "jush-provider-common",
+ "jush-shared-artifacts",
+ "jush-shared-types",
+ "reqwest",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-provider-common"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "base64 0.22.1",
+ "bytes",
+ "eventsource-stream",
+ "futures-util",
+ "http",
+ "httpdate",
+ "indexmap",
+ "jiff",
+ "jush-shared-artifacts",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "regex",
+ "reqwest",
+ "schemars",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "jush-provider-elevenlabs"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jush-provider-google"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "base64 0.22.1",
+ "bytes",
+ "futures-util",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "jush-provider-grok-build"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "bytes",
+ "futures-util",
+ "http",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "jush-provider-minimax"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tar",
+]
+
+[[package]]
+name = "jush-provider-openai-api"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "bytes",
+ "futures-util",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "jush-provider-registry"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "garde",
+ "hex",
+ "icu_collator",
+ "jiff",
+ "jush-provider-anthropic-api",
+ "jush-provider-common",
+ "jush-provider-openai-api",
+ "jush-shared-types",
+ "jush-web-api-protocol",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_json_canonicalizer",
+ "serde_with",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "jush-provider-relay"
+version = "0.1.65"
+dependencies = [
+ "async-stream",
+ "base64 0.22.1",
+ "bytes",
+ "futures-util",
+ "hex",
+ "hostname",
+ "http",
+ "jush-provider-common",
+ "jush-shared-types",
+ "reqwest",
+ "rmp-serde",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "jush-runner"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "clap",
+ "dunce",
+ "futures-util",
+ "hostname",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-runner-command-packages",
+ "jush-runner-device",
+ "jush-runner-direct",
+ "jush-runner-jobs",
+ "jush-runner-process",
+ "jush-runner-protocol",
+ "jush-runner-shell",
+ "jush-shared-artifacts",
+ "jush-shared-cli",
+ "jush-shared-recording-protocol",
+ "jush-shared-types",
+ "libc",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "reqwest",
+ "rustix",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "shlex",
+ "subtle",
+ "sysinfo",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "uuid",
+ "uzers",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "jush-runner-client"
+version = "0.1.65"
+dependencies = [
+ "axum",
+ "bytes",
+ "futures-util",
+ "garde",
+ "jush-command-declarations",
+ "jush-command-protocol",
+ "jush-device-interface",
+ "jush-device-paths",
+ "jush-runner-protocol",
+ "jush-shared-gates",
+ "jush-shared-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "jush-runner-command-packages"
+version = "0.1.65"
+dependencies = [
+ "futures-util",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-runner-process",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "process-wrap",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-runner-device"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "dunce",
+ "filetime",
+ "fsevent-sys",
+ "futures-util",
+ "gix",
+ "grep-matcher",
+ "grep-regex",
+ "grep-searcher",
+ "ignore",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-runner-process",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "libc",
+ "notify",
+ "rustix",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "jush-runner-direct"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "garde",
+ "if-addrs",
+ "jush-live-view-protocol",
+ "jush-runner-protocol",
+ "serde",
+ "serde_json",
+ "str0m",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "jush-runner-jobs"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "jush-command-declarations",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-runner-command-packages",
+ "jush-runner-process",
+ "jush-runner-protocol",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "jush-runner-process"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "command-fds",
+ "futures-util",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-lanes",
+ "libc",
+ "mach2",
+ "process-wrap",
+ "procfs",
+ "reqwest",
+ "rlimit",
+ "rustix",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "tempfile",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "uuid",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "jush-runner-protocol"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+ "garde",
+ "jiff",
+ "jush-command-declarations",
+ "jush-command-protocol",
+ "jush-device-paths",
+ "jush-shared-types",
+ "rmp-serde",
+ "schemars",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_plain",
+ "serde_with",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "tokio",
+ "typed-path",
+ "url",
+]
+
+[[package]]
+name = "jush-runner-shell"
+version = "0.1.65"
+dependencies = [
+ "brush-builtins",
+ "brush-core",
+ "bytes",
+ "clap",
+ "findutils",
+ "futures-util",
+ "jush-command-protocol",
+ "jush-command-sdk",
+ "jush-runner-process",
+ "jush-runner-protocol",
+ "libc",
+ "process-wrap",
+ "rlimit",
+ "rustix",
+ "sed",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uu_chgrp",
+ "uu_chmod",
+ "uu_chown",
+ "uu_cp",
+ "uu_csplit",
+ "uu_dd",
+ "uu_env",
+ "uu_install",
+ "uu_link",
+ "uu_ln",
+ "uu_mkdir",
+ "uu_mkfifo",
+ "uu_mknod",
+ "uu_mktemp",
+ "uu_mv",
+ "uu_rm",
+ "uu_rmdir",
+ "uu_shred",
+ "uu_shuf",
+ "uu_sort",
+ "uu_split",
+ "uu_tee",
+ "uu_touch",
+ "uu_truncate",
+ "uu_uniq",
+ "uu_unlink",
+ "uucore",
+ "uuid",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "jush-server"
+version = "0.1.65"
+dependencies = [
+ "clap",
+ "dotenvy",
+ "jiff",
+ "jush-backend-database",
+ "jush-machine-manager-protocol",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-cli",
+ "jush-shared-processes",
+ "jush-shared-types",
+ "jush-supervisor-protocol",
+ "jush-web-api-protocol",
+ "rustix",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "url",
+ "which",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "jush-shared-artifacts"
+version = "0.1.65"
+dependencies = [
+ "async-compression",
+ "bytes",
+ "futures-util",
+ "jiff",
+ "reqwest",
+ "roxmltree",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+ "zip",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "jush-shared-cli"
+version = "0.1.65"
+dependencies = [
+ "clap",
+ "mimalloc",
+ "rlimit",
+]
+
+[[package]]
+name = "jush-shared-gates"
+version = "0.1.65"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
+name = "jush-shared-h264"
+version = "0.1.65"
+dependencies = [
+ "jush-shared-openh264",
+ "openh264",
+ "openh264-sys2",
+ "thiserror 2.0.20",
+ "tracing",
+ "windows 0.62.2",
+ "yuv",
+]
+
+[[package]]
+name = "jush-shared-lanes"
+version = "0.1.65"
+dependencies = [
+ "bytes",
+]
+
+[[package]]
+name = "jush-shared-openh264"
+version = "0.1.65"
+dependencies = [
+ "aws-lc-rs",
+ "bzip2",
+ "futures-util",
+ "jush-shared-artifacts",
+ "openh264",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
+name = "jush-shared-processes"
+version = "0.1.65"
+dependencies = [
+ "fs-err",
+ "libc",
+ "rustix",
+]
+
+[[package]]
+name = "jush-shared-recording"
+version = "0.1.65"
+dependencies = [
+ "ab_glyph",
+ "image",
+ "jush-shared-h264",
+ "jush-shared-openh264",
+ "jush-shared-recording-protocol",
+ "openh264",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tiny-skia",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "jush-shared-recording-protocol"
+version = "0.1.65"
+dependencies = [
+ "jush-shared-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_with",
+]
+
+[[package]]
+name = "jush-shared-types"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "garde",
+ "image",
+ "jiff",
+ "mp4parse",
+ "regex",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "serde_with",
+ "sha2 0.10.9",
+ "symphonia",
+ "thiserror 2.0.20",
+ "tracing",
+ "tracing-subscriber",
+ "unicode-width 0.2.2",
+]
+
+[[package]]
+name = "jush-supervisor-protocol"
+version = "0.1.65"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jush-web-api-protocol"
+version = "0.1.65"
+dependencies = [
+ "base64 0.22.1",
+ "garde",
+ "jiff",
+ "jush-command-protocol",
+ "jush-conversation-lane-protocol",
+ "jush-runner-protocol",
+ "jush-shared-types",
+ "p256",
+ "regex",
+ "schemars",
+ "serde",
+ "serde_json",
+ "serde_plain",
+ "serde_with",
+ "thiserror 2.0.20",
+ "typed-path",
+ "url",
+ "webauthn-rs-proto",
 ]
 
 [[package]]
@@ -12217,29 +12217,29 @@ version = "0.1.65"
 dependencies = [
  "axum",
  "clap",
- "demi-backend",
- "demi-command-package-browser-protocol",
- "demi-command-package-claude-code-protocol",
- "demi-command-package-fetch-protocol",
- "demi-command-package-file-protocol",
- "demi-command-package-mobile-protocol",
- "demi-command-protocol",
- "demi-conversation-lane-protocol",
- "demi-live-view-protocol",
- "demi-machine-manager-protocol",
- "demi-plugin-interface",
- "demi-plugin-widget",
- "demi-provider-common",
- "demi-provider-registry",
- "demi-runner-protocol",
- "demi-shared-artifacts",
- "demi-shared-lanes",
- "demi-shared-types",
- "demi-web-api-protocol",
  "flate2",
  "fs_extra",
  "futures-util",
  "garde",
+ "jush-backend",
+ "jush-command-package-browser-protocol",
+ "jush-command-package-claude-code-protocol",
+ "jush-command-package-fetch-protocol",
+ "jush-command-package-file-protocol",
+ "jush-command-package-mobile-protocol",
+ "jush-command-protocol",
+ "jush-conversation-lane-protocol",
+ "jush-live-view-protocol",
+ "jush-machine-manager-protocol",
+ "jush-plugin-interface",
+ "jush-plugin-widget",
+ "jush-provider-common",
+ "jush-provider-registry",
+ "jush-runner-protocol",
+ "jush-shared-artifacts",
+ "jush-shared-lanes",
+ "jush-shared-types",
+ "jush-web-api-protocol",
  "log",
  "process-wrap",
  "reqwest",

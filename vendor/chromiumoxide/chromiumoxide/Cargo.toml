@@ -221,8 +221,8 @@ version = "0.3"
 [target."cfg(windows)".dependencies.windows-registry]
 version = "0.6"
 
-[package.metadata.demi]
-maintainer = "demi-command-package-browser-chrome"
+[package.metadata.jush]
+maintainer = "jush-command-package-browser-chrome"
 patches = [
     "Bounded event subscriptions whose loss is an explicit lag error, in place of unbounded channels",
     "Bounded CDP websocket messages (64 MiB): an oversized message is read off the socket and discarded, and fails only the request it answers (error code MESSAGE_TOO_LARGE), or the connection when it is an event",
@@ -234,5 +234,5 @@ patches = [
     "Flattened child targets (out-of-process frames) are registered with their parent's session, their console messages reach their tab, and target creation and attachment may arrive in either order",
     "License files have Unix line endings",
     "The CDP connection is tokio-tungstenite 0.29, the workspace's WebSocket, in place of async-tungstenite 0.32 with a second tungstenite",
-    "Connecting takes the DevTools WebSocket URL only: the lookup over HTTP at json/version, which alone needed reqwest 0.13, is left out, since Demi connects to the Chrome it launched",
+    "Connecting takes the DevTools WebSocket URL only: the lookup over HTTP at json/version, which alone needed reqwest 0.13, is left out, since Jush connects to the Chrome it launched",
 ]

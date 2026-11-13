@@ -4,24 +4,24 @@
     "version": "버전",
     "acknowledgements": {
       "title": "감사의 말",
-      "description": "Demi에 포함된 오픈 소스 소프트웨어와 라이선스입니다.",
+      "description": "Jush에 포함된 오픈 소스 소프트웨어와 라이선스입니다.",
       "loading": "감사의 말을 불러오는 중…",
       "none": "감사의 말 없음"
     }
   },
   "updates": {
     "title": "업데이트",
-    "description": "이 서버의 Demi를 모든 계정을 위해 업데이트합니다.",
-    "current": "Demi {version}",
-    "upToDate": "Demi가 최신 상태입니다",
-    "available": "Demi {version} 사용 가능",
+    "description": "이 서버의 Jush를 모든 계정을 위해 업데이트합니다.",
+    "current": "Jush {version}",
+    "upToDate": "Jush가 최신 상태입니다",
+    "available": "Jush {version} 사용 가능",
     "youHave": "현재 버전: {version}",
     "background": {
       "starting": "백그라운드에서 다운로드 중…",
       "downloading": "백그라운드에서 다운로드 중: {all} 중 {done}",
       "installing": "백그라운드에서 설치 중…",
       "ready": "설치할 준비가 되었습니다. 현재 버전: {version}",
-      "failed": "백그라운드에서 Demi {version}을(를) 다운로드할 수 없습니다. 현재 버전: {running}"
+      "failed": "백그라운드에서 Jush {version}을(를) 다운로드할 수 없습니다. 현재 버전: {running}"
     },
     "releaseNotes": "릴리스 노트",
     "updateNow": "지금 업데이트",
@@ -30,34 +30,34 @@
     "lastChecked": "마지막 확인: {when}",
     "neverChecked": "아직 확인하지 않음",
     "checkNow": "지금 확인",
-    "downloading": "Demi {version} 다운로드 중",
+    "downloading": "Jush {version} 다운로드 중",
     "downloaded": "{all} 중 {done}",
     "speed": "{size}/초",
-    "preparing": "Demi {version} 준비 중…",
-    "restarting": "Demi 재시작 중…",
+    "preparing": "Jush {version} 준비 중…",
+    "restarting": "Jush 재시작 중…",
     "failed": "{version}(으)로 업데이트할 수 없음",
-    "failedNoVersion": "업데이트할 수 없습니다. Demi는 계속 {running}입니다.",
+    "failedNoVersion": "업데이트할 수 없습니다. Jush는 계속 {running}입니다.",
     "channel": "업데이트 채널",
     "channelDescription": "Canary는 아직 아무도 서버에서 써 보지 않은 최신 빌드를 가장 먼저 받습니다.",
     "prepareAhead": "업데이트 자동 다운로드",
     "prepareAheadDescription": "업데이트할 때 다운로드를 기다리지 않아도 됩니다. Canary에서는 권장하지 않습니다. 릴리스가 잦아 트래픽을 많이 사용합니다.",
     "beta": "Beta",
     "canary": "Canary",
-    "confirmTitle": "Demi를 {version}(으)로 업데이트하시겠습니까?",
-    "confirmBody": "Demi가 재시작되어 몇 분 동안 모든 사용자가 사용할 수 없습니다.",
+    "confirmTitle": "Jush를 {version}(으)로 업데이트하시겠습니까?",
+    "confirmBody": "Jush가 재시작되어 몇 분 동안 모든 사용자가 사용할 수 없습니다.",
     "confirmAgents": "에이전트 {count}개가 작업 중이며, 업데이트 후 계속됩니다.",
     "update": "업데이트",
-    "updatingTo": "Demi {version}(으)로 업데이트 중",
+    "updatingTo": "Jush {version}(으)로 업데이트 중",
     "stepOf": "{count}단계 중 {number}단계: {step}",
     "failedAt": "{count}단계 중 {number}단계 실패: {step}",
     "steps": {
-      "download": "Demi {version} 다운로드",
-      "unpack": "Demi {version} 압축 풀기",
+      "download": "Jush {version} 다운로드",
+      "unpack": "Jush {version} 압축 풀기",
       "checkConfiguration": "설정 확인",
       "downloadGvisor": "gVisor 다운로드",
       "installImage": "Cloud 이미지 설치",
       "checkDatabases": "데이터베이스 확인",
-      "restart": "Demi 재시작"
+      "restart": "Jush 재시작"
     },
     "detail": {
       "of": "{done}/{count}",
@@ -140,13 +140,13 @@
   },
   "storage": {
     "title": "저장 공간",
-    "description": "Demi가 서버와 내 기기에서 사용하는 공간입니다.",
+    "description": "Jush가 서버와 내 기기에서 사용하는 공간입니다.",
     "loading": "저장 공간을 불러오는 중…",
     "server": "서버",
     "devices": "기기",
     "rulesDescription": "모든 기기가 이 규칙에 따라 자동으로 정리됩니다.",
     "used": "{total} 중 {used} 사용됨",
-    "demiSize": "Demi {size}",
+    "jushSize": "Jush {size}",
     "measured": "측정",
     "notMeasured": "아직 측정 안 됨",
     "diskUsed": "디스크 {percent} 사용됨",
@@ -192,7 +192,7 @@
     "cacheBody": "사용 중이 아닌 브라우저 로그인 상태와 화면 기록이 {device}에서 삭제됩니다. 에이전트가 다시 로그인해야 할 수 있습니다.",
     "cacheAction": "지우기",
     "componentsTitle": "구성 요소를 삭제하시겠습니까?",
-    "componentsBody": "사용 중이 아닌 구성 요소가 {device}에서 삭제됩니다. 필요할 때 Demi가 다시 다운로드합니다.",
+    "componentsBody": "사용 중이 아닌 구성 요소가 {device}에서 삭제됩니다. 필요할 때 Jush가 다시 다운로드합니다.",
     "componentsAction": "삭제",
     "byConversation": "대화별",
     "deletedConversation": "삭제된 대화",
@@ -286,26 +286,26 @@
       "title": "브라우저",
       "label": "브라우저 알림",
       "quietWhileElsewhere": "다른 기기 사용 중에는 알리지 않음",
-      "quietWhileElsewhereDescription": "다른 기기에서 Demi를 사용하는 동안에는 턴 완료나 실패를 여기서 알리지 않습니다. 그 기기를 {minutes}분 동안 사용하지 않으면 다시 알립니다. 권한 요청과 에이전트의 알림은 항상 받습니다.",
+      "quietWhileElsewhereDescription": "다른 기기에서 Jush를 사용하는 동안에는 턴 완료나 실패를 여기서 알리지 않습니다. 그 기기를 {minutes}분 동안 사용하지 않으면 다시 알립니다. 권한 요청과 에이전트의 알림은 항상 받습니다.",
       "blocked": "이 브라우저의 사이트 설정에서 차단되었습니다.",
-      "thisBrowser": "이 브라우저에서만 적용됩니다. Demi를 닫아도 받습니다.",
+      "thisBrowser": "이 브라우저에서만 적용됩니다. Jush를 닫아도 받습니다.",
       "unsupported": "이 브라우저는 알림을 지원하지 않습니다."
     },
     "when": {
       "title": "알림 받을 때",
       "turnFinishes": "턴이 끝날 때",
       "turnFails": "턴이 실패할 때",
-      "needsPermission": "Demi가 권한을 요청할 때",
+      "needsPermission": "Jush가 권한을 요청할 때",
       "turnOnFirst": "먼저 브라우저 알림을 켜십시오.",
       "agentNotifies": "에이전트가 알림을 보낼 때"
     },
     "homeScreen": {
-      "title": "iPhone에서 알림을 받으려면 Demi를 홈 화면에 추가하십시오",
+      "title": "iPhone에서 알림을 받으려면 Jush를 홈 화면에 추가하십시오",
       "share": "Safari 도구 막대에서 공유를 탭하십시오.",
       "add": "홈 화면에 추가를 선택하십시오.",
-      "open": "홈 화면에서 Demi를 열고 알림을 켜십시오.",
+      "open": "홈 화면에서 Jush를 열고 알림을 켜십시오.",
       "ok": "확인",
-      "row": "알림을 받으려면 Demi를 홈 화면에 추가하십시오",
+      "row": "알림을 받으려면 Jush를 홈 화면에 추가하십시오",
       "howTo": "추가 방법"
     }
   },
@@ -422,7 +422,7 @@
       "finishesKeywords": "완료,끝",
       "failsKeywords": "오류",
       "permissionKeywords": "권한 요청",
-      "agentKeywords": "demi notify,에이전트 알림,푸시",
+      "agentKeywords": "jush notify,에이전트 알림,푸시",
       "homeScreenKeywords": "홈 화면,iPhone,iPad,홈 화면에 추가"
     },
     "agentPage": {
@@ -613,7 +613,7 @@
     "reset": {
       "title": "“{name}”의 비밀번호를 재설정하시겠습니까?",
       "action": "비밀번호 재설정",
-      "body": "Demi가 새 초기 비밀번호를 만들어 한 번만 표시합니다. 현재 비밀번호는 더 이상 사용할 수 없습니다. 로그인한 브라우저와 패스키는 유지됩니다."
+      "body": "Jush가 새 초기 비밀번호를 만들어 한 번만 표시합니다. 현재 비밀번호는 더 이상 사용할 수 없습니다. 로그인한 브라우저와 패스키는 유지됩니다."
     },
     "signOutEverywhere": {
       "title": "{name}님을 모든 곳에서 로그아웃하시겠습니까?",
@@ -814,7 +814,7 @@
     "context": "컨텍스트 길이",
     "contextDescription": "서브에이전트가 사용하는 컨텍스트 길이입니다.",
     "instructions": "지침",
-    "instructionsDescription": "선택 사항입니다. Demi 자체 지침에 추가됩니다.",
+    "instructionsDescription": "선택 사항입니다. Jush 자체 지침에 추가됩니다.",
     "mayStart": "서브에이전트 시작 허용",
     "mayStartDescription": "서브에이전트가 다시 서브에이전트를 시작할 수 있게 합니다.",
     "delete": "삭제",
@@ -921,7 +921,7 @@
       "keyPaste": "API 키 붙여넣기",
       "shareKey": "공유 키",
       "shareKeyPaste": "공유 키 붙여넣기",
-      "shareKeyHint": "다른 Demi의 설정에서 제공업체 이름 옆의 공유로 만드세요.",
+      "shareKeyHint": "다른 Jush의 설정에서 제공업체 이름 옆의 공유로 만드세요.",
       "lender": "{server}에서 공유",
       "test": "연결 테스트",
       "testDescription": "켜져 있는 첫 번째 텍스트 모델에 짧은 채팅 메시지를 하나 보냅니다.",
@@ -1002,7 +1002,7 @@
       "keeps": "{name}에서는 현재 활성 계정이 계속 사용됩니다.",
       "switches": "{name}에서는 “{next}” 계정으로 전환됩니다.",
       "none": "{name}에 남은 계정이 없습니다. 계정을 추가하기 전에는 사용할 수 없습니다.",
-      "forgets": "Demi가 로그인 정보를 지웁니다. 계정 추가로 다시 추가할 수 있습니다."
+      "forgets": "Jush가 로그인 정보를 지웁니다. 계정 추가로 다시 추가할 수 있습니다."
     },
     "removeModel": {
       "title": "“{name}” 모델을 제거하시겠습니까?",
@@ -1011,7 +1011,7 @@
     "warning": {
       "title": "여러 계정을 사용하시겠습니까?",
       "body": "여러 구독 계정을 사용하거나 계정 간에 순환하면 제공업체의 서비스 약관을 위반할 수 있습니다. 이에 따른 위험은 사용자 본인이 부담합니다.",
-      "once": "Demi는 다시 묻지 않습니다."
+      "once": "Jush는 다시 묻지 않습니다."
     },
     "connected": "“{account}” 연결됨",
     "testFailed": "“{account}” 테스트 실패",
@@ -1021,7 +1021,7 @@
     "share": {
       "share": "공유",
       "title": "{name} 공유",
-      "who": "공유 키가 있으면 다른 Demi 서버에서 이 제공업체를 사용할 수 있습니다. 대화는 그 서버에 남고 모델 요청만 이곳으로 옵니다. 키는 만들 때 한 번만 표시됩니다.",
+      "who": "공유 키가 있으면 다른 Jush 서버에서 이 제공업체를 사용할 수 있습니다. 대화는 그 서버에 남고 모델 요청만 이곳으로 옵니다. 키는 만들 때 한 번만 표시됩니다.",
       "field": "공유 키",
       "creating": "키를 만드는 중…",
       "empty": "새 키를 클릭해 키 만들기",
@@ -1048,8 +1048,8 @@
     "title": "제공업체 추가",
     "compatible": "호환 API",
     "compatibleHint": "프록시 또는 직접 운영하는 서버",
-    "borrowed": "다른 Demi",
-    "borrowedHint": "다른 Demi 서버가 공유하는 제공업체",
+    "borrowed": "다른 Jush",
+    "borrowedHint": "다른 Jush 서버가 공유하는 제공업체",
     "proxy": "프록시",
     "vendors": "서비스",
     "loading": "서비스 목록을 불러오는 중…",

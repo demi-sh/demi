@@ -4,7 +4,7 @@
 // slot's browser, state and output, so two slots never share anything.
 import { basename, dirname, join, resolve } from 'node:path'
 
-/** The ports of slot n's servers (`.demi/workflows/parallel.yaml`, Slots and git). */
+/** The ports of slot n's servers (`.jush/workflows/parallel.yaml`, Slots and git). */
 export interface SlotPorts {
   backend: number
   web: number
@@ -12,7 +12,7 @@ export interface SlotPorts {
   /**
    * Where the browser reaches the web app: the slot's network, which passes
    * the page's requests and sockets on to the web server and adds what
-   * `demi.net` sets.
+   * `jush.net` sets.
    */
   network: number
   /** Where the slot's backend reaches the scripted model (`model.ts`). */

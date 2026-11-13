@@ -6,7 +6,7 @@ status: accepted
 
 ## Context and Problem Statement
 
-Demi's plugins are built in, and the user turns each one on or off. Turning
+Jush's plugins are built in, and the user turns each one on or off. Turning
 one off today is applied unevenly:
 
 * Its instance and the tasks it started keep running.

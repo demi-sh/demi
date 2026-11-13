@@ -127,7 +127,7 @@ under 1% of what the turns themselves cost.
 
 - Gmail's [Suggested Replies](https://support.google.com/mail/answer/15464729)
   write a response to a received email that matches the tone and style of
-  the user's past emails, the name and the voice Demi takes.
+  the user's past emails, the name and the voice Jush takes.
 - Claude Code shows one suggested next prompt as dim text in the empty
   prompt box after an answer; Tab or Right Arrow places it, and Return sends
   a suggestion at once, which users asked to separate
@@ -141,10 +141,10 @@ under 1% of what the turns themselves cost.
   plugin, at 1.3.13, asks a small model after each turn for the message the
   user would most likely send, from the recent transcript, with rules to
   copy the user's tone and to answer `NONE` when no reply is clearly right
-  (`src/options.ts`, `DEFAULT_SYSTEM`). Demi's instruction started from its
+  (`src/options.ts`, `DEFAULT_SYSTEM`). Jush's instruction started from its
   rules.
 
-Demi departs from the coding tools in showing up to three, as chips under
+Jush departs from the coding tools in showing up to three, as chips under
 the answer rather than as text in the composer, so a phone takes them with a
 tap and a wrong first guess still leaves two; and in using the small model,
 since a request on the conversation's own model spends a subscription's
@@ -160,7 +160,7 @@ limits on every turn.
   model leaves it out or writes it wrong.
 - A request on the conversation's own model reusing its cache, as Claude Code
   does: better context, but a request on the main model every turn, which a
-  subscription counts against its limits, and one Demi's command-line
+  subscription counts against its limits, and one Jush's command-line
   runtimes cannot fork cheaply.
 
 ## Open questions

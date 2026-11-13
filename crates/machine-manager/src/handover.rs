@@ -43,7 +43,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_machine_manager_protocol::{LEAVE_REQUEST, LEFT_RECORD, LeftRecord, LeftSandbox, MANAGER_UNIT};
+use jush_machine_manager_protocol::{LEAVE_REQUEST, LEFT_RECORD, LeftRecord, LeftSandbox, MANAGER_UNIT};
 use rustix::thread::LinkNameSpaceType;
 
 use crate::{
@@ -96,16 +96,16 @@ pub async fn take_over(core: &Core, left: &LeftSandbox) -> io::Result<Option<Tak
 }
 
 /// What runs this manager as its service, as the unit's
-/// `DEMI_SERVICE_MANAGER` says; none for a manager started by hand.
+/// `JUSH_SERVICE_MANAGER` says; none for a manager started by hand.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum ServiceManager {
     Systemd,
-    /// `demi-server supervise`, in a container.
+    /// `jush-server supervise`, in a container.
     Supervisor,
 }
 
 fn service_manager() -> Option<ServiceManager> {
-    match std::env::var("DEMI_SERVICE_MANAGER").ok()?.as_str() {
+    match std::env::var("JUSH_SERVICE_MANAGER").ok()?.as_str() {
         "systemd" => Some(ServiceManager::Systemd),
         "supervisor" => Some(ServiceManager::Supervisor),
         _ => None,
@@ -147,7 +147,7 @@ async fn ask_systemd() -> Result<(), String> {
 
 /// The supervisor answers before its stop signals this process.
 async fn ask_supervisor() -> Result<(), String> {
-    use demi_supervisor_protocol::{Answer, Request, SOCKET, ask};
+    use jush_supervisor_protocol::{Answer, Request, SOCKET, ask};
     let request = Request::Restart { unit: MANAGER_UNIT.to_owned() };
     let answer = tokio::task::spawn_blocking(move || ask(Path::new(SOCKET), &request))
         .await
@@ -246,7 +246,7 @@ fn sweep_blocking(keep: &[Owner], proots: &[i32]) -> io::Result<()> {
     let procs = fs_err::read_to_string(&procs_path)?;
     let pids: Vec<i32> = procs.lines().filter_map(|line| line.trim().parse().ok()).collect();
     let me = std::process::id() as i32;
-    let parent = demi_shared_processes::parent;
+    let parent = jush_shared_processes::parent;
     let arguments = |pid: i32| -> String {
         std::fs::read(format!("/proc/{pid}/cmdline"))
             .map(|bytes| String::from_utf8_lossy(&bytes).replace('\0', " "))
@@ -288,7 +288,7 @@ fn sweep_blocking(keep: &[Owner], proots: &[i32]) -> io::Result<()> {
         }
         tracing::info!(event = "machine_manager.leftover_ended", pid, arguments = %arguments(pid), "a process no sandbox owns was left in the manager's unit");
         if let Some(pid) = rustix::process::Pid::from_raw(pid) {
-            let _ = demi_shared_processes::signal_process(pid, rustix::process::Signal::KILL);
+            let _ = jush_shared_processes::signal_process(pid, rustix::process::Signal::KILL);
             ended.push(pid.as_raw_nonzero().get());
         }
     }

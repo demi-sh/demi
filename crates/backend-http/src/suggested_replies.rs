@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_user_shard::services::Services;
-use demi_web_api_protocol::conversations::SuggestedReplyUsed;
+use jush_backend_user_shard::services::Services;
+use jush_web_api_protocol::conversations::SuggestedReplyUsed;
 
 use super::body::JsonBody;
 use super::conversations::owned;

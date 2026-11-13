@@ -15,7 +15,7 @@
 
 use std::time::Duration;
 
-use demi_provider_common::{ErrorCode, ProviderFailure};
+use jush_provider_common::{ErrorCode, ProviderFailure};
 
 /// When and how long a failed request is retried.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

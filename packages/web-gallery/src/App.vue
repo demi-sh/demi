@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useSavedScroll } from '@demicodes/web-ui/composables/useSavedScroll'
-import ScrollArea from '@demicodes/web-ui/ui/ScrollArea.vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
-import ToastHost from '@demicodes/web-ui/ui/ToastHost.vue'
-import ContextMenu from '@demicodes/web-ui/ui/ContextMenu.vue'
-import SelectionFieldHost from '@demicodes/web-ui/agent/comments/SelectionFieldHost.vue'
-import MediaViewer from '@demicodes/web-ui/files/MediaViewer.vue'
-import SidebarLayout from '@demicodes/web-ui/sidebar/SidebarLayout.vue'
-import { provideBlobUrl } from '@demicodes/web-ui/agent/media-source'
-import { provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
-import { baseName } from '@demicodes/utils'
-import { provideMessageFiles } from '@demicodes/web-ui/markdown/message-files'
+import { useSavedScroll } from '@jush-ai/web-ui/composables/useSavedScroll'
+import ScrollArea from '@jush-ai/web-ui/ui/ScrollArea.vue'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
+import ToastHost from '@jush-ai/web-ui/ui/ToastHost.vue'
+import ContextMenu from '@jush-ai/web-ui/ui/ContextMenu.vue'
+import SelectionFieldHost from '@jush-ai/web-ui/agent/comments/SelectionFieldHost.vue'
+import MediaViewer from '@jush-ai/web-ui/files/MediaViewer.vue'
+import SidebarLayout from '@jush-ai/web-ui/sidebar/SidebarLayout.vue'
+import { provideBlobUrl } from '@jush-ai/web-ui/agent/media-source'
+import { provideMediaViewer } from '@jush-ai/web-ui/files/media-viewer'
+import { baseName } from '@jush-ai/utils'
+import { provideMessageFiles } from '@jush-ai/web-ui/markdown/message-files'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import GalleryAppearanceMenu from './components/GalleryAppearanceMenu.vue'
 import GalleryLanguageMenu from './components/GalleryLanguageMenu.vue'
@@ -20,9 +20,9 @@ import { galleryBlobUrl, keepGalleryPicture } from './fixtures/blobs'
 import { galleryConversationFiles } from './fixtures/message-files'
 import { createGalleryProject } from './fixtures/project'
 import { productWould } from './product-would'
-import { provideSendTargets, type SendTargetLook } from '@demicodes/web-ui/agent/send-to-conversation'
-import { provideKeepPicture } from '@demicodes/web-ui/agent/comments/pictures'
-import { conversationTitle } from '@demicodes/web-ui/agent/conversation-title'
+import { provideSendTargets, type SendTargetLook } from '@jush-ai/web-ui/agent/send-to-conversation'
+import { provideKeepPicture } from '@jush-ai/web-ui/agent/comments/pictures'
+import { conversationTitle } from '@jush-ai/web-ui/agent/conversation-title'
 import { fixtureSearch, searchConversations } from './fixtures/search'
 import { galleryNav } from './router'
 
@@ -47,8 +47,8 @@ const mediaViewer = provideMediaViewer()
 // Send to Conversation lists the search window's conversations; a pick says what the product would do.
 const sendable = searchConversations()
 const sendLooks: Record<string, SendTargetLook> = {
-  'search-ts2307': { status: { status: 'active', unread: null }, project: 'demi' },
-  'search-login': { status: { status: 'done', unread: 'answered' }, project: 'demi' },
+  'search-ts2307': { status: { status: 'active', unread: null }, project: 'jush' },
+  'search-login': { status: { status: 'done', unread: 'answered' }, project: 'jush' },
   'search-wording': { status: { status: 'idle', unread: null }, project: null },
 }
 provideSendTargets({
@@ -66,7 +66,7 @@ provideSendTargets({
 const route = useRoute()
 const main = ref<InstanceType<typeof ScrollArea>>()
 const viewport = computed(() => main.value?.el)
-useSavedScroll(viewport, () => `demi-gallery-scroll:${route.fullPath}`)
+useSavedScroll(viewport, () => `jush-gallery-scroll:${route.fullPath}`)
 const { views, view } = useGalleryView()
 const nav = computed(() => galleryNav())
 // The navigation is the frame's sidebar, as the product's list is: at a
@@ -97,15 +97,15 @@ const mainClass = computed(() => {
     v-else
     v-model:open="navOpen"
     v-model:width="navWidth"
-    label="Demi Gallery"
+    label="Jush Gallery"
   >
     <template #sidebar>
       <aside
         class="flex h-full w-[var(--sidebar-width)] select-none flex-col border-r border-line bg-surface"
       >
         <div class="px-4 py-4">
-          <div class="text-[13px] font-medium text-fg-emphasis">Demi Gallery</div>
-          <div class="mt-1 text-[12px] leading-4 text-fg-subtle">@demicodes/web-ui</div>
+          <div class="text-[13px] font-medium text-fg-emphasis">Jush Gallery</div>
+          <div class="mt-1 text-[12px] leading-4 text-fg-subtle">@jush-ai/web-ui</div>
         </div>
         <ScrollArea class="flex-1" viewport-class="px-2 pb-2">
           <nav class="flex flex-col gap-0.5">

@@ -12,7 +12,7 @@
 
 use std::sync::Arc;
 
-use demi_shared_types::{CommandId, OutputChunk, OutputView, StreamKind, StreamView};
+use jush_shared_types::{CommandId, OutputChunk, OutputView, StreamKind, StreamView};
 use tokio::time::Instant;
 
 use crate::{

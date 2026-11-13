@@ -6,37 +6,37 @@
 
 use std::sync::{Arc, OnceLock};
 
-use demi_provider_registry::registry::MEDIA_FAMILY;
-use demi_provider_registry::families::{
+use jush_provider_registry::registry::MEDIA_FAMILY;
+use jush_provider_registry::families::{
     AccountBinding, CompatibleAudioArgs, FamilyArgs, FamilyCredential, FamilyError, FamilyRegistry,
     ProviderFamily,
 };
-use demi_provider_anthropic_api::{AnthropicConfig, AnthropicProvider};
-use demi_backend_user_shard::conversation::claude_cli::MachineSlot;
-use demi_provider_claude_code::{AccountMachine, ClaudeCodeConfig, ClaudeCodeProvider};
-use demi_provider_codex::{CodexConfig, CodexProvider, CodexReleases};
-use demi_provider_common::credentials::SubscriptionAccounts;
-use demi_provider_common::quota::{MemorySnapshots, QuotaSnapshotStore};
-use demi_provider_common::media::MediaVendor;
-use demi_provider_common::{Provider, Searches};
-use demi_provider_bytedance::{Ark, ArkConfig, ArkProvider, Speech, SpeechConfig, SpeechProvider};
-use demi_provider_elevenlabs::{ElevenLabsConfig, ElevenLabsProvider};
-use demi_provider_google::{GoogleConfig, GoogleProvider};
-use demi_provider_grok_build::{GrokConfig, GrokProvider, GrokReleases};
-use demi_provider_minimax::{MinimaxConfig, MinimaxProvider, Region};
-use demi_provider_openai_api::{OpenAiConfig, OpenAiProvider};
-use demi_provider_relay::borrow::{Borrowed, server_name};
-use demi_provider_relay::key::ShareKey;
-use demi_backend_runners::public_url::PublicUrl;
-use demi_shared_types::{AudioShape, CacheTtl, ImageShape, VideoShape, WireApi};
-use demi_web_api_protocol::providers::CredentialKind;
+use jush_provider_anthropic_api::{AnthropicConfig, AnthropicProvider};
+use jush_backend_user_shard::conversation::claude_cli::MachineSlot;
+use jush_provider_claude_code::{AccountMachine, ClaudeCodeConfig, ClaudeCodeProvider};
+use jush_provider_codex::{CodexConfig, CodexProvider, CodexReleases};
+use jush_provider_common::credentials::SubscriptionAccounts;
+use jush_provider_common::quota::{MemorySnapshots, QuotaSnapshotStore};
+use jush_provider_common::media::MediaVendor;
+use jush_provider_common::{Provider, Searches};
+use jush_provider_bytedance::{Ark, ArkConfig, ArkProvider, Speech, SpeechConfig, SpeechProvider};
+use jush_provider_elevenlabs::{ElevenLabsConfig, ElevenLabsProvider};
+use jush_provider_google::{GoogleConfig, GoogleProvider};
+use jush_provider_grok_build::{GrokConfig, GrokProvider, GrokReleases};
+use jush_provider_minimax::{MinimaxConfig, MinimaxProvider, Region};
+use jush_provider_openai_api::{OpenAiConfig, OpenAiProvider};
+use jush_provider_relay::borrow::{Borrowed, server_name};
+use jush_provider_relay::key::ShareKey;
+use jush_backend_runners::public_url::PublicUrl;
+use jush_shared_types::{AudioShape, CacheTtl, ImageShape, VideoShape, WireApi};
+use jush_web_api_protocol::providers::CredentialKind;
 
 /// The families built into the backend, whose Claude Code family reads its
 /// machine from `machine`.
 pub fn builtin(machine: MachineSlot) -> FamilyRegistry {
     FamilyRegistry::default()
         .with_compatible_audio(Arc::new(|args: CompatibleAudioArgs| {
-            demi_provider_openai_api::compatible_audio(args.name, args.key, &args.base, args.models, args.clock)
+            jush_provider_openai_api::compatible_audio(args.name, args.key, &args.base, args.models, args.clock)
         }))
         .with("anthropic", AnthropicFamily)
         .with("claude-code", ClaudeCodeFamily { machine })

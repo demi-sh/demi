@@ -15,7 +15,7 @@ export interface MenuAgent {
  *
  * - A link to the agent offers Open, which acts as clicking the link does, then
  *   Stop Agent, which only an agent that runs takes, and Copy Agent ID, the
- *   number the `demi agent` commands take.
+ *   number the `jush agent` commands take.
  * - Its tab in the Agents window offers the same without Open, and adds Close
  *   Tab.
  */

@@ -1,7 +1,7 @@
-//! The `demi web` group.
+//! The `jush web` group.
 //!
 //! - `search` runs in the plugin, against Exa.
-//! - `fetch` runs `fetch.get` of the `demi.fetch` package on the device, its
+//! - `fetch` runs `fetch.get` of the `jush.fetch` package on the device, its
 //!   arguments declared from the `command-package-fetch-protocol` types.
 //!
 //! # Why they run in different places
@@ -14,7 +14,7 @@
 //!   otherwise fetch addresses for anyone who asks.
 //!
 //! One group holds both, bound leaf by leaf, so the model finds them as one
-//! capability. A deployment without the `demi.fetch` package leaves the whole
+//! capability. A deployment without the `jush.fetch` package leaves the whole
 //! group out.
 //!
 //! Each is a feature the user turns on and off apart: search off until the
@@ -30,22 +30,22 @@
 //! No small model reads a page first: the agent reads what it fetched and
 //! decides what matters, so nothing is lost on the way.
 
-use demi_command_declarations::NativeOperation;
-use demi_command_package_fetch_protocol::{
+use jush_command_declarations::NativeOperation;
+use jush_command_package_fetch_protocol::{
     DEFAULT_LENGTH, DEFAULT_TIMEOUT_MS, FetchArgs, Fetched, GET, MAX_TIMEOUT_MS,
     PACKAGE,
 };
-use demi_device_interface::{GroupBuilder, LeafBuilder};
-use demi_plugin_interface::{CommandPlugin, Feature, Placement, PortHandled};
+use jush_device_interface::{GroupBuilder, LeafBuilder};
+use jush_plugin_interface::{CommandPlugin, Feature, Placement, PortHandled};
 
 use crate::search::{DEFAULT_COUNT, SearchArgs, SearchedPage};
 
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "Searches the web; fetches a page as Markdown, or a file.";
 
-/// The plugin's commands: the `demi web` group.
+/// The plugin's commands: the `jush web` group.
 pub(crate) fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![web_group()])
+    CommandPlugin::new(Placement::Jush, vec![web_group()])
         .expect("the web group is a valid declaration")
 }
 
@@ -114,7 +114,7 @@ fn web_group() -> GroupBuilder {
             )
             .json_output::<Fetched>()
             .success_output(
-                "a line naming the URL, where its redirects led, its HTTP status, type and length; a line saying that what follows is untrusted web content; the part; and, when more remains, a line naming how many characters and the call that reads on. A page read is kept on this device for 15 minutes, so reading on fetches it only once. A file that is no text is saved under the temporary directory's demi-fetch/, and its path, type and size are printed with the call that shows it",
+                "a line naming the URL, where its redirects led, its HTTP status, type and length; a line saying that what follows is untrusted web content; the part; and, when more remains, a line naming how many characters and the call that reads on. A page read is kept on this device for 15 minutes, so reading on fetches it only once. A file that is no text is saved under the temporary directory's jush-fetch/, and its path, type and size are printed with the call that shows it",
             )
             .failure_output(
                 "an HTTP status of 400 or more prints the page and exits 1; a Cloudflare challenge, no answer within the deadline, more than 10 redirects, more than 10 MiB of text or 64 MiB of a file write the reason to stderr and exit 1",

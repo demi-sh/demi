@@ -6,7 +6,7 @@
 
 use std::time::Duration;
 
-use demi_shared_types::VendorTrace;
+use jush_shared_types::VendorTrace;
 use futures_util::future::BoxFuture;
 
 use super::{MediaAnswer, MediaFailure, unreadable};
@@ -25,7 +25,7 @@ pub enum JobState<T> {
     /// Being made, with how far along when the vendor says.
     Running { progress: Option<u8> },
     Done(T),
-    /// The vendor failed the job; `reason` is Demi's, for a failure it read
+    /// The vendor failed the job; `reason` is Jush's, for a failure it read
     /// out of an answer, such as an image withheld, and `trace` what the
     /// vendor said. Neither crosses a relay.
     Failed {

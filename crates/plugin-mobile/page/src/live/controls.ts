@@ -1,8 +1,8 @@
 /**
  * The device toolbar's controls (`crates/plugin-mobile/page/src/index.ts`), in
  * their order: each the page method it calls and that method's parameters.
- * They run the operation of the `demi mobile` command that does the same, so
- * Rotate Left is `demi mobile rotate <m> left` and Lock is `demi mobile key
+ * They run the operation of the `jush mobile` command that does the same, so
+ * Rotate Left is `jush mobile rotate <m> left` and Lock is `jush mobile key
  * <m> lock`. The toolbar is drawn from this table and the controller runs its
  * calls.
  */

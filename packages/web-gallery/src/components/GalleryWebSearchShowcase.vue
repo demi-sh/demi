@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import SettingsWebSearch from '@demicodes/plugin-web/SettingsWebSearch.vue'
-import { FEATURES, type Feature, type WebState } from '@demicodes/plugin-web'
+import SettingsWebSearch from '@jush-ai/plugin-web/SettingsWebSearch.vue'
+import { FEATURES, type Feature, type WebState } from '@jush-ai/plugin-web'
 import { slow } from '../fixtures/slow'
 import { productWould } from '../product-would'
 

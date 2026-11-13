@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { showToast } from '@demicodes/web-ui/infra/toast'
-import SettingsCloud from '@demicodes/web-ui/settings/SettingsCloud.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { showToast } from '@jush-ai/web-ui/infra/toast'
+import SettingsCloud from '@jush-ai/web-ui/settings/SettingsCloud.vue'
 import {
   destinationProblemText,
   withPolicy,
@@ -15,9 +15,9 @@ import {
   type IsolationRuntime,
   type NetworkGroup,
   type NetworkPolicy,
-} from '@demicodes/web-ui/settings/cloud'
-import { t } from '@demicodes/web-ui/settings/locales/text'
-import type { SentenceText } from '@demicodes/web-ui/ui/ui-text'
+} from '@jush-ai/web-ui/settings/cloud'
+import { t } from '@jush-ai/web-ui/settings/locales/text'
+import type { SentenceText } from '@jush-ai/web-ui/ui/ui-text'
 import { slow } from '../fixtures/slow'
 
 /** Which moment of Settings › Cloud the specimen starts at. */

@@ -23,9 +23,9 @@
     "locked": "Too many failed sign-ins. Try again in {time}."
   },
   "setup": {
-    "title": "Set Up Demi",
-    "message": "Create the master account that manages Demi.",
-    "taken": "Demi is set up already. Sign in with its master account.",
+    "title": "Set Up Jush",
+    "message": "Create the master account that manages Jush.",
+    "taken": "Jush is set up already. Sign in with its master account.",
     "name": "Name",
     "email": "Email",
     "password": "Password",
@@ -53,7 +53,7 @@
     "passwordMessage": "Confirm it’s you to add the passkey.",
     "password": "Password",
     "readyTitle": "Passkey Ready",
-    "readyMessage": "Your password manager already has a passkey for Demi."
+    "readyMessage": "Your password manager already has a passkey for Jush."
   },
   "unlock": {
     "ios": "Sign in with Face ID or Touch ID instead of your password.",

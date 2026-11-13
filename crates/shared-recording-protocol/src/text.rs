@@ -1,7 +1,7 @@
-//! What `record` prints, as every `demi` command prints its data
+//! What `record` prints, as every `jush` command prints its data
 //! (`crates/shared-types/src/output.rs`).
 
-use demi_shared_types::output::{Fields, Table};
+use jush_shared_types::output::{Fields, Table};
 
 use crate::{
     FrameRow, Gap, Input, InputBy, InputPhase, InputRow, InputButton, RecordAction, RecordResult, RecordingInfo,
@@ -16,7 +16,7 @@ pub fn about(source: &str, example: &str) -> String {
          and stops by itself after --duration (at most 2 minutes) or at 2 minutes or 200 MB, or when the {source} closes; \
          record r1 stop ends it; record r1 frames lists only the frames that differ from the one before, with their time \
          and the area that changed; record r1 export writes frames as images labelled with frame number and time, one path \
-         per line, so record r1 export --frames f005-f010 | xargs demi file view shows them. --mp4 gives the video itself. \
+         per line, so record r1 export --frames f005-f010 | xargs jush file view shows them. --mp4 gives the video itself. \
          Exported frames and videos draw the inputs the {source} took, the pointer, clicks, wheel turns, keys and touches; \
          --plain leaves them out. record r1 note \"text\" shows the text below the picture of a drawn export from now, or \
          from --at seconds, until the next note. record r1,r2 export --mp4 plays several recordings one after another; \
@@ -28,7 +28,7 @@ pub fn about(source: &str, example: &str) -> String {
 }
 
 /// What `record` prints for `result`, the answer to `action`; `command` is the
-/// command's path, such as `demi browser record`, which the text names the
+/// command's path, such as `jush browser record`, which the text names the
 /// commands to go on with by.
 pub fn record(action: RecordAction, command: &str, result: &RecordResult) -> String {
     let info = &result.recording;
@@ -46,7 +46,7 @@ pub fn record(action: RecordAction, command: &str, result: &RecordResult) -> Str
             Some([row]) => format!("Noted at {} s of {}.\n", seconds(row.time_us), info.id),
             _ => summary(info),
         },
-        // A sheet's path alone, so that it pipes to demi file view; what it
+        // A sheet's path alone, so that it pipes to jush file view; what it
         // could not show of the notes is in the --json answer, and shows on
         // the sheet.
         RecordAction::Export if result.sheet.is_some() => format!("{}\n", result.sheet.as_deref().unwrap_or_default()),
@@ -220,7 +220,7 @@ pub fn listed(recordings: &[RecordingInfo]) -> String {
 }
 
 /// What `export` of images prints: one path per line and nothing else, so
-/// that `export | xargs demi file view` shows the images; the area they show
+/// that `export | xargs jush file view` shows the images; the area they show
 /// is in the `--json` answer.
 pub fn exported(images: &[(u32, String)]) -> String {
     images.iter().map(|(_, path)| format!("{path}\n")).collect()

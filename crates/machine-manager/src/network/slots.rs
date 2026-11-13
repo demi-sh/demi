@@ -27,19 +27,19 @@ impl Slot {
         }
     }
 
-    /// The host end of the sandbox's veth pair, such as `demih3`.
+    /// The host end of the sandbox's veth pair, such as `jushh3`.
     pub fn host_interface(&self) -> String {
-        format!("demih{}", self.index)
+        format!("jushh{}", self.index)
     }
 
-    /// The sandbox's end of the veth pair, such as `demip3`.
+    /// The sandbox's end of the veth pair, such as `jushp3`.
     pub fn peer_interface(&self) -> String {
-        format!("demip{}", self.index)
+        format!("jushp{}", self.index)
     }
 
-    /// The sandbox's network namespace, such as `demi-3`.
+    /// The sandbox's network namespace, such as `jush-3`.
     pub fn namespace(&self) -> String {
-        format!("demi-{}", self.index)
+        format!("jush-{}", self.index)
     }
 }
 

@@ -4,24 +4,24 @@
     "version": "版本",
     "acknowledgements": {
       "title": "致谢",
-      "description": "Demi 中的开源软件及其许可证。",
+      "description": "Jush 中的开源软件及其许可证。",
       "loading": "正在加载致谢…",
       "none": "没有致谢"
     }
   },
   "updates": {
     "title": "更新",
-    "description": "为所有账户更新这台服务器上的 Demi。",
-    "current": "Demi {version}",
-    "upToDate": "Demi 已是最新版本",
-    "available": "有新版本：Demi {version}",
+    "description": "为所有账户更新这台服务器上的 Jush。",
+    "current": "Jush {version}",
+    "upToDate": "Jush 已是最新版本",
+    "available": "有新版本：Jush {version}",
     "youHave": "当前版本：{version}。",
     "background": {
       "starting": "正在后台下载…",
       "downloading": "正在后台下载：{done}，共 {all}",
       "installing": "正在后台安装…",
       "ready": "已准备好安装。当前版本：{version}。",
-      "failed": "无法在后台下载 Demi {version}。当前版本：{running}。"
+      "failed": "无法在后台下载 Jush {version}。当前版本：{running}。"
     },
     "releaseNotes": "发行说明",
     "updateNow": "现在更新",
@@ -30,34 +30,34 @@
     "lastChecked": "上次检查：{when}",
     "neverChecked": "尚未检查",
     "checkNow": "立即检查",
-    "downloading": "正在下载 Demi {version}",
+    "downloading": "正在下载 Jush {version}",
     "downloaded": "{done}，共 {all}",
     "speed": "{size}/秒",
-    "preparing": "正在准备 Demi {version}…",
-    "restarting": "正在重新启动 Demi…",
+    "preparing": "正在准备 Jush {version}…",
+    "restarting": "正在重新启动 Jush…",
     "failed": "未能更新到 {version}",
-    "failedNoVersion": "无法更新。Demi 仍在运行 {running}。",
+    "failedNoVersion": "无法更新。Jush 仍在运行 {running}。",
     "channel": "更新通道",
     "channelDescription": "Canary 最先收到新版本，这些版本还没人在服务器上试过。",
     "prepareAhead": "自动下载更新",
     "prepareAheadDescription": "更新时无需再等待下载。不建议在 Canary 开启：它发布频繁，会消耗大量流量。",
     "beta": "Beta",
     "canary": "Canary",
-    "confirmTitle": "将 Demi 更新到 {version}？",
-    "confirmBody": "Demi 会重新启动，所有人都将有几分钟无法使用。",
+    "confirmTitle": "将 Jush 更新到 {version}？",
+    "confirmBody": "Jush 会重新启动，所有人都将有几分钟无法使用。",
     "confirmAgents": "有 {count} 个智能体正在工作，更新后会继续。",
     "update": "更新",
-    "updatingTo": "正在更新到 Demi {version}",
+    "updatingTo": "正在更新到 Jush {version}",
     "stepOf": "第 {number} 步，共 {count} 步：{step}",
     "failedAt": "第 {number} 步（共 {count} 步）失败：{step}",
     "steps": {
-      "download": "下载 Demi {version}",
-      "unpack": "解包 Demi {version}",
+      "download": "下载 Jush {version}",
+      "unpack": "解包 Jush {version}",
       "checkConfiguration": "检查配置",
       "downloadGvisor": "下载 gVisor",
       "installImage": "安装 Cloud 镜像",
       "checkDatabases": "检查数据库",
-      "restart": "重启 Demi"
+      "restart": "重启 Jush"
     },
     "detail": {
       "of": "{done}/{count}",
@@ -140,13 +140,13 @@
   },
   "storage": {
     "title": "存储",
-    "description": "Demi 在服务器和你的设备上占用的空间。",
+    "description": "Jush 在服务器和你的设备上占用的空间。",
     "loading": "正在载入存储…",
     "server": "服务器",
     "devices": "设备",
     "rulesDescription": "所有设备都按这些规则自动清理。",
     "used": "已用 {used}，共 {total}",
-    "demiSize": "Demi {size}",
+    "jushSize": "Jush {size}",
     "measured": "上次测量",
     "notMeasured": "尚未测量",
     "diskUsed": "磁盘已用 {percent}",
@@ -192,7 +192,7 @@
     "cacheBody": "将从“{device}”删除未在使用的浏览器登录状态和录屏。智能体可能需要重新登录。",
     "cacheAction": "清除",
     "componentsTitle": "删除组件？",
-    "componentsBody": "将从“{device}”删除未在使用的组件。需要时 Demi 会重新下载。",
+    "componentsBody": "将从“{device}”删除未在使用的组件。需要时 Jush 会重新下载。",
     "componentsAction": "删除",
     "byConversation": "按对话",
     "deletedConversation": "已删除的对话",
@@ -286,26 +286,26 @@
       "title": "浏览器",
       "label": "浏览器通知",
       "quietWhileElsewhere": "在其他设备上使用时不提醒",
-      "quietWhileElsewhereDescription": "你在其他设备上使用 Demi 时，这里不提醒轮次完成或失败；离开那台设备 {minutes} 分钟后恢复。权限请求和智能体的通知始终会提醒。",
+      "quietWhileElsewhereDescription": "你在其他设备上使用 Jush 时，这里不提醒轮次完成或失败；离开那台设备 {minutes} 分钟后恢复。权限请求和智能体的通知始终会提醒。",
       "blocked": "已在此浏览器的网站设置中阻止。",
-      "thisBrowser": "仅限此浏览器。即使关闭 Demi 也会收到。",
+      "thisBrowser": "仅限此浏览器。即使关闭 Jush 也会收到。",
       "unsupported": "此浏览器不支持通知。"
     },
     "when": {
       "title": "在以下情况通知我",
       "turnFinishes": "轮次完成",
       "turnFails": "轮次失败",
-      "needsPermission": "Demi 需要权限",
+      "needsPermission": "Jush 需要权限",
       "turnOnFirst": "请先开启浏览器通知。",
       "agentNotifies": "智能体给你发通知"
     },
     "homeScreen": {
-      "title": "要在 iPhone 上接收通知，请将 Demi 添加到主屏幕",
+      "title": "要在 iPhone 上接收通知，请将 Jush 添加到主屏幕",
       "share": "轻点 Safari 工具栏中的“共享”。",
       "add": "选择“添加到主屏幕”。",
-      "open": "从主屏幕打开 Demi，并在其中开启通知。",
+      "open": "从主屏幕打开 Jush，并在其中开启通知。",
       "ok": "好",
-      "row": "将 Demi 添加到主屏幕以接收通知",
+      "row": "将 Jush 添加到主屏幕以接收通知",
       "howTo": "添加方法"
     }
   },
@@ -422,7 +422,7 @@
       "finishesKeywords": "完成,结束",
       "failsKeywords": "错误,出错",
       "permissionKeywords": "权限请求,请求许可",
-      "agentKeywords": "demi notify,智能体通知,推送",
+      "agentKeywords": "jush notify,智能体通知,推送",
       "homeScreenKeywords": "主屏幕,iPhone,iPad,添加到主屏幕"
     },
     "agentPage": {
@@ -613,7 +613,7 @@
     "reset": {
       "title": "重置“{name}”的密码？",
       "action": "重置密码",
-      "body": "Demi 会生成新的初始密码并仅显示一次。对方当前的密码将失效。已登录的浏览器和通行密钥保持不变。"
+      "body": "Jush 会生成新的初始密码并仅显示一次。对方当前的密码将失效。已登录的浏览器和通行密钥保持不变。"
     },
     "signOutEverywhere": {
       "title": "让“{name}”在所有位置退出登录？",
@@ -814,7 +814,7 @@
     "context": "上下文",
     "contextDescription": "其子智能体使用的上下文窗口。",
     "instructions": "指令",
-    "instructionsDescription": "可选。附加到 Demi 自身的指令之后。",
+    "instructionsDescription": "可选。附加到 Jush 自身的指令之后。",
     "mayStart": "子智能体可再启动子智能体",
     "mayStartDescription": "允许其子智能体启动子智能体。",
     "delete": "删除",
@@ -921,7 +921,7 @@
       "keyPaste": "粘贴你的 API 密钥",
       "shareKey": "共享密钥",
       "shareKeyPaste": "粘贴共享密钥",
-      "shareKeyHint": "在另一个 Demi 的设置中，点按供应商名称旁的“分享”来创建。",
+      "shareKeyHint": "在另一个 Jush 的设置中，点按供应商名称旁的“分享”来创建。",
       "lender": "由 {server} 共享",
       "test": "测试连接",
       "testDescription": "向第一个已启用的文本模型发送一条简短的聊天消息。",
@@ -1002,7 +1002,7 @@
       "keeps": "{name} 会继续使用其当前账户。",
       "switches": "{name} 会切换到“{next}”。",
       "none": "{name} 将没有账户，在你添加账户之前无法使用。",
-      "forgets": "Demi 会忘记其登录信息。你可以通过“添加账户”重新添加。"
+      "forgets": "Jush 会忘记其登录信息。你可以通过“添加账户”重新添加。"
     },
     "removeModel": {
       "title": "移除模型“{name}”？",
@@ -1011,7 +1011,7 @@
     "warning": {
       "title": "使用多个账户？",
       "body": "使用多个订阅账户或在账户之间轮换，可能违反供应商的服务条款，风险由你自行承担。",
-      "once": "Demi 不会再次询问。"
+      "once": "Jush 不会再次询问。"
     },
     "connected": "“{account}”已连接",
     "testFailed": "“{account}”测试失败",
@@ -1021,7 +1021,7 @@
     "share": {
       "share": "分享",
       "title": "分享 {name}",
-      "who": "有了共享密钥，另一台 Demi 服务器就能使用此供应商。它的对话仍留在那台服务器上，只有模型请求会发到这里。密钥只在创建时显示一次。",
+      "who": "有了共享密钥，另一台 Jush 服务器就能使用此供应商。它的对话仍留在那台服务器上，只有模型请求会发到这里。密钥只在创建时显示一次。",
       "field": "共享密钥",
       "creating": "正在创建密钥…",
       "empty": "点按“新建密钥”来创建密钥",
@@ -1048,8 +1048,8 @@
     "title": "添加供应商",
     "compatible": "兼容 API",
     "compatibleHint": "代理或你自己的服务器",
-    "borrowed": "另一个 Demi",
-    "borrowedHint": "另一台 Demi 服务器共享的供应商",
+    "borrowed": "另一个 Jush",
+    "borrowedHint": "另一台 Jush 服务器共享的供应商",
     "proxy": "代理",
     "vendors": "供应商",
     "loading": "正在加载供应商…",

@@ -158,7 +158,7 @@ report, as at a reconnect. Restoring wakes no Cloud.
 creating a conversation store the directory as the user typed it, with `~`
 expanded, and answer at once; a directory chosen in a picker is already
 the Host's own spelling. The first time a conversation's work admits the
-Host in that directory (a shell job, a `demi host` command, an upload or
+Host in that directory (a shell job, a `jush host` command, an upload or
 download), the backend asks the runner once, on that
 connection, to create the directory with its parents and name it:
 
@@ -213,7 +213,7 @@ probe doing the runner's creation and naming on macOS (APFS) and Windows:
 
 | Point | What it showed |
 |---|---|
-| Who needs the directory to exist | Only a process started in it: a shell job or a `demi host` command fails without it (`CwdUnusable`). A plugin's service runs elsewhere and takes the directory as a string; reads and live views read under it |
+| Who needs the directory to exist | Only a process started in it: a shell job or a `jush host` command fails without it (`CwdUnusable`). A plugin's service runs elsewhere and takes the directory as a string; reads and live views read under it |
 | Creating with its parents | Works in one step and again, on both systems |
 | Spelling | A differently cased existing `a/b` is reused, not duplicated; `.`, `..`, a trailing separator, a link or junction all name the real path; on Windows a lower-case drive, forward slashes and `\\?\` name `C:\…` |
 | Failure wording | macOS says "not a directory" or "permission denied"; Windows says "already exists" under a file and gives no code for a missing drive, so the runner words those |
@@ -227,7 +227,7 @@ probe doing the runner's creation and naming on macOS (APFS) and Windows:
 - Coder's workspace agent reports its apps and metadata to the server,
   which the dashboard reads
   ([agent metadata](https://coder.com/docs/admin/templates/extending-templates/agent-metadata)).
-- Demi departs in keeping a few reads a user makes of a Host, files and
+- Jush departs in keeping a few reads a user makes of a Host, files and
   live views, which no report can hold.
 
 ## Alternatives

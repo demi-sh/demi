@@ -3,7 +3,7 @@
 //! tab, viewports, dialogs, console logs and navigation. What acts on a page is
 //! written in the modules above this one.
 
-use demi_command_package_browser_protocol::browser as protocol;
+use jush_command_package_browser_protocol::browser as protocol;
 
 pub mod debug;
 pub mod dialog;

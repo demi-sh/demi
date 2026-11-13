@@ -1,7 +1,7 @@
-import type { DeviceMark } from '@demicodes/web-ui/devices/mark'
+import type { DeviceMark } from '@jush-ai/web-ui/devices/mark'
 import { GALLERY_MARKS, shownAmong } from './device-marks'
-import { createMemoryFileSource, dir, file, link, type MemoryDirectory } from '@demicodes/web-ui/files/memory-source'
-import type { FileBrowserDevice, FileBrowserPlaceGroup, FileBrowserSource } from '@demicodes/web-ui/files/types'
+import { createMemoryFileSource, dir, file, link, type MemoryDirectory } from '@jush-ai/web-ui/files/memory-source'
+import type { FileBrowserDevice, FileBrowserPlaceGroup, FileBrowserSource } from '@jush-ai/web-ui/files/types'
 
 /**
  * Two devices' worth of directories for the file browser: a laptop with projects,
@@ -73,13 +73,13 @@ export function laptopTree(): MemoryDirectory {
           Downloads: dir(
             {
               'bun-v1.3.14.zip': file(58_112_412, day(5)),
-              'demi-runner-darwin-arm64': file(21_404_010, day(3))
+              'jush-runner-darwin-arm64': file(21_404_010, day(3))
             },
             { modifiedAt: day(5) }
           ),
           Projects: dir(
             {
-              demi: project(
+              jush: project(
                 {
                   'index.ts': 1_280,
                   'server.ts': 6_902,
@@ -104,14 +104,14 @@ export function laptopTree(): MemoryDirectory {
               }, { modifiedAt: day(3) }),
               'a project with a very long directory name that will not fit in the address bar': project({ 'index.ts': 12 }, old(9, 9)),
               // A link of each kind.
-              current: link('demi', day(7, 9)),
+              current: link('jush', day(7, 9)),
               'notes.txt': link('../Desktop/notes.txt', day(6)),
               'build.log': link('/tmp/build.log', old(9, 9)),
             },
             { modifiedAt: day(7, 9) },
           ),
           Work: dir({
-            demi: project({ 'index.ts': 640 }, day(6)),
+            jush: project({ 'index.ts': 640 }, day(6)),
             shop: project({ 'index.ts': 410 }, day(6)),
           }, { modifiedAt: day(6) }),
           Library: dir(
@@ -131,7 +131,7 @@ export function laptopTree(): MemoryDirectory {
           ),
           '.config': dir(
             {
-              demi: dir({ 'settings.json': file(802, day(6)) }, { modifiedAt: day(6) })
+              jush: dir({ 'settings.json': file(802, day(6)) }, { modifiedAt: day(6) })
             },
             { modifiedAt: day(6) }
           ),

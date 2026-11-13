@@ -1,4 +1,4 @@
-//! A job's media: the images, videos and PDF documents `demi file view` hands
+//! A job's media: the images, videos and PDF documents `jush file view` hands
 //! to the job, whatever its stdout is.
 //!
 //! - They are kept in `media/<n>` of the job's directory, numbered from 1 in
@@ -19,8 +19,8 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_command_protocol::MediumFacts;
-use demi_runner_protocol::wire;
+use jush_command_protocol::MediumFacts;
+use jush_runner_protocol::wire;
 use sha2::{Digest, Sha256};
 use tokio::sync::{mpsc, oneshot};
 

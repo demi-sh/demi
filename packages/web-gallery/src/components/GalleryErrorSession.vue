@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { GALLERY_MARKS, shownAmong } from '../fixtures/device-marks'
 import { refusalFailure, requestFailure } from '../fixtures/request-failures'
-import { wholeHistory } from '@demicodes/web-ui/agent/history'
+import { wholeHistory } from '@jush-ai/web-ui/agent/history'
 import { reactive } from 'vue'
-import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import type { ChatSessionState } from '@demicodes/web-ui/agent/types'
-import SessionStatus from '@demicodes/web-ui/agent/SessionStatus.vue'
-import type { Block } from '@demicodes/protocol'
-import type { SentenceText } from '@demicodes/web-ui/ui/ui-text'
+import ChatSession from '@jush-ai/web-ui/agent/ChatSession.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import type { ChatSessionState } from '@jush-ai/web-ui/agent/types'
+import SessionStatus from '@jush-ai/web-ui/agent/SessionStatus.vue'
+import type { Block } from '@jush-ai/protocol'
+import type { SentenceText } from '@jush-ai/web-ui/ui/ui-text'
 import { accountSwitchBlocks, deviceOfflineErrorBlock, deviceRemovedErrorBlock, generationErrorBlock, interruptedErrorBlock, shortTranscriptBlocks, signedOutErrorBlock, usageLimitErrorBlock, WAITING_SHELL_SCRIPT, waitingShellCall } from '../fixtures/blocks'
 import { ago } from '../fixtures/time'
 import { galleryMessages } from '../fixtures/send-while-running'
@@ -20,8 +20,8 @@ import {
 import { productWould } from '../product-would'
 import { PROJECT_ROOT } from '../fixtures/project'
 import { demoDeviceStart } from '../fixtures/device-installation'
-import type { OfflineDevice } from '@demicodes/web-ui/agent/offline-device'
-import type { DeviceChoice, DeviceOption, MenuDevice } from '@demicodes/web-ui/targets/types'
+import type { OfflineDevice } from '@jush-ai/web-ui/agent/offline-device'
+import type { DeviceChoice, DeviceOption, MenuDevice } from '@jush-ai/web-ui/targets/types'
 import GalleryComposer from './GalleryComposer.vue'
 import GallerySection from './GallerySection.vue'
 import GallerySpecimen from './GallerySpecimen.vue'
@@ -56,7 +56,7 @@ interface SessionCase {
    */
   primary?: MenuDevice
   /**
-   * Demi resumes the turn a restart interrupted: the specimen's button lets
+   * Jush resumes the turn a restart interrupted: the specimen's button lets
    * the resume give up, and starts it again.
    */
   resumes?: boolean
@@ -203,14 +203,14 @@ const cases: SessionCase[] = [
     composer: 'none',
   },
   {
-    variant: 'Opened while Demi restarts · loading',
-    note: 'Not a failure. The user opened a conversation the page had not loaded while it cannot reach Demi: the conversation shows it loading until the page is back, then loads. Nothing to click.',
+    variant: 'Opened while Jush restarts · loading',
+    note: 'Not a failure. The user opened a conversation the page had not loaded while it cannot reach Jush: the conversation shows it loading until the page is back, then loads. Nothing to click.',
     session: state('opening-away', { load: 'loading' }),
     composer: 'default',
   },
   {
     variant: 'Connection lost · reconnecting on its own',
-    note: 'Not a failure. Only this conversation’s lane was lost while the page still reaches Demi: the transcript, the draft and the composer stay, and, after half a second, a spinner over the transcript’s end is the only signal while the runtime retries with backoff, as when the page cannot reach Demi at all, the browser offline included. Nothing to click.',
+    note: 'Not a failure. Only this conversation’s lane was lost while the page still reaches Jush: the transcript, the draft and the composer stay, and, after half a second, a spinner over the transcript’s end is the only signal while the runtime retries with backoff, as when the page cannot reach Jush at all, the browser offline included. Nothing to click.',
     session: state('reconnecting', {
       load: 'reconnecting',
       blocks: shortTranscriptBlocks(),
@@ -251,7 +251,7 @@ const cases: SessionCase[] = [
   },
   {
     variant: 'Signed out · Open Providers',
-    note: 'Claude refused the account’s sign-in and its command-line tool could not renew it, so Demi marked the account signed out. The record says so in its own words rather than the generic sign-in failure, and the dock offers Open Providers, where the account’s row offers Sign In Again. Once it is signed in again, the record reads as the generic sign-in failure.',
+    note: 'Claude refused the account’s sign-in and its command-line tool could not renew it, so Jush marked the account signed out. The record says so in its own words rather than the generic sign-in failure, and the dock offers Open Providers, where the account’s row offers Sign In Again. Once it is signed in again, the record reads as the generic sign-in failure.',
     session: state('signed-out', {
       blocks: [...shortTranscriptBlocks(), signedOutErrorBlock('signed-out-error')],
       failures: { 'signed-out-error': { retryAt: null, signedOut: { provider: 'Claude Code', account: 'alex@example.com' } } },
@@ -260,7 +260,7 @@ const cases: SessionCase[] = [
   },
   {
     variant: 'Device removed · Open Providers',
-    note: 'The entry connects through a device its owner removed since, so the request was refused before it left the server, and not retried: no wait brings the device back. The record says so in Demi’s words, and the dock offers Open Providers beside Resume, where the entry’s Connect Through takes another device; Resume then tries again.',
+    note: 'The entry connects through a device its owner removed since, so the request was refused before it left the server, and not retried: no wait brings the device back. The record says so in Jush’s words, and the dock offers Open Providers beside Resume, where the entry’s Connect Through takes another device; Resume then tries again.',
     session: state('device-removed', {
       blocks: [...shortTranscriptBlocks(), deviceRemovedErrorBlock('device-removed-error')],
     }),
@@ -329,8 +329,8 @@ const cases: SessionCase[] = [
     composer: 'default',
   },
   {
-    variant: 'Interrupted by a restart · Demi resumes it',
-    note: 'Not a failure. The server restarted, such as for an update, while the turn ran, and Demi takes it up by itself once the backend is back, which may wait many seconds for the device’s runner. Meanwhile the record is hidden, the tail row says Resuming with no time, the dock offers no Resume, and the sidebar shows the conversation running. Once the turn runs, the row says Requesting. Give Up shows what a resume that fails leaves.',
+    variant: 'Interrupted by a restart · Jush resumes it',
+    note: 'Not a failure. The server restarted, such as for an update, while the turn ran, and Jush takes it up by itself once the backend is back, which may wait many seconds for the device’s runner. Meanwhile the record is hidden, the tail row says Resuming with no time, the dock offers no Resume, and the sidebar shows the conversation running. Once the turn runs, the row says Requesting. Give Up shows what a resume that fails leaves.',
     session: state('restart-resuming', {
       blocks: [...shortTranscriptBlocks(), interruptedErrorBlock('restart-resuming-error')],
       resuming: true,
@@ -340,7 +340,7 @@ const cases: SessionCase[] = [
   },
   {
     variant: 'Interrupted by a restart · waits for the user',
-    note: 'The turn waits for the user: the backend crashed, which marks nothing, the user turned off Resume after a restart, or Demi’s resume failed. The record at the tail says so, and Resume sits in the dock.',
+    note: 'The turn waits for the user: the backend crashed, which marks nothing, the user turned off Resume after a restart, or Jush’s resume failed. The record at the tail says so, and Resume sits in the dock.',
     session: state('restart-interrupted', {
       blocks: [...shortTranscriptBlocks(), interruptedErrorBlock('restart-interrupted-error')],
     }),

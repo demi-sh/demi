@@ -311,7 +311,7 @@ async function sendReport(report: PageErrorReport): Promise<string | null> {
   } catch (error) {
     // A report that did not get in leaves the failure on the console
     // alone; reporting that would only repeat it.
-    console.error('[demi] The error report was not sent:', error)
+    console.error('[jush] The error report was not sent:', error)
     return null
   }
 }

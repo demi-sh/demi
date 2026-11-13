@@ -13,10 +13,10 @@
 
 use std::fmt;
 
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::auth::UserDto;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::text::EmailAddress;
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::auth::UserDto;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::text::EmailAddress;
 use hmac::{Hmac, Mac};
 use jiff::SignedDuration;
 use password_hash::PasswordHash as PhcString;
@@ -94,7 +94,7 @@ pub struct SessionPolicy {
 /// A live session's id, user, expiry and last verification, and whether
 /// this request renewed it and wrote its last activity.
 pub struct ResolvedSession {
-    pub id: demi_web_api_protocol::sessions::SessionId,
+    pub id: jush_web_api_protocol::sessions::SessionId,
     pub user: UserDto,
     pub expires_at: Timestamp,
     pub verified_at: Option<Timestamp>,

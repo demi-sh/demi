@@ -2,7 +2,7 @@
 //!
 //! The secret is 32 random bytes:
 //!
-//! - `DEMI_INSTANCE_SECRET`, when that is set.
+//! - `JUSH_INSTANCE_SECRET`, when that is set.
 //! - Otherwise the data directory's `instance-secret` file, which the first
 //!   start creates readable only by its owner.
 //!
@@ -11,7 +11,7 @@
 //!
 //! Sealing protects credentials when the database leaks alone; it is not key
 //! management, and whoever holds both the database and the secret opens every
-//! credential. A deployment sets `DEMI_INSTANCE_SECRET` to keep the secret
+//! credential. A deployment sets `JUSH_INSTANCE_SECRET` to keep the secret
 //! apart from the data it protects, or when several backends must share it.
 
 use std::fmt;
@@ -19,15 +19,18 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use demi_shared_artifacts::{Mode, Permissions, Publication};
+use jush_shared_artifacts::{Mode, Permissions, Publication};
 use hkdf::Hkdf;
 use sha2::Sha256;
 
-use demi_backend_accounts::email_change::CodeKey;
-use demi_backend_accounts::push::PushKey;
-use demi_backend_providers::vault::seal::VaultKey;
+use jush_backend_accounts::email_change::CodeKey;
+use jush_backend_accounts::push::PushKey;
+use jush_backend_providers::vault::seal::VaultKey;
 
 const FILE: &str = "instance-secret";
+// The labels keep the product's name of when they were chosen: each derives
+// a key that what is stored or subscribed already depends on, so a label is
+// a fixed value, not a name.
 const EMAIL_CODE_LABEL: &[u8] = b"demi email-change code";
 const VAULT_LABEL: &[u8] = b"demi provider vault";
 const PUSH_LABEL: &str = "demi web push vapid";
@@ -49,7 +52,7 @@ pub enum SecretError {
     #[error("the instance secret file {} cannot be created: {source}", path.display())]
     Create {
         path: PathBuf,
-        source: demi_shared_artifacts::Error,
+        source: jush_shared_artifacts::Error,
     },
 }
 
@@ -86,7 +89,7 @@ impl InstanceSecret {
                     permissions: Permissions::Private,
                     durable: true,
                 };
-                demi_shared_artifacts::publish_bytes(&path, text.as_bytes(), publication)
+                jush_shared_artifacts::publish_bytes(&path, text.as_bytes(), publication)
                     .await
                     .map_err(|source| SecretError::Create { path, source })?;
                 Ok(secret)

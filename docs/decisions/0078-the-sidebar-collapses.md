@@ -13,7 +13,7 @@ does nothing there.
 
 ## Decision
 
-**A button at the right end of the sidebar's top row, beside `demi`,
+**A button at the right end of the sidebar's top row, beside `jush`,
 collapses the sidebar; the same button at the left of the page's title
 brings it back.** The sidebar slides out to the left while the main pane
 widens with it, and back in the same way.
@@ -21,7 +21,7 @@ widens with it, and back in the same way.
 ```text
 Open                                    Collapsed
 ┌──────────────────┬─────────────────┐  ┌──────────────────────────────┐
-│ demi          [◧]│ Title       ⋯ ◨ │  │ [◧] Title                ⋯ ◨ │
+│ jush          [◧]│ Title       ⋯ ◨ │  │ [◧] Title                ⋯ ◨ │
 │ New              │                 │  │                              │
 │ Search           │  conversation   │  │        conversation          │
 │ …                │                 │  │                              │

@@ -71,7 +71,7 @@ Sentry's browser SDK installs the same three hooks (`window.onerror`,
 benign events (ResizeObserver's, extensions', *Script error.*)
 ([Sentry JavaScript: Global handlers](https://docs.sentry.io/platforms/javascript/configuration/integrations/default/)).
 It reports to a service and drops consecutive identical events (its Dedupe
-integration); Demi writes to its own log, whose retention bounds it, and keeps
+integration); Jush writes to its own log, whose retention bounds it, and keeps
 every occurrence, so a defect's count and times are there. Safari's *Show features
 for web developers* is a setting that is off by default for what only a developer
 needs.

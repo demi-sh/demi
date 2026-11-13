@@ -18,11 +18,11 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::task::Poll;
 
-use demi_runner_protocol::direct::{
+use jush_runner_protocol::direct::{
     CONNECT_TIMEOUT, ChannelError, ChannelErrorCode, ChannelHeader, Introduction, MAX_CHANNELS,
     PROBE_LABEL, QUEUE_BYTES, StunUrl, VIDEO_QUEUE_BYTES, VideoOpened,
 };
-use demi_runner_protocol::pairs::{PairHeader, PairReason, PairSide};
+use jush_runner_protocol::pairs::{PairHeader, PairReason, PairSide};
 use garde::Validate;
 use str0m::change::{SdpAnswer, SdpOffer, SdpPendingOffer};
 use str0m::channel::{ChannelConfig, ChannelData, ChannelId};

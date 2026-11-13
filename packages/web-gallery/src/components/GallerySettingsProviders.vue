@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import { requestFailure } from '../fixtures/request-failures'
-import type { ShownError } from '@demicodes/web-ui/infra/errors'
+import type { ShownError } from '@jush-ai/web-ui/infra/errors'
 import { computed, onScopeDispose, ref, toRaw } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
 import ProviderLoginDialog, {
   type ProviderLoginPhase,
-} from '@demicodes/web-ui/settings/ProviderLoginDialog.vue'
-import type { ProviderLoginStage } from '@demicodes/web-ui/settings/types'
-import SettingsProvidersPage from '@demicodes/web-ui/settings/SettingsProvidersPage.vue'
+} from '@jush-ai/web-ui/settings/ProviderLoginDialog.vue'
+import type { ProviderLoginStage } from '@jush-ai/web-ui/settings/types'
+import SettingsProvidersPage from '@jush-ai/web-ui/settings/SettingsProvidersPage.vue'
 import {
   type SettingsModelDraft,
   type SettingsProviderAccount,
   type SettingsProviderEntry,
   type SettingsProviderModel,
   type SettingsVendor,
-} from '@demicodes/web-ui/settings/types'
+} from '@jush-ai/web-ui/settings/types'
 import {
   galleryCacheTtl,
   isIncomplete,
@@ -28,13 +28,13 @@ import {
 } from '../fixtures/settings'
 import { slow } from '../fixtures/slow'
 import { galleryShareKeys, useGalleryShareKeys } from '../fixtures/provider-sharing'
-import { showToast } from '@demicodes/web-ui/infra/toast'
-import { operations } from '@demicodes/web-ui/ui/operations'
-import { providerOperation } from '@demicodes/web-ui/settings/provider-operations'
+import { showToast } from '@jush-ai/web-ui/infra/toast'
+import { operations } from '@jush-ai/web-ui/ui/operations'
+import { providerOperation } from '@jush-ai/web-ui/settings/provider-operations'
 import { DAY, HOUR, MINUTE, ahead } from '../fixtures/time'
 import { galleryDevices } from '../fixtures/devices'
-import type { MenuDevice } from '@demicodes/web-ui/targets/types'
-import type { SettingsDevice } from '@demicodes/web-ui/settings/types'
+import type { MenuDevice } from '@jush-ai/web-ui/targets/types'
+import type { SettingsDevice } from '@jush-ai/web-ui/settings/types'
 import { HOUR_SECONDS, WEEK_SECONDS, reported, windowNamed } from '../fixtures/usage-limits'
 
 /**
@@ -87,15 +87,15 @@ const { service: shareService } = useGalleryShareKeys(galleryShareKeys())
  * As the backend takes a borrowed entry's share key: it asks the lending
  * server, a beat, and names the entry as that server names its provider when
  * it still has its default name. A key that is not one is refused, as the
- * product's toast says. Any `demi-share-key-…` text stands for a key here.
+ * product's toast says. Any `jush-share-key-…` text stands for a key here.
  */
 async function borrow(entry: SettingsProviderEntry, text: string): Promise<void> {
   await slow()
-  if (!text.startsWith('demi-share-key-')) {
+  if (!text.startsWith('jush-share-key-')) {
     showToast({ title: 'Could Not Save the Provider', message: 'The share key isn’t valid, or it was revoked.', tone: 'danger' })
     return
   }
-  if (/^Another Demi( \(\d+\))?$/.test(entry.name)) {
+  if (/^Another Jush( \(\d+\))?$/.test(entry.name)) {
     entry.name = 'Studio'
   }
   entry.lender = 'lab.example.com'
@@ -193,15 +193,15 @@ function addCompatible() {
 }
 
 /**
- * As the backend creates another Demi's provider: at once, named *Another
- * Demi* or the first free *(2)*, without its share key, which its page asks
+ * As the backend creates another Jush's provider: at once, named *Another
+ * Jush* or the first free *(2)*, without its share key, which its page asks
  * for.
  */
 function addBorrowed() {
   const taken = (name: string) => s.value.providers.some((entry) => entry.name === name)
-  let name = 'Another Demi'
+  let name = 'Another Jush'
   for (let number = 2; taken(name); number += 1) {
-    name = `Another Demi (${number})`
+    name = `Another Jush (${number})`
   }
   join(provider({
     id: `p-${Date.now()}`,

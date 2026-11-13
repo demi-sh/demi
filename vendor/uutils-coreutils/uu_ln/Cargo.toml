@@ -136,8 +136,8 @@ check-cfg = [
     "cfg(wasi_runner)",
 ]
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "Files, streams, the environment, printing and exit go through uucore::context, so a run embedded in a shell job uses the job's working directory, environment, standard streams and cancellation, and exit ends only the utility",
     "The symbolic link is made at a path resolved against the job's directory (uucore::context::fs::symlink, symlink_file and symlink_dir), and a destination that `-f` or `-i` removes is a removal the job records",

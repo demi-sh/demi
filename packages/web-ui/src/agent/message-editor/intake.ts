@@ -11,7 +11,7 @@ import { fragmentDocument, markdownSlice, trimmedSlice } from './clipboard-slice
 import { lineRoleAt } from './lines'
 
 // What a composer takes in: whatever is pasted or dropped, from Finder, a web
-// page, another app or Demi's own transcript, becomes text in the user dialect
+// page, another app or Jush's own transcript, becomes text in the user dialect
 // or a capsule as it enters.
 //
 // - Files and images whose bytes the page can read become capsules, as a pasted
@@ -47,7 +47,7 @@ export interface IntakeOptions {
    */
   files: (files: File[]) => void
   /**
-   * A copied message in Demi's own form, pasted with the picture a copy of a
+   * A copied message in Jush's own form, pasted with the picture a copy of a
    * lone image carried, or dropped; it lands where `land` said.
    */
   message: (message: CopiedMessage, picture: File | null) => void
@@ -75,7 +75,7 @@ function imageName(mediaType: string): string {
 
 /**
  * An image's bytes as a file, when the page can read them: a `data:` or
- * `blob:` image, one of Demi's own page, or one another site lets the page
+ * `blob:` image, one of Jush's own page, or one another site lets the page
  * fetch; null for any other.
  */
 export async function readImage(src: string): Promise<File | null> {

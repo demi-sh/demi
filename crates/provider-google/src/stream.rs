@@ -3,13 +3,13 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     CallEvent, EarlyEnd, ErrorCode, InferenceRequest, ProviderEvent, ProviderFailure, ToolCall, VendorCall, encode_body,
     is_snapshot,
     http_failure, read_http_failure,
     wire::{NonEmpty, ReportedString, decode_untagged, sse_data, undecodable},
 };
-use demi_shared_types::{FailureSource, ProviderErrorDiagnostics, TokenUsage};
+use jush_shared_types::{FailureSource, ProviderErrorDiagnostics, TokenUsage};
 use futures_util::{Stream, StreamExt};
 use reqwest::header::{ACCEPT, CONTENT_TYPE};
 use serde::Deserialize;
@@ -24,7 +24,7 @@ const LABEL: &str = "Google";
 /// event, and dropping the stream drops the connection.
 pub(crate) fn run(
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     request: InferenceRequest,
 ) -> impl Stream<Item = ProviderEvent> {
     async_stream::stream! {

@@ -15,7 +15,7 @@ exists only to change one number.
 
 ## Decision
 
-**Every push to `feat/demi-next` builds everything a release publishes,
+**Every push to `feat/jush-next` builds everything a release publishes,
 and publishes nothing.** A release, or a deploy's pre-release, publishes a
 finished build of the commit it names, which takes a few minutes.
 
@@ -44,7 +44,7 @@ a commit pushed in a busy hour may never be.
 
 The design to build from:
 
-* `build.yml` starts on a push to `feat/demi-next`, or by hand on a
+* `build.yml` starts on a push to `feat/jush-next`, or by hand on a
   branch, with the concurrency group `build-<ref>` and its default single
   waiting place, `cancel-in-progress: false`. A call from `release.yml`
   has a group of its own, so it waits for no build of a push and replaces

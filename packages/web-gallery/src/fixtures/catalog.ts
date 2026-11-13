@@ -1,5 +1,5 @@
-import type { ContextRow, ContextUsage } from '@demicodes/protocol'
-import type { ModelInfo, ProviderInfo } from '@demicodes/web-ui/transport/protocol'
+import type { ContextRow, ContextUsage } from '@jush-ai/protocol'
+import type { ModelInfo, ProviderInfo } from '@jush-ai/web-ui/transport/protocol'
 
 export const demoProviders: ProviderInfo[] = [
   { id: 'anthropic', label: 'Anthropic', isAvailable: true },
@@ -94,7 +94,7 @@ function compactionBuffer(window: number): number {
  * The usage the backend reports at `tokens` of `window`, the window in use:
  * Compact is taken from half.
  *
- * Its rows are those a Demi conversation holds:
+ * Its rows are those a Jush conversation holds:
  *
  * - the system prompt with the shell tool;
  * - the commands;

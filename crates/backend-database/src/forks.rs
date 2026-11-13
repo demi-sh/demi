@@ -7,9 +7,9 @@
 //! Publication is the public conversation row; a reservation without one stays
 //! hidden.
 
-use demi_shared_types::{BlockId, ModelSelection, Timestamp, WorkflowChoice};
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_shared_types::{BlockId, ModelSelection, Timestamp, WorkflowChoice};
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 

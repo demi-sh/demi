@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import ModelSelector from '@demicodes/web-ui/agent/ModelSelector.vue'
+import ModelSelector from '@jush-ai/web-ui/agent/ModelSelector.vue'
 import {
   applyModelChange,
   initialModelSettings,
   type ModelSettingsChange,
-} from '@demicodes/web-ui/agent/model-selection'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+} from '@jush-ai/web-ui/agent/model-selection'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { demoProviders } from '../fixtures/catalog'
 import { composerModels, setGalleryContextLimit } from '../fixtures/context-limits'
 

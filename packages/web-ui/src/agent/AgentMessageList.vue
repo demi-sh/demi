@@ -3,11 +3,11 @@ import { keptComputed } from '../infra/keep-same'
 import type { ShownError } from '../infra/errors'
 import { pageLog } from '../infra/log'
 import { viewReady } from '../infra/view-timing'
-import type { ProviderFailureFacts } from '@demicodes/protocol'
+import type { ProviderFailureFacts } from '@jush-ai/protocol'
 import { computed, nextTick, onBeforeUnmount, onScopeDispose, ref, watch } from 'vue'
 import { useDebounceFn, useElementSize, useResizeObserver } from '@vueuse/core'
-import type { QueuedMessage, SessionPhase } from '@demicodes/protocol'
-import { useBlockVirtualizer, type PersistedScrollState } from '@demicodes/web-ui/composables/useBlockVirtualizer'
+import type { QueuedMessage, SessionPhase } from '@jush-ai/protocol'
+import { useBlockVirtualizer, type PersistedScrollState } from '@jush-ai/web-ui/composables/useBlockVirtualizer'
 import { compactionSummaryTokens } from './visible-blocks'
 import { isTextBlockStreaming, isThinkingBlockStreaming } from './block-streaming'
 import { rowKey } from './row-key'
@@ -49,7 +49,7 @@ import { useMediaAddress } from './media-source'
 import { transcriptPictures } from './transcript-pictures'
 import { useMediaViewer } from '../files/media-viewer'
 import { versionPlaces, type VersionChoice } from './versions'
-import type { HeldBlock } from '@demicodes/conversation-client'
+import type { HeldBlock } from '@jush-ai/conversation-client'
 import type { StepsNotSharedRow } from './pending-steers'
 import ReplyComments from './comments/ReplyComments.vue'
 import DrawnSelection from '../ui/DrawnSelection.vue'
@@ -122,7 +122,7 @@ const props = withDefaults(defineProps<{
    */
   pendingAction?: PendingAction
   /**
-   * Demi resumes by itself the turn a restart of the backend interrupted:
+   * Jush resumes by itself the turn a restart of the backend interrupted:
    * while the agent is idle, the tail row says Resuming.
    */
   resuming?: boolean
@@ -803,7 +803,7 @@ defineExpose({
 
     data-transcript: the product checks find a list and its rows by it, and
     tell one conversation's list from another's by its value
-    (`demi.transcript`).
+    (`jush.transcript`).
   -->
   <div
     :data-transcript="conversationId"

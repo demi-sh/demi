@@ -2,7 +2,7 @@ import type { DeviceMark } from '../devices/mark'
 import type { DeviceState } from '../devices/state'
 
 /**
- * Settings › Storage's view of what Demi keeps (`crates/web-api-protocol/src/storage.rs`):
+ * Settings › Storage's view of what Jush keeps (`crates/web-api-protocol/src/storage.rs`):
  * the server's kinds, the rules for every device, and each device's report.
  */
 export interface StorageView {
@@ -99,10 +99,10 @@ export const LOG_DAYS: readonly number[] = [3, 7, 14, 30, 90]
 export const LOG_GB: readonly number[] = [1, 2, 5, 10]
 
 /** A report's temporary files, cache and their sum on the device. */
-export function reportTotals(report: DeviceStorageReport): { temporary: number; cache: number; demi: number } {
+export function reportTotals(report: DeviceStorageReport): { temporary: number; cache: number; jush: number } {
   const temporary = report.conversations.reduce((sum, files) => sum + files.temporaryBytes, 0)
   const cache = report.conversations.reduce((sum, files) => sum + files.cacheBytes, 0)
-  return { temporary, cache, demi: temporary + cache + report.componentsBytes }
+  return { temporary, cache, jush: temporary + cache + report.componentsBytes }
 }
 
 /** Whether a kind is over its rule's limit, which only files in use keep it. */

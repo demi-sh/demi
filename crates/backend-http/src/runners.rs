@@ -27,17 +27,18 @@ use axum::response::{IntoResponse, Response};
 use axum_extra::TypedHeader;
 use axum_extra::headers::{Authorization, Range};
 use axum_extra::headers::authorization::Bearer;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_database::devices::DeviceRecord;
-use demi_runner_client::{
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_database::devices::DeviceRecord;
+use jush_runner_client::{
     ChunkEnd, ChunkRefusal, DeviceChunk, DeviceSource, PipeRefusal, SourceMessage, accept_call_sink, offer_response,
 };
-use demi_runner_protocol::release::{
+use jush_runner_protocol::release::{
     RELEASE_HEADER, RunnerUpdate, TARGET_HEADER, TOKEN_HEADER, UpdateExecutable,
 };
-use demi_runner_protocol::values::DeviceToken;
-use demi_runner_protocol::wire::{LINK_FRAME_BYTES, UPLOAD_COMPLETE, UPLOAD_OFFSET};
-use demi_web_api_protocol::devices::DeviceKind;
+use jush_runner_protocol::renamed;
+use jush_runner_protocol::values::DeviceToken;
+use jush_runner_protocol::wire::{LINK_FRAME_BYTES, UPLOAD_COMPLETE, UPLOAD_OFFSET};
+use jush_web_api_protocol::devices::DeviceKind;
 use futures_util::StreamExt as _;
 use tracing::Instrument as _;
 
@@ -46,7 +47,7 @@ use super::error::ApiError;
 use super::install::{current_runner_release, range_start};
 use super::listener::Peer;
 use super::runner_socket::accept;
-use demi_backend_runners::devices::RunnerSocket;
+use jush_backend_runners::devices::RunnerSocket;
 
 /// `WS /api/runner`: the socket carries MessagePack frames of at most the
 /// wire's limit; a larger one closes it. A backend with runner releases
@@ -89,11 +90,18 @@ async fn runner_update(
     let Some(current) = current_runner_release(state).await? else {
         return Ok(None);
     };
-    let named = |name: &str| headers.get(name).and_then(|value| value.to_str().ok());
-    if named(RELEASE_HEADER) == Some(current.release.as_str()) {
+    // A runner from before the rename names the same things under its own
+    // headers (`jush_runner_protocol::renamed`).
+    let named = |name: &str, before: &str| {
+        headers
+            .get(name)
+            .or_else(|| headers.get(before))
+            .and_then(|value| value.to_str().ok())
+    };
+    if named(RELEASE_HEADER, renamed::RELEASE_HEADER) == Some(current.release.as_str()) {
         return Ok(None);
     }
-    let executable = named(TARGET_HEADER)
+    let executable = named(TARGET_HEADER, renamed::TARGET_HEADER)
         .and_then(|target| current.targets.get(target))
         .map(|artifact| UpdateExecutable {
             sha256: artifact.sha256.clone(),
@@ -105,12 +113,17 @@ async fn runner_update(
     }))
 }
 
+/// The device token a runner's request carries, under its name or under
+/// the one a runner from before the rename sends.
+pub(super) fn token_header(headers: &HeaderMap) -> Option<&axum::http::HeaderValue> {
+    headers.get(TOKEN_HEADER).or_else(|| headers.get(renamed::TOKEN_HEADER))
+}
+
 /// The paired device whose token a runner's request carries in
-/// `Demi-Runner-Token`: none for a request without one, from a runner of a
+/// `Jush-Runner-Token`: none for a request without one, from a runner of a
 /// release before 0.1.14, or with one no paired device holds.
 pub(super) async fn paired_device(state: &AppState, headers: &HeaderMap) -> Option<DeviceRecord> {
-    let token = headers
-        .get(TOKEN_HEADER)
+    let token = token_header(headers)
         .and_then(|value| value.to_str().ok())
         .and_then(|value| DeviceToken::try_from(value.to_owned()).ok())?;
     match state

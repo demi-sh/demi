@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { t } from './locales/text'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsUsers from '@demicodes/web-ui/settings/SettingsUsers.vue'
-import AsyncRegion from '@demicodes/web-ui/ui/AsyncRegion.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsUsers from '@jush-ai/web-ui/settings/SettingsUsers.vue'
+import AsyncRegion from '@jush-ai/web-ui/ui/AsyncRegion.vue'
 import { useProduct } from '../state/product'
 import { useUserSettings } from './users'
 

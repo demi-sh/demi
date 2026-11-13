@@ -5,13 +5,13 @@ a card on the reply's background, in the reader's theme. Make one when a chart,
 a diagram or something to try explains better than text; a few numbers, a list,
 code or a fix stay text.
 
-1. Write one whole page and create it: `demi widget create <<'EOF' ... EOF`.
+1. Write one whole page and create it: `jush widget create <<'EOF' ... EOF`.
    It prints the widget's ID, such as `w1`, and shows you two screenshots,
    light and dark. Fix what they show wrong and create it again.
 2. Put `<widget id="w1" />` on a line of its own in the reply, where the
    widget belongs among its sentences, and do not describe what it shows.
 
-`demi widget guide <kind>` prints a page to copy for each kind: `line`,
+`jush widget guide <kind>` prints a page to copy for each kind: `line`,
 `bar`, `scatter` (Chart.js), `heatmap`, `share`, `table` and `flow` (Tailwind
 and SVG). Copy the nearest and change its data and words; keep how it draws.
 
@@ -20,8 +20,8 @@ and SVG). Copy the nearest and change its data and words; keep how it draws.
 Declare its size in the head, in CSS's words; the frame keeps it from the
 first moment, so nothing in the reply moves:
 
-    <meta name="demi-frame" content="height: 320px">
-    <meta name="demi-frame" content="aspect-ratio: 16 / 9; min-height: 200px; max-height: 420px">
+    <meta name="jush-frame" content="height: 320px">
+    <meta name="jush-frame" content="aspect-ratio: 16 / 9; min-height: 200px; max-height: 420px">
 
 A chart takes a height; a drawing that scales as a whole takes an aspect ratio
 with bounds. Only `height`, `aspect-ratio`, `min-height` and `max-height`, in

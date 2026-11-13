@@ -5,10 +5,10 @@
 //! - The announcement of a reset to the user's conversations.
 //! - Which of the user's conversations use the Cloud.
 
-use demi_machine_manager_protocol::BaseVersion;
-use demi_shared_types::ModelSelection;
-use demi_web_api_protocol::cloud::ResetPhase;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, OperationId, ProviderId, UserId};
+use jush_machine_manager_protocol::BaseVersion;
+use jush_shared_types::ModelSelection;
+use jush_web_api_protocol::cloud::ResetPhase;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, OperationId, ProviderId, UserId};
 use rusqlite::{OptionalExtension, Row, params};
 
 use super::StorageError;

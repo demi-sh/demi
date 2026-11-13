@@ -1,28 +1,28 @@
 import { computed, nextTick, reactive, ref, watch } from 'vue'
-import { browserPage } from '@demicodes/plugin-browser'
-import { mobilePage } from '@demicodes/plugin-mobile'
-import { WorkTabs, closeWorkTabs, updateWorkTab } from '@demicodes/web-ui/agent/work-changes'
+import { browserPage } from '@jush-ai/plugin-browser'
+import { mobilePage } from '@jush-ai/plugin-mobile'
+import { WorkTabs, closeWorkTabs, updateWorkTab } from '@jush-ai/web-ui/agent/work-changes'
 import {
   openIntent,
   pendingShows,
   type AppliedShows,
   type TabsState,
   type PinnedTabs,
-} from '@demicodes/web-ui/agent/work-tabs'
-import { selectTab } from '@demicodes/web-ui/agent/tab-close'
-import type { RequestEditSelection } from '@demicodes/web-ui/files/request-changes'
-import type { IntentRequest } from '@demicodes/web-ui/plugins/intents'
-import type { FrontCause, WorkRequest } from '@demicodes/web-ui/windows/session-work'
-import { readTab } from '@demicodes/web-ui/agent/tab-kinds/kind'
-import type { TabUpdate } from '@demicodes/web-ui/plugins/page'
-import { disposePluginStores } from '@demicodes/web-ui/plugins/stores'
+} from '@jush-ai/web-ui/agent/work-tabs'
+import { selectTab } from '@jush-ai/web-ui/agent/tab-close'
+import type { RequestEditSelection } from '@jush-ai/web-ui/files/request-changes'
+import type { IntentRequest } from '@jush-ai/web-ui/plugins/intents'
+import type { FrontCause, WorkRequest } from '@jush-ai/web-ui/windows/session-work'
+import { readTab } from '@jush-ai/web-ui/agent/tab-kinds/kind'
+import type { TabUpdate } from '@jush-ai/web-ui/plugins/page'
+import { disposePluginStores } from '@jush-ai/web-ui/plugins/stores'
 import {
   intentKind,
   useBoundKinds,
   type AnyPluginPage,
   type ConversationFileService,
-} from '@demicodes/web-ui/plugins/page'
-import type { ChangeSetSource } from '@demicodes/web-ui/files/changes'
+} from '@jush-ai/web-ui/plugins/page'
+import type { ChangeSetSource } from '@jush-ai/web-ui/files/changes'
 import { PLUGIN_PAGES } from '../generated/pages'
 import { productWould } from '../product-would'
 import { readGalleryEdit } from './blobs'
@@ -352,7 +352,7 @@ export function useGalleryWork(
     }
   }
   /**
-   * The agent shows `tab` with `demi browser show`: the browser tells the
+   * The agent shows `tab` with `jush browser show`: the browser tells the
    * plugin, which carries the count into the work tab, which the work then
    * selects.
    */

@@ -12,11 +12,11 @@
 //! again. Each role's body says what it asks; this module asks and reads.
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     endpoint_url,
     media::{MediaAnswer, MediaFailure, unreadable},
 };
-use demi_shared_types::{B64Bytes, TokenUsage, VendorTrace};
+use jush_shared_types::{B64Bytes, TokenUsage, VendorTrace};
 use serde::Deserialize;
 
 use crate::images::GeminiKey;
@@ -24,7 +24,7 @@ use crate::images::GeminiKey;
 /// Asks for the interaction `body` describes, in the background, and
 /// answers its id. `body` is a JSON object without `background` and
 /// `store`, which are set here.
-pub(crate) async fn create(key: &GeminiKey, http: &demi_provider_common::ProviderHttp, mut body: serde_json::Value) -> MediaAnswer<String> {
+pub(crate) async fn create(key: &GeminiKey, http: &jush_provider_common::ProviderHttp, mut body: serde_json::Value) -> MediaAnswer<String> {
     if let Some(object) = body.as_object_mut() {
         object.insert("background".to_owned(), serde_json::Value::Bool(true));
         object.insert("store".to_owned(), serde_json::Value::Bool(true));
@@ -32,7 +32,7 @@ pub(crate) async fn create(key: &GeminiKey, http: &demi_provider_common::Provide
     let url = endpoint_url(key.base(), "/interactions");
     let headers = key.headers();
     key.call()
-        .post_json(http, &url, Bytes::from(demi_provider_common::json_body(&body)), |_| {
+        .post_json(http, &url, Bytes::from(jush_provider_common::json_body(&body)), |_| {
             std::future::ready(Ok((headers.clone(), None)))
         })
         .await
@@ -43,7 +43,7 @@ pub(crate) async fn create(key: &GeminiKey, http: &demi_provider_common::Provide
 }
 
 /// Reads the interaction `id` once.
-pub(crate) async fn get(key: &GeminiKey, http: &demi_provider_common::ProviderHttp, id: &str) -> MediaAnswer<Interaction> {
+pub(crate) async fn get(key: &GeminiKey, http: &jush_provider_common::ProviderHttp, id: &str) -> MediaAnswer<Interaction> {
     let url = endpoint_url(key.base(), &format!("/interactions/{id}"));
     let result = async { read(&key.call().get(http, &url, key.headers()).await?) }.await;
     MediaAnswer { result, observed: Vec::new() }

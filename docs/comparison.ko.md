@@ -1,8 +1,8 @@
-# Demi 비교
+# Jush 비교
 
 [English](comparison.md) · [Deutsch](comparison.de.md) · [Español](comparison.es.md) · [Français](comparison.fr.md) · [Português](comparison.pt-BR.md) · [简体中文](comparison.zh-CN.md) · [繁體中文](comparison.zh-TW.md) · [日本語](comparison.ja.md) · **한국어**
 
-같은 종류의 에이전트 앱과 Demi의 차이를 2026년 10월 기준, 각 제품의 문서와 소스 코드를 바탕으로 정리했습니다. 제품 간에 차이가 있는 항목과, 아직 어느 제품도 지원하지 않는 기능 하나를 실었습니다. 열은 Demi와 가까운 제품부터 먼 제품 순으로 놓았습니다.
+같은 종류의 에이전트 앱과 Jush의 차이를 2026년 10월 기준, 각 제품의 문서와 소스 코드를 바탕으로 정리했습니다. 제품 간에 차이가 있는 항목과, 아직 어느 제품도 지원하지 않는 기능 하나를 실었습니다. 열은 Jush와 가까운 제품부터 먼 제품 순으로 놓았습니다.
 
 표에서는 다음 기호와 라벨을 사용합니다:
 
@@ -14,7 +14,7 @@
 
 다음 표는 제품을 항목별로 비교합니다:
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **모델과 구독** | | | | | | | | |
 | Claude 구독 | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@
 - **diff 줄 단위 댓글**: 변경 사항의 한 줄에 단 댓글이 에이전트에게 전달됩니다.
 - **자체 에이전트**: Claude Code나 Codex 같은 에이전트를 실행하는 대신 제품 자체의 에이전트가 모델을 구동합니다.
 - **셸 하나만 도구로**: 모델이 받는 도구는 셸 하나이고, 모든 기능은 그 안의 명령입니다.
-- **서드파티 플러그인**: Skills나 MCP와 별개로, 다른 사람이 만든 코드를 설치해 제품에 도구나 화면을 더합니다. Demi의 기능 자체는 플러그인으로 되어 있지만 다른 사람의 플러그인은 불러오지 않습니다.
+- **서드파티 플러그인**: Skills나 MCP와 별개로, 다른 사람이 만든 코드를 설치해 제품에 도구나 화면을 더합니다. Jush의 기능 자체는 플러그인으로 되어 있지만 다른 사람의 플러그인은 불러오지 않습니다.
 - **에이전트용 시크릿**: 사용자가 이름을 붙여 저장한 시크릿을 에이전트가 명령에서 씁니다.
 - **브라우저 실시간 보기와 조작**: 에이전트가 쓰는 브라우저를 작업 중에 보고 직접 조작할 수 있습니다.
 - **컴퓨터 사용**: 에이전트가 스크린샷, 마우스, 키보드로 데스크톱을 조작합니다. 브라우저에 한정되지 않습니다.

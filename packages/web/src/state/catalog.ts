@@ -1,11 +1,11 @@
-import type { ModelInfo } from '@demicodes/web-ui/transport/protocol'
+import type { ModelInfo } from '@jush-ai/web-ui/transport/protocol'
 import type {
   SettingsProviderEntry,
   SettingsProviderModel,
   SettingsWireApi,
-} from '@demicodes/web-ui/settings/types'
-import { providerLogo } from '@demicodes/web-ui/settings/vendor-logos'
-import { appliedContextLimit, type AuthState, type RuntimeState, type WireApi } from '@demicodes/protocol'
+} from '@jush-ai/web-ui/settings/types'
+import { providerLogo } from '@jush-ai/web-ui/settings/vendor-logos'
+import { appliedContextLimit, type AuthState, type RuntimeState, type WireApi } from '@jush-ai/protocol'
 import type {
   AccountDto,
   CatalogModel,
@@ -113,7 +113,7 @@ function healthMessage(health: AuthState | RuntimeState): string | undefined {
   return 'message' in health ? health.message : undefined
 }
 
-/** The family of a provider another Demi server shares (`crates/provider-relay`). */
+/** The family of a provider another Jush server shares (`crates/provider-relay`). */
 const RELAY = 'relay'
 
 /**
@@ -158,7 +158,7 @@ export function providerView(
     baseUrl: entry.baseUrl ?? '',
     throughDevice: entry.throughDevice,
     ...(entry.kind === 'subscription' ? { connectsThrough: entry.connectsThrough } : {}),
-    // Another Demi's provider, by the host its share key names.
+    // Another Jush's provider, by the host its share key names.
     ...(entry.providerType === RELAY ? { lender: entry.baseUrl ? new URL(entry.baseUrl).host : null } : {}),
     ...(entry.kind === 'api_key' ? { headers: entry.headers.map((header) => ({ ...header })) } : {}),
     wireApi: wireApi(entry.providerType, entry.wireApi),

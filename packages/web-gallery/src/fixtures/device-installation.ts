@@ -1,11 +1,11 @@
-import type { DeviceInstallCommands, DeviceStart, DeviceSystem } from '@demicodes/web-ui/devices/installation'
-import type { DeviceReport } from '@demicodes/web-ui/devices/report'
+import type { DeviceInstallCommands, DeviceStart, DeviceSystem } from '@jush-ai/web-ui/devices/installation'
+import type { DeviceReport } from '@jush-ai/web-ui/devices/report'
 
 /** The install commands the demo backend composes, for the visual prototype, not published downloads. */
 export const demoInstallCommands: DeviceInstallCommands = {
-  linux: "curl --proto '=https' --tlsv1.2 -sSf 'https://demi.example.com/install.sh' | sh",
-  macos: "curl --proto '=https' --tlsv1.2 -sSf 'https://demi.example.com/install.sh' | sh",
-  windows: "irm 'https://demi.example.com/install.ps1' | iex",
+  linux: "curl --proto '=https' --tlsv1.2 -sSf 'https://jush.example.com/install.sh' | sh",
+  macos: "curl --proto '=https' --tlsv1.2 -sSf 'https://jush.example.com/install.sh' | sh",
+  windows: "irm 'https://jush.example.com/install.ps1' | iex",
 }
 
 /** A development backend's install commands, which fetch its installers over plain HTTP. */
@@ -16,14 +16,14 @@ export const developmentInstallCommands: DeviceInstallCommands = {
 }
 
 /** The installation the demo backend's installers make: named after the backend's host and a short hash of its URL. */
-const demoInstallationId = 'demi.example.com-748c'
+const demoInstallationId = 'jush.example.com-748c'
 
 /** How a device paired with the demo backend starts its runner again, as the backend names it. */
 export function demoDeviceStart(system: DeviceSystem): DeviceStart {
   const command =
     system === 'windows'
-      ? `powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\\.demi\\runner\\${demoInstallationId}\\run.ps1" start`
-      : `~/.demi/runner/${demoInstallationId}/run start`
+      ? `powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\\.jush\\runner\\${demoInstallationId}\\run.ps1" start`
+      : `~/.jush/runner/${demoInstallationId}/run start`
   return { command, system }
 }
 

@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': resolve(import.meta.dirname, 'src'),
-      '@demicodes/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
-      '@demicodes/web-gallery': resolve(import.meta.dirname, '../web-gallery/src'),
+      '@jush-ai/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
+      '@jush-ai/web-gallery': resolve(import.meta.dirname, '../web-gallery/src'),
     },
   },
   build: {
@@ -40,7 +40,7 @@ function icons(): Plugin {
     [ICONS.large]: web('web/public/icons/icon-512.png'),
   }
   return {
-    name: 'demi-site-icons',
+    name: 'jush-site-icons',
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const source = sources[request.url?.slice(1).split('?')[0] ?? '']
@@ -65,7 +65,7 @@ function seo(): Plugin {
   // What `src/entry-server.ts` exports for it.
   type Seo = { headHtml: () => string, textFiles: () => Record<string, string> }
   return {
-    name: 'demi-site-seo',
+    name: 'jush-site-seo',
     apply: 'serve',
     configureServer(server) {
       const load = () => server.ssrLoadModule('/src/entry-server.ts') as Promise<Seo>

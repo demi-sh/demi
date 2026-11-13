@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/lockup-dark.svg">
-    <img alt="Demi" src="docs/assets/brand/lockup-light.svg" height="72">
+    <img alt="Jush" src="docs/assets/brand/lockup-light.svg" height="72">
   </picture>
 </p>
 
@@ -12,8 +12,8 @@
 
 <p align="center">
   <a href="#ライセンス"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue"></a>
-  <a href="https://github.com/demi-sh/demi/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/demi-sh/demi"></a>
-  <a href="https://github.com/demi-sh/demi/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/demi-sh/demi/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/jush-ai/jush/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/jush-ai/jush"></a>
+  <a href="https://github.com/jush-ai/jush/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/jush-ai/jush/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 <p align="center">
@@ -21,21 +21,21 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/product.webp" alt="ブラウザの Demi：エージェントが iPhone アプリを 2 列レイアウトにし、その返信にはコメントとサイドの質問、下には返信の候補。サイドパネルには半分折りたたんだ iPhone Duo で動くアプリ、スマートフォンには同じ会話。" width="800">
+  <img src="docs/assets/product.webp" alt="ブラウザの Jush：エージェントが iPhone アプリを 2 列レイアウトにし、その返信にはコメントとサイドの質問、下には返信の候補。サイドパネルには半分折りたたんだ iPhone Duo で動くアプリ、スマートフォンには同じ会話。" width="800">
 </p>
 
-Demi は、自分のサーバーでホストする Web ベースの AI エージェントです。どのブラウザからでも開け、調査、Web サイトの操作、ファイル、コードと、何でも任せられます。会話はあなたのサーバーに残り、作業はクラウドのサンドボックスや手元のマシンで動き、タブを閉じても続きます。
+Jush は、自分のサーバーでホストする Web ベースの AI エージェントです。どのブラウザからでも開け、調査、Web サイトの操作、ファイル、コードと、何でも任せられます。会話はあなたのサーバーに残り、作業はクラウドのサンドボックスや手元のマシンで動き、タブを閉じても続きます。
 
 > [!NOTE]
-> Demi は開発の初期段階にあります。リリース間で互換性のない変更が入ることがあります。
+> Jush は開発の初期段階にあります。リリース間で互換性のない変更が入ることがあります。
 
 ## クイックスタート
 
-数クリックで Demi をデプロイ：
+数クリックで Jush をデプロイ：
 
 <p>
   <a href="docs/delivery/railway.md"><img alt="Deploy on Railway" src="https://railway.com/button.svg" height="36"></a>
-  <a href="https://render.com/deploy?repo=https://github.com/demi-sh/demi"><img alt="Deploy on Render" src="docs/assets/deploy/deploy-on-render.svg" height="36"></a>
+  <a href="https://render.com/deploy?repo=https://github.com/jush-ai/jush"><img alt="Deploy on Render" src="docs/assets/deploy/deploy-on-render.svg" height="36"></a>
   <a href="docs/delivery/fly.md"><img alt="Deploy on Fly.io" src="docs/assets/deploy/deploy-on-fly.svg" height="36"></a>
   <a href="docs/delivery/docker-compose.md"><img alt="Run with Docker Compose" src="docs/assets/deploy/run-with-docker-compose.svg" height="36"></a>
 </p>
@@ -43,19 +43,19 @@ Demi は、自分のサーバーでホストする Web ベースの AI エージ
 または、ドメイン名のある自分の Linux サーバーにインストール：
 
 ```sh
-curl -fsSL https://demi.sh/install.sh | sudo bash
+curl -fsSL https://jush.ai/install.sh | sudo bash
 ```
 
 または、Claude Code や Codex などのコーディングエージェントにインストールを任せます：
 
 ```text
-https://raw.githubusercontent.com/demi-sh/demi/main/docs/delivery/install-with-an-agent.md に従って、私のサーバーに Demi をインストールしてください
+https://raw.githubusercontent.com/jush-ai/jush/main/docs/delivery/install-with-an-agent.md に従って、私のサーバーに Jush をインストールしてください
 ```
 
-インストール後は Demi を開いて管理者アカウントを作り、**Settings › Providers** でモデルを追加します。対応システム、HTTPS、Canary チャンネル、各方法の費用は[インストールガイド](docs/delivery/installation.md)にあります。
+インストール後は Jush を開いて管理者アカウントを作り、**Settings › Providers** でモデルを追加します。対応システム、HTTPS、Canary チャンネル、各方法の費用は[インストールガイド](docs/delivery/installation.md)にあります。
 
 <p align="center">
-  <img src="docs/assets/concept.webp" alt="コンピューターやスマートフォンから 1 台の Demi サーバーに接続します。サーバーはすべての会話を保持し、ノート PC、デスクトップ、HomeLab、VPS 上のランナーやクラウドのサンドボックスを通じて作業します。" width="800">
+  <img src="docs/assets/concept.webp" alt="コンピューターやスマートフォンから 1 台の Jush サーバーに接続します。サーバーはすべての会話を保持し、ノート PC、デスクトップ、HomeLab、VPS 上のランナーやクラウドのサンドボックスを通じて作業します。" width="800">
 </p>
 
 ## 主な機能
@@ -65,7 +65,7 @@ https://raw.githubusercontent.com/demi-sh/demi/main/docs/delivery/install-with-a
 - **ひとつの会話ですべてを**：ちょっとした質問も、複数ステップの仕事も。
 - **コーディング**：リポジトリを編集し、ビルドとテストを実行し、変更を diff で確認。
 - **調査**：Web を検索し、Web ページ、PDF、ドキュメントを読みます。
-- **本物のブラウザ**：Demi が Chrome を操作。見守りながら、いつでも操作を代われます。
+- **本物のブラウザ**：Jush が Chrome を操作。見守りながら、いつでも操作を代われます。
 - **スマートフォンアプリ**：iOS シミュレーターと Android エミュレーターでアプリをインストールしてテスト。
 - **ファイルとデータ**：ドキュメント、スプレッドシート、画像を扱い、添付ファイルで返します。
 - **画像、動画、音声**：追加したモデルプロバイダーで作れます。
@@ -90,7 +90,7 @@ https://raw.githubusercontent.com/demi-sh/demi/main/docs/delivery/install-with-a
 - **プロファイルとワークフロー**：専門エージェントを、リポジトリを通じて共有。
 - **スケジュール**：タイマー、cron、変化をきっかけに会話を起こします。
 - **会話どうしの連携**：会話から別の会話にメッセージを送ったり、読んだりできます。
-- **スキル**：Demi に新しい仕事を教えます。
+- **スキル**：Jush に新しい仕事を教えます。
 - **安全な認証情報**：秘密はフォームで受け取り、会話には出ません。
 
 ### モデルとチーム
@@ -103,12 +103,12 @@ https://raw.githubusercontent.com/demi-sh/demi/main/docs/delivery/install-with-a
 
 ## シェルの上に築いたエージェント
 
-Demi は Claude Code や Codex のラッパーではなく、独自のランタイムがすべてのモデルを動かします。多くのエージェントはモデルに長いツールの一覧を渡しますが、Demi が渡すのはシェルひとつです。ブラウザ、ほかのマシン、サブエージェントは、その中の `demi` コマンドです：
+Jush は Claude Code や Codex のラッパーではなく、独自のランタイムがすべてのモデルを動かします。多くのエージェントはモデルに長いツールの一覧を渡しますが、Jush が渡すのはシェルひとつです。ブラウザ、ほかのマシン、サブエージェントは、その中の `jush` コマンドです：
 
 ```sh
-T=$(demi browser tab new) && demi browser open $T http://localhost:5173 && demi browser screenshot $T | demi file view
-demi device shell --device windows 'cargo test'
-demi agent spawn --profile research --description "Compare pricing pages" < brief.md
+T=$(jush browser tab new) && jush browser open $T http://localhost:5173 && jush browser screenshot $T | jush file view
+jush device shell --device windows 'cargo test'
+jush agent spawn --profile research --description "Compare pricing pages" < brief.md
 ```
 
 - **組み合わせられる**：コマンドはパイプでつながり、ひとつのステップで複数のツール呼び出し分の仕事をします。
@@ -118,7 +118,7 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
 - **長い仕事のために**：コマンドはバックグラウンドで動き、終わると報告します。
 
 > [!NOTE]
-> **予定**：Demi サーバーの OpenAPI。あなたのプログラムから、会話、エージェント、クラウドのサンドボックスを使えるようにします。
+> **予定**：Jush サーバーの OpenAPI。あなたのプログラムから、会話、エージェント、クラウドのサンドボックスを使えるようにします。
 
 ## アーキテクチャ
 
@@ -127,7 +127,7 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
         │  HTTPS + WebSocket
         ▼
   ┌──────────────────────────┐   HTTPS   ┌────────────────────┐
-  │ Demi server              │──────────▶│ Model providers    │
+  │ Jush server              │──────────▶│ Model providers    │
   │ users, conversations,    │           └────────────────────┘
   │ agents                   │
   └──────────────────────────┘
@@ -149,11 +149,11 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
 
 ## 比較
 
-OpenHands、Orca、T3 Code、DeepSeek Harness、opencode、Pi、herdr と Demi の機能ごとの比較は [Demi の比較](docs/comparison.ja.md)をご覧ください。
+OpenHands、Orca、T3 Code、DeepSeek Harness、opencode、Pi、herdr と Jush の機能ごとの比較は [Jush の比較](docs/comparison.ja.md)をご覧ください。
 
 ## ドキュメント
 
-- [設計ドキュメント](docs/README.md)：Demi の各部分の仕組み
+- [設計ドキュメント](docs/README.md)：Jush の各部分の仕組み
 - [コントリビューション](CONTRIBUTING.md)：開発環境、チェック、プロバイダーの追加方法
 - [セキュリティ](SECURITY.md)：脆弱性の報告方法と、データの保存場所
 
@@ -161,4 +161,4 @@ OpenHands、Orca、T3 Code、DeepSeek Harness、opencode、Pi、herdr と Demi �
 
 ## ライセンス
 
-Demi は [Apache License 2.0](LICENSE) で公開されています。
+Jush は [Apache License 2.0](LICENSE) で公開されています。

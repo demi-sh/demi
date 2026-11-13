@@ -40,7 +40,7 @@ import {
 } from './file-uploads'
 import type { TreeDropTarget, TreeRow } from './tree'
 import type { FileBrowserEntry, FileBrowserFailure, FileBrowserLink, FileBrowserSource, FileDirectory, Showing } from './types'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { joinPath, normalizePath, parentPath, relativePath } from './paths'
 import { DEFAULT_SORT, sortEntries } from './file-browser-state'
 

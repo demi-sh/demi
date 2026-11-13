@@ -31,7 +31,7 @@ nothing.
 
 The design to build from:
 
-- `backend-user-shard`: the `demi conversation` group registers no
+- `backend-user-shard`: the `jush conversation` group registers no
   permission, and `list`, `send`, `new` and `history --conversation` require
   none. `CONVERSATIONS`, its action and its description go, and with them the
   grant `deliver` gave the conversation a message reaches. The summaries no

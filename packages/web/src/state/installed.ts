@@ -1,4 +1,4 @@
-import { deviceDownloading, deviceInstalled, type DeviceArtifact, type DeviceDownload } from '@demicodes/web-ui/devices/installed'
+import { deviceDownloading, deviceInstalled, type DeviceArtifact, type DeviceDownload } from '@jush-ai/web-ui/devices/installed'
 import type { PageState } from './lists'
 
 /** What `deviceId` holds of `packages`, a plugin's (`crates/runner-command-packages/src/cache.rs`). */

@@ -4,7 +4,7 @@
 
 use axum::Json;
 use axum::extract::{Path, Query, State};
-use demi_web_api_protocol::conversations::{CostWindow, RecentCost};
+use jush_web_api_protocol::conversations::{CostWindow, RecentCost};
 use serde::Deserialize;
 
 use super::AppState;

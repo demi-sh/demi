@@ -10,8 +10,8 @@
 use std::io::Cursor;
 
 use bytes::Bytes;
-use demi_command_protocol::MediumFacts;
-use demi_shared_types::whole_image::{self, Undecodable};
+use jush_command_protocol::MediumFacts;
+use jush_shared_types::whole_image::{self, Undecodable};
 use image::{ImageDecoder, ImageFormat, ImageReader, Limits, metadata::Orientation};
 
 /// The most memory reading an image's header may take: a small file can declare

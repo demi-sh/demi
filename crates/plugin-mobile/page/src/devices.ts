@@ -10,7 +10,7 @@
  */
 import { onScopeDispose } from 'vue'
 import type { z } from 'zod'
-import { PluginCallError, type ConversationPlugin, type DeviceDownload, type OpenUserStream } from '@demicodes/plugin-sdk'
+import { PluginCallError, type ConversationPlugin, type DeviceDownload, type OpenUserStream } from '@jush-ai/plugin-sdk'
 import {
   appearanceResultSchema,
   closeResultSchema,
@@ -65,9 +65,9 @@ export class MobileError extends Error {
 }
 
 export interface MobileApi {
-  /** The device's simulators, as `demi mobile list` lists them. */
+  /** The device's simulators, as `jush mobile list` lists them. */
   list(): Promise<ListResult>
-  /** Opens the simulator of `nativeId`, booting it first when it is shut down, as `demi mobile open` does. */
+  /** Opens the simulator of `nativeId`, booting it first when it is shut down, as `jush mobile open` does. */
   open(nativeId: string): Promise<Opened>
   close(device: string): Promise<void>
   rotate(device: string, turn: Turn): Promise<RotateResult>

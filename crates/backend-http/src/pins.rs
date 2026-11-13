@@ -8,9 +8,9 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::pins::Unpinner;
-use demi_backend_page_sync::Part;
-use demi_backend_user_shard::services::Services;
+use jush_backend_database::pins::Unpinner;
+use jush_backend_page_sync::Part;
+use jush_backend_user_shard::services::Services;
 
 use super::conversations::owned;
 use super::error::ApiError;

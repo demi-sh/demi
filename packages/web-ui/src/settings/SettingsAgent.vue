@@ -9,7 +9,7 @@ import { applyModelChange, initialModelSettings, type ModelSettings, type ModelS
 import { otherWayKeys, sendWayLabel, type SendWhileRunning } from '../agent/send-way'
 import Dropdown from '../ui/Dropdown.vue'
 import Segmented, { type SegmentedOption } from '../ui/Segmented.vue'
-import { IDLE_COMPACTION_CONTEXT_FLOOR } from '@demicodes/protocol'
+import { IDLE_COMPACTION_CONTEXT_FLOOR } from '@jush-ai/protocol'
 import InlineError from '../ui/InlineError.vue'
 import Switch from '../ui/Switch.vue'
 import TokenInput from '../ui/TokenInput.vue'

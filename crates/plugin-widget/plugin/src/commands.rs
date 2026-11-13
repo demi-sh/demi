@@ -1,10 +1,10 @@
-//! The `demi widget` group, whose leaves the plugin answers itself with the
+//! The `jush widget` group, whose leaves the plugin answers itself with the
 //! request's whole port.
 
-use demi_command_declarations::NativeOperation;
-use demi_command_package_browser_protocol::PACKAGE;
-use demi_device_interface::{GroupBuilder, LeafBuilder};
-use demi_plugin_interface::{CommandPlugin, Commands, Placement, PortHandled};
+use jush_command_declarations::NativeOperation;
+use jush_command_package_browser_protocol::PACKAGE;
+use jush_device_interface::{GroupBuilder, LeafBuilder};
+use jush_plugin_interface::{CommandPlugin, Commands, Placement, PortHandled};
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -13,7 +13,7 @@ const SUMMARY: &str = "Make an HTML page a widget, shown in place in a reply, an
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "Charts, diagrams and interactive pages in your reply: data with a shape, such as a trend, a comparison or a distribution, is shown, not told.";
 
-const DETAILS: &str = "Read demi widget guide before the first widget of a conversation.";
+const DETAILS: &str = "Read jush widget guide before the first widget of a conversation.";
 
 const CREATE_SUMMARY: &str = "Make the HTML page on stdin a widget, and show it to yourself as the reply will, light and dark. Place it in the reply as <widget id=\"w1\" /> on a line of its own. A changed page is created again, as a widget of its own.";
 
@@ -23,7 +23,7 @@ const PAGE: &str = "The page, a whole HTML document of at most 1 MiB; - or none 
 
 const CREATE_SUCCESS: &str = "the widget's ID and frame, such as `w1  height 330px`, and two screenshots of it, light and dark, shown to you with the result; without the device's browser, a line on stderr that the screenshots were skipped and how to install it";
 
-const CREATE_FAILURE: &str = "a page that is not HTML, or a frame its demi-frame meta tag declares that cannot be read, named on stderr with exit status 1";
+const CREATE_FAILURE: &str = "a page that is not HTML, or a frame its jush-frame meta tag declares that cannot be read, named on stderr with exit status 1";
 
 /// The input of `create`.
 #[derive(Deserialize, JsonSchema)]
@@ -62,9 +62,9 @@ pub(crate) fn draw() -> NativeOperation {
     }
 }
 
-/// The plugin's commands: the `demi widget` group.
+/// The plugin's commands: the `jush widget` group.
 pub(crate) fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![widget_group()])
+    CommandPlugin::new(Placement::Jush, vec![widget_group()])
         .expect("the widget group is a valid declaration")
 }
 

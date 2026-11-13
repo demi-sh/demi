@@ -213,8 +213,8 @@ opt-level = "z"
 inherits = "release"
 strip = true
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "fancy-regex 0.19, the version the runner links, in place of 0.18",
     "Paths resolve against the shell job's working directory, and an in-place edit is recorded as the job's edit (`crates/command-sdk/src/edits.rs`)",

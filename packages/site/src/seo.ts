@@ -8,13 +8,13 @@ import { ICONS } from './icons'
 import { DISTRIBUTIONS, DOCS, INSTALL_COMMAND, LICENSE, REPOSITORY, REQUIREMENTS } from './links'
 
 export const SITE = {
-  url: 'https://demi.sh/',
-  name: 'Demi',
+  url: 'https://jush.ai/',
+  name: 'Jush',
   /** The first screen's heading, which the share image repeats. */
   headline: 'Your agent, across all your machines.',
-  title: 'Demi – Open-source, self-hosted AI agent on the web',
+  title: 'Jush – Open-source, self-hosted AI agent on the web',
   description:
-    'Demi is an open-source, self-hosted AI agent on the web. Open it in any browser, on any device, and let it work across all your computers.',
+    'Jush is an open-source, self-hosted AI agent on the web. Open it in any browser, on any device, and let it work across all your computers.',
   /** The page's background, which the browser's bars and the manifest take. */
   color: '#fbf7f0',
 } as const
@@ -28,7 +28,7 @@ export const SHARE_IMAGE = {
   path: 'og.png',
   width: 1200,
   height: 630,
-  alt: 'Demi in a desktop browser and on a phone, showing the same conversation.',
+  alt: 'Jush in a desktop browser and on a phone, showing the same conversation.',
   momentMs: 5000,
 } as const
 
@@ -58,7 +58,7 @@ function html({ tag, attrs = {}, children }: HeadTag): string {
   return `${open}${body}</${tag}>`
 }
 
-/** Schema.org's description of Demi: the project, the site, and the software. */
+/** Schema.org's description of Jush: the project, the site, and the software. */
 function structuredData(): object {
   const organization = `${SITE.url}#organization`
   return {

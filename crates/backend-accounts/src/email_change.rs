@@ -4,16 +4,16 @@
 
 use std::sync::Arc;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::accounts::{
+use jush_backend_database::StorageError;
+use jush_backend_database::accounts::{
     ChallengeIssue, ChallengeOutcome, ChallengePolicy, CodeHash,
 };
-use demi_backend_database::control::ControlService;
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::auth::{EmailChallengeDto, Password};
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::settings::{Language, LanguageChoice};
-use demi_web_api_protocol::text::EmailAddress;
+use jush_backend_database::control::ControlService;
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::auth::{EmailChallengeDto, Password};
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::settings::{Language, LanguageChoice};
+use jush_web_api_protocol::text::EmailAddress;
 use futures_util::future::BoxFuture;
 use jiff::SignedDuration;
 use rand::Rng;

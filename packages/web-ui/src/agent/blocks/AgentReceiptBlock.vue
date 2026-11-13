@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { AgentMessage } from '@demicodes/protocol'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
+import type { AgentMessage } from '@jush-ai/protocol'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
 import NoticeRow from './NoticeRow.vue'
 import AgentReceiptFace from './AgentReceiptFace.vue'
 import { receiptIcon } from './tool-row-icon'
 import { provideBlockScope } from '../whole-blocks'
 
 /**
- * Input another agent, the user's decision or Demi sent the agent, as a notice
+ * Input another agent, the user's decision or Jush sent the agent, as a notice
  * row of the same form as a command's end.
  *
  * The row does not open. What it would show is where the agent's name leads,

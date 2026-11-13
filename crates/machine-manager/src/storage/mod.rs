@@ -25,20 +25,20 @@
 //! # The runner's working files
 //!
 //! The runner's working files are on the system image, in directories the image
-//! makes for the `demi` user:
+//! makes for the `jush` user:
 //!
-//! - The job root `/var/lib/demi/jobs`.
-//! - The temporary directory `/var/lib/demi/tmp`.
-//! - The Host log `/var/log/demi`.
+//! - The job root `/var/lib/jush/jobs`.
+//! - The temporary directory `/var/lib/jush/tmp`.
+//! - The Host log `/var/log/jush`.
 //!
 //! None belongs in `/run` or `/tmp`, 256 MiB of memory each: a few busy jobs'
 //! kept output, or one build's temporary files, can fill them, and the Host log
 //! must outlive the stop that empties `/run`. None belongs under `/home`
 //! either, which is the user's volume and survives a reset, where these are
-//! Demi's working files.
+//! Jush's working files.
 //!
-//! The image makes only `/var/lib/demi`: a Cloud pinned to an older base keeps
-//! that base's `/var` while `/opt/demi` brings the new runner, so a runner that
+//! The image makes only `/var/lib/jush`: a Cloud pinned to an older base keeps
+//! that base's `/var` while `/opt/jush` brings the new runner, so a runner that
 //! needed `tmp` from the image could not start on a Cloud pinned to 0.1.11's
 //! base.
 //!

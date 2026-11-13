@@ -1,7 +1,7 @@
 import { onScopeDispose, shallowReactive } from 'vue'
-import type { Block } from '@demicodes/protocol'
-import { findRequest, type ConversationTranscripts, type TranscriptRequest } from '@demicodes/web-ui/files/request-changes'
-import { wholeHistory } from '@demicodes/web-ui/agent/history'
+import type { Block } from '@jush-ai/protocol'
+import { findRequest, type ConversationTranscripts, type TranscriptRequest } from '@jush-ai/web-ui/files/request-changes'
+import { wholeHistory } from '@jush-ai/web-ui/agent/history'
 
 /**
  * The gallery's conversation holds every specimen's transcript: what a

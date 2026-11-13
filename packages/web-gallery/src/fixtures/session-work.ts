@@ -1,10 +1,10 @@
 import { computed, ref, type ComputedRef } from 'vue'
-import type { SessionWork } from '@demicodes/web-ui/windows/session-work'
-import { readStage, type StageState } from '@demicodes/web-ui/windows/stage'
+import type { SessionWork } from '@jush-ai/web-ui/windows/session-work'
+import { readStage, type StageState } from '@jush-ai/web-ui/windows/stage'
 import type { GalleryWork } from './work'
 
-const PINS_KEY = 'demi-gallery.taskbar-pins'
-const LAYOUT_KEY = 'demi-gallery.windows.'
+const PINS_KEY = 'jush-gallery.taskbar-pins'
+const LAYOUT_KEY = 'jush-gallery.windows.'
 
 function readKept(key: string): unknown {
   try {

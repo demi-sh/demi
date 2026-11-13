@@ -1,4 +1,4 @@
-// The demi.sh site: one page that shows what Demi is and how to install it.
+// The jush.ai site: one page that shows what Jush is and how to install it.
 //
 // `build.ts` renders the page into the HTML at build time; this entry then
 // takes that markup over in the browser (hydration). Under `vite` (the

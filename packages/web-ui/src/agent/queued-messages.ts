@@ -1,4 +1,4 @@
-import type { ScheduleMark, MessageComment, QueuedMessage, UserContentBlock } from '@demicodes/protocol'
+import type { ScheduleMark, MessageComment, QueuedMessage, UserContentBlock } from '@jush-ai/protocol'
 
 export interface QueueDividerBlock {
   type: 'queue_divider'

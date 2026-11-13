@@ -109,10 +109,10 @@ memory is bounded by the transcript window 0025 introduced.
   Element is built on, keeps every joined room's live timeline current from
   one sync (`src/sync.ts`), shown or not.
 
-Demi follows Matrix's clients for the conversations that change: Open
+Jush follows Matrix's clients for the conversations that change: Open
 WebUI's and LibreChat's read on return is the jump this record removes. It
 departs from them in keeping only the running ones and the eight shown most
-recently, because a Demi conversation holds far more than a chat room's
+recently, because a Jush conversation holds far more than a chat room's
 latest messages.
 
 ## Alternatives

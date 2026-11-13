@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { HTML_SANDBOX } from '@demicodes/protocol'
-import { baseName } from '@demicodes/utils'
+import { HTML_SANDBOX } from '@jush-ai/protocol'
+import { baseName } from '@jush-ai/utils'
 import { usePaneReady } from '../agent/pane-ready'
 import RegionStatus from '../ui/RegionStatus.vue'
 import { t } from './locales/text'

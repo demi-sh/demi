@@ -6,7 +6,7 @@ import { browserOnline, pageVisibility } from '../transport/liveness'
  * The page's images and videos that did not load, loaded again.
  *
  * A browser tries a medium's address once: one whose bytes did not come, as
- * on a phone whose page returned before its network did, or while Demi
+ * on a phone whose page returned before its network did, or while Jush
  * restarted, stays broken until the page loads again. So each medium that
  * failed loads again whenever its bytes may come now: when the page reaches
  * the backend again (`reloadFailedMedia`, which the app calls), when the page

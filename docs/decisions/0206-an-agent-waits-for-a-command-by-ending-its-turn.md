@@ -4,7 +4,7 @@ status: proposed
 
 # An agent waits for a command by ending its turn
 
-Supersedes: 0201 (Claude Code hands the model Demi's messages as written),
+Supersedes: 0201 (Claude Code hands the model Jush's messages as written),
 the three lines the model reads when a command moves to the background; and
 0113 (A shell call holds until its command ends, and what arrives moves it
 aside after 10 seconds), the guideline on waiting that it kept.
@@ -16,8 +16,8 @@ arrives, so after 10 seconds the build moves to the background, and the
 result says `[A message arrived, so command 17 moved to the background. It
 keeps running and its end wakes you, so if nothing else needs doing, end your
 turn.]` The agent reads the message, still wants the build's output, and
-runs `sleep 20; demi shell output 17`, then again, or one
-`while demi shell status 17 | grep -q running; do sleep 5; done` that the
+runs `sleep 20; jush shell output 17`, then again, or one
+`while jush shell status 17 | grep -q running; do sleep 5; done` that the
 next message moves aside too. Each look is a request that reads the whole
 conversation again: on one server over eight days, 1,170 such calls read
 about 270 million input tokens, mostly from the prompt cache. The turn stays
@@ -58,7 +58,7 @@ A command that moves to the background says:
   wakes you. Do not wait for it: do other work meanwhile, or tell the user
   what is running and end your turn.]`
 
-A single look at a command, `demi shell status 17`, stays what it is: the
+A single look at a command, `jush shell status 17`, stays what it is: the
 way to find out whether the command goes as it should.
 
 The guideline is `HARNESS_GUIDE` in
@@ -69,7 +69,7 @@ The guideline is `HARNESS_GUIDE` in
 
 Moments where a command of a Claude Opus 5.5 agent moved to the background
 were rebuilt from one server's transcripts as requests to the vendor's API,
-as Demi replays a transcript, thinking left out, with today's system prompt.
+as Jush replays a transcript, thinking left out, with today's system prompt.
 Ten moments where the agent most often waited were each sent three times per
 wording, and every wording differed from the others only in its text.
 
@@ -105,7 +105,7 @@ wording, and every wording differed from the others only in its text.
   background, "You will be notified when it exits — do not poll its output
   file while waiting", and refuses a foreground `sleep`: "To wait for a
   condition, use Monitor with an until-loop … Do not chain shorter sleeps to
-  work around this block." Demi says the same in its guideline and refuses
+  work around this block." Jush says the same in its guideline and refuses
   nothing.
 
 ## Alternatives

@@ -27,15 +27,15 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_device_interface::DeviceErrorKind;
-use demi_provider_common::{DeviceAnswer, DeviceRefusal, DeviceRequest, DeviceRoute};
-use demi_provider_registry::entry::ProviderEntry;
-use demi_runner_client::HttpRequest;
-use demi_runner_protocol::device_requests::HttpHeader;
-use demi_shared_types::OfflineDevice;
-use demi_web_api_protocol::ids::{DeviceId, UserId};
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_device_interface::DeviceErrorKind;
+use jush_provider_common::{DeviceAnswer, DeviceRefusal, DeviceRequest, DeviceRoute};
+use jush_provider_registry::entry::ProviderEntry;
+use jush_runner_client::HttpRequest;
+use jush_runner_protocol::device_requests::HttpHeader;
+use jush_shared_types::OfflineDevice;
+use jush_web_api_protocol::ids::{DeviceId, UserId};
 use futures_util::StreamExt as _;
 use futures_util::future::BoxFuture;
 use http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
@@ -136,7 +136,7 @@ impl Shard {
         &self,
         device: &DeviceId,
         body: Bytes,
-    ) -> Result<demi_runner_protocol::wire::PipeRef, demi_runner_client::PipeError> {
+    ) -> Result<jush_runner_protocol::wire::PipeRef, jush_runner_client::PipeError> {
         let pipe = self.pipes().to_device(device.as_str());
         let mut writer = pipe.writer()?;
         self.tasks.spawn_local(async move {

@@ -62,7 +62,7 @@ bubble shows is what was typed.
   is a file.
 - A paste takes text as text, line by line: a web page's or a document's
   formatting is left out, and its pictures and files come in as capsules, as
-  now. A copy of a Demi message pastes its text and its capsules. Code
+  now. A copy of a Jush message pastes its text and its capsules. Code
   between fences takes a paste as it is, blank lines and all.
 - A copy out of a message, sent or being written, is what was selected, as
   a text field copies it.
@@ -97,7 +97,7 @@ composer escaped a character, such as `\*`, its backslash shows.
 - `markdown/user-markdown.ts` reads Markdown into the document and writes it
   back character for character.
 - A copy from a message, sent or in an editor, is its text as typed, in
-  Demi's own form with its files (`message-input/copied-message.ts`).
+  Jush's own form with its files (`message-input/copied-message.ts`).
 - Nothing stored changes.
 
 ## Spike

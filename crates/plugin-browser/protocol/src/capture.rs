@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 
 /// What the module tells the extension.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -118,7 +118,7 @@ pub struct CapturedTab {
 impl CaptureEvent {
     /// Decodes a text message from the extension.
     pub fn decode(text: &str) -> Result<Self, DecodeError> {
-        demi_shared_types::decode_slice(text.as_bytes())
+        jush_shared_types::decode_slice(text.as_bytes())
     }
 }
 

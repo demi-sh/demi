@@ -24,8 +24,8 @@ use std::io;
 
 use std::rc::Rc;
 
-use demi_machine_manager_protocol::{BaseVersion, Capacity, DeviceId, Isolation, LeftSandbox, LeftSimple, SandboxMachine};
-use demi_runner_protocol::boot::ManagedBoot;
+use jush_machine_manager_protocol::{BaseVersion, Capacity, DeviceId, Isolation, LeftSandbox, LeftSimple, SandboxMachine};
+use jush_runner_protocol::boot::ManagedBoot;
 use tokio::sync::mpsc;
 
 use crate::{

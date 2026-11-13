@@ -1,5 +1,5 @@
 [package]
-name = "demi-plugin-changes"
+name = "jush-plugin-changes"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,4 +12,4 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-plugin-interface = { path = "../../plugin-interface" }
+jush-plugin-interface = { path = "../../plugin-interface" }

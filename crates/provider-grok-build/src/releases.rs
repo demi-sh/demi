@@ -11,8 +11,8 @@
 
 use std::{fmt, sync::Arc};
 
-use demi_provider_common::release::{KeptRelease, ReleaseSource};
-use demi_shared_types::Clock;
+use jush_provider_common::release::{KeptRelease, ReleaseSource};
+use jush_shared_types::Clock;
 use http::HeaderValue;
 use reqwest::Url;
 use semver::Version;

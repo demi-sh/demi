@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use schemars::JsonSchema;
-use demi_runner_protocol::release::RestartStep;
+use jush_runner_protocol::release::RestartStep;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -12,7 +12,7 @@ use crate::cloud::CloudStatus;
 use crate::conversations::ConversationSummary;
 use crate::credentials::CredentialDto;
 use crate::devices::{DeviceDto, InstallCommands, StunUrl};
-use demi_conversation_lane_protocol::{Held, Version};
+use jush_conversation_lane_protocol::{Held, Version};
 
 use crate::ids::ConversationId;
 use crate::passkeys::PasskeyDto;
@@ -27,7 +27,7 @@ use crate::workspaces::WorkspaceDto;
 
 /// Which kinds of the entries the user infers with are their own, which
 /// they add, order and change: on a shared instance the master's API keys,
-/// and with `DEMI_SHARED_SUBSCRIPTIONS` the master's subscriptions, are not.
+/// and with `JUSH_SHARED_SUBSCRIPTIONS` the master's subscriptions, are not.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ManagedKinds {
@@ -61,14 +61,14 @@ pub struct ProductState {
     pub workspaces: Vec<WorkspaceDto>,
     pub projects: Vec<ProjectDto>,
     pub devices: Vec<DeviceDto>,
-    /// The URL runners connect to (`DEMI_BACKEND_PUBLIC_URL`).
+    /// The URL runners connect to (`JUSH_BACKEND_PUBLIC_URL`).
     pub public_url: String,
     /// The commands that install the runner on each system, which fetch the
     /// installer from the origin of `public_url`, not from the page's own,
     /// which may be another server's, as in development.
     pub install_commands: InstallCommands,
     /// The STUN servers the page's peers ask for the address the internet
-    /// sees the browser at (`DEMI_STUN_URLS`, `crates/runner-direct/src/lib.rs`); none keeps direct channels to one network.
+    /// sees the browser at (`JUSH_STUN_URLS`, `crates/runner-direct/src/lib.rs`); none keeps direct channels to one network.
     pub stun_urls: Vec<StunUrl>,
     /// The runner release paired devices follow, the one the backend's
     /// `runners/` names; none for a backend without runner releases, as in
@@ -156,7 +156,7 @@ pub enum PageMessage {
     /// while it is in front.
     Showing {
         #[serde(deserialize_with = "Option::deserialize")]
-        #[schemars(with = "demi_shared_types::Nullable<ConversationId>")]
+        #[schemars(with = "jush_shared_types::Nullable<ConversationId>")]
         showing: Option<ConversationId>,
         /// False from a page that does not say it.
         #[serde(default)]
@@ -328,7 +328,7 @@ pub enum SyncEvent {
 }
 
 /// `GET /update`, which the backend answers without a session, before it
-/// serves anything else too, and which `demi-server`'s update screen answers
+/// serves anything else too, and which `jush-server`'s update screen answers
 /// while no backend runs: whether the server updates, and every step of the
 /// rest of the update. It names no conversation, Cloud or device: anyone who
 /// reaches the address reads it. The state channel pushes it to every page
@@ -345,7 +345,7 @@ pub enum UpdateState {
         /// Every step of the update or the migration this backend started
         /// from, done, with what each did; none for a start that did
         /// neither, or a backend started again since. A page that followed
-        /// the update shows them until the user opens Demi.
+        /// the update shows them until the user opens Jush.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         updated: Option<Vec<RestartStep>>,
     },

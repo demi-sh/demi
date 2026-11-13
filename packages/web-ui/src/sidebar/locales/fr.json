@@ -17,8 +17,8 @@
   "foot": {
     "handOff": "Passer sur un autre appareil",
     "settings": "Paramètres",
-    "updateAvailable": "Demi {version} est disponible",
-    "updating": "Mise à jour de Demi"
+    "updateAvailable": "Jush {version} est disponible",
+    "updating": "Mise à jour de Jush"
   },
   "account": {
     "label": "Compte",

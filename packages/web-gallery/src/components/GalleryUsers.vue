@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsUsers from '@demicodes/web-ui/settings/SettingsUsers.vue'
-import type { SettingsUsersHost } from '@demicodes/web-ui/settings/types'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsUsers from '@jush-ai/web-ui/settings/SettingsUsers.vue'
+import type { SettingsUsersHost } from '@jush-ai/web-ui/settings/types'
 import { galleryHandoff, galleryVerification } from '../fixtures/handoff'
 import { fakeFirstPassword, type UsersState } from '../fixtures/users'
 import { productWould } from '../product-would'
