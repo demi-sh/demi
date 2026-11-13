@@ -98,7 +98,9 @@ pub fn prune(layout: &Layout, releases: &[&Version]) -> io::Result<()> {
         return Ok(());
     }
     let mut kept = HashSet::new();
-    for version in releases {
+    // A release from before Jush's names cannot run here, so it names no
+    // gVisor to keep.
+    for version in releases.iter().filter(|version| crate::renamed::runs_here(layout, version)) {
         kept.insert(of_release(layout, version)?);
     }
     let entries = match std::fs::read_dir(layout.gvisor()) {
