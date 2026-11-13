@@ -221,7 +221,11 @@ fn execute_utility(
             .map(|(name, _)| *name)
             .find(|name| *name == context.command_name)
             .ok_or_else(|| io::Error::other("unregistered native utility"))?;
-        let env = crate::nested::exported(context.shell);
+        // The shell's text as the bytes it stands for.
+        let env = crate::nested::exported(context.shell)
+            .into_iter()
+            .map(|(name, value)| (name.into(), brush_core::bytes::to_os(&value).into_owned()))
+            .collect();
         let stdin = Arc::new(invocation_file(&context, 0)?);
         let scope = scope(context.shell)?;
         // The utility's files and the programs it starts get the umask and
@@ -253,7 +257,10 @@ fn execute_utility(
             stdout: Arc::new(invocation_file(&context, 1)?),
             stderr: Arc::new(invocation_file(&context, 2)?),
         };
-        let args = args.into_iter().map(|arg| arg.to_string().into()).collect();
+        let args = args
+            .into_iter()
+            .map(|arg| brush_core::bytes::to_os(&arg.to_string()).into_owned())
+            .collect();
         let running = scope.work.utility(name);
         let code = scope
             .tasks

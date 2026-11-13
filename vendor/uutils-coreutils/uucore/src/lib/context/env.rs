@@ -10,24 +10,28 @@ pub fn var(key: impl AsRef<OsStr>) -> Result<String, VarError> {
     var_os(key).map(|value| value.into_string().map_err(VarError::NotUnicode)).unwrap_or(Err(VarError::NotPresent))
 }
 pub fn var_os(key: impl AsRef<OsStr>) -> Option<OsString> {
-    let key = key.as_ref().to_str()?;
-    super::CURRENT.with(|current| current.borrow().as_ref().expect("utility context").env.get(key).map(OsString::from))
+    super::CURRENT.with(|current| current.borrow().as_ref().expect("utility context").env.get(key.as_ref()).cloned())
 }
+/// The variables whose name and value are Unicode; where `std::env::vars`
+/// panics at another, this leaves it out, as `vars_os` holds it.
 pub fn vars() -> Vars {
-    super::CURRENT.with(|current| current.borrow().as_ref().expect("utility context").env.clone().into_iter().collect::<Vec<_>>().into_iter())
+    vars_os()
+        .filter_map(|(key, value)| Some((key.into_string().ok()?, value.into_string().ok()?)))
+        .collect::<Vec<_>>()
+        .into_iter()
 }
 pub fn vars_os() -> VarsOs {
-    vars().map(|(key, value)| (key.into(), value.into())).collect::<Vec<_>>().into_iter()
+    super::CURRENT.with(|current| current.borrow().as_ref().expect("utility context").env.clone().into_iter().collect::<Vec<_>>().into_iter())
 }
 /// Matches the standard-library signature, but changes only invocation state.
 pub unsafe fn set_var(key: impl AsRef<OsStr>, value: impl AsRef<OsStr>) {
-    let key = key.as_ref().to_string_lossy().into_owned();
-    let value = value.as_ref().to_string_lossy().into_owned();
+    let key = key.as_ref().to_owned();
+    let value = value.as_ref().to_owned();
     super::CURRENT.with(|current| { current.borrow_mut().as_mut().expect("utility context").env.insert(key, value); });
 }
 /// Matches the standard-library signature, but changes only invocation state.
 pub unsafe fn remove_var(key: impl AsRef<OsStr>) {
-    super::CURRENT.with(|current| { current.borrow_mut().as_mut().expect("utility context").env.remove(key.as_ref().to_string_lossy().as_ref()); });
+    super::CURRENT.with(|current| { current.borrow_mut().as_mut().expect("utility context").env.remove(key.as_ref()); });
 }
 pub fn current_dir() -> std::io::Result<PathBuf> {
     super::CURRENT.with(|current| Ok(current.borrow().as_ref().expect("utility context").cwd.clone()))

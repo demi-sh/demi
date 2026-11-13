@@ -9,6 +9,7 @@ pub mod matchers;
 use matchers::{Follow, WalkEntry};
 use std::cell::RefCell;
 use std::error::Error;
+use std::ffi::{OsStr, OsString};
 #[cfg(unix)]
 use uucore::context::io::IsTerminal;
 use uucore::context::io::{self, stderr, stdout, BufRead, BufReader, Write};
@@ -148,12 +149,20 @@ impl Dependencies for StandardDependencies {
 /// The result of parsing the command-line arguments into useful forms.
 struct ParsedInfo {
     matcher: Box<dyn self::matchers::Matcher>,
-    paths: Vec<String>,
+    paths: Vec<OsString>,
     config: Config,
 }
 
-/// Function to generate a `ParsedInfo` from the strings supplied on the command-line.
+#[cfg(test)]
 fn parse_args(args: &[&str]) -> Result<ParsedInfo, Box<dyn Error>> {
+    let raw: Vec<&OsStr> = args.iter().map(OsStr::new).collect();
+    parse_raw_args(args, &raw)
+}
+
+/// Function to generate a `ParsedInfo` from the strings supplied on the
+/// command-line: `args` as text, and `raw`, the same, as given, which a
+/// starting point is taken from whole.
+fn parse_raw_args(args: &[&str], raw: &[&OsStr]) -> Result<ParsedInfo, Box<dyn Error>> {
     let mut paths = vec![];
     let mut i = 0;
     let mut config = Config::default();
@@ -182,7 +191,7 @@ fn parse_args(args: &[&str]) -> Result<ParsedInfo, Box<dyn Error>> {
             #[cfg(target_os = "macos")]
             "-f" if i + 1 < args.len() => {
                 i += 1;
-                paths.push(args[i].to_string());
+                paths.push(raw[i].to_os_string());
             }
             "--" => {
                 // End of flags
@@ -201,20 +210,20 @@ fn parse_args(args: &[&str]) -> Result<ParsedInfo, Box<dyn Error>> {
         && args[i] != "!"
         && args[i] != "("
     {
-        paths.push(args[i].to_string());
+        paths.push(raw[i].to_os_string());
         i += 1;
     }
     if paths.is_empty() && i == paths_start {
-        paths.push(".".to_string());
+        paths.push(".".into());
     }
     let matcher = matchers::build_top_level_matcher(&args[i..], &mut config)?;
     if let Some(new_paths) = &config.new_paths {
         if paths.len() == 1 && paths[0] == "." {
-            paths.clone_from(new_paths);
+            paths = new_paths.iter().map(OsString::from).collect();
         } else {
             return Err(From::from(format!(
                 "extra operand '{}'\nfile operands cannot be combined with -files0-from",
-                paths[0]
+                paths[0].to_string_lossy()
             )));
         }
     }
@@ -226,7 +235,7 @@ fn parse_args(args: &[&str]) -> Result<ParsedInfo, Box<dyn Error>> {
 }
 
 fn process_dir(
-    dir: &str,
+    dir: &OsStr,
     config: &Config,
     deps: &dyn Dependencies,
     matcher: &dyn matchers::Matcher,
@@ -302,8 +311,8 @@ fn process_dir(
     ret
 }
 
-fn do_find(args: &[&str], deps: &dyn Dependencies) -> Result<i32, Box<dyn Error>> {
-    let paths_and_matcher = parse_args(args)?;
+fn do_find(args: &[&str], raw: &[&OsStr], deps: &dyn Dependencies) -> Result<i32, Box<dyn Error>> {
+    let paths_and_matcher = parse_raw_args(args, raw)?;
     if paths_and_matcher.config.help_requested {
         print_help(deps)?;
         return Ok(0);
@@ -442,9 +451,14 @@ fn print_version(deps: &dyn Dependencies) -> Result<(), io::Error> {
 ///
 /// All main has to do is pass in the command-line args and exit the process
 /// with the exit code. Note that the first string in args is expected to be
-/// the name of the executable.
-pub fn find_main(args: &[&str], deps: &dyn Dependencies) -> i32 {
-    match do_find(&args[1..], deps) {
+/// the name of the executable. A starting point is used as given, its bytes
+/// that are no UTF-8 included, as GNU's find uses it; the expression is read
+/// as text.
+pub fn find_main<S: AsRef<OsStr>>(args: &[S], deps: &dyn Dependencies) -> i32 {
+    let raw: Vec<&OsStr> = args.iter().map(AsRef::as_ref).collect();
+    let texts: Vec<std::borrow::Cow<'_, str>> = raw.iter().map(|arg| arg.to_string_lossy()).collect();
+    let args: Vec<&str> = texts.iter().map(AsRef::as_ref).collect();
+    match do_find(&args[1..], &raw[1..], deps) {
         Ok(ret) => ret,
         Err(e) => {
             writeln!(&mut stderr(), "find: {e}").unwrap();

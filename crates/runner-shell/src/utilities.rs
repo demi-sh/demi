@@ -73,23 +73,8 @@ pub const UTILITIES: &[(&str, Entry)] = &[
     #[cfg(unix)]
     ("mknod", |args| uu_mknod::uumain(args.into_iter())),
     ("sed", |args| sed::sed::uumain(args.into_iter())),
-    ("find", |args| {
-        findutils::find::find_main(
-            &strings(&args)
-                .iter()
-                .map(String::as_str)
-                .collect::<Vec<_>>(),
-            &findutils::find::StandardDependencies::new(),
-        )
-    }),
-    ("xargs", |args| {
-        findutils::xargs::xargs_main(
-            &strings(&args)
-                .iter()
-                .map(String::as_str)
-                .collect::<Vec<_>>(),
-        )
-    }),
+    ("find", |args| findutils::find::find_main(&args, &findutils::find::StandardDependencies::new())),
+    ("xargs", |args| findutils::xargs::xargs_main(&args)),
     // Finding a command: a name the runner runs prints bare.
     ("which", crate::which::uumain),
     #[cfg(windows)]
@@ -124,12 +109,6 @@ fn chmod(args: Vec<std::ffi::OsString>) -> i32 {
 #[cfg(windows)]
 fn chown(args: Vec<std::ffi::OsString>) -> i32 {
     windows::chown(args)
-}
-
-fn strings(args: &[std::ffi::OsString]) -> Vec<String> {
-    args.iter()
-        .map(|arg| arg.to_string_lossy().into_owned())
-        .collect()
 }
 
 /// The utility a program's name names, by the file name of `program`,

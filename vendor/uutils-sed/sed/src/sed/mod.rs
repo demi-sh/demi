@@ -228,7 +228,8 @@ pub fn uu_app() -> Command {
         .args_override_self(true)
         .infer_long_args(true)
         .args([
-            arg!([script] "Script to execute if not otherwise provided."),
+            arg!([script] "Script to execute if not otherwise provided.")
+                .value_parser(clap::value_parser!(std::ffi::OsString)),
             Arg::new("file")
                 .help("Input files")
                 .value_parser(clap::value_parser!(PathBuf))
@@ -246,6 +247,7 @@ pub fn uu_app() -> Command {
                 .help("Use extended regular expressions.")
                 .action(clap::ArgAction::SetTrue),
             arg!(-e --expression <SCRIPT> "Add script to executed commands.")
+                .value_parser(clap::value_parser!(std::ffi::OsString))
                 .action(clap::ArgAction::Append),
             // Access with .get_many::<PathBuf>("file")
             Arg::new("script-file")
@@ -282,6 +284,12 @@ pub fn uu_app() -> Command {
         ])
 }
 
+/// A script given as an argument. Its bytes that are no UTF-8 read as U+FFFD,
+/// where GNU's sed takes them as they are; the script's commands are text.
+fn script_text(script: &std::ffi::OsStr) -> ScriptValue {
+    ScriptValue::StringVal(script.to_string_lossy().into_owned())
+}
+
 // Iterate through script and file arguments specified in matches and
 // return vectors of all scripts and input files in the specified order.
 // If no script is specified fail with "missing script" error.
@@ -297,14 +305,14 @@ fn get_scripts_files(matches: &ArgMatches) -> UResult<(Vec<ScriptValue>, Vec<Pat
         // Second and third POSIX usage cases; clap script arg is actually an input file
         // sed [-En] -e script [-e script]... [-f script_file]... [file...]
         // sed [-En] [-e script]... -f script_file [-f script_file]... [file...]
-        if let Some(val) = matches.get_one::<String>("script") {
+        if let Some(val) = matches.get_one::<std::ffi::OsString>("script") {
             files.push(PathBuf::from(val.to_owned()));
         }
     } else {
         // First POSIX spec usage case; script is the first arg.
         // sed [-En] script [file...]
-        if let Some(val) = matches.get_one::<String>("script") {
-            indexed_scripts.push((0, ScriptValue::StringVal(val.to_owned())));
+        if let Some(val) = matches.get_one::<std::ffi::OsString>("script") {
+            indexed_scripts.push((0, script_text(val)));
         } else {
             // As GNU sed: no script prints the usage to standard error.
             let usage = uu_app()
@@ -317,9 +325,10 @@ fn get_scripts_files(matches: &ArgMatches) -> UResult<(Vec<ScriptValue>, Vec<Pat
 
     // Capture -e occurrences (STRING)
     if let Some(indices) = matches.indices_of("expression") {
-        for (idx, val) in indices.zip(matches.get_many::<String>("expression").unwrap_or_default())
+        for (idx, val) in
+            indices.zip(matches.get_many::<std::ffi::OsString>("expression").unwrap_or_default())
         {
-            indexed_scripts.push((idx, ScriptValue::StringVal(val.to_owned())));
+            indexed_scripts.push((idx, script_text(val)));
         }
     }
 

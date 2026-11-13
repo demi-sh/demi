@@ -118,7 +118,7 @@ pub(crate) fn start(
         let words: Vec<String> = args
             .iter()
             .skip(1)
-            .map(|arg| arg.to_string_lossy().into_owned())
+            .map(|arg| brush_core::bytes::from_os(arg).into_owned())
             .collect();
         let command = match parse(&words) {
             Parsed::Run(command) => command,
@@ -132,9 +132,10 @@ pub(crate) fn start(
             ..context
         };
         uucore::context::with(context, || {
+            // The shell's text again as the bytes it stands for.
             let program = &command[0];
-            let status = uucore::context::process::Command::new(program)
-                .args(&command[1..])
+            let status = uucore::context::process::Command::new(brush_core::bytes::to_os(program))
+                .args(command[1..].iter().map(|arg| brush_core::bytes::to_os(arg)))
                 .status();
             Ok(match status {
                 Ok(status) => i32::from(crate::scope::shell_status(status)),

@@ -85,6 +85,10 @@ use demi_runner_process::job_shell::{JobShell, JobStart, ShellJob};
 use futures_util::future::BoxFuture;
 use std::{collections::BTreeSet, io};
 
+/// The shell's text and the bytes it stands for, for what hands the runner's
+/// environment, which is such text, to a program.
+pub use brush_core::bytes;
+
 /// The runner's own environment as a shell of this platform reads it: on
 /// Windows the well-known names in their POSIX spelling, such as `Path` as
 /// `PATH`, which brush does for the environment it inherits.

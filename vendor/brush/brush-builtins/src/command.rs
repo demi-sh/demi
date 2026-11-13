@@ -101,7 +101,7 @@ impl CommandCommand {
             let candidate_path = shell.absolute_path(Path::new(command_name));
             if candidate_path.executable() {
                 Some(FoundCommand::External(
-                    candidate_path.to_string_lossy().to_string(),
+                    brush_core::bytes::from_os(candidate_path.as_os_str()).into_owned(),
                 ))
             } else {
                 None
@@ -122,11 +122,11 @@ impl CommandCommand {
 
                 pathsearch::search_for_executable(dirs.iter(), command_name)
                     .next()
-                    .map(|path| FoundCommand::External(path.to_string_lossy().to_string()))
+                    .map(|path| FoundCommand::External(brush_core::bytes::from_os(path.as_os_str()).into_owned()))
             } else {
                 shell
                     .find_first_executable_in_path_using_cache(command_name)
-                    .map(|path| FoundCommand::External(path.to_string_lossy().to_string()))
+                    .map(|path| FoundCommand::External(brush_core::bytes::from_os(path.as_os_str()).into_owned()))
             }
         }
     }

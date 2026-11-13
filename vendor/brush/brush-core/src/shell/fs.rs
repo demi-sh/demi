@@ -35,7 +35,7 @@ impl<SE: crate::extensions::ShellExtensions> crate::Shell<SE> {
         // Normalize the path (but don't canonicalize it).
         let cleaned_path = abs_path.normalize();
 
-        let pwd = cleaned_path.to_string_lossy().to_string();
+        let pwd = crate::bytes::from_os(cleaned_path.as_os_str()).into_owned();
 
         self.env.update_or_add(
             "PWD",
@@ -48,7 +48,7 @@ impl<SE: crate::extensions::ShellExtensions> crate::Shell<SE> {
 
         self.env.update_or_add(
             "OLDPWD",
-            variables::ShellValueLiteral::Scalar(oldpwd.to_string_lossy().to_string()),
+            variables::ShellValueLiteral::Scalar(crate::bytes::from_os(oldpwd.as_os_str()).into_owned()),
             |_| Ok(()),
             EnvironmentLookup::Anywhere,
             EnvironmentScope::Global,
@@ -125,7 +125,8 @@ impl<SE: crate::extensions::ShellExtensions> crate::Shell<SE> {
     ) -> Option<PathBuf> {
         let path = self.env_str("PATH").unwrap_or_default();
         for one_dir in crate::sys::fs::split_paths(path.as_ref()) {
-            let candidate_path = one_dir.join(candidate_name.as_ref());
+            let candidate_path =
+                crate::bytes::path(&one_dir.join(candidate_name.as_ref())).into_owned();
             if candidate_path.executable() {
                 return Some(candidate_path);
             }
@@ -164,6 +165,8 @@ impl<SE: crate::extensions::ShellExtensions> crate::Shell<SE> {
     ///
     /// * `path` - The path to get the absolute form of.
     pub fn absolute_path(&self, path: impl AsRef<Path>) -> PathBuf {
+        // A path made from the shell's text names the bytes it holds.
+        let path = crate::bytes::path(path.as_ref());
         let path = path.as_ref();
         if let Some(mapped) = self.mapped_path(path) {
             return mapped;

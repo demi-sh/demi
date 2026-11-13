@@ -486,12 +486,15 @@ impl CommandBuilder<'_> {
         if let Some(replace_str) = &self.options.replace {
             // Replace all occurrences in initial args with the extra arg,
             // Thanks to `MaxArgsCommandSizeLimiter`, we only process a single extra arg here.
-            let replacement = self.extra_args[0].to_string_lossy();
+            let replacement = uucore::os_str_as_bytes_lossy(&self.extra_args[0]);
             let initial_args: Vec<OsString> = initial_args
                 .iter()
                 .map(|arg| {
-                    let arg_str = arg.to_string_lossy();
-                    OsString::from(arg_str.replace(replace_str, &replacement))
+                    argument(replace_bytes(
+                        &uucore::os_str_as_bytes_lossy(arg),
+                        replace_str.as_bytes(),
+                        &replacement,
+                    ))
                 })
                 .collect();
 
@@ -589,18 +592,55 @@ impl CommandBuilder<'_> {
                 Err(e) => Err(CommandExecutionError::CannotRun(e)),
             },
             ExecAction::Echo => {
-                uucore::context_println!(
-                    "{}",
-                    self.extra_args
-                        .iter()
-                        .map(|arg| arg.to_string_lossy())
-                        .collect::<Vec<_>>()
-                        .join(" ")
-                );
+                // The arguments' own bytes, as GNU's xargs echoes them.
+                let mut line = Vec::new();
+                for (index, arg) in self.extra_args.iter().enumerate() {
+                    if index > 0 {
+                        line.push(b' ');
+                    }
+                    line.extend_from_slice(&uucore::os_str_as_bytes_lossy(arg));
+                }
+                line.push(b'\n');
+                use uucore::context::io::Write as _;
+                let mut stdout = uucore::context::io::stdout();
+                if stdout.write_all(&line).is_err() {
+                    uucore::context::exit(1);
+                }
                 Ok(CommandResult::Success)
             }
         }
     }
+}
+
+/// `bytes` read from the input as an argument, kept as they are where the
+/// system's strings hold any bytes, as GNU's xargs passes them.
+#[cfg(unix)]
+fn argument(bytes: Vec<u8>) -> OsString {
+    use std::os::unix::ffi::OsStringExt as _;
+    OsString::from_vec(bytes)
+}
+
+/// `bytes` read from the input as an argument; Windows' strings hold no
+/// bytes, so one that is no UTF-8 is U+FFFD.
+#[cfg(not(unix))]
+fn argument(bytes: Vec<u8>) -> OsString {
+    String::from_utf8_lossy(&bytes).into_owned().into()
+}
+
+/// `text` with every `from` in it replaced by `to`.
+fn replace_bytes(text: &[u8], from: &[u8], to: &[u8]) -> Vec<u8> {
+    if from.is_empty() {
+        return text.to_vec();
+    }
+    let mut out = Vec::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.windows(from.len()).position(|window| window == from) {
+        out.extend_from_slice(&rest[..at]);
+        out.extend_from_slice(to);
+        rest = &rest[at + from.len()..];
+    }
+    out.extend_from_slice(rest);
+    out
 }
 
 trait ArgumentReader {
@@ -698,7 +738,7 @@ where
         }
 
         Ok(Some(Argument {
-            arg: String::from_utf8_lossy(&result[..]).into_owned().into(),
+            arg: argument(result),
             kind: if terminated_by_newline {
                 ArgumentKind::HardTerminated
             } else {
@@ -747,7 +787,7 @@ where
                     &buf[..]
                 };
                 break Some(Argument {
-                    arg: String::from_utf8_lossy(bytes).into_owned().into(),
+                    arg: argument(bytes.to_vec()),
                     kind: ArgumentKind::HardTerminated,
                 });
             }
@@ -1017,7 +1057,7 @@ fn normalize_options(options: Options, matches: &clap::ArgMatches) -> Options {
     }
 }
 
-fn do_xargs(args: &[&str]) -> Result<CommandResult, XargsError> {
+fn do_xargs<S: AsRef<OsStr>>(args: &[S]) -> Result<CommandResult, XargsError> {
     let command = clap::Command::new("xargs")
         .version(crate_version!())
         .about("Run commands using arguments derived from standard input")
@@ -1209,7 +1249,7 @@ fn do_xargs(args: &[&str]) -> Result<CommandResult, XargsError> {
                 .value_parser(clap::value_parser!(String))
                 .help("Accepted and ignored (macOS)"),
         );
-    let matches = command.try_get_matches_from(args);
+    let matches = command.try_get_matches_from(args.iter().map(|arg| arg.as_ref().to_os_string()));
 
     let matches = match matches {
         Ok(m) => m,
@@ -1333,7 +1373,9 @@ fn do_xargs(args: &[&str]) -> Result<CommandResult, XargsError> {
 }
 
 #[must_use]
-pub fn xargs_main(args: &[&str]) -> i32 {
+/// Runs xargs for `args`, its own name first; the command and its initial
+/// arguments are used as given, bytes that are no UTF-8 included.
+pub fn xargs_main<S: AsRef<OsStr>>(args: &[S]) -> i32 {
     match do_xargs(args) {
         Ok(CommandResult::Success) => 0,
         Ok(CommandResult::Failure) => 123,

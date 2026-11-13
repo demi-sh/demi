@@ -171,12 +171,7 @@ impl Command {
         // the command sets is all the child has.
         let env = command
             .get_envs()
-            .filter_map(|(key, value)| {
-                Some((
-                    key.to_string_lossy().into_owned(),
-                    value?.to_string_lossy().into_owned(),
-                ))
-            })
+            .filter_map(|(key, value)| Some((key.to_owned(), value?.to_owned())))
             .collect();
         let context = super::Context {
             name,

@@ -22,7 +22,11 @@ pub(super) fn execute(
             .commands
             .as_ref()
             .ok_or_else(|| io::Error::other("missing command context"))?;
-        let env: BTreeMap<_, _> = crate::nested::exported(context.shell);
+        // The command's protocol carries UTF-8: a held byte is U+FFFD there.
+        let env: BTreeMap<_, _> = crate::nested::exported(context.shell)
+            .into_iter()
+            .map(|(name, value)| (name, brush_core::bytes::lossy(&value).into_owned()))
+            .collect();
         let stdin = Arc::new(invocation_file(&context, 0)?);
         let stdout = Arc::new(invocation_file(&context, 1)?);
         let stderr = Arc::new(invocation_file(&context, 2)?);
@@ -31,7 +35,7 @@ pub(super) fn execute(
             context.command_name,
             args.into_iter()
                 .skip(1)
-                .map(|arg| arg.to_string())
+                .map(|arg| brush_core::bytes::lossy(&arg.to_string()).into_owned())
                 .collect(),
             !is_null_device(&stdin)?,
         )?;

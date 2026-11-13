@@ -94,9 +94,6 @@ version = "1.1.4"
 [dependencies.tempfile]
 version = "3.10.1"
 
-[dependencies.terminal_size]
-version = "0.4.2"
-
 [dependencies.textwrap]
 version = "0.16.1"
 features = ["terminal_size"]
@@ -233,4 +230,7 @@ patches = [
     "A backslash before a character with no meaning in the replacement of `s` gives the character, as GNU sed's does (`\\'` is `'`, which libtool's quoting writes), where upstream kept the backslash",
     "A POSIX bracket expression is read as one: a `[` or a backslash in it is itself (`[[]`, `[^][]`, `[\\]`), where upstream ended it at the wrong `]` or let the regex engine read escapes in it; `\\n` and `\\t` in it are GNU sed's newline and tab",
     "An escaped `$` or `^` in a pattern takes the regex path, where upstream's literal path unescaped it and read the `$` of `\\$` as the end of the line (libtool's quoting matches \\\\\\$)",
+    "The replacement of `s` takes GNU's changes of case, `\\U`, `\\L`, `\\E`, `\\u` and `\\l` (ReplacementPart::Case), as GNU's str_append_modified applies them, which upstream read as the letters; --posix reads them as the letters",
+    "`l` lists the pattern space byte by byte in every locale, a byte beyond ASCII in octal and a newline as \\n, as GNU sed does, where upstream wrote a character beyond ASCII as \\uXXXX, failed at one that was no UTF-8 and ended the line at a newline; `l` without a length wraps at `-l`'s, 70 by default, and a length of 0 never wraps, where upstream took the terminal's width, which an embedded run reads from its owner's",
+    "A script or a file operand that is no UTF-8 is taken (OsString), the script with U+FFFD for such a byte, where upstream's clap refused the whole command",
 ]

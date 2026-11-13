@@ -143,7 +143,14 @@ impl<SE: crate::extensions::ShellExtensions> crate::Shell<SE> {
         params: &ExecutionParameters,
         call_type: callstack::ScriptCallType,
     ) -> Result<ExecutionResult, error::Error> {
-        let mut reader = std::io::BufReader::new(file);
+        // The script's bytes as the shell's text (`bytes::decode`), which the
+        // parser reads as UTF-8.
+        let mut bytes = Vec::new();
+        { file }
+            .read_to_end(&mut bytes)
+            .map_err(|e| error::ErrorKind::FailedSourcingFile(source_info.source.clone().into(), e))?;
+        let text = crate::bytes::decode_cow(&bytes);
+        let mut reader = std::io::BufReader::new(text.as_bytes());
         let mut parser = brush_parser::Parser::new(&mut reader, &self.parser_options());
 
         tracing::debug!(target: trace_categories::PARSE, "Parsing sourced file: {}", source_info.source);
@@ -344,7 +351,7 @@ impl<SE: crate::extensions::ShellExtensions> crate::Shell<SE> {
         let mut bytes = Vec::new();
         file.read_to_end(&mut bytes)
             .map_err(|e| error::ErrorKind::FailedSourcingFile(path.to_owned(), e))?;
-        let text = String::from_utf8_lossy(&bytes);
+        let text = crate::bytes::decode_cow(&bytes);
         let source_info = crate::SourceInfo::from(path.to_owned());
 
         self.call_stack.push_script(

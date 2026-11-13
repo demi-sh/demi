@@ -23,7 +23,9 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(path) = self.paths.pop_front() {
-            let path = PathBuf::from(path.as_ref()).join(self.filename.as_ref());
+            // `PATH` and the name are the shell's text.
+            let path = crate::bytes::path(&PathBuf::from(path.as_ref()).join(self.filename.as_ref()))
+                .into_owned();
             // Skip directories outright, then ask the platform to resolve
             // the path to an actual executable file (which, on Windows, may
             // involve appending a PATHEXT extension). The helper takes
@@ -60,7 +62,7 @@ where
         }
 
         while let Some(path) = self.paths.pop_front() {
-            let path = PathBuf::from(path.as_ref());
+            let path = crate::bytes::path(path.as_ref()).into_owned();
 
             if let Ok(readdir) = path.read_dir() {
                 for entry in readdir.flatten() {

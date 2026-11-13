@@ -119,15 +119,17 @@ impl Expansion {
         }
     }
 
-    fn polymorphic_len(&self) -> usize {
+    /// Its elements, or its characters as the shell's locale counts them
+    /// (`utf8`, `Shell::utf8_locale`).
+    fn polymorphic_len(&self, utf8: bool) -> usize {
         if self.from_array {
             self.fields.len()
         } else {
-            self.fields.iter().fold(0, |acc, field| acc + field.len())
+            self.fields.iter().fold(0, |acc, field| acc + field.char_count(utf8))
         }
     }
 
-    fn polymorphic_subslice(&self, index: usize, end: usize) -> Self {
+    fn polymorphic_subslice(&self, index: usize, end: usize, utf8: bool) -> Self {
         let len = end - index;
 
         // If we came from an array, then interpret `index` and `end` as indices
@@ -165,7 +167,7 @@ impl Expansion {
                     // characters are in it; make sure to get the *character count*
                     // and not just call `.len()` to get the byte count.
                     let piece_str = piece.as_str();
-                    let piece_char_count = piece_str.chars().count();
+                    let piece_char_count = char_count(piece_str, utf8);
 
                     // If the interesting data isn't even in this piece yet, then
                     // continue until we find it.
@@ -180,19 +182,12 @@ impl Expansion {
                     let len_from_this_piece =
                         min(left, piece_char_count - desired_offset_into_this_piece);
 
+                    let sliced = |s: &str| {
+                        slice_chars(s, desired_offset_into_this_piece, len_from_this_piece, utf8)
+                    };
                     let new_piece = match piece {
-                        ExpansionPiece::Unsplittable(s) => ExpansionPiece::Unsplittable(
-                            s.chars()
-                                .skip(desired_offset_into_this_piece)
-                                .take(len_from_this_piece)
-                                .collect(),
-                        ),
-                        ExpansionPiece::Splittable(s) => ExpansionPiece::Splittable(
-                            s.chars()
-                                .skip(desired_offset_into_this_piece)
-                                .take(len_from_this_piece)
-                                .collect(),
-                        ),
+                        ExpansionPiece::Unsplittable(s) => ExpansionPiece::Unsplittable(sliced(s)),
+                        ExpansionPiece::Splittable(s) => ExpansionPiece::Splittable(sliced(s)),
                     };
 
                     pieces.push(new_piece);
@@ -224,14 +219,41 @@ impl WordField {
         Self(vec![])
     }
 
-    pub fn len(&self) -> usize {
-        self.0.iter().fold(0, |acc, piece| acc + piece.len())
+    /// Its characters as the shell's locale counts them (`utf8`), which
+    /// `${#v}` and `${v:offset}` count.
+    pub fn char_count(&self, utf8: bool) -> usize {
+        self.0.iter().fold(0, |acc, piece| acc + char_count(piece.as_str(), utf8))
+    }
+}
+
+/// `s`'s characters: its UTF-8 characters in a UTF-8 locale (`utf8`), else
+/// its bytes, one a character, as bash counts them in each.
+fn char_count(s: &str, utf8: bool) -> usize {
+    if utf8 { s.chars().count() } else { crate::bytes::byte_len(s) }
+}
+
+/// `take` of `s`'s characters from its `skip`th (`char_count`). Bytes cut
+/// from a character outside a UTF-8 locale are held as bytes
+/// (`bytes::decode`).
+fn slice_chars(s: &str, skip: usize, take: usize, utf8: bool) -> String {
+    if utf8 {
+        s.chars().skip(skip).take(take).collect()
+    } else {
+        let bytes = crate::bytes::encode(s);
+        let start = skip.min(bytes.len());
+        let end = start.saturating_add(take).min(bytes.len());
+        crate::bytes::decode(&bytes[start..end])
     }
 }
 
 impl From<WordField> for String {
     fn from(field: WordField) -> Self {
-        field.0.into_iter().map(Self::from).collect()
+        let joined: Self = field.0.into_iter().map(Self::from).collect();
+        // Held bytes from two parts may make one character, as in `$a$b`.
+        match crate::bytes::normalize(&joined) {
+            std::borrow::Cow::Borrowed(_) => joined,
+            std::borrow::Cow::Owned(whole) => whole,
+        }
     }
 }
 
@@ -297,13 +319,6 @@ impl ExpansionPiece {
         match self {
             Self::Unsplittable(s) => s.as_str(),
             Self::Splittable(s) => s.as_str(),
-        }
-    }
-
-    const fn len(&self) -> usize {
-        match self {
-            Self::Unsplittable(s) => s.len(),
-            Self::Splittable(s) => s.len(),
         }
     }
 
@@ -598,7 +613,7 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
             .flatten()
             .collect();
 
-        let pattern = patterns::Pattern::from(pattern_pieces);
+        let pattern = patterns::Pattern::from(pattern_pieces).set_utf8(self.shell.utf8_locale());
 
         Ok(pattern)
     }
@@ -626,7 +641,8 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
             .collect();
 
         Ok(crate::regex::Regex::from(regex_pieces)
-            .set_case_insensitive(self.shell.options().case_insensitive_conditionals))
+            .set_case_insensitive(self.shell.options().case_insensitive_conditionals)
+            .set_utf8(self.shell.utf8_locale()))
     }
 
     /// Apply tilde-expansion, parameter expansion, command substitution, and arithmetic expansion;
@@ -812,7 +828,8 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
     fn expand_pathnames_in_field(&self, field: WordField) -> Result<Vec<String>, error::Error> {
         let pattern = patterns::Pattern::from(field.clone())
             .set_extended_globbing(self.parser_options.enable_extended_globbing)
-            .set_case_insensitive(self.shell.options().case_insensitive_pathname_expansion);
+            .set_case_insensitive(self.shell.options().case_insensitive_pathname_expansion)
+            .set_utf8(self.shell.utf8_locale());
 
         let options = patterns::FilenameExpansionOptions {
             require_dot_in_pattern_to_match_dot_files: !self.shell.options().glob_matches_dotfiles,
@@ -869,9 +886,9 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
                     s.as_str(),
                     escape::EscapeExpansionMode::AnsiCQuotes,
                 )?;
-                Expansion::from(ExpansionPiece::Unsplittable(
-                    String::from_utf8_lossy(expanded.as_slice()).into_owned(),
-                ))
+                Expansion::from(ExpansionPiece::Unsplittable(crate::bytes::decode(
+                    expanded.as_slice(),
+                )))
             }
             brush_parser::word::WordPiece::DoubleQuotedSequence(pieces)
             | brush_parser::word::WordPiece::GettextDoubleQuotedSequence(pieces) => {
@@ -973,7 +990,7 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
         match tilde_expr {
             brush_parser::word::TildeExpr::Home => {
                 if let Some(home_dir) = self.shell.home_dir() {
-                    Ok(home_dir.to_string_lossy().to_string())
+                    Ok(crate::bytes::from_os(home_dir.as_os_str()).into_owned())
                 } else {
                     Err(error::ErrorKind::TildeWithoutValidHome.into())
                 }
@@ -981,11 +998,11 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
             brush_parser::word::TildeExpr::UserHome(username) => {
                 Ok(sys::users::get_user_home_dir(username).map_or_else(
                     || std::format!("~{username}"),
-                    |p| p.to_string_lossy().to_string(),
+                    |p| crate::bytes::from_os(p.as_os_str()).into_owned(),
                 ))
             }
             brush_parser::word::TildeExpr::WorkingDir => {
-                Ok(self.shell.working_dir().to_string_lossy().to_string())
+                Ok(crate::bytes::from_os(self.shell.working_dir().as_os_str()).into_owned())
             }
             brush_parser::word::TildeExpr::OldWorkingDir => {
                 if let Some(old_pwd) = self.shell.env_str("OLDPWD") {
@@ -998,23 +1015,23 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
                 let dir_stack_count = self.shell.directory_stack().len();
 
                 if let Some(dir) = self.shell.directory_stack().get(*n) {
-                    Ok(dir.to_string_lossy().to_string())
+                    Ok(crate::bytes::from_os(dir.as_os_str()).into_owned())
                 } else if *n == dir_stack_count {
-                    Ok(self.shell.working_dir().to_string_lossy().to_string())
+                    Ok(crate::bytes::from_os(self.shell.working_dir().as_os_str()).into_owned())
                 } else {
                     Ok(std::format!("~-{n}"))
                 }
             }
             brush_parser::word::TildeExpr::NthDirFromTopOfDirStack { n, plus_used } => {
                 if *n == 0 {
-                    return Ok(self.shell.working_dir().to_string_lossy().to_string());
+                    return Ok(crate::bytes::from_os(self.shell.working_dir().as_os_str()).into_owned());
                 }
 
                 let dir_stack_count = self.shell.directory_stack().len();
                 if dir_stack_count >= *n
                     && let Some(dir) = self.shell.directory_stack().get(dir_stack_count - *n)
                 {
-                    return Ok(dir.to_string_lossy().to_string());
+                    return Ok(crate::bytes::from_os(dir.as_os_str()).into_owned());
                 }
 
                 let plus_or_nothing = if *plus_used { "+" } else { "" };
@@ -1214,7 +1231,9 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
                 } else {
                     self.expand_parameter(&parameter, indirect).await?
                 };
-                Ok(Expansion::from(expansion.polymorphic_len().to_string()))
+                Ok(Expansion::from(
+                    expansion.polymorphic_len(self.shell.utf8_locale()).to_string(),
+                ))
             }
             brush_parser::word::ParameterExpr::RemoveSmallestSuffixPattern {
                 parameter,
@@ -1296,41 +1315,44 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
                 }
 
                 #[expect(clippy::cast_possible_wrap)]
-                let expanded_parameter_len = expanded_parameter.polymorphic_len() as i64;
+                let utf8 = self.shell.utf8_locale();
+                let expanded_parameter_len = expanded_parameter.polymorphic_len(utf8) as i64;
                 let mut expanded_offset = offset.eval(self.shell, self.params, false).await?;
 
                 // We handle negative indexes as offsets from the end of the element, with -1
                 // referencing the last element.
                 if expanded_offset < 0 {
                     expanded_offset += expanded_parameter_len;
-
-                    // If the offset is still negative, then we need to yield an empty slice.
-                    // We force the offset to the end of the array.
-                    if expanded_offset < 0 {
-                        expanded_offset = expanded_parameter_len;
-                    }
                 }
 
-                // Make sure the offset is within the bounds of the item.
-                let expanded_offset = min(expanded_offset, expanded_parameter_len);
+                // An offset outside the value yields nothing, whatever the length, as bash's
+                // does: the length is not evaluated then.
+                if expanded_offset < 0 || expanded_offset > expanded_parameter_len {
+                    #[expect(clippy::cast_sign_loss)]
+                    let end = expanded_parameter_len as usize;
+                    return Ok(expanded_parameter.polymorphic_subslice(end, end, utf8));
+                }
 
                 let end_offset = if let Some(length) = length {
-                    let mut expanded_length = length.eval(self.shell, self.params, false).await?;
+                    let expanded_length = length.eval(self.shell, self.params, false).await?;
                     if expanded_length < 0 {
-                        expanded_length += expanded_parameter_len;
+                        // A negative length is an offset from the end, as
+                        // bash reads it; an array's takes none.
+                        let end = expanded_parameter_len + expanded_length;
+                        if expanded_parameter.from_array || end < expanded_offset {
+                            return Err(error::ErrorKind::NegativeSubstringLength(length.value.clone()).into());
+                        }
+                        end
+                    } else {
+                        expanded_offset + min(expanded_length, expanded_parameter_len - expanded_offset)
                     }
-
-                    let expanded_length =
-                        min(expanded_length, expanded_parameter_len - expanded_offset);
-
-                    expanded_offset + expanded_length
                 } else {
                     expanded_parameter_len
                 };
 
                 #[expect(clippy::cast_sign_loss)]
                 Ok(expanded_parameter
-                    .polymorphic_subslice(expanded_offset as usize, end_offset as usize))
+                    .polymorphic_subslice(expanded_offset as usize, end_offset as usize, utf8))
             }
             brush_parser::word::ParameterExpr::Transform {
                 parameter,
@@ -1988,7 +2010,7 @@ impl<'a, SE: extensions::ShellExtensions> WordExpander<'a, SE> {
                     s.as_str(),
                     escape::EscapeExpansionMode::AnsiCQuotes,
                 )?;
-                Ok(String::from_utf8_lossy(result.as_slice()).into_owned())
+                Ok(crate::bytes::decode(result.as_slice()))
             }
             brush_parser::word::ParameterTransformOp::PossiblyQuoteWithArraysExpanded {
                 separate_words: _separate_words,

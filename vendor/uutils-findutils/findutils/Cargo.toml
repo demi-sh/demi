@@ -231,4 +231,6 @@ patches = [
     "xargs -t prints the command and its arguments separated by spaces, as GNU's xargs does, where upstream printed the command's Debug form, which holds the whole environment it runs with",
     "A path that find asks the system about with -L, -H and -printf %Y is read against the job's directory (uucore::context::fs::metadata), where upstream's own read it against the process's",
     "-readable, -writable and -executable ask the system about the path as the job's (uucore::context::resolve)",
+    "find's starting points, -print, -print0 and the names -printf prints, and xargs's command, its arguments, its -I replacement and its echo, keep a name's bytes that are no UTF-8, as GNU's do, where upstream wrote U+FFFD (find_main and xargs_main take OsStr); find's expression stays text",
+    "-printf's width counts bytes, as C's printf, which GNU's find formats with, does",
 ]

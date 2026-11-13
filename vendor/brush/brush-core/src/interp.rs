@@ -75,9 +75,10 @@ impl ExecutionParameters {
         &self,
         shell: &Shell<impl extensions::ShellExtensions>,
     ) -> impl std::io::Write + 'static {
-        self.try_stdout(shell).unwrap_or_else(|| {
+        // The shell's text, with the bytes it holds written as bytes.
+        crate::bytes::ByteWriter::new(self.try_stdout(shell).unwrap_or_else(|| {
             ioutils::FailingReaderWriter::new("standard output not available").into()
-        })
+        }))
     }
 
     /// Tries to retrieve the standard output file. Returns `None` if not set.
@@ -100,9 +101,10 @@ impl ExecutionParameters {
         &self,
         shell: &Shell<impl extensions::ShellExtensions>,
     ) -> impl std::io::Write + 'static {
-        self.try_stderr(shell).unwrap_or_else(|| {
+        // The shell's text, with the bytes it holds written as bytes.
+        crate::bytes::ByteWriter::new(self.try_stderr(shell).unwrap_or_else(|| {
             ioutils::FailingReaderWriter::new("standard error not available").into()
-        })
+        }))
     }
 
     /// Tries to retrieve the standard error file. Returns `None` if not set.
@@ -2236,7 +2238,7 @@ fn setup_open_file_with_contents(
     // Redirections are prepared before their reader starts. A temporary file
     // accepts arbitrary document sizes without waiting for pipe capacity.
     let mut file = shell.temporary_file()?;
-    file.write_all(contents.as_bytes())?;
+    file.write_all(&crate::bytes::encode(contents))?;
     file.rewind()?;
     Ok(shell.scoped(file.into())?)
 }

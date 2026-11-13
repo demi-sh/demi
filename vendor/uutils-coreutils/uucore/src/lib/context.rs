@@ -3,6 +3,7 @@
 use std::{
     cell::RefCell,
     collections::BTreeMap,
+    ffi::OsString,
     fs::File,
     path::{Path, PathBuf},
     sync::Arc,
@@ -73,7 +74,7 @@ pub trait Control: Send + Sync {
     fn run_utility(
         &self,
         _context: Context,
-        _args: Vec<std::ffi::OsString>,
+        _args: Vec<OsString>,
     ) -> std::io::Result<Box<dyn UtilityRun>> {
         Err(std::io::ErrorKind::Unsupported.into())
     }
@@ -189,7 +190,9 @@ pub struct Context {
     pub control: Option<Arc<dyn Control>>,
     pub umask: u32,
     pub cwd: PathBuf,
-    pub env: BTreeMap<String, String>,
+    /// The variables as the system holds them, bytes that are no UTF-8
+    /// included.
+    pub env: BTreeMap<OsString, OsString>,
     pub descriptors: BTreeMap<i32, Arc<File>>,
     pub stdin: Arc<File>,
     pub stdout: Arc<File>,

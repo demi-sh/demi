@@ -14,10 +14,12 @@ impl AsyncPipeReader {
         ))?))
     }
 
-    pub(crate) async fn read_to_string(&mut self) -> io::Result<String> {
+    /// Reads the pipe to its end as the shell's text, holding each byte that
+    /// is no UTF-8 (`bytes::decode`).
+    pub(crate) async fn read_text(&mut self) -> io::Result<String> {
         use tokio::io::AsyncReadExt;
-        let mut s = String::new();
-        self.0.read_to_string(&mut s).await?;
-        Ok(s)
+        let mut bytes = Vec::new();
+        self.0.read_to_end(&mut bytes).await?;
+        Ok(crate::bytes::decode(&bytes))
     }
 }

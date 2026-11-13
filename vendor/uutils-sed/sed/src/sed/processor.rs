@@ -476,7 +476,7 @@ fn flush_appends(output: &mut OutputBuffer, context: &mut ProcessingContext) -> 
     Ok(())
 }
 
-/// Return the list command rendering for one ASCII byte.
+/// Return the list command rendering for one byte.
 fn readable_ascii_byte(byte: u8) -> Cow<'static, str> {
     match byte {
         b'\x07' => Cow::Borrowed(r"\a"),
@@ -486,21 +486,10 @@ fn readable_ascii_byte(byte: u8) -> Cow<'static, str> {
         b'\\' => Cow::Borrowed(r"\\"),
         b'\r' => Cow::Borrowed(r"\r"),
         b'\t' => Cow::Borrowed(r"\t"),
+        b'\n' => Cow::Borrowed(r"\n"),
         b if b.is_ascii_control() => Cow::Owned(format!("\\{byte:03o}")),
         b if b == b' ' || b.is_ascii_graphic() => Cow::Owned(char::from(byte).to_string()),
         _ => Cow::Owned(format!("\\{byte:03o}")),
-    }
-}
-
-/// Return the list command rendering for one UTF-8 character.
-fn readable_char(ch: char) -> Cow<'static, str> {
-    if ch.is_ascii() {
-        return readable_ascii_byte(ch as u8);
-    }
-    if (ch as u32) <= 0xFFFF {
-        Cow::Owned(format!("\\u{:04X}", ch as u32))
-    } else {
-        Cow::Owned(format!("\\U{:08X}", ch as u32))
     }
 }
 
@@ -521,25 +510,17 @@ impl ListLine {
         }
     }
 
-    /// Write a rendered list item, folding before the item if needed.
+    /// Write a rendered list item, folding before the item if needed; a
+    /// width of 0 never folds, as GNU's.
     fn write_item(&mut self, output: &mut OutputBuffer, out_str: &str) -> UResult<()> {
         let out_len = out_str.len();
-        if self.width + out_len + 1 > self.max_width {
+        if self.max_width > 0 && self.width + out_len >= self.max_width {
             self.buffer.push_str("\\\n");
             output.write_str(std::mem::take(&mut self.buffer))?;
             self.width = 0;
         }
         self.buffer.push_str(out_str);
         self.width += out_len;
-        Ok(())
-    }
-
-    /// Write the current list line with an embedded newline marker.
-    fn write_embedded_newline(&mut self, output: &mut OutputBuffer) -> UResult<()> {
-        self.buffer.push_str("$\n");
-        output.write_str(&self.buffer)?;
-        self.buffer.clear();
-        self.width = 0;
         Ok(())
     }
 
@@ -556,13 +537,7 @@ impl ListLine {
 }
 
 /// List the passed pattern space in unambiguous form.
-fn list(
-    output: &mut OutputBuffer,
-    line: &IOChunk,
-    max_width: usize,
-    location: &ScriptLocation,
-    context: &ProcessingContext,
-) -> UResult<()> {
+fn list(output: &mut OutputBuffer, line: &IOChunk, max_width: usize) -> UResult<()> {
     // Special case for an empty pattern space
     if line.is_empty() {
         if line.is_newline_terminated() {
@@ -573,32 +548,12 @@ fn list(
 
     let mut list_line = ListLine::new(max_width);
 
-    if context.character_mode == CharacterMode::Byte {
-        for &byte in line.as_bytes() {
-            if byte == b'\n' {
-                list_line.write_embedded_newline(output)?;
-                continue;
-            }
-            let out_str = readable_ascii_byte(byte);
-            list_line.write_item(output, &out_str)?;
-        }
-    } else {
-        let line = line.as_str().map_err(|e| {
-            input_runtime_error::<()>(
-                location,
-                context,
-                format!("failed to decode pattern space as UTF-8 for list command: {e}"),
-            )
-            .unwrap_err()
-        })?;
-        for ch in line.chars() {
-            if ch == '\n' {
-                list_line.write_embedded_newline(output)?;
-                continue;
-            }
-            let out_str = readable_char(ch);
-            list_line.write_item(output, &out_str)?;
-        }
+    // Byte by byte in every locale, as GNU sed lists: a character beyond
+    // ASCII is its bytes in octal, `中` as `\344\270\255`, and a newline of
+    // the pattern space is `\n`.
+    for &byte in line.as_bytes() {
+        let out_str = readable_ascii_byte(byte);
+        list_line.write_item(output, &out_str)?;
     }
 
     list_line.finish(output)
@@ -767,7 +722,7 @@ fn process_file(
                 }
                 'l' => {
                     let width = *extract_variant!(command, Number);
-                    list(output, &pattern, width, &command.location, context)?;
+                    list(output, &pattern, width)?;
                 }
                 'n' => {
                     break;
@@ -1016,7 +971,7 @@ mod tests {
 
     #[test]
     fn test_readable_ascii_byte_named_escapes() {
-        assert_eq!(readable_ascii_byte(b'\n'), r"\012");
+        assert_eq!(readable_ascii_byte(b'\n'), r"\n");
         assert_eq!(readable_ascii_byte(b'\t'), r"\t");
         assert_eq!(readable_ascii_byte(b'\\'), r"\\");
     }
@@ -1026,18 +981,6 @@ mod tests {
         assert_eq!(readable_ascii_byte(b'A'), "A");
         assert_eq!(readable_ascii_byte(b' '), " ");
         assert_eq!(readable_ascii_byte(0xE9), r"\351");
-    }
-
-    #[test]
-    fn test_readable_char_ascii_delegates_to_byte() {
-        assert_eq!(readable_char('\t'), r"\t");
-        assert_eq!(readable_char('A'), "A");
-    }
-
-    #[test]
-    fn test_readable_char_unicode_escapes() {
-        assert_eq!(readable_char('κ'), r"\u03BA");
-        assert_eq!(readable_char('😀'), r"\U0001F600");
     }
 
     #[test]

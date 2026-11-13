@@ -2,7 +2,6 @@
 
 use std::{
     borrow::Cow,
-    ffi::OsStr,
     fmt::Display,
     path::{Path, PathBuf},
     process::Stdio,
@@ -166,11 +165,11 @@ impl<SE: extensions::ShellExtensions> std::ops::DerefMut for ShellForCommand<'_,
 /// * `context` - The execution context in which the command is being composed.
 /// * `command_name` - The name of the command to execute.
 /// * `argv0` - The value to use for `argv[0]` (may be different from the command).
-/// * `args` - The arguments to pass to the command.
+/// * `args` - The arguments to pass to the command, as the shell's text.
 /// * `empty_env` - If true, the command will be executed with an empty environment; if false, the
 ///   command will inherit environment variables marked as exported in the provided `Shell`.
 #[allow(unused_variables, reason = "argv0 is only used on unix platforms")]
-pub fn compose_std_command<S: AsRef<OsStr>, SE: extensions::ShellExtensions>(
+pub fn compose_std_command<S: AsRef<str>, SE: extensions::ShellExtensions>(
     context: &ExecutionContext<'_, SE>,
     command_name: &str,
     argv0: &str,
@@ -209,14 +208,14 @@ pub fn compose_std_command<S: AsRef<OsStr>, SE: extensions::ShellExtensions>(
         }
     };
     #[cfg(not(windows))]
-    let mut cmd = std::process::Command::new(command_name);
+    let mut cmd = std::process::Command::new(crate::bytes::to_os(command_name));
 
     // Override argv[0].
     // NOTE: Not supported on all platforms.
-    cmd.arg0(argv0);
+    cmd.arg0(crate::bytes::to_os(argv0));
 
-    // Pass through args.
-    cmd.args(args);
+    // Pass through args, as the bytes they stand for.
+    cmd.args(args.iter().map(|arg| crate::bytes::to_os(arg.as_ref())));
 
     // Use the shell's current working dir.
     cmd.current_dir(context.shell.working_dir());
@@ -231,11 +230,11 @@ pub fn compose_std_command<S: AsRef<OsStr>, SE: extensions::ShellExtensions>(
             // that are set (i.e., have a value). This means a variable that
             // shows up in `declare -p` but has no *set* value will be omitted.
             if v.value().is_set() {
-                cmd.env(k.as_str(), v.value().to_cow_str(context.shell).as_ref());
+                cmd.env(k.as_str(), crate::bytes::to_os(&v.value().to_cow_str(context.shell)));
             }
         }
         // Set _ to the resolved command path for external commands.
-        cmd.env("_", command_name);
+        cmd.env("_", crate::bytes::to_os(command_name));
     }
 
     // Add in exported functions.
@@ -244,7 +243,7 @@ pub fn compose_std_command<S: AsRef<OsStr>, SE: extensions::ShellExtensions>(
             if registration.is_exported() {
                 let var_name = std::format!("BASH_FUNC_{func_name}%%");
                 let value = std::format!("() {}", registration.definition().body);
-                cmd.env(var_name, value);
+                cmd.env(var_name, crate::bytes::to_os(&value));
             }
         }
     }
@@ -667,10 +666,10 @@ impl<'a, SE: extensions::ShellExtensions> SimpleCommand<'a, SE> {
             let script = if sys::fs::contains_path_separator(&self.command_name) {
                 self.command_name.clone()
             } else {
-                path.to_string_lossy().into_owned()
+                crate::bytes::from_os(path.as_os_str()).into_owned()
             };
             let mut args: Vec<CommandArg> = std::iter::once(name.clone())
-                .chain(options.iter().map(|option| option.to_string_lossy().into_owned()))
+                .chain(options.iter().map(|option| crate::bytes::from_os(option).into_owned()))
                 .chain(std::iter::once(script))
                 .map(CommandArg::String)
                 .collect();
@@ -688,7 +687,9 @@ impl<'a, SE: extensions::ShellExtensions> SimpleCommand<'a, SE> {
             params: self.params,
         };
 
-        let resolved_path = path.to_string_lossy();
+        // The system's path as the shell's text, which `compose_std_command`
+        // gives the system again.
+        let resolved_path = crate::bytes::from_os(path.as_os_str());
         let result = execute_external_command(
             cmd_context,
             resolved_path.as_ref(),
@@ -959,7 +960,7 @@ pub(crate) async fn invoke_command_in_subshell_and_get_output(
         tokio::runtime::Handle::current().block_on(run_substitution_command(subshell, params, s))
     });
 
-    let output_str = async_reader.read_to_string().await?;
+    let output_str = async_reader.read_text().await?;
 
     // Now observe the command's completion.
     let run_result = cmd_join_handle.await?;

@@ -133,7 +133,7 @@ impl MapFileCommand {
         let max_count = self.max_count.try_into()?;
         let delimiter = match &self.delimiter {
             Some(d) if d.is_empty() => b'\0',
-            Some(d) => d.as_bytes().first().copied().unwrap_or(b'\n'),
+            Some(d) => brush_core::bytes::encode(d).first().copied().unwrap_or(b'\n'),
             None => b'\n',
         };
 
@@ -174,7 +174,7 @@ impl MapFileCommand {
                 line.pop();
             }
 
-            let line_str = String::from_utf8_lossy(&line).to_string();
+            let line_str = brush_core::bytes::decode(&line);
 
             entries.push((None, line_str));
         }

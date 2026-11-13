@@ -1268,7 +1268,7 @@ fn get_external_command_completions(
         shell.options().case_insensitive_pathname_expansion,
     ) {
         if let Some(file_name) = path.file_name() {
-            candidates.push(file_name.to_string_lossy().to_string());
+            candidates.push(crate::bytes::from_os(file_name).into_owned());
         }
     }
 
