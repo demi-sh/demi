@@ -4,8 +4,8 @@
  * worker hands it, and tells the worker the build it runs, which the worker
  * then keeps for opening offline.
  */
-import { pageLog } from '@demicodes/web-ui/infra/log'
-import { errorFields } from '@demicodes/web-ui/infra/errors'
+import { pageLog } from '@jush-ai/web-ui/infra/log'
+import { errorFields } from '@jush-ai/web-ui/infra/errors'
 import { answerRawRequests } from '../direct/raw-bridge'
 import { WORKER_LOG } from './notifications'
 
@@ -42,7 +42,7 @@ export function startServiceWorker(): void {
   answerRawRequests(container)
   // Vite's development server serves sources, which name no build: nothing
   // is kept for opening offline there.
-  const build = import.meta.env.DEMI_WEB_BUILD
+  const build = import.meta.env.JUSH_WEB_BUILD
   if (!build)
     return
   // Once the page has loaded, every file it names is fetched and timed.
@@ -50,7 +50,7 @@ export function startServiceWorker(): void {
     ? Promise.resolve()
     : new Promise<void>((resolve) => window.addEventListener('load', () => resolve(), { once: true }))
   const announce = (worker: ServiceWorker | null | undefined) => {
-    worker?.postMessage({ type: 'demi-page', build, files: fetchedFiles() })
+    worker?.postMessage({ type: 'jush-page', build, files: fetchedFiles() })
   }
   void Promise.all([container.ready, loaded]).then(([registration]) => {
     announce(registration.active)

@@ -5,10 +5,10 @@
 //! edit, the references to the files the edited message holds are resolved by
 //! the session from that message. No frame carries bytes.
 
-use demi_agent_session::{Edit, EditComment, EditContent};
-use demi_agent_store::media::HeldMedia;
-use demi_conversation_lane_protocol::{AgentCode, ClientComment, ClientContent, Refusal};
-use demi_shared_types::{MessageComment, UserContentBlock, is_blank};
+use jush_agent_session::{Edit, EditComment, EditContent};
+use jush_agent_store::media::HeldMedia;
+use jush_conversation_lane_protocol::{AgentCode, ClientComment, ClientContent, Refusal};
+use jush_shared_types::{MessageComment, UserContentBlock, is_blank};
 use futures_util::future::LocalBoxFuture;
 
 /// A file a message's content refers to, which only the backend can
@@ -103,7 +103,7 @@ pub(crate) async fn resolve_message(
         .into_iter()
         .map(|comment| {
             let parts = sent(comment.content.clone())?;
-            Ok(comment.with_content::<demi_shared_types::Message>(parts))
+            Ok(comment.with_content::<jush_shared_types::Message>(parts))
         })
         .collect::<Result<_, ContentError>>()?;
     Ok((sent(content)?, comments, media))

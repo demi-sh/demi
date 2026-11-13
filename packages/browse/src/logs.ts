@@ -1,6 +1,6 @@
 // What the page logged, requested, and sent or received on its sockets since the tool
-// attached to the browser (browse.md § What `demi` adds), kept in the server so that
-// `demi.log` finds what happened before anyone asked.
+// attached to the browser (browse.md § What `jush` adds), kept in the server so that
+// `jush.log` finds what happened before anyone asked.
 //
 // The page connection's frames (`crates/web-api-protocol/src/connection.rs`) are told
 // by their lane, as `sent lane 3 conversation c-1 open`, so a check reads what each
@@ -16,7 +16,7 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import type { BrowserContext, Page, Request, WebSocket } from 'playwright'
 import { z } from 'zod'
-import { BINARY_FLAG, CLOSE_FRAME, CONNECTION_FRAME, CREDIT_FRAME, DATA_FRAME, MORE_FLAG, OPENED_FRAME, OPEN_FRAME, REFUSED_FRAME } from '@demicodes/protocol'
+import { BINARY_FLAG, CLOSE_FRAME, CONNECTION_FRAME, CREDIT_FRAME, DATA_FRAME, MORE_FLAG, OPENED_FRAME, OPEN_FRAME, REFUSED_FRAME } from '@jush-ai/protocol'
 
 export const LOG_KINDS = ['console', 'network', 'sockets'] as const
 export type LogKind = typeof LOG_KINDS[number]
@@ -26,7 +26,7 @@ const entrySchema = z.object({
   /** Milliseconds since the tool attached to the browser. */
   at: z.number(),
   text: z.string(),
-  /** Whether a network entry is the dev server's module traffic, which `demi.log.network` leaves out. */
+  /** Whether a network entry is the dev server's module traffic, which `jush.log.network` leaves out. */
   module: z.boolean(),
 })
 type Entry = z.infer<typeof entrySchema>
@@ -66,7 +66,7 @@ export class Logs {
   private entries: Record<LogKind, Entry[]> = { console: [], network: [], sockets: [] }
   private sequence = 0
   private started = Date.now()
-  /** The sequence `demi.log.mark` set; entries after it are the ones `demi.log` answers. */
+  /** The sequence `jush.log.mark` set; entries after it are the ones `jush.log` answers. */
   private markAt = 0
 
   /** Starts over for a new browser. */
@@ -262,7 +262,7 @@ export function recordDirectChannels(mark: string): void {
       }
       Reflect.apply(send, channel, data)
     }
-    /** The request entry of the channel's operation, as `demi.log.network` answers a request's. */
+    /** The request entry of the channel's operation, as `jush.log.network` answers a request's. */
     const request = (answer: string) => {
       const op = header?.op ?? channel.label
       const path = header?.path ? ` ${header.path}` : ''

@@ -1,14 +1,14 @@
 import { computed, getCurrentScope, onScopeDispose, reactive, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { z } from 'zod'
-import { schemaRefusal } from '@demicodes/protocol'
-import { errorMessage, reportError } from '@demicodes/web-ui/infra/errors'
-import { pageLog } from '@demicodes/web-ui/infra/log'
-import { Slot, type SlotAnswer } from '@demicodes/web-ui/infra/slot'
-import { browserOnline, waitToReconnect, type ReconnectWait } from '@demicodes/web-ui/transport/liveness'
-import { Lane, backendRestarting, connectionFailures, openLane } from '@demicodes/web-ui/transport/page-connection'
-import { backendUnreachable, connectionCause, connectionState, type ConnectionState } from '@demicodes/web-ui/transport/connection'
-import { reloadFailedMedia } from '@demicodes/web-ui/files/media-reload'
+import { schemaRefusal } from '@jush-ai/protocol'
+import { errorMessage, reportError } from '@jush-ai/web-ui/infra/errors'
+import { pageLog } from '@jush-ai/web-ui/infra/log'
+import { Slot, type SlotAnswer } from '@jush-ai/web-ui/infra/slot'
+import { browserOnline, waitToReconnect, type ReconnectWait } from '@jush-ai/web-ui/transport/liveness'
+import { Lane, backendRestarting, connectionFailures, openLane } from '@jush-ai/web-ui/transport/page-connection'
+import { backendUnreachable, connectionCause, connectionState, type ConnectionState } from '@jush-ai/web-ui/transport/connection'
+import { reloadFailedMedia } from '@jush-ai/web-ui/files/media-reload'
 import { t } from './locales/text'
 import { ApiError, apiRequest, logReadAnswered, logReadFailed, notifySessionEnded, readResponse, unreachable as backendNotReached, waitForBackendWith } from '../api/client'
 import {
@@ -254,11 +254,11 @@ const stateBuildSchema = productStateSchema.pick({ webBuild: true })
 
 /** This page's web app build, which `vite build` writes in; none in development, where Vite serves the sources. */
 export function pageBuild(): string | null {
-  return import.meta.env.DEMI_WEB_BUILD ?? null
+  return import.meta.env.JUSH_WEB_BUILD ?? null
 }
 
 /** Where this browser keeps the vendor catalog, with the build it was read by. */
-const VENDORS_KEY = 'demi.vendors'
+const VENDORS_KEY = 'jush.vendors'
 const keptVendorsSchema = z.object({ build: z.string(), catalog: vendorCatalogSchema })
 
 /**
@@ -455,7 +455,7 @@ export const useProduct = defineStore('product', () => {
   })
   /**
    * The page has no state yet and could not reach the backend so far, as a
-   * page loaded while Demi restarts: it says it connects where the app will
+   * page loaded while Jush restarts: it says it connects where the app will
    * be.
    */
   const connecting = computed(() => snapshot.value === null && (failedAttempts() > 0 || !browserOnline.value))

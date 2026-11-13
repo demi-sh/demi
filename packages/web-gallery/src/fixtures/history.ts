@@ -1,6 +1,6 @@
 import { shallowRef } from 'vue'
-import type { KeptAnswer, Showing, ShownEntry } from '@demicodes/web-ui/files/file-cache'
-import type { BranchList, CommitDetails, CommitFile, CommitHistorySource, CommitLogPage, LoggedCommit } from '@demicodes/web-ui/files/history'
+import type { KeptAnswer, Showing, ShownEntry } from '@jush-ai/web-ui/files/file-cache'
+import type { BranchList, CommitDetails, CommitFile, CommitHistorySource, CommitLogPage, LoggedCommit } from '@jush-ai/web-ui/files/history'
 
 /** A page of a log, as the runner pages it. */
 const PAGE = 50
@@ -22,7 +22,7 @@ const SUMMARIES = [
   'Add the cart page',
   'Show the shipping estimate under the total',
   'Keep the session cookie across the checkout redirect',
-  'Rename the cookie to demi_session',
+  'Rename the cookie to jush_session',
   'Document the checkout flow in the guide',
   'Retry a failed payment once before saying so',
   'Move the price formatting into one helper',

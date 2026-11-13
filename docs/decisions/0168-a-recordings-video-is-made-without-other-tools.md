@@ -32,8 +32,8 @@ earlier commands.
 ### Notes
 
 ```text
-demi browser record r1 note "2/5 Hover the chart, then flip a switch"
-demi browser record r1 note "3/5 Dark theme" --at 31.5
+jush browser record r1 note "2/5 Hover the chart, then flip a switch"
+jush browser record r1 note "3/5 Dark theme" --at 31.5
 ```
 
 A note is text the agent sets at a time of a recording: now while it runs,
@@ -68,7 +68,7 @@ and the answer says so.
 ### One video of several recordings
 
 ```text
-demi browser record r1,r2,r3 export --mp4 --output acceptance.mp4
+jush browser record r1,r2,r3 export --mp4 --output acceptance.mp4
 ```
 
 `export` takes several recordings of the conversation, in the order the
@@ -99,15 +99,15 @@ time; the answer says how long the video plays.
 ### A sheet of the whole recording
 
 ```text
-demi browser record r1 export --sheet
-demi browser record r1 export --sheet --every 1s
+jush browser record r1 export --sheet
+jush browser record r1 export --sheet --every 1s
 ```
 
 One PNG of the whole recording: a frame every `--every`, by default the
 interval, a whole number of tenths of a second, that gives at most 24
 tiles, laid out in rows, each labelled with the recording and its time and
 drawn as a drawn export draws it, its note over it at a size that reads at
-the tile's. `export --sheet | xargs demi file view` shows it. Every tile is
+the tile's. `export --sheet | xargs jush file view` shows it. Every tile is
 a time of the recording, the first at 0 and the last at its end, so a
 sheet never leaves out the end of a recording. A sheet holds at most 120
 tiles: its pixels are held whole while it is made, and more tiles shrink
@@ -129,7 +129,7 @@ avoids.
 ## Prior art
 
 - Screen Studio and Loom caption a recording in their editor, below or
-  over the picture; Demi's notes are set by the command that records.
+  over the picture; Jush's notes are set by the command that records.
 - Screen Studio speeds up the stretches in which nothing moves, and marks
   them, as `--fast-waits` does.
 - ffmpeg's concat demuxer joins videos of one size and one coding; Final

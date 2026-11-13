@@ -17,8 +17,8 @@
   "foot": {
     "handOff": "接力到其他设备",
     "settings": "设置",
-    "updateAvailable": "有新版本：Demi {version}",
-    "updating": "正在更新 Demi"
+    "updateAvailable": "有新版本：Jush {version}",
+    "updating": "正在更新 Jush"
   },
   "account": {
     "label": "账户",

@@ -1,5 +1,5 @@
 use bytes::{Buf, Bytes, BytesMut};
-use demi_command_protocol::{MAX_METADATA_BYTES, MAX_RECORD_BYTES, ProtocolError};
+use jush_command_protocol::{MAX_METADATA_BYTES, MAX_RECORD_BYTES, ProtocolError};
 use futures_util::future::poll_fn;
 use h2::{RecvStream, SendStream};
 use thiserror::Error;

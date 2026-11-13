@@ -11,8 +11,8 @@
 use std::collections::HashSet;
 use std::num::NonZeroU32;
 
-use demi_provider_common::RequestPurpose;
-use demi_shared_types::{Block, BlockId, TextBlock, UserContentBlock, is_blank};
+use jush_provider_common::RequestPurpose;
+use jush_shared_types::{Block, BlockId, TextBlock, UserContentBlock, is_blank};
 
 use crate::small_request::SmallRequest;
 
@@ -88,7 +88,7 @@ Rules:
 /// without text names an earlier turn's, and a version brought back names
 /// its own.
 pub fn answer_of(blocks: &[Block]) -> Option<&TextBlock> {
-    match demi_agent_transcript::ended_turn_answer(blocks)? {
+    match jush_agent_transcript::ended_turn_answer(blocks)? {
         (Block::Response(_), Some(text)) => Some(text),
         _ => None,
     }

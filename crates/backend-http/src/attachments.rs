@@ -17,20 +17,20 @@ use axum::extract::{Request, State};
 use axum::http::header::CONTENT_TYPE;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse as _, Response};
-use demi_agent_store::attachments::{is_text, snippet, upload_media_type};
-use demi_shared_types::BlobRef;
-use demi_web_api_protocol::attachments::{
+use jush_agent_store::attachments::{is_text, snippet, upload_media_type};
+use jush_shared_types::BlobRef;
+use jush_web_api_protocol::attachments::{
     ATTACHMENT_MAX_BYTES, AttachmentAnswer, AttachmentCheckAnswer, AttachmentDto, UploadQuery,
 };
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::UserId;
 use garde::Validate as _;
 
 use super::body::read_within;
 use super::error::ApiError;
 use super::gate::AuthUser;
 use super::query::QueryParams;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 fn too_large() -> ApiError {
     ApiError::new(

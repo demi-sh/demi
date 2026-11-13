@@ -1,6 +1,6 @@
 //! The live view of the conversation's browser: the user watches the tabs as
 //! the device renders them and operates them in its window while the agent
-//! keeps using `demi browser` commands on the same tabs.
+//! keeps using `jush browser` commands on the same tabs.
 //!
 //! This module is the device's side: viewers, the capture of the tabs they watch,
 //! its pacing, and the relay of their input to the tab. The mechanics shared
@@ -11,7 +11,7 @@
 //! User's browser           Backend                    device (Cloud or device)
 //! +----------------+       +-------------------+      +---------------------+
 //! | plugin-browser |       | edge: checks      |      | runner              |
-//! | video, input,  |  WSS  | cookie, owner,    | pipes|  -> demi-browser    |
+//! | video, input,  |  WSS  | cookie, owner,    | pipes|  -> jush-browser    |
 //! | native         |<=====>| Origin; relays    |<====>|   conversation      |
 //! | controls,      |       | the bytes         |      |   browser:          |
 //! | viewport menu  |       |-------------------|      |    tab registry     |
@@ -50,7 +50,7 @@
 //!   origin before the request reaches the shard. The capture socket accepts
 //!   only its environment's token. Page observers run in an isolated world.
 
-use demi_command_package_browser_protocol::browser as protocol;
+use jush_command_package_browser_protocol::browser as protocol;
 
 pub mod hub;
 pub mod inputs;

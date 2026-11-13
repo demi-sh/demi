@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useAttrs, useSlots } from 'vue'
 import { Eye, EyeOff } from '@lucide/vue'
-import { keepComposition } from '@demicodes/utils'
+import { keepComposition } from '@jush-ai/utils'
 import { t as shared } from '../locales/text'
 import { disabledTooltip } from './disabled'
 import { autofillAttrs, drawnAsDots, inputType as typeOf, type Masked } from './field-autofill'

@@ -32,16 +32,16 @@
 //! maintained, and a text script would be assembled from strings.
 //!
 //! ```text
-//! table inet demi_cloud {
+//! table inet jush_cloud {
 //!   set slots  { type ifname . ipv4_addr; }
 //!   set clouds { type ifname . ipv4_addr; }
 //!   set named  { type ipv4_addr; flags timeout; }
 //!   set named_ports { type ipv4_addr . inet_service; flags timeout; }
 //!   chain resolver { nat hook prerouting dstnat; iifname . ip saddr @clouds
 //!                    meta l4proto {tcp, udp} th dport 53 redirect to :RESOLVER_PORT }
-//!   chain input   { filter hook input -10; iifname "demih*" jump ingress }
-//!   chain forward { filter hook forward -10; iifname "demih*" jump ingress;
-//!                   oifname "demih*" ct state established,related accept; oifname "demih*" drop }
+//!   chain input   { filter hook input -10; iifname "jushh*" jump ingress }
+//!   chain forward { filter hook forward -10; iifname "jushh*" jump ingress;
+//!                   oifname "jushh*" ct state established,related accept; oifname "jushh*" drop }
 //!   chain ingress { meta nfproto != ipv4 drop; iifname . ip saddr != @slots drop;
 //!                   iifname . ip saddr @clouds meta l4proto {tcp, udp}
 //!                       th dport RESOLVER_PORT fib daddr type local accept;
@@ -54,13 +54,13 @@
 //!                   ip daddr @named accept;
 //!                   meta l4proto {tcp, udp} ip daddr . th dport @named_ports accept;
 //!                   reject }
-//!   chain nat     { nat hook postrouting srcnat; ip saddr <pool> oifname != "demih*" masquerade }
+//!   chain nat     { nat hook postrouting srcnat; ip saddr <pool> oifname != "jushh*" masquerade }
 //! }
 //! ```
 
 use std::{borrow::Cow, collections::{BTreeMap, HashSet}, net::Ipv4Addr};
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     Allowed, NetworkRules, SandboxMachine,
     network::{NEVER_REACHABLE, PRIVATE_NETWORKS},
 };
@@ -78,7 +78,7 @@ use nftables::{
 
 use super::slots::Slot;
 
-pub const TABLE: &str = "demi_cloud";
+pub const TABLE: &str = "jush_cloud";
 /// Every sandbox's pair.
 const SLOTS: &str = "slots";
 /// The pair of each sandbox that is a Cloud.
@@ -88,7 +88,7 @@ const NAMED: &str = "named";
 /// The addresses of allowed names with the port their entry names.
 const NAMED_PORTS: &str = "named_ports";
 /// Every Cloud host interface's name starts with this.
-const INTERFACES: &str = "demih*";
+const INTERFACES: &str = "jushh*";
 /// The filter chains run just before the default priority.
 const FILTER_PRIORITY: i32 = -10;
 /// `srcnat`: the priority of source NAT in the postrouting hook.

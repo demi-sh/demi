@@ -4,24 +4,24 @@
     "version": "Version",
     "acknowledgements": {
       "title": "Remerciements",
-      "description": "Les logiciels open source inclus dans Demi et leurs licences.",
+      "description": "Les logiciels open source inclus dans Jush et leurs licences.",
       "loading": "Chargement des remerciements…",
       "none": "Aucun remerciement"
     }
   },
   "updates": {
     "title": "Mises à jour",
-    "description": "Met à jour Demi sur ce serveur, pour tous les comptes.",
-    "current": "Demi {version}",
-    "upToDate": "Demi est à jour",
-    "available": "Demi {version} est disponible",
+    "description": "Met à jour Jush sur ce serveur, pour tous les comptes.",
+    "current": "Jush {version}",
+    "upToDate": "Jush est à jour",
+    "available": "Jush {version} est disponible",
     "youHave": "Vous avez {version}.",
     "background": {
       "starting": "Téléchargement en arrière-plan…",
       "downloading": "Téléchargement en arrière-plan : {done} sur {all}",
       "installing": "Installation en arrière-plan…",
       "ready": "Prêt à installer. Vous avez {version}.",
-      "failed": "Impossible de télécharger Demi {version} en arrière-plan. Vous avez {running}."
+      "failed": "Impossible de télécharger Jush {version} en arrière-plan. Vous avez {running}."
     },
     "releaseNotes": "Notes de version",
     "updateNow": "Mettre à jour maintenant",
@@ -30,34 +30,34 @@
     "lastChecked": "Dernière vérification {when}",
     "neverChecked": "Pas encore vérifié",
     "checkNow": "Vérifier maintenant",
-    "downloading": "Téléchargement de Demi {version}",
+    "downloading": "Téléchargement de Jush {version}",
     "downloaded": "{done} sur {all}",
     "speed": "{size}/s",
-    "preparing": "Préparation de Demi {version}…",
-    "restarting": "Redémarrage de Demi…",
+    "preparing": "Préparation de Jush {version}…",
+    "restarting": "Redémarrage de Jush…",
     "failed": "Impossible de mettre à jour vers {version}",
-    "failedNoVersion": "Impossible de mettre à jour. Demi exécute toujours {running}.",
+    "failedNoVersion": "Impossible de mettre à jour. Jush exécute toujours {running}.",
     "channel": "Canal de mise à jour",
     "channelDescription": "Canary reçoit en premier les builds les plus récents, avant que quiconque les ait essayés sur un serveur.",
     "prepareAhead": "Télécharger les mises à jour automatiquement",
     "prepareAheadDescription": "Les mises à jour se terminent plus vite. Déconseillé sur Canary : il publie souvent et consomme beaucoup de bande passante.",
     "beta": "Beta",
     "canary": "Canary",
-    "confirmTitle": "Mettre à jour Demi vers {version} ?",
-    "confirmBody": "Demi redémarre et reste indisponible pour tout le monde pendant quelques minutes.",
+    "confirmTitle": "Mettre à jour Jush vers {version} ?",
+    "confirmBody": "Jush redémarre et reste indisponible pour tout le monde pendant quelques minutes.",
     "confirmAgents": "{count} agent travaille et reprendra après la mise à jour. | {count} agents travaillent et reprendront après la mise à jour.",
     "update": "Mettre à jour",
-    "updatingTo": "Mise à jour vers Demi {version}",
+    "updatingTo": "Mise à jour vers Jush {version}",
     "stepOf": "Étape {number} sur {count} : {step}",
     "failedAt": "Échec de l’étape {number} sur {count} : {step}",
     "steps": {
-      "download": "Télécharger Demi {version}",
-      "unpack": "Décompresser Demi {version}",
+      "download": "Télécharger Jush {version}",
+      "unpack": "Décompresser Jush {version}",
       "checkConfiguration": "Vérifier la configuration",
       "downloadGvisor": "Télécharger gVisor",
       "installImage": "Installer l’image du cloud",
       "checkDatabases": "Vérifier les bases de données",
-      "restart": "Redémarrer Demi"
+      "restart": "Redémarrer Jush"
     },
     "detail": {
       "of": "{done} sur {count}",
@@ -140,13 +140,13 @@
   },
   "storage": {
     "title": "Stockage",
-    "description": "Ce que Demi occupe sur le serveur et vos appareils.",
+    "description": "Ce que Jush occupe sur le serveur et vos appareils.",
     "loading": "Chargement du stockage…",
     "server": "Serveur",
     "devices": "Appareils",
     "rulesDescription": "Tous les appareils se nettoient selon ces règles.",
     "used": "{used} utilisés sur {total}",
-    "demiSize": "Demi {size}",
+    "jushSize": "Jush {size}",
     "measured": "Mesuré",
     "notMeasured": "Pas encore mesuré",
     "diskUsed": "Disque utilisé à {percent}",
@@ -192,7 +192,7 @@
     "cacheBody": "Les connexions du navigateur et les enregistrements inutilisés seront supprimés de {device}. Les agents devront peut-être se reconnecter.",
     "cacheAction": "Vider",
     "componentsTitle": "Supprimer les composants ?",
-    "componentsBody": "Les composants inutilisés seront supprimés de {device}. Demi les retélécharge au besoin.",
+    "componentsBody": "Les composants inutilisés seront supprimés de {device}. Jush les retélécharge au besoin.",
     "componentsAction": "Supprimer",
     "byConversation": "Par conversation",
     "deletedConversation": "Conversation supprimée",
@@ -286,26 +286,26 @@
       "title": "Navigateur",
       "label": "Notifications du navigateur",
       "quietWhileElsewhere": "Silencieux quand j’utilise un autre appareil",
-      "quietWhileElsewhereDescription": "Les tours terminés ou en échec ne vous notifient pas ici pendant que vous utilisez Demi sur un autre appareil, tant que vous ne l’avez pas quitté depuis {minutes} minutes. Les demandes d’autorisation et les notifications de l’agent arrivent toujours.",
+      "quietWhileElsewhereDescription": "Les tours terminés ou en échec ne vous notifient pas ici pendant que vous utilisez Jush sur un autre appareil, tant que vous ne l’avez pas quitté depuis {minutes} minutes. Les demandes d’autorisation et les notifications de l’agent arrivent toujours.",
       "blocked": "Bloquées dans les paramètres de site de ce navigateur.",
-      "thisBrowser": "Sur ce navigateur uniquement. Elles arrivent même quand Demi est fermé.",
+      "thisBrowser": "Sur ce navigateur uniquement. Elles arrivent même quand Jush est fermé.",
       "unsupported": "Ce navigateur ne prend pas en charge les notifications."
     },
     "when": {
       "title": "M’avertir quand",
       "turnFinishes": "Un tour se termine",
       "turnFails": "Un tour échoue",
-      "needsPermission": "Demi a besoin d’une autorisation",
+      "needsPermission": "Jush a besoin d’une autorisation",
       "turnOnFirst": "Activez d’abord les notifications du navigateur.",
       "agentNotifies": "L’agent envoie une notification"
     },
     "homeScreen": {
-      "title": "Pour recevoir des notifications sur iPhone, ajoutez Demi à votre écran d’accueil",
+      "title": "Pour recevoir des notifications sur iPhone, ajoutez Jush à votre écran d’accueil",
       "share": "Touchez Partager dans la barre d’outils de Safari.",
       "add": "Choisissez Sur l’écran d’accueil.",
-      "open": "Ouvrez Demi depuis votre écran d’accueil et activez-y les notifications.",
+      "open": "Ouvrez Jush depuis votre écran d’accueil et activez-y les notifications.",
       "ok": "OK",
-      "row": "Ajoutez Demi à votre écran d’accueil pour recevoir des notifications",
+      "row": "Ajoutez Jush à votre écran d’accueil pour recevoir des notifications",
       "howTo": "Comment faire"
     }
   },
@@ -422,7 +422,7 @@
       "finishesKeywords": "terminé,fini",
       "failsKeywords": "erreur",
       "permissionKeywords": "demande d’autorisation",
-      "agentKeywords": "demi notify,notification de l’agent,push",
+      "agentKeywords": "jush notify,notification de l’agent,push",
       "homeScreenKeywords": "écran d’accueil,iphone,ipad,sur l’écran d’accueil"
     },
     "agentPage": {
@@ -613,7 +613,7 @@
     "reset": {
       "title": "Réinitialiser le mot de passe de {name} ?",
       "action": "Réinitialiser le mot de passe",
-      "body": "Demi crée un nouveau mot de passe initial et l’affiche une seule fois. Le mot de passe actuel cesse de fonctionner. Les navigateurs connectés et les clés d’accès sont conservés."
+      "body": "Jush crée un nouveau mot de passe initial et l’affiche une seule fois. Le mot de passe actuel cesse de fonctionner. Les navigateurs connectés et les clés d’accès sont conservés."
     },
     "signOutEverywhere": {
       "title": "Déconnecter {name} partout ?",
@@ -814,7 +814,7 @@
     "context": "Contexte",
     "contextDescription": "La fenêtre de contexte qu’utilisent ses sous-agents.",
     "instructions": "Instructions",
-    "instructionsDescription": "Facultatif. Ajoutées aux instructions de Demi.",
+    "instructionsDescription": "Facultatif. Ajoutées aux instructions de Jush.",
     "mayStart": "Les enfants peuvent en lancer",
     "mayStartDescription": "Permet à ses sous-agents de lancer des sous-agents.",
     "delete": "Supprimer",
@@ -921,7 +921,7 @@
       "keyPaste": "Collez votre clé API",
       "shareKey": "Clé de partage",
       "shareKeyPaste": "Collez une clé de partage",
-      "shareKeyHint": "Créez-en une avec Partager à côté du nom du fournisseur, dans les réglages de l’autre Demi.",
+      "shareKeyHint": "Créez-en une avec Partager à côté du nom du fournisseur, dans les réglages de l’autre Jush.",
       "lender": "Partagé par {server}",
       "test": "Tester la connexion",
       "testDescription": "Envoie un court message au premier modèle de texte activé.",
@@ -1002,7 +1002,7 @@
       "keeps": "{name} continue d’utiliser son compte actif.",
       "switches": "{name} passe à « {next} ».",
       "none": "{name} se retrouve sans compte et ne peut pas être utilisé tant que vous n’en ajoutez pas un.",
-      "forgets": "Demi oublie sa connexion. Vous pouvez l’ajouter de nouveau avec Ajouter un compte."
+      "forgets": "Jush oublie sa connexion. Vous pouvez l’ajouter de nouveau avec Ajouter un compte."
     },
     "removeModel": {
       "title": "Supprimer le modèle « {name} » ?",
@@ -1011,7 +1011,7 @@
     "warning": {
       "title": "Utiliser plusieurs comptes ?",
       "body": "Utiliser plusieurs comptes d’abonnement, ou alterner entre des comptes, peut enfreindre les conditions d’utilisation du fournisseur. Vous le faites à vos propres risques.",
-      "once": "Demi ne vous le demandera plus."
+      "once": "Jush ne vous le demandera plus."
     },
     "connected": "{account} connecté",
     "testFailed": "Échec du test de {account}",
@@ -1021,7 +1021,7 @@
     "share": {
       "share": "Partager",
       "title": "Partager {name}",
-      "who": "Avec une clé de partage, un autre serveur Demi peut utiliser ce fournisseur. Ses conversations restent sur ce serveur, et seules ses requêtes aux modèles arrivent ici. Une clé ne s’affiche qu’une fois, à sa création.",
+      "who": "Avec une clé de partage, un autre serveur Jush peut utiliser ce fournisseur. Ses conversations restent sur ce serveur, et seules ses requêtes aux modèles arrivent ici. Une clé ne s’affiche qu’une fois, à sa création.",
       "field": "Clé de partage",
       "creating": "Création de la clé…",
       "empty": "Cliquez sur Nouvelle clé pour en créer une",
@@ -1048,8 +1048,8 @@
     "title": "Ajouter un fournisseur",
     "compatible": "API compatible",
     "compatibleHint": "Un proxy ou votre propre serveur",
-    "borrowed": "Autre Demi",
-    "borrowedHint": "Un fournisseur qu’un autre serveur Demi partage",
+    "borrowed": "Autre Jush",
+    "borrowedHint": "Un fournisseur qu’un autre serveur Jush partage",
     "proxy": "proxy",
     "vendors": "Éditeurs",
     "loading": "Chargement des éditeurs…",

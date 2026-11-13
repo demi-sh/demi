@@ -2,14 +2,14 @@
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/vue'
 import { onClickOutside, useElementSize } from '@vueuse/core'
-import { niceTicks } from '@demicodes/utils'
+import { niceTicks } from '@jush-ai/utils'
 import { formatHitRate } from '../ui/percent'
 import { useLayerElevation } from '../overlay/layerElevation'
 import { showAbove } from '../overlay/stacking'
 import { formatClockAgo, formatClockRange } from '../ui/dates'
 import { formatDollars } from '../ui/numbers'
 import { formatTokens } from '../ui/token-count'
-import type { CacheChart } from '@demicodes/protocol'
+import type { CacheChart } from '@jush-ai/protocol'
 import { t } from './locales/text'
 
 /**

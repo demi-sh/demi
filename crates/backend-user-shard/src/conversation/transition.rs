@@ -23,23 +23,23 @@
 //!
 //! A transition waits for no other work: a conversation that is busy refuses
 //! it. The shard reserves the idle tree; device access holds the rest and runs the
-//! transition's steps (`demi_backend_device_access::transition`).
+//! transition's steps (`jush_backend_device_access::transition`).
 
-use demi_backend_database::projects::ProjectDeletion;
-use demi_backend_database::{Selection, StorageError};
-use demi_backend_database::conversation_index::{
+use jush_backend_database::projects::ProjectDeletion;
+use jush_backend_database::{Selection, StorageError};
+use jush_backend_database::conversation_index::{
     ConversationChange, ConversationRecord, RecordChange, SettingsChange,
 };
-use demi_backend_device_access::access::Leaving;
-use demi_backend_device_access::root_of;
-use demi_backend_device_access::transition::{ChangeRefusal, Switched};
-use demi_backend_page_sync::Part;
-use demi_shared_gates::{Purpose, Reservation};
-use demi_web_api_protocol::conversations::{
+use jush_backend_device_access::access::Leaving;
+use jush_backend_device_access::root_of;
+use jush_backend_device_access::transition::{ChangeRefusal, Switched};
+use jush_backend_page_sync::Part;
+use jush_shared_gates::{Purpose, Reservation};
+use jush_web_api_protocol::conversations::{
     ConversationPatch, ConversationTarget, ConversationUpdate, FieldResult, PatchField,
 };
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId};
 use std::time::Instant;
 use tokio_util::sync::CancellationToken;
 
@@ -223,7 +223,7 @@ impl Shard {
     }
 
     /// Moves the conversation `record` to `to` at once, the one operation the
-    /// page's move and `demi device move` take; none when `to` selects where it
+    /// page's move and `jush device move` take; none when `to` selects where it
     /// runs already (§ A move). Every move, whatever its outcome, logs one
     /// line.
     async fn move_conversation(
@@ -380,8 +380,8 @@ impl Shard {
         self.titles().abort(id);
         self.suggested_replies().stop(id);
         self.stop_idle(id);
-        demi_backend_permissions::changed(self.permission_shard(), id);
-        demi_backend_permissions::withdrawn(self.permission_shard(), id);
+        jush_backend_permissions::changed(self.permission_shard(), id);
+        jush_backend_permissions::withdrawn(self.permission_shard(), id);
         // Its schedules wake nothing now; what they had under way drops.
         let shard = self.this();
         let id = id.clone();

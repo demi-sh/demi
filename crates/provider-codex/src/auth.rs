@@ -3,7 +3,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     credentials::{
         AccountDocument, AccountLabel, AuthFailure, AuthReason, CredentialPool, NewAccount,
@@ -13,7 +13,7 @@ use demi_provider_common::{
     oauth::{TokenRefusal, decode_json_response, jwt_claims},
     wire::{Reported, ReportedString},
 };
-use demi_shared_types::{Clock, Timestamp};
+use jush_shared_types::{Clock, Timestamp};
 use http::HeaderValue;
 use reqwest::{Url, header::CONTENT_TYPE};
 use serde::{Deserialize, Deserializer, Serialize, de};
@@ -33,7 +33,7 @@ const STALENESS: Duration = Duration::from_secs(8 * 24 * 60 * 60);
 /// The Codex family's secret document: the ChatGPT sign-in's tokens, the
 /// account they act for, and when they were last refreshed.
 ///
-/// Demi defines it; it is not the Codex CLI's `auth.json`. A sign-in without a
+/// Jush defines it; it is not the Codex CLI's `auth.json`. A sign-in without a
 /// refresh token, as a development one has none, is never refreshed: it is used
 /// until its access token expires, and then it has ended.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -78,7 +78,7 @@ impl<'de> Deserialize<'de> for AccountId {
     }
 }
 
-/// The claims Demi reads from a ChatGPT token. Their signature is not
+/// The claims Jush reads from a ChatGPT token. Their signature is not
 /// checked, and the vendor decides whether the token is good, so a claim of
 /// the wrong type reads as absent.
 #[derive(Debug, Default, Deserialize)]
@@ -107,7 +107,7 @@ struct ProfileClaims {
     email: ReportedString,
 }
 
-/// What a token says about its account; nothing for a token Demi cannot
+/// What a token says about its account; nothing for a token Jush cannot
 /// read, which the vendor still judges.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub(crate) struct TokenAccount {
@@ -137,7 +137,7 @@ pub(crate) fn token_account(token: &Secret) -> TokenAccount {
 /// When a token expires, by its `exp` claim in Unix seconds.
 fn expiry(token: &Secret) -> Option<Timestamp> {
     let seconds = claims(token).exp.into_inner()?;
-    demi_provider_common::quota::unix_seconds(seconds)
+    jush_provider_common::quota::unix_seconds(seconds)
 }
 
 impl CodexSecret {
@@ -194,7 +194,7 @@ impl CodexSecret {
 /// (`crates/xtask/src/dev/mod.rs`).
 ///
 /// It holds the tokens of a Codex CLI sign-in without its refresh token, so
-/// that Demi never renews it and the CLI's own stays valid.
+/// that Jush never renews it and the CLI's own stays valid.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct DevelopmentSignIn {
@@ -251,7 +251,7 @@ impl CodexAuth {
         Self {
             pool,
             account,
-            token_url: demi_provider_common::endpoint_url(auth_url, "/oauth/token"),
+            token_url: jush_provider_common::endpoint_url(auth_url, "/oauth/token"),
             clock,
         }
     }
@@ -298,7 +298,7 @@ impl CodexAuth {
     /// it is used as it is until it has ended.
     pub(crate) async fn credentials(
         &self,
-        http: &demi_provider_common::ProviderHttp,
+        http: &jush_provider_common::ProviderHttp,
         refused: Option<&Secret>,
     ) -> Result<Credentials, AuthFailure> {
         let doc = self.document()?;
@@ -332,7 +332,7 @@ impl CodexAuth {
 /// A refresh of a Codex sign-in, which owns what it needs, so that it runs
 /// to its end apart from the request that asked for it.
 struct Refresh {
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     token_url: Url,
     clock: Arc<dyn Clock>,
 }

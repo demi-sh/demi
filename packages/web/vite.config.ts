@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 /**
  * Names each build of the web app: the page carries the id as
- * `import.meta.env.DEMI_WEB_BUILD`, and `build.json` beside it tells the
+ * `import.meta.env.JUSH_WEB_BUILD`, and `build.json` beside it tells the
  * backend that serves it. Vite's development server serves sources, which name
  * no build. Each build gets a new random id, so a rebuild of the same sources is
  * another build: comparing ids needs no version scheme, and a needless reload
@@ -16,14 +16,14 @@ import tailwindcss from '@tailwindcss/vite'
 function webBuild(): Plugin {
   const build = randomUUID()
   return {
-    name: 'demi-web-build',
+    name: 'jush-web-build',
     apply: 'build',
-    config: () => ({ define: { 'import.meta.env.DEMI_WEB_BUILD': JSON.stringify(build) } }),
+    config: () => ({ define: { 'import.meta.env.JUSH_WEB_BUILD': JSON.stringify(build) } }),
     // The app's page names its build too, so the service worker keeps it
     // under that build.
     transformIndexHtml: (html, context) =>
       context.filename.endsWith('/index.html')
-        ? html.replace('</head>', `  <meta name="demi-build" content="${build}" />\n  </head>`)
+        ? html.replace('</head>', `  <meta name="jush-build" content="${build}" />\n  </head>`)
         : html,
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'build.json', source: JSON.stringify({ build }) })
@@ -32,9 +32,9 @@ function webBuild(): Plugin {
 }
 
 /**
- * The Demi version the page shows at Settings › About: the build version,
+ * The Jush version the page shows at Settings › About: the build version,
  * which is the `Cargo.toml` version of this checkout and the one every program
- * of the checkout carries (`demi_shared_artifacts::BUILD_VERSION`).
+ * of the checkout carries (`jush_shared_artifacts::BUILD_VERSION`).
  */
 function buildVersion(): string {
   const manifest = readFileSync(resolve(import.meta.dirname, '../../Cargo.toml'), 'utf8')
@@ -55,7 +55,7 @@ function serviceWorker(): Plugin {
   const url = '/service-worker.js'
   let building = false
   return {
-    name: 'demi-service-worker',
+    name: 'jush-service-worker',
     configResolved(config) {
       building = config.command === 'build'
     },
@@ -84,7 +84,7 @@ function serviceWorker(): Plugin {
 }
 
 /**
- * Demi's Apple touch icon, which `index.html` and the manifest name at
+ * Jush's Apple touch icon, which `index.html` and the manifest name at
  * `/icons/apple-touch-icon.png`: the app icon `web-ui` keeps, its one
  * source, served there by the development server and emitted there by the
  * build.
@@ -93,7 +93,7 @@ function appleTouchIcon(): Plugin {
   const source = resolve(import.meta.dirname, '../web-ui/src/assets/app-icon.png')
   const fileName = 'icons/apple-touch-icon.png'
   return {
-    name: 'demi-apple-touch-icon',
+    name: 'jush-apple-touch-icon',
     configureServer(server) {
       server.middlewares.use(`/${fileName}`, (_request, response) => {
         response.setHeader('content-type', 'image/png')
@@ -116,7 +116,7 @@ function appleTouchIcon(): Plugin {
  */
 function directHotUpdates(): Plugin {
   return {
-    name: 'demi-direct-hot-updates',
+    name: 'jush-direct-hot-updates',
     apply: 'serve',
     config: (config) => ({ server: { hmr: { clientPort: config.server?.port } } }),
   }
@@ -129,7 +129,7 @@ function directHotUpdates(): Plugin {
  */
 function sharedPage(): Plugin {
   return {
-    name: 'demi-shared-page',
+    name: 'jush-shared-page',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use((request, _response, next) => {
@@ -145,11 +145,11 @@ function sharedPage(): Plugin {
 export default defineConfig({
   plugins: [vue(), tailwindcss(), webBuild(), serviceWorker(), appleTouchIcon(), directHotUpdates(), sharedPage()],
   // The repository's `.env` carries the local development account
-  // (`DEMI_DEV_EMAIL`, `DEMI_DEV_PASSWORD`); the sign-in page fills it in
+  // (`JUSH_DEV_EMAIL`, `JUSH_DEV_PASSWORD`); the sign-in page fills it in
   // during development only.
   envDir: resolve(import.meta.dirname, '../..'),
-  envPrefix: ['VITE_', 'DEMI_DEV_'],
-  define: { 'import.meta.env.DEMI_VERSION': JSON.stringify(buildVersion()) },
+  envPrefix: ['VITE_', 'JUSH_DEV_'],
+  define: { 'import.meta.env.JUSH_VERSION': JSON.stringify(buildVersion()) },
   build: {
     // The npm packages the bundle holds, each with its license and the
     // text of its license file, from the bundle's own module graph:
@@ -165,7 +165,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(import.meta.dirname, 'src'),
-      '@demicodes/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
+      '@jush-ai/web-ui': resolve(import.meta.dirname, '../web-ui/src'),
     },
   },
   server: {
@@ -177,12 +177,12 @@ export default defineConfig({
       // is how the backend knows this page for the product's and lets it act
       // (`crates/backend-http/src/gate.rs`).
       '/api': {
-        target: process.env.DEMI_BACKEND_URL ?? 'http://127.0.0.1:3271',
+        target: process.env.JUSH_BACKEND_URL ?? 'http://127.0.0.1:3271',
         ws: true,
       },
       // A schedule's URL, which other systems call.
       '/hooks': {
-        target: process.env.DEMI_BACKEND_URL ?? 'http://127.0.0.1:3271',
+        target: process.env.JUSH_BACKEND_URL ?? 'http://127.0.0.1:3271',
       },
     },
   },

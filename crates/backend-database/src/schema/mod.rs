@@ -18,7 +18,7 @@
 //! A step stands alone: it uses `rusqlite`, `serde_json` and what the
 //! migration is handed, the blobs a conversation's values name
 //! ([`ReadBlob`]) and the vault that seals again what it sealed
-//! ([`ResealSealed`]). It never uses a type or a function the rest of Demi
+//! ([`ResealSealed`]). It never uses a type or a function the rest of Jush
 //! serves with, which change after it: a step that needs a stored value's
 //! shape keeps a copy of that shape as it was when the step was written, or
 //! works on the JSON. What several steps of one history use is in a module
@@ -42,7 +42,7 @@ use rusqlite::{Connection, Transaction, TransactionBehavior};
 use sha2::{Digest, Sha256};
 
 use bytes::Bytes;
-use demi_shared_types::BlobRef;
+use jush_shared_types::BlobRef;
 
 use super::StorageError;
 use super::providers::{NoSealed, ResealSealed};

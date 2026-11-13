@@ -4,13 +4,13 @@
 
 use std::{convert::Infallible, error::Error as _, str::FromStr, sync::LazyLock, time::Duration};
 
-use demi_shared_types::{FailureSource, ProviderErrorDiagnostics, ProviderFailureFacts, Timestamp};
+use jush_shared_types::{FailureSource, ProviderErrorDiagnostics, ProviderFailureFacts, Timestamp};
 use regex::Regex;
 
 use crate::client::{DeviceRefusal, SendError};
 use crate::wire::SseError;
 
-/// Reads a failure record a provider produced: the facts Demi shows, given
+/// Reads a failure record a provider produced: the facts Jush shows, given
 /// the moment the failure was received. The same reader sets a failure's wait
 /// when a run fails and reads stored records when the backend shows them.
 pub type FailureReader = fn(&ProviderErrorDiagnostics, Timestamp) -> ProviderFailureFacts;
@@ -22,11 +22,11 @@ pub type FailureReader = fn(&ProviderErrorDiagnostics, Timestamp) -> ProviderFai
 /// and the borrower words it.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 pub struct ProviderFailure {
-    /// What went wrong, as the vendor said it or as Demi composed it. A
-    /// message Demi composes never contains a credential.
+    /// What went wrong, as the vendor said it or as Jush composed it. A
+    /// message Jush composes never contains a credential.
     #[serde(skip)]
     pub message: String,
-    /// What recovery reads; `None` for a failure Demi found in the vendor's
+    /// What recovery reads; `None` for a failure Jush found in the vendor's
     /// answer, which is never retried automatically.
     pub code: Option<ErrorCode>,
     #[serde(skip)]
@@ -56,7 +56,7 @@ pub(crate) fn transport_cause(error: impl Into<SendError>) -> String {
 }
 
 impl ProviderFailure {
-    /// A frame or line Demi could not decode, or one that breaks the vendor's
+    /// A frame or line Jush could not decode, or one that breaks the vendor's
     /// protocol. It has no code, its source is `stream`, and its record is the
     /// text as received.
     pub fn protocol(message: impl Into<String>, received: impl Into<String>) -> Self {
@@ -79,7 +79,7 @@ impl ProviderFailure {
     /// even be built has no code. The message names the error and its causes
     /// but never the endpoint, which stays inside the provider.
     ///
-    /// A request through a device fails in Demi's words
+    /// A request through a device fails in Jush's words
     /// (`crates/backend-user-shard/src/shard/device_requests.rs`):
     ///
     /// - A device its owner removed fails with `device_removed`, which
@@ -118,7 +118,7 @@ impl ProviderFailure {
         failure
     }
 
-    /// No answer from the vendor, in Demi's words, such as a connection that
+    /// No answer from the vendor, in Jush's words, such as a connection that
     /// timed out: `overloaded`, from the source `transport`, with no record.
     pub fn no_answer(message: impl Into<String>) -> Self {
         Self {
@@ -338,7 +338,7 @@ impl ErrorCode {
     /// stream's error event.
     ///
     /// Its words decide a coarse category, and otherwise the vendor's own code
-    /// stands. Only vendor-reported failures are classified; a failure Demi
+    /// stands. Only vendor-reported failures are classified; a failure Jush
     /// finds itself gets its code by a fixed rule.
     ///
     /// Words count only as whole words, with `_` and `-` separating them, so
@@ -385,7 +385,7 @@ impl schemars::JsonSchema for ErrorCode {
 impl FromStr for ErrorCode {
     type Err = Infallible;
 
-    /// Reads a stored code: one of Demi's codes, or a vendor's own.
+    /// Reads a stored code: one of Jush's codes, or a vendor's own.
     fn from_str(code: &str) -> Result<Self, Infallible> {
         Ok(match code {
             "usage_limit" => Self::UsageLimit,

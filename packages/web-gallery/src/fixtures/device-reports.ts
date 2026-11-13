@@ -1,4 +1,4 @@
-import type { DeviceReport } from '@demicodes/web-ui/auth/device-unlock'
+import type { DeviceReport } from '@jush-ai/web-ui/auth/device-unlock'
 
 /** The browsers of each system the passkey offer names the unlock of, as their pages report themselves. */
 export const DEVICE_REPORTS: Record<string, { label: string; report: DeviceReport }> = {

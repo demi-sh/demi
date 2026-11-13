@@ -5,9 +5,9 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use bytes::Bytes;
-use demi_command_declarations::Schema;
-use demi_command_protocol::{MAX_MEDIUM_BYTES, MediumFacts, sniff_media_type};
-use demi_command_sdk::{Output, OutputSink, ResidentError};
+use jush_command_declarations::Schema;
+use jush_command_protocol::{MAX_MEDIUM_BYTES, MediumFacts, sniff_media_type};
+use jush_command_sdk::{Output, OutputSink, ResidentError};
 
 use crate::job_media::JobMedia;
 

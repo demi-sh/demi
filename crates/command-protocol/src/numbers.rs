@@ -29,7 +29,7 @@ use super::invocation::conversation_name;
 pub enum ResidentSequence {
     /// The conversation browser's tabs.
     Tab,
-    /// The simulators `demi mobile` opens (`crates/plugin-mobile/command/src/operations.rs`).
+    /// The simulators `jush mobile` opens (`crates/plugin-mobile/command/src/operations.rs`).
     Device,
 }
 

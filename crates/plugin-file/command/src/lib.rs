@@ -1,4 +1,4 @@
-//! The `demi.file` package: reading, editing and patching files beside them, as
+//! The `jush.file` package: reading, editing and patching files beside them, as
 //! a resident.
 //!
 //! It holds no conversation state, so the SDK's empty conversation status,
@@ -16,19 +16,19 @@ mod patch;
 
 use std::{future::Future, pin::Pin};
 
-use demi_command_package_file_protocol::{OPERATIONS, Operation, OperationError};
-use demi_command_protocol::{Completion, Invocation};
-use demi_command_sdk::{Handler, InvocationContext, ResidentError};
-use demi_shared_gates::SerialGate;
+use jush_command_package_file_protocol::{OPERATIONS, Operation, OperationError};
+use jush_command_protocol::{Completion, Invocation};
+use jush_command_sdk::{Handler, InvocationContext, ResidentError};
+use jush_shared_gates::SerialGate;
 
 /// The resident.
 #[derive(Default)]
-pub struct DemiFile {
+pub struct JushFile {
     /// File mutations run one at a time.
     mutations: SerialGate,
 }
 
-impl Handler for DemiFile {
+impl Handler for JushFile {
     type Metadata = Invocation;
 
     fn operations(&self) -> Vec<String> {

@@ -9,18 +9,18 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
 
-use demi_backend_cloud::machine::Cloud;
-use demi_backend_cloud::{CloudServices, CloudShard, ConversationHold};
-use demi_backend_database::control::ControlService;
-use demi_backend_idle_watch::Activity;
-use demi_backend_page_sync::UserMarks;
-use demi_plugin_host::Lost;
-use demi_provider_registry::registry::ProviderRegistry;
-use demi_backend_providers::vault::entries::Vault;
-use demi_backend_runners::devices::Devices;
-use demi_backend_runners::public_url::PublicUrl;
-use demi_shared_gates::Reservation;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProviderId, UserId};
+use jush_backend_cloud::machine::Cloud;
+use jush_backend_cloud::{CloudServices, CloudShard, ConversationHold};
+use jush_backend_database::control::ControlService;
+use jush_backend_idle_watch::Activity;
+use jush_backend_page_sync::UserMarks;
+use jush_plugin_host::Lost;
+use jush_provider_registry::registry::ProviderRegistry;
+use jush_backend_providers::vault::entries::Vault;
+use jush_backend_runners::devices::Devices;
+use jush_backend_runners::public_url::PublicUrl;
+use jush_shared_gates::Reservation;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProviderId, UserId};
 use futures_util::future::LocalBoxFuture;
 use tokio::sync::mpsc;
 use tokio_util::sync::WaitForCancellationFuture;
@@ -28,8 +28,8 @@ use tokio_util::task::TaskTracker;
 
 use super::{Shard, Shards};
 use crate::services::Services;
-use demi_backend_device_access::root_of;
-use demi_backend_device_access::transfer::TransfersClosed;
+use jush_backend_device_access::root_of;
+use jush_backend_device_access::transfer::TransfersClosed;
 
 impl CloudShard for Shard {
     fn user(&self) -> &UserId {
@@ -201,7 +201,7 @@ impl Shard {
 /// Routes each death the machine manager reports to the shard of the
 /// device's owner (`crates/backend/src/lib.rs`), until the backend closes.
 pub async fn route_deaths(
-    mut deaths: mpsc::Receiver<demi_machine_manager_protocol::DeviceId>,
+    mut deaths: mpsc::Receiver<jush_machine_manager_protocol::DeviceId>,
     services: Arc<Services>,
     shards: Shards,
 ) {
@@ -229,7 +229,7 @@ pub async fn route_deaths(
 /// Marks the Cloud part of the owner's pages changed for each device the
 /// machine manager reports a new status of, until the backend closes.
 pub async fn route_statuses(
-    mut statuses: mpsc::Receiver<demi_machine_manager_protocol::DeviceId>,
+    mut statuses: mpsc::Receiver<jush_machine_manager_protocol::DeviceId>,
     services: Arc<Services>,
     shards: Shards,
 ) {
@@ -249,7 +249,7 @@ pub async fn route_statuses(
         // A shard that is closing has no page left to tell.
         let _ = shards
             .of(&owner)
-            .call(move |shard, _| async move { shard.cloud_shard().marks().mark(demi_backend_page_sync::Part::Cloud) })
+            .call(move |shard, _| async move { shard.cloud_shard().marks().mark(jush_backend_page_sync::Part::Cloud) })
             .await;
     }
 }

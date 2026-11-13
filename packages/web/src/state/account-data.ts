@@ -1,4 +1,4 @@
-import { clearPluginCaches } from '@demicodes/web-ui/plugins/cache'
+import { clearPluginCaches } from '@jush-ai/web-ui/plugins/cache'
 import { deleteDraftsBut } from '../conversation/drafts'
 import { deleteAccountCache } from './offline'
 import { heldAccount, holds, setOwner } from './account-owner'
@@ -8,15 +8,15 @@ import { heldAccount, holds, setOwner } from './account-owner'
  * names all of it, so that the browser holds one account's data at a time and
  * forgets it with the account:
  *
- * - IndexedDB `demi-offline`: the offline copy, the conversations, their nodes
+ * - IndexedDB `jush-offline`: the offline copy, the conversations, their nodes
  *   and blocks (`./offline`).
- * - IndexedDB `demi-drafts`: the drafts, by account (`../conversation/drafts`).
- * - IndexedDB `demi-plugin-cache`: what the plugins kept of the account's devices.
- * - `localStorage`: the folded projects (`demi.preferences.<account>`), a
- *   draft's last words (`demi.draft.<account>.<conversation>`), and the
- *   devices' measured paths and last directories (`demi.deviceMeasured.*`,
- *   `demi.devicePath.*`).
- * - `localStorage` `demi.account`: which account all of it is, which every
+ * - IndexedDB `jush-drafts`: the drafts, by account (`../conversation/drafts`).
+ * - IndexedDB `jush-plugin-cache`: what the plugins kept of the account's devices.
+ * - `localStorage`: the folded projects (`jush.preferences.<account>`), a
+ *   draft's last words (`jush.draft.<account>.<conversation>`), and the
+ *   devices' measured paths and last directories (`jush.deviceMeasured.*`,
+ *   `jush.devicePath.*`).
+ * - `localStorage` `jush.account`: which account all of it is, which every
  *   write asks first (`./account-owner`).
  *
  * What belongs to the browser is not here and stays: the theme, the language,
@@ -24,17 +24,17 @@ import { heldAccount, holds, setOwner } from './account-owner'
  */
 
 /** The `localStorage` keys of the account's that name it, each followed by the account's id. */
-const ACCOUNT_KEYS = ['demi.preferences.', 'demi.draft.']
+const ACCOUNT_KEYS = ['jush.preferences.', 'jush.draft.']
 
 /** Whether `key` is one of `ACCOUNT_KEYS` of the account `userId`. */
 function accountKey(key: string, userId: string): boolean {
-  return key === `demi.preferences.${userId}` || key.startsWith(`demi.draft.${userId}.`)
+  return key === `jush.preferences.${userId}` || key.startsWith(`jush.draft.${userId}.`)
 }
 /**
  * The `localStorage` keys of the account's devices, each followed by a
  * device's id, which name no account and so are never known to be another's.
  */
-const DEVICE_KEYS = ['demi.deviceMeasured.', 'demi.devicePath.']
+const DEVICE_KEYS = ['jush.deviceMeasured.', 'jush.devicePath.']
 
 /**
  * The account `userId` signed in: the browser's data becomes its. It owns the

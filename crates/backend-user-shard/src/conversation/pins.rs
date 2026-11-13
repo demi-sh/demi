@@ -1,4 +1,4 @@
-//! Pinned documents: the product's `demi pin` group, the context source that
+//! Pinned documents: the product's `jush pin` group, the context source that
 //! gives the main agent their text, and the user's unpin.
 //!
 //! The main agent pins a text file of a device. Before each request the
@@ -28,17 +28,17 @@ use std::collections::HashSet;
 use std::fmt::Write as _;
 use std::rc::{Rc, Weak};
 
-use demi_agent_tools::{ContextAnswer, ContextSource, NodeContext};
-use demi_backend_database::StorageError;
-use demi_backend_database::pins::{PinRecord, Pinned, Unpinner};
-use demi_backend_device_access::device_commands::conversation_of;
-use demi_backend_device_access::{conversation_of as conversation_of_root, root_of};
-use demi_backend_page_sync::Part;
-use demi_device_interface::{Call, DeviceFile, DeviceRead, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
-use demi_shared_types::output::Table;
-use demi_shared_types::{PINNED_DOCUMENTS_SOURCE, TurnId, text_tokens};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
-use demi_web_api_protocol::pins::PinnedDocument;
+use jush_agent_tools::{ContextAnswer, ContextSource, NodeContext};
+use jush_backend_database::StorageError;
+use jush_backend_database::pins::{PinRecord, Pinned, Unpinner};
+use jush_backend_device_access::device_commands::conversation_of;
+use jush_backend_device_access::{conversation_of as conversation_of_root, root_of};
+use jush_backend_page_sync::Part;
+use jush_device_interface::{Call, DeviceFile, DeviceRead, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
+use jush_shared_types::output::Table;
+use jush_shared_types::{PINNED_DOCUMENTS_SOURCE, TurnId, text_tokens};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::pins::PinnedDocument;
 use futures_util::future::LocalBoxFuture;
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -47,7 +47,7 @@ use tokio_util::sync::CancellationToken;
 use super::organize::{failed, refused, verb};
 use crate::shard::Shard;
 
-/// The most tokens the pinned documents hold together, by Demi's estimate.
+/// The most tokens the pinned documents hold together, by Jush's estimate.
 ///
 /// Each comes back after every compaction, and a compaction has to leave the
 /// model most of its window.

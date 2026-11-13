@@ -2,7 +2,7 @@
 //! after each compaction; the page shows each as a chip over the composer,
 //! and the user unpins one (`DELETE /conversations/:id/pins/:pin`).
 
-use demi_shared_types::MAX_SAFE_INTEGER;
+use jush_shared_types::MAX_SAFE_INTEGER;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

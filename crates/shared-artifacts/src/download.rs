@@ -1,4 +1,4 @@
-//! Demi's one download of a file over HTTP.
+//! Jush's one download of a file over HTTP.
 //!
 //! The downloader:
 //!
@@ -10,9 +10,9 @@
 //!
 //! Copies of local files are checked the same way.
 //!
-//! Every file Demi fetches over HTTP goes through it (a command executable, a
-//! runner update, a Cloud image's software, a file `demi web fetch` saves, a
-//! vendor's video, an attachment `demi attachment download` fetches), so a fix
+//! Every file Jush fetches over HTTP goes through it (a command executable, a
+//! runner update, a Cloud image's software, a file `jush web fetch` saves, a
+//! vendor's video, an attachment `jush attachment download` fetches), so a fix
 //! for a slow or broken link helps them all. A stream, such as a model's
 //! answer, a command's pipe or a live view, is not a download.
 //!
@@ -35,7 +35,7 @@ pub(crate) fn builder() -> reqwest::ClientBuilder {
         .connect_timeout(Duration::from_secs(15))
         .read_timeout(Duration::from_secs(60))
         // zstd is the one coding an artifact arrives in; the workspace's one
-        // reqwest has the other decoders on for `demi-fetch`, and a coding
+        // reqwest has the other decoders on for `jush-fetch`, and a coding
         // the download does not name must fail rather than be decoded.
         .no_gzip()
         .no_brotli()
@@ -160,7 +160,7 @@ pub struct Download<'a> {
     pub redirects: usize,
     pub headers: Headers<'a>,
     /// The answer to the first request, when the caller sent it to see
-    /// the answer first, as `demi web fetch` does: a success, whose bytes
+    /// the answer first, as `jush web fetch` does: a success, whose bytes
     /// the download writes from the start of the staging file.
     pub first: Option<reqwest::Response>,
     /// Whether the caller renews the address when the server refuses it,
@@ -537,7 +537,7 @@ pub async fn download_bytes(
     download: Download<'_>,
     cancel: &CancellationToken,
 ) -> Result<(Received, Vec<u8>), Error> {
-    let staging = tempfile::Builder::new().prefix("demi-download-").tempdir()?;
+    let staging = tempfile::Builder::new().prefix("jush-download-").tempdir()?;
     let path = staging.path().join("download");
     let received = self::download(client, download, &path, cancel, |_, _| {}).await?;
     let bytes = tokio::fs::read(&path).await?;

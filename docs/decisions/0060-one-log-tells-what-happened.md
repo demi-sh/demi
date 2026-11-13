@@ -28,7 +28,7 @@ Measured on the development server over the last seven days (2026-10-15 to
 |---|---|
 | Lines | 709,486 (about 80,000 a day), 245 MiB |
 | By level | info 702,721; warn 6,485; error 279 |
-| Per-request lines (`demi_backend_http::request_id`) | 496,002 (70%) |
+| Per-request lines (`jush_backend_http::request_id`) | 496,002 (70%) |
 | Usage and Claude Code timing lines | 169,042 (24%) |
 | Busiest second | 314 lines |
 
@@ -39,7 +39,7 @@ is lost with a deleted Cloud, and the page's are not kept at all.
 
 ## Decision
 
-Demi keeps few tests, so a problem is diagnosed from the log, after the fact,
+Jush keeps few tests, so a problem is diagnosed from the log, after the fact,
 without reproducing it. Today the log records mostly failures, and three
 places keep it apart: the backend's database, a file on each Host, and the
 page, which keeps nothing. After this change the backend's `log.sqlite` holds
@@ -55,7 +55,7 @@ A user reports that the Requesting timer restarted when they switched back
 to a conversation. The agent diagnosing it runs, on the server:
 
 ```sh
-sqlite3 -json /opt/demi/data/backend/log.sqlite "
+sqlite3 -json /opt/jush/data/backend/log.sqlite "
   SELECT at, origin, level, event, fields FROM events
   WHERE conversation_id = 'cv_1f3k...' AND at BETWEEN 1761140000000 AND 1761140120000
   ORDER BY at"
@@ -78,7 +78,7 @@ the backend's request start: the cause, without reproducing it.
 ### What is logged
 
 These rules decide what is written at `info`, the level the server keeps by
-default; `debug` and `trace` add detail that `DEMI_LOG` turns on.
+default; `debug` and `trace` add detail that `JUSH_LOG` turns on.
 
 1. **A unit of work ends with one line** that says how it went: its kind, its
    IDs, its outcome, its duration, and the counts that describe it. The units
@@ -156,9 +156,9 @@ removed and created again, as a database the writer cannot open is today.
 The writer keeps lines for 14 days and at most 2 GiB, in place of 7 days and
 512 MiB; the hourly trim keeps the newer, deleting in batches of 10,000
 lines so that the writer is never held for more than a fraction of a
-second. `DEMI_LOG_KEEP_DAYS` and
-`DEMI_LOG_MAX_SIZE` (bytes, or a number with `MiB` or `GiB`) set other limits,
-as `DEMI_LOG` sets the level.
+second. `JUSH_LOG_KEEP_DAYS` and
+`JUSH_LOG_MAX_SIZE` (bytes, or a number with `MiB` or `GiB`) set other limits,
+as `JUSH_LOG` sets the level.
 
 ### The Host's lines reach the backend
 
@@ -200,7 +200,7 @@ with `event: "stderr"` and its text in `fields.text`, as today's lines are.
 ### The page's lines reach the backend
 
 The page names its load with an ID, `pg_` and 16 characters as a request ID
-is made, and sends it as `X-Demi-Page` on every request and as `page=` in a
+is made, and sends it as `X-Jush-Page` on every request and as `page=` in a
 socket's URL. The backend puts it on the request's span, so the backend's
 lines of a request the page made carry the page's ID.
 
@@ -222,7 +222,7 @@ interface PageLog {
 
 - **Answer:** `204`, with `X-Request-Id` as every answer. `400` for a body
   that does not parse. The route has no limit of its own on lines, their
-  fields or their rate, and nothing is cut: Demi can work with the log as it
+  fields or their rate, and nothing is cut: Jush can work with the log as it
   comes, and the body is held to the backend's JSON body limit like any
   other. The page sends its lines in requests under half of it.
 - **When the page sends:** every 5 seconds while it has lines, and at once
@@ -303,7 +303,7 @@ The code is throwaway and outside the repository.
 
 - **Wide events at a unit's end.** Stripe's canonical log lines; Coder's HTTP
   middleware, which adds fields during a request and writes one line at its
-  end (`coderd/httpmw/loggermw/logger.go`); Honeycomb's wide events. Demi's
+  end (`coderd/httpmw/loggermw/logger.go`); Honeycomb's wide events. Jush's
   per-request line already works this way; this extends it to the other
   units.
 - **What `info` holds.** Kubernetes' logging conventions put steady-state
@@ -313,17 +313,17 @@ The code is throwaway and outside the repository.
   message's queue and processing time on its span (`crates/collab/src/rpc.rs`).
 - **A remote process's lines join the local log.** Zed's remote server
   writes JSON lines that the client parses into its own log, keeping a line
-  that does not parse with a prefix (`crates/remote/src/transport.rs`). Demi
+  that does not parse with a prefix (`crates/remote/src/transport.rs`). Jush
   does the same with the runner, into the database, and replays what a
   disconnect held back.
 - **A front end's lines.** Grafana Faro batches every 250 ms or 50 items;
   PostHog limits a client to 10 events a second and tags requests with a
-  session ID header; Sentry keeps a ring of 100 breadcrumbs. Demi batches
+  session ID header; Sentry keeps a ring of 100 breadcrumbs. Jush batches
   every 5 seconds, tags requests with the page's ID, and keeps no ring:
   lines are sent as they come, because the problems are silent.
 - **Departure.** None of these let the logs of a backend, its remote
   processes and its pages be queried together by one ID in one place without
-  a separate log stack; Demi can, because it owns the database.
+  a separate log stack; Jush can, because it owns the database.
 
 ## Alternatives
 
@@ -334,8 +334,8 @@ The code is throwaway and outside the repository.
 - **Send the page's lines only with an error**, as Sentry's breadcrumbs. The
   problems this is for raise no error.
 - **OpenTelemetry and a log stack** (a collector, Loki or similar). A user
-  who installs Demi would have to run them; Demi already has its database.
-- **A `demi logs` command or a query route.** An agent with a shell on the
+  who installs Jush would have to run them; Jush already has its database.
+- **A `jush logs` command or a query route.** An agent with a shell on the
   server reads SQLite with any query it needs; a route would offer a few
   filters and need keeping.
 

@@ -1,6 +1,6 @@
 {
-  "name": "@demicodes/protocol",
-  "description": "The TypeScript form of Demi's Rust contracts: Zod schemas, types and lookups generated from them.",
+  "name": "@jush-ai/protocol",
+  "description": "The TypeScript form of Jush's Rust contracts: Zod schemas, types and lookups generated from them.",
   "version": "0.24.0",
   "private": false,
   "type": "module",
@@ -30,9 +30,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/demi-sh/demi.git",
+    "url": "git+https://github.com/jush-ai/jush.git",
     "directory": "packages/protocol"
   },
-  "homepage": "https://github.com/demi-sh/demi/tree/main/packages/protocol#readme",
-  "bugs": "https://github.com/demi-sh/demi/issues"
+  "homepage": "https://github.com/jush-ai/jush/tree/main/packages/protocol#readme",
+  "bugs": "https://github.com/jush-ai/jush/issues"
 }

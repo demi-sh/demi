@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Globe } from '@lucide/vue'
-import SettingsGroup from '@demicodes/web-ui/settings/SettingsGroup.vue'
-import SettingsRow from '@demicodes/web-ui/settings/SettingsRow.vue'
-import ExternalLink from '@demicodes/web-ui/ui/ExternalLink.vue'
-import Menu from '@demicodes/web-ui/ui/Menu.vue'
-import MenuItem from '@demicodes/web-ui/ui/MenuItem.vue'
-import ScrollArea from '@demicodes/web-ui/ui/ScrollArea.vue'
-import Tag from '@demicodes/web-ui/ui/Tag.vue'
-import TruncatedText from '@demicodes/web-ui/ui/TruncatedText.vue'
+import SettingsGroup from '@jush-ai/web-ui/settings/SettingsGroup.vue'
+import SettingsRow from '@jush-ai/web-ui/settings/SettingsRow.vue'
+import ExternalLink from '@jush-ai/web-ui/ui/ExternalLink.vue'
+import Menu from '@jush-ai/web-ui/ui/Menu.vue'
+import MenuItem from '@jush-ai/web-ui/ui/MenuItem.vue'
+import ScrollArea from '@jush-ai/web-ui/ui/ScrollArea.vue'
+import Tag from '@jush-ai/web-ui/ui/Tag.vue'
+import TruncatedText from '@jush-ai/web-ui/ui/TruncatedText.vue'
 import GallerySection from '../components/GallerySection.vue'
 import GallerySpecimen from '../components/GallerySpecimen.vue'
 import GalleryTextRules, { type TextRule } from '../components/GalleryTextRules.vue'
@@ -30,11 +30,11 @@ interface ElementRule {
   kind: string
   /** The web-ui place that carries the text. */
   where: string
-  /** `content` is text Demi shows but does not write: it stays as written. */
+  /** `content` is text Jush shows but does not write: it stays as written. */
   style: 'title' | 'sentence' | 'headline' | 'placeholder' | 'content'
   right: readonly string[]
   wrong: readonly string[]
-  /** Apple's word for it, or how Demi maps a web element Apple does not name. */
+  /** Apple's word for it, or how Jush maps a web element Apple does not name. */
   source: Source
 }
 
@@ -104,7 +104,7 @@ const rules: readonly ElementRule[] = [
     kind: 'Feature name',
     where: 'A plugin’s name, in settings and on its tabs, and the Rust manifest that declares it',
     style: 'title',
-    right: ['File Browser', 'Skills', 'Demi File Commands'],
+    right: ['File Browser', 'Skills', 'Jush File Commands'],
     wrong: ['File browser'],
     source: { label: 'Apple Style Guide: feature names, such as Check In and Stage Manager', href: STYLE_GUIDE_CAPITALIZATION },
   },
@@ -134,9 +134,9 @@ const rules: readonly ElementRule[] = [
   },
   {
     kind: 'Screen title',
-    where: 'The heading of a screen that stands in for the whole page, as while Demi restarts',
+    where: 'The heading of a screen that stands in for the whole page, as while Jush restarts',
     style: 'headline',
-    right: ['Restarting Demi', 'This page could not be updated'],
+    right: ['Restarting Jush', 'This page could not be updated'],
     wrong: ['This Page Could Not Be Updated'],
     source: { label: 'Works like an alert’s title (HIG: Alerts)', href: `${HIG}/alerts` },
   },
@@ -301,7 +301,7 @@ const brevityRules: readonly TextRule[] = [
     title: 'A setting’s label comes first',
     rule: 'Label a setting as practically as possible. Add an explanation only when the label is not enough, and then say what it does, not how it works.',
     right: ['Route: Automatic — Uses the faster path.'],
-    wrong: ['Route — Demi connects directly when that is faster, and through the server otherwise.'],
+    wrong: ['Route — Jush connects directly when that is faster, and through the server otherwise.'],
     source: 'Apple HIG: Writing, Keep settings labels clear and simple',
   },
   {
@@ -314,7 +314,7 @@ const brevityRules: readonly TextRule[] = [
   {
     title: 'A problem says what to do',
     rule: 'Show it next to what it is about, without blame, and say what the reader can do to fix it.',
-    right: ['Start Demi on the device, then try again.'],
+    right: ['Start Jush on the device, then try again.'],
     wrong: ['The device’s runner is not connected to the backend.'],
     source: 'Apple HIG: Writing, Write clear error messages',
   },
@@ -383,7 +383,7 @@ const quantityRules: readonly TextRule[] = [
     rule: 'A name and its figure stand side by side. A colon follows the name only in a list of facts the reader scans, as in Details, never inside a one-line summary.',
     right: ['System 1.0 / 16 GB', 'Request ID: 4f2a'],
     wrong: ['System: 1.0 / 16 GB'],
-    source: 'Demi’s convention for figures',
+    source: 'Jush’s convention for figures',
   },
 ]
 
@@ -391,7 +391,7 @@ const quantityRules: readonly TextRule[] = [
 const exampleRules: readonly TextRule[] = [
   {
     title: 'Examples and placeholders are neutral',
-    rule: 'No name, machine, server, repository or language of the people who build Demi. A placeholder shows a value anyone might type. Example data uses the gallery’s neutral persona: Alex, alex@example.com, alex-mbp, /Users/alex/Projects/shop.',
+    rule: 'No name, machine, server, repository or language of the people who build Jush. A placeholder shows a value anyone might type. Example data uses the gallery’s neutral persona: Alex, alex@example.com, alex-mbp, /Users/alex/Projects/shop.',
     right: ['name@example.com', '/Users/alex/Projects/shop'],
     wrong: ['a maintainer’s email address', 'a maintainer’s home folder'],
     source: 'Apple HIG: Writing; example.com is reserved for examples (RFC 2606)',
@@ -480,13 +480,13 @@ const sources: readonly Required<Source>[] = [
   <div class="space-y-8">
     <div class="max-w-3xl space-y-3 text-[13px] leading-6 text-fg-body">
       <p>
-        Demi writes its UI text the way macOS does. A menu item, a button or a
+        Jush writes its UI text the way macOS does. A menu item, a button or a
         title is in title style: <span class="text-fg-emphasis">Add Source…</span>,
         unless the title is a whole sentence, as an alert’s can be, which is in
         sentence style: <span class="text-fg-emphasis">Something went wrong</span>.
         A switch, a settings row, a tooltip or a message is in sentence style:
         <span class="text-fg-emphasis">Show scroll bars</span>. Where Apple names
-        no style for an element Demi has, the table below maps it to the macOS
+        no style for an element Jush has, the table below maps it to the macOS
         element it works like, and says so.
       </p>
       <p class="text-fg-muted">
@@ -503,7 +503,7 @@ const sources: readonly Required<Source>[] = [
           <thead class="bg-surface-raised text-fg-subtle">
             <tr>
               <th class="px-3 py-2 font-medium">Element</th>
-              <th class="px-3 py-2 font-medium">In Demi</th>
+              <th class="px-3 py-2 font-medium">In Jush</th>
               <th class="px-3 py-2 font-medium">Style</th>
               <th class="px-3 py-2 font-medium">Right</th>
               <th class="px-3 py-2 font-medium">Wrong</th>
@@ -619,7 +619,7 @@ const sources: readonly Required<Source>[] = [
 
     <GallerySection
       title="Every Language"
-      note="Demi speaks English, Deutsch, Español, Français, Português, 简体中文, 繁體中文, 日本語 and 한국어, each complete. A written convention, like the rest of this page: nothing checks it."
+      note="Jush speaks English, Deutsch, Español, Français, Português, 简体中文, 繁體中文, 日本語 and 한국어, each complete. A written convention, like the rest of this page: nothing checks it."
     >
       <GalleryTextRules :rules="[everyLanguageRule]" />
     </GallerySection>
@@ -628,7 +628,7 @@ const sources: readonly Required<Source>[] = [
       v-for="writing in LANGUAGE_WRITING"
       :key="writing.language"
       :title="writing.title"
-      :note="`How ${writing.title} is written, each rule with what follows it and what breaks it, and Demi’s terms in it.`"
+      :note="`How ${writing.title} is written, each rule with what follows it and what breaks it, and Jush’s terms in it.`"
     >
       <div :lang="writing.language" class="space-y-4">
         <GalleryTextRules :rules="writing.rules" />

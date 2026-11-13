@@ -16,7 +16,7 @@ use std::{
 use tokio::sync::mpsc;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_live_view_protocol::{PointerAction, PointerKind, ViewerInput};
+use jush_live_view_protocol::{PointerAction, PointerKind, ViewerInput};
 
 /// Input the viewer sent and the task has not delivered yet. Past this the
 /// source is not taking input: what is queued is discarded and held input is

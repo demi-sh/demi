@@ -7,7 +7,7 @@
 //! call that leaves its command running asks the session to watch it, so the
 //! command reports to the node.
 //!
-//! What the `demi shell` commands and the reports show of a command is made
+//! What the `jush shell` commands and the reports show of a command is made
 //! here as well. The product also supplies the context sources, and the rules
 //! of the tool are a layer of every node's system prompt.
 //!
@@ -16,7 +16,7 @@
 //! A tool is only what the shell cannot do: start a script and watch it.
 //!
 //! - Looking at a command, writing to its input and stopping it are shell work,
-//!   so they are the `demi shell` commands, which a script combines with
+//!   so they are the `jush shell` commands, which a script combines with
 //!   anything else.
 //! - Ending a turn needs no tool, and neither does waiting, since the work's
 //!   end wakes the node.
@@ -91,18 +91,18 @@ use std::{
     time::{Duration, Instant},
 };
 
-use demi_agent_session::{
+use jush_agent_session::{
     Arrival, Arrived, CallCommand, StartedCommand, StepOutcomes, ToolEffect, ToolFailure, ToolInvocation,
     ToolOutcome,
 };
-use demi_agent_store::{AgentTreeStore, Placement, RunningCommand};
-use demi_device_interface::{
+use jush_agent_store::{AgentTreeStore, Placement, RunningCommand};
+use jush_device_interface::{
     CommandSet, CommandState, CommandStatus, ExecRequest, Device, DeviceError, DeviceErrorKind, JobCaller, Numbers,
     PageFeed, ShellEnvironment, ShellError, TakenUp,
 };
-use demi_command_protocol::Viewable;
-use demi_provider_common::ToolDefinition;
-use demi_shared_types::{CommandId, NodeId, Sequence};
+use jush_command_protocol::Viewable;
+use jush_provider_common::ToolDefinition;
+use jush_shared_types::{CommandId, NodeId, Sequence};
 use futures_util::{future::LocalBoxFuture, stream::FuturesUnordered};
 use tokio_util::sync::CancellationToken;
 
@@ -111,7 +111,7 @@ use environments::Handle;
 pub use frames::{shell_output, shell_status, stored_running_commands};
 use input::{Hold, ShellInput, parse};
 pub use reports::{EndOf, end_report, fill_output, progress_report};
-pub use demi_agent_transcript::duration;
+pub use jush_agent_transcript::duration;
 pub use result::{
     Look, Moved, VIEW_CHARS, interrupted_look, look_text, report_media, report_output, whole_look_text, whole_status,
 };
@@ -127,7 +127,7 @@ pub use workflow::{
     WorkflowError, WorkflowProfile, parse_workflow, workflow_id,
 };
 
-/// The most characters a page of `demi shell output` takes, so that a tool
+/// The most characters a page of `jush shell output` takes, so that a tool
 /// result printing one is never cut.
 ///
 /// A page goes into the model's context window, which the vendor limits.
@@ -180,7 +180,7 @@ pub trait ShellEnvironmentFactory<H> {
 }
 
 /// A node's own placement as its `shell` calls read it when each starts
-/// (`crates/agent-server/src/node/mod.rs`): `demi agent cwd` changes it while
+/// (`crates/agent-server/src/node/mod.rs`): `jush agent cwd` changes it while
 /// a call of the node runs, from the next start on.
 pub trait OwnPlacement {
     /// A child's own device and working directory; none for the root, whose
@@ -481,7 +481,7 @@ impl<'a, H: DeviceResolver> ShellAccess<'a, H> {
     }
 
     /// Forgets a command whose end a look showed the node: its handle is
-    /// released, and `demi shell output` reads its output from then on.
+    /// released, and `jush shell output` reads its output from then on.
     async fn release(&self, environment: &dyn ShellEnvironment, command: &CommandId) {
         self.environments.saw_end(command);
         // A command the environment already forgot has nothing to release.

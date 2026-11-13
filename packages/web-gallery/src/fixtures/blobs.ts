@@ -1,7 +1,7 @@
-import type { EditCopies } from '@demicodes/protocol'
-import type { BlobUrl } from '@demicodes/web-ui/agent/media-source'
-import type { ReadCallChange } from '@demicodes/web-ui/files/changes'
-import type { KeepPicture } from '@demicodes/web-ui/agent/comments/pictures'
+import type { EditCopies } from '@jush-ai/protocol'
+import type { BlobUrl } from '@jush-ai/web-ui/agent/media-source'
+import type { ReadCallChange } from '@jush-ai/web-ui/files/changes'
+import type { KeepPicture } from '@jush-ai/web-ui/agent/comments/pictures'
 
 /**
  * The gallery's stand-in for the backend's blob route: fixture files under
@@ -49,7 +49,7 @@ export const galleryBlobs = {
    * as when its header was not read: 16:9 until its first frame arrives.
    */
   unsizedRecording: fixture('b8'.repeat(32), '/fixtures/preview/demo.mp4'),
-  /** A three-second voice-over as MP3, as `demi audio speech` makes one. */
+  /** A three-second voice-over as MP3, as `jush audio speech` makes one. */
   voiceOver: fixture('d5'.repeat(32), '/fixtures/preview/welcome.mp3'),
   /** A one-page PDF, for the documents a message carries. */
   guide: fixture('c4'.repeat(32), '/fixtures/preview/guide.pdf'),

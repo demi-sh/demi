@@ -1,4 +1,4 @@
-import type { DeviceMark, DeviceState } from '@demicodes/plugin-sdk'
+import type { DeviceMark, DeviceState } from '@jush-ai/plugin-sdk'
 
 /** One skill of a source, as the Skills page shows it. */
 export interface SettingsSkill {

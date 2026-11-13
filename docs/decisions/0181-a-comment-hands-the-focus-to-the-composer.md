@@ -54,7 +54,7 @@ None.
 
 ## Prior art
 
-Demi's composer already takes the focus when it is handed the next step: New
+Jush's composer already takes the focus when it is handed the next step: New
 on the draft already shown, and a message taken back into the composer. A
 comment saved to the draft is the same case, as its next step is sending.
 

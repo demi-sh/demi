@@ -25,7 +25,7 @@ use std::task::{Context, Poll};
 use std::time::Duration;
 
 use axum::http::Request;
-use demi_runner_protocol::wire::WriteProgress;
+use jush_runner_protocol::wire::WriteProgress;
 use axum::response::Response;
 use hyper::body::Incoming;
 use hyper::server::conn::http1;

@@ -4,8 +4,8 @@ status: accepted
 
 # A reconnection shows the conversation at one moment, and the root's entry says it resumes
 
-Supersedes: 0279 (A turn Demi resumes after a restart shows as running until
-it runs), where the conversation's page reads that Demi resumes the turn: from
+Supersedes: 0279 (A turn Jush resumes after a restart shows as running until
+it runs), where the conversation's page reads that Jush resumes the turn: from
 the root's entry now, not from the summary. The summary's `resuming` status
 stays for the sidebar.
 
@@ -16,7 +16,7 @@ running. When the page reconnects, it reads again the transcript, the agents
 and the sidebar's summaries, each on its own, and shows each as it answers:
 
 - The transcript, with the red "interrupted" record, comes first. The summary
-  that says Demi resumes the turn comes 0.3 to 1.3 seconds later, so the red
+  that says Jush resumes the turn comes 0.3 to 1.3 seconds later, so the red
   record shows until then.
 - When the turn runs again, the summary can say so a frame before the lane
   says the root runs, and the record shows for that frame.
@@ -27,7 +27,7 @@ never existed.
 ## Decision
 
 **The page takes a reconnection's reads in one step, and the root's entry says
-that Demi resumes its turn, beside the root's phase.**
+that Jush resumes its turn, beside the root's phase.**
 
 - After a lost connection, the conversation's runtime holds what the client
   brings from the open on, until every read the open's answers asked for has
@@ -58,7 +58,7 @@ that Demi resumes its turn, beside the root's phase.**
 ```rust
 pub struct AgentEntry {
     // …
-    /// The root's turn a restart of the backend interrupted is one Demi
+    /// The root's turn a restart of the backend interrupted is one Jush
     /// resumes by itself, and the root has not run since.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub resuming: bool,
@@ -99,7 +99,7 @@ reads start after a random delay that spreads the reads of many pages.
 - [Replicache](https://doc.replicache.dev/concepts/how-it-works) applies the
   patch a pull brings, replays the pending changes on it, and reveals the
   result to the app atomically, so the app never shows part of one state
-  beside part of another. Demi takes the reads of a reconnection the same way.
+  beside part of another. Jush takes the reads of a reconnection the same way.
 - [JupyterLab](https://jupyterlab.readthedocs.io/en/latest/api/types/services.Kernel.Status.html)
   carries a kernel's `autorestarting` in its status, the same value as its
   busy or idle, rather than beside it. The root's entry carries `resuming`
@@ -110,7 +110,7 @@ reads start after a random delay that spreads the reads of many pages.
 - **Carry `resuming` in the conversation's metadata.** The lane sends metadata
   before the agents' frames, so it can say the resume ended a frame before the
   entry says the root runs.
-- **Mark the interruption record itself as one Demi resumes.** It changes
+- **Mark the interruption record itself as one Jush resumes.** It changes
   stored records, and a resume that fails would show Resuming first, then red.
 - **Hold only the transcript until the agents are read.** It fixes this case
   and leaves every other pairing of a reconnection's reads to show two moments.

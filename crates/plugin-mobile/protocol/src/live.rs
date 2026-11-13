@@ -1,4 +1,4 @@
-//! The simulators' live view protocol: what the page and `demi-mobile` say to
+//! The simulators' live view protocol: what the page and `jush-mobile` say to
 //! each other over a `mobile` user stream about its one device, beside the
 //! live view's own frames, pictures and input (`live-view-protocol`).
 //!
@@ -7,11 +7,11 @@
 //!
 //! The page and the resident ship in the same release; there is no version.
 
-use demi_shared_types::Nullable;
+use jush_shared_types::Nullable;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use demi_live_view_protocol::{
+use jush_live_view_protocol::{
     LiveActivity, LiveHeartbeat, LiveInputs, LiveKeyframe, LiveNotice, LiveRelease,
     ModuleMessage, Platform, ViewerInput,
 };

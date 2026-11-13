@@ -25,8 +25,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use demi_device_interface::{DeviceError, DeviceErrorKind};
-use demi_runner_protocol::wire::{self, Inbound, Resume};
+use jush_device_interface::{DeviceError, DeviceErrorKind};
+use jush_runner_protocol::wire::{self, Inbound, Resume};
 use tokio_util::task::TaskTracker;
 
 use crate::{

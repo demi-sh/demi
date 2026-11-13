@@ -3,7 +3,7 @@
 //! and the test fixture's edge alike.
 
 use axum::extract::ws::{CloseFrame, Message, close_code};
-use demi_runner_protocol::wire;
+use jush_runner_protocol::wire;
 
 use crate::link::{Link, LinkEnd, SocketEnd};
 

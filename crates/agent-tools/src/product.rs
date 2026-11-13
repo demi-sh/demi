@@ -11,10 +11,10 @@
 use std::num::NonZeroU32;
 use std::rc::Rc;
 
-use demi_conversation_lane_protocol::JobModel;
-use demi_agent_store::Placement;
-use demi_device_interface::{CommandSet, Device, DeviceError, DeviceErrorKind};
-use demi_shared_types::{
+use jush_conversation_lane_protocol::JobModel;
+use jush_agent_store::Placement;
+use jush_device_interface::{CommandSet, Device, DeviceError, DeviceErrorKind};
+use jush_shared_types::{
     ContextChoice, InstructionEntry, ModelSelection, NodeId, ProviderModel, THINKING_OFF, TurnId,
     WorkflowChoice,
 };
@@ -79,7 +79,7 @@ pub struct SubagentSettings {
 pub struct Profile {
     /// The `--profile` value.
     pub name: String,
-    /// When the agent should use it, which `demi agent profiles` shows.
+    /// When the agent should use it, which `jush agent profiles` shows.
     pub description: String,
     /// The model settings a child infers with; none for its parent's model.
     pub model: Option<ProfileModel>,
@@ -214,12 +214,12 @@ pub struct WorkflowChild {
     pub context_limit: Option<u32>,
 }
 
-/// `demi agent workflows list`: the conversation's choice, and the
+/// `jush agent workflows list`: the conversation's choice, and the
 /// workflows of its working directory as the menu lists them.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct WorkflowListing {
     pub chosen: WorkflowChoice,
-    /// The directory that holds them, `.demi/workflows` of the nearest
+    /// The directory that holds them, `.jush/workflows` of the nearest
     /// directory that has one; null when none has.
     pub directory: Option<String>,
     /// Why that directory cannot be used, as the device could not read it; null
@@ -295,7 +295,7 @@ pub fn runs_on(
 /// The tier option that names the vendor's default tier.
 pub const TIER_DEFAULT: &str = "default";
 
-/// A new profile as `demi agent profiles create` gives it.
+/// A new profile as `jush agent profiles create` gives it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NewProfileDraft {
     pub name: String,
@@ -309,7 +309,7 @@ pub struct NewProfileDraft {
     pub enabled: bool,
 }
 
-/// How `demi agent profiles edit` changes a profile's model.
+/// How `jush agent profiles edit` changes a profile's model.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ModelEdit {
     /// `--model parent`: the parent's model again.
@@ -317,7 +317,7 @@ pub enum ModelEdit {
     Choose(ModelChoice),
 }
 
-/// The fields `demi agent profiles edit` changes; each it leaves none
+/// The fields `jush agent profiles edit` changes; each it leaves none
 /// stays.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ProfileEdit {
@@ -333,7 +333,7 @@ pub struct ProfileEdit {
 }
 
 /// Where the agent reads the user's subagent settings, at each spawn and each
-/// `demi agent profiles` call, never once per tree.
+/// `jush agent profiles` call, never once per tree.
 ///
 /// It also changes the user's profiles through the same path as the settings
 /// page, with its checks and its words. A change reaches the next read.
@@ -407,7 +407,7 @@ pub trait SubagentSource {
     }
 
     /// The text of the file `path`, read against `directory`, on the
-    /// conversation `root`'s device, which `demi agent workflows check` parses.
+    /// conversation `root`'s device, which `jush agent workflows check` parses.
     fn read_workflow_file<'a>(
         &'a self,
         _root: &'a NodeId,

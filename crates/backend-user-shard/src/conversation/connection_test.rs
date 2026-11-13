@@ -10,14 +10,14 @@ use std::num::NonZeroU32;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_provider_registry::entry::ProviderEntry;
-use demi_provider_common::{
+use jush_provider_registry::entry::ProviderEntry;
+use jush_provider_common::{
     InferenceItem, InferenceRequest, PromptCache, Provider, ProviderEvent, RequestPurpose, RuntimeEnv, UserPart,
 };
-use demi_provider_common::media::MediaFailure;
-use demi_shared_types::MediaKind;
-use demi_web_api_protocol::ids::CredentialId;
-use demi_web_api_protocol::providers::TestResult;
+use jush_provider_common::media::MediaFailure;
+use jush_shared_types::MediaKind;
+use jush_web_api_protocol::ids::CredentialId;
+use jush_web_api_protocol::providers::TestResult;
 use futures_util::StreamExt;
 use tokio_util::sync::CancellationToken;
 

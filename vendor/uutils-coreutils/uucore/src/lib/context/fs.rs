@@ -251,7 +251,7 @@ pub(crate) fn null_file() -> io::Result<&'static std::fs::File> {
     if let Some(file) = EMPTY.get() {
         return Ok(file);
     }
-    let name = format!("demi-null-{}", std::process::id());
+    let name = format!("jush-null-{}", std::process::id());
     let file = std::fs::OpenOptions::new()
         .read(true)
         .write(true)

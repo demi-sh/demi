@@ -66,7 +66,7 @@ pub(crate) fn copy_on_write(
                 dst: *const core::ffi::c_char,
                 flags: u32,
             ) -> core::ffi::c_int = std::mem::transmute(raw_pfn);
-            // Demi's: clonefile(2) fails when the destination exists, and
+            // Jush's: clonefile(2) fails when the destination exists, and
             // the copy below then writes it in place, as GNU cp does, so a
             // hard link to it stays one; removing it to clone again would
             // make a new file.

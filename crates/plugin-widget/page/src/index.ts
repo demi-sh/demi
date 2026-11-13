@@ -1,7 +1,7 @@
 // The `widget` plugin's page (`packages/plugin-sdk/src/index.ts`): the
 // widget a reply's line `<widget id="w1" />` shows in place, and a widget's
 // share shows alone.
-import { definePage } from '@demicodes/plugin-sdk'
+import { definePage } from '@jush-ai/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import WidgetBlock from './WidgetBlock.vue'
 

@@ -1,6 +1,6 @@
 //! The plugin host: the registry of a program's plugins with the checks of
-//! their manifests, and each user's plugins. Demi's backend runs one; any
-//! program that runs Demi's plugins can.
+//! their manifests, and each user's plugins. Jush's backend runs one; any
+//! program that runs Jush's plugins can.
 //!
 //! A user's plugins provide:
 //!

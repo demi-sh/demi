@@ -4,24 +4,24 @@
     "version": "バージョン",
     "acknowledgements": {
       "title": "謝辞",
-      "description": "Demi に含まれるオープンソースソフトウェアとそのライセンス。",
+      "description": "Jush に含まれるオープンソースソフトウェアとそのライセンス。",
       "loading": "謝辞を読み込んでいます…",
       "none": "謝辞はありません"
     }
   },
   "updates": {
     "title": "アップデート",
-    "description": "このサーバの Demi を、すべてのアカウントのためにアップデートします。",
-    "current": "Demi {version}",
-    "upToDate": "Demi は最新です",
-    "available": "Demi {version} を利用できます",
+    "description": "このサーバの Jush を、すべてのアカウントのためにアップデートします。",
+    "current": "Jush {version}",
+    "upToDate": "Jush は最新です",
+    "available": "Jush {version} を利用できます",
     "youHave": "現在のバージョン：{version}",
     "background": {
       "starting": "バックグラウンドでダウンロード中…",
       "downloading": "バックグラウンドでダウンロード中：{done} / {all}",
       "installing": "バックグラウンドでインストール中…",
       "ready": "インストールの準備ができました。現在のバージョン：{version}",
-      "failed": "Demi {version} をバックグラウンドでダウンロードできませんでした。現在のバージョン：{running}"
+      "failed": "Jush {version} をバックグラウンドでダウンロードできませんでした。現在のバージョン：{running}"
     },
     "releaseNotes": "リリースノート",
     "updateNow": "今すぐアップデート",
@@ -30,34 +30,34 @@
     "lastChecked": "最終確認：{when}",
     "neverChecked": "未確認",
     "checkNow": "今すぐ確認",
-    "downloading": "Demi {version} をダウンロード中",
+    "downloading": "Jush {version} をダウンロード中",
     "downloaded": "{done} / {all}",
     "speed": "{size}/秒",
-    "preparing": "Demi {version} を準備中…",
-    "restarting": "Demi を再起動中…",
+    "preparing": "Jush {version} を準備中…",
+    "restarting": "Jush を再起動中…",
     "failed": "{version} にアップデートできませんでした",
-    "failedNoVersion": "アップデートできませんでした。Demi は {running} のままです。",
+    "failedNoVersion": "アップデートできませんでした。Jush は {running} のままです。",
     "channel": "アップデートチャンネル",
     "channelDescription": "Canary は最新のビルドをいち早く受け取ります。まだ誰もサーバで試していないビルドです。",
     "prepareAhead": "アップデートを自動的にダウンロード",
     "prepareAheadDescription": "アップデート時にダウンロードを待たずに済みます。Canary ではおすすめしません。リリースが頻繁で、大量の通信量を使います。",
     "beta": "Beta",
     "canary": "Canary",
-    "confirmTitle": "Demi を {version} にアップデートしますか？",
-    "confirmBody": "Demi が再起動し、数分間すべてのユーザが利用できなくなります。",
+    "confirmTitle": "Jush を {version} にアップデートしますか？",
+    "confirmBody": "Jush が再起動し、数分間すべてのユーザが利用できなくなります。",
     "confirmAgents": "{count} 個のエージェントが作業中です。アップデート後に再開します。",
     "update": "アップデート",
-    "updatingTo": "Demi {version} にアップデート中",
+    "updatingTo": "Jush {version} にアップデート中",
     "stepOf": "ステップ {number}/{count}：{step}",
     "failedAt": "ステップ {number}/{count} に失敗しました：{step}",
     "steps": {
-      "download": "Demi {version} をダウンロード",
-      "unpack": "Demi {version} を展開",
+      "download": "Jush {version} をダウンロード",
+      "unpack": "Jush {version} を展開",
       "checkConfiguration": "設定を確認",
       "downloadGvisor": "gVisor をダウンロード",
       "installImage": "Cloud イメージをインストール",
       "checkDatabases": "データベースを確認",
-      "restart": "Demi を再起動"
+      "restart": "Jush を再起動"
     },
     "detail": {
       "of": "{done}/{count}",
@@ -140,13 +140,13 @@
   },
   "storage": {
     "title": "ストレージ",
-    "description": "Demi がサーバとお使いのデバイスで使っている容量。",
+    "description": "Jush がサーバとお使いのデバイスで使っている容量。",
     "loading": "ストレージを読み込み中…",
     "server": "サーバ",
     "devices": "デバイス",
     "rulesDescription": "すべてのデバイスがこのルールで自動的に整理されます。",
     "used": "{total} 中 {used} 使用済み",
-    "demiSize": "Demi {size}",
+    "jushSize": "Jush {size}",
     "measured": "測定",
     "notMeasured": "未測定",
     "diskUsed": "ディスク使用率 {percent}",
@@ -192,7 +192,7 @@
     "cacheBody": "使用中でないブラウザのサインイン状態と画面収録が「{device}」から削除されます。エージェントが再度サインインする必要があるかもしれません。",
     "cacheAction": "消去",
     "componentsTitle": "コンポーネントを削除しますか？",
-    "componentsBody": "使用中でないコンポーネントが「{device}」から削除されます。必要なときに Demi が再ダウンロードします。",
+    "componentsBody": "使用中でないコンポーネントが「{device}」から削除されます。必要なときに Jush が再ダウンロードします。",
     "componentsAction": "削除",
     "byConversation": "チャット別",
     "deletedConversation": "削除されたチャット",
@@ -286,26 +286,26 @@
       "title": "ブラウザー",
       "label": "ブラウザー通知",
       "quietWhileElsewhere": "ほかのデバイスを使用中は通知しない",
-      "quietWhileElsewhereDescription": "ほかのデバイスで Demi を使っている間は、ターンの完了や失敗をここでは通知しません。そのデバイスから離れて {minutes} 分たつと再開します。許可のリクエストとエージェントの通知は常に届きます。",
+      "quietWhileElsewhereDescription": "ほかのデバイスで Jush を使っている間は、ターンの完了や失敗をここでは通知しません。そのデバイスから離れて {minutes} 分たつと再開します。許可のリクエストとエージェントの通知は常に届きます。",
       "blocked": "このブラウザーのサイト設定でブロックされています。",
-      "thisBrowser": "このブラウザーのみ。Demi を閉じていても届きます。",
+      "thisBrowser": "このブラウザーのみ。Jush を閉じていても届きます。",
       "unsupported": "このブラウザーは通知に対応していません。"
     },
     "when": {
       "title": "通知するタイミング",
       "turnFinishes": "ターンが完了したとき",
       "turnFails": "ターンが失敗したとき",
-      "needsPermission": "Demi が許可を求めたとき",
+      "needsPermission": "Jush が許可を求めたとき",
       "turnOnFirst": "先にブラウザー通知をオンにしてください。",
       "agentNotifies": "エージェントが通知を送ったとき"
     },
     "homeScreen": {
-      "title": "iPhone で通知を受け取るには、Demi をホーム画面に追加してください",
+      "title": "iPhone で通知を受け取るには、Jush をホーム画面に追加してください",
       "share": "Safari のツールバーで共有をタップします。",
       "add": "「ホーム画面に追加」を選びます。",
-      "open": "ホーム画面から Demi を開き、そこで通知をオンにします。",
+      "open": "ホーム画面から Jush を開き、そこで通知をオンにします。",
       "ok": "OK",
-      "row": "通知を受け取るには Demi をホーム画面に追加してください",
+      "row": "通知を受け取るには Jush をホーム画面に追加してください",
       "howTo": "追加方法"
     }
   },
@@ -422,7 +422,7 @@
       "finishesKeywords": "完了,終了",
       "failsKeywords": "エラー",
       "permissionKeywords": "許可のリクエスト",
-      "agentKeywords": "demi notify,エージェントの通知,プッシュ",
+      "agentKeywords": "jush notify,エージェントの通知,プッシュ",
       "homeScreenKeywords": "ホーム画面,iPhone,iPad,ホーム画面に追加"
     },
     "agentPage": {
@@ -613,7 +613,7 @@
     "reset": {
       "title": "「{name}」のパスワードをリセットしますか？",
       "action": "パスワードをリセット",
-      "body": "Demi が新しい初期パスワードを作成し、一度だけ表示します。現在のパスワードは使えなくなります。サインイン中のブラウザーとパスキーはそのまま残ります。"
+      "body": "Jush が新しい初期パスワードを作成し、一度だけ表示します。現在のパスワードは使えなくなります。サインイン中のブラウザーとパスキーはそのまま残ります。"
     },
     "signOutEverywhere": {
       "title": "「{name}」をすべての場所でサインアウトしますか？",
@@ -814,7 +814,7 @@
     "context": "コンテキスト",
     "contextDescription": "サブエージェントが使うコンテキストウィンドウ。",
     "instructions": "指示",
-    "instructionsDescription": "任意。Demi 自身の指示に追加されます。",
+    "instructionsDescription": "任意。Jush 自身の指示に追加されます。",
     "mayStart": "サブエージェントも起動できる",
     "mayStartDescription": "サブエージェントがサブエージェントを起動できるようにします。",
     "delete": "削除",
@@ -921,7 +921,7 @@
       "keyPaste": "API キーを貼り付け",
       "shareKey": "共有キー",
       "shareKeyPaste": "共有キーを貼り付け",
-      "shareKeyHint": "もう一方の Demi の設定で、プロバイダー名の横にある「共有」から作成します。",
+      "shareKeyHint": "もう一方の Jush の設定で、プロバイダー名の横にある「共有」から作成します。",
       "lender": "{server} が共有",
       "test": "接続をテスト",
       "testDescription": "有効な最初のテキストモデルに短いチャットメッセージを 1 件送信します。",
@@ -1002,7 +1002,7 @@
       "keeps": "{name} は引き続き有効なアカウントを使います。",
       "switches": "{name} は「{next}」に切り替わります。",
       "none": "{name} のアカウントがなくなり、追加するまで使えなくなります。",
-      "forgets": "Demi はこのサインイン情報を削除します。「アカウントを追加」でもう一度追加できます。"
+      "forgets": "Jush はこのサインイン情報を削除します。「アカウントを追加」でもう一度追加できます。"
     },
     "removeModel": {
       "title": "モデル「{name}」を削除しますか？",
@@ -1021,7 +1021,7 @@
     "share": {
       "share": "共有",
       "title": "{name} を共有",
-      "who": "共有キーがあれば、別の Demi サーバーがこのプロバイダーを使えます。チャットはそのサーバーに残り、モデルへのリクエストだけがここに届きます。キーは作成したときに一度だけ表示されます。",
+      "who": "共有キーがあれば、別の Jush サーバーがこのプロバイダーを使えます。チャットはそのサーバーに残り、モデルへのリクエストだけがここに届きます。キーは作成したときに一度だけ表示されます。",
       "field": "共有キー",
       "creating": "キーを作成中…",
       "empty": "「新しいキー」をクリックしてキーを作成",
@@ -1048,8 +1048,8 @@
     "title": "プロバイダーを追加",
     "compatible": "互換 API",
     "compatibleHint": "プロキシまたは自前のサーバー",
-    "borrowed": "別の Demi",
-    "borrowedHint": "別の Demi サーバーが共有するプロバイダー",
+    "borrowed": "別の Jush",
+    "borrowedHint": "別の Jush サーバーが共有するプロバイダー",
     "proxy": "プロキシ",
     "vendors": "ベンダー",
     "loading": "ベンダーを読み込んでいます…",

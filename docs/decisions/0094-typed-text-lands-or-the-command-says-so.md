@@ -9,7 +9,7 @@ status: proposed
 Alex asks the agent to sign in to an app in an Android emulator with a test
 phone number and the fixed code 2496. The code field is four boxes, one
 digit each, and each box moves the focus to the next after it takes its
-digit. The agent runs `demi mobile type m3 2496`. The command prints "Typed
+digit. The agent runs `jush mobile type m3 2496`. The command prints "Typed
 4 characters.", but the keys reached the app faster than the boxes moved
 the focus: three digits fell on a full box and were dropped, or landed in
 the wrong box. The app submitted a wrong code twice, the sign-in service
@@ -35,15 +35,15 @@ learns of the failure, if at all, from a screenshot or from the app.
 afterwards. When it cannot make the text land, it fails and says why.
 
 ```text
-$ demi mobile type m3 2496
+$ jush mobile type m3 2496
 Typed 4 characters into 4 fields: "2", "4", "9", "6".
 
-$ demi mobile type m3 "abc def" --into e7
+$ jush mobile type m3 "abc def" --into e7
 Typed 7 characters into text field "Search" [ref=e9]; the keys left "abc de f",
 so it set the text directly; it holds "abc def".
 
-$ demi mobile type m3 hello
-demi mobile type: no field has the keyboard focus; tap one first, or
+$ jush mobile type m3 hello
+jush mobile type: no field has the keyboard focus; tap one first, or
 name it with --into
 ```
 
@@ -110,7 +110,7 @@ the user's emulator changes.
 
 ### Keyboard tutorials
 
-When `demi mobile open` opens a device, it turns off the first-run keyboard
+When `jush mobile open` opens a device, it turns off the first-run keyboard
 tutorials that cover the screen: Gboard's stylus tutorial on Android
 (`settings put secure stylus_handwriting_enabled 0`), and the swipe-to-type
 introduction on iOS (`DidShowContinuousPathIntroduction` in the keyboard's
@@ -135,7 +135,7 @@ text directly, which also ends the composition.
 - **Typing one character at a time with a check.** A script sent each digit
   with `input keyevent`, read the tree until it landed, and sent it again
   if it did not. It filled the 300 ms row correctly in 3.9 s, with the
-  command line's own start-up in each read. Inside `demi-mobile` a read
+  command line's own start-up in each read. Inside `jush-mobile` a read
   takes about 0.3 s on Android and 0.6 s on iOS.
 - **No hardware keyboard.** On an emulator with `hw.keyboard=no`, `type`
   (keys and paste) and `key delete` changed nothing and reported success;
@@ -159,19 +159,19 @@ text directly, which also ends the composition.
 - [Maestro](https://github.com/mobile-dev-inc/Maestro/pull/3334) types one
   character an event on Android, because fields split into one box per
   character need each event to finish its focus change before the next.
-  It does not check what landed. Demi checks, and keeps one burst for a
+  It does not check what landed. Jush checks, and keeps one burst for a
   single field, which Maestro does not.
 - [Appium's XCUITest driver](https://appium.github.io/appium-xcuitest-driver/latest/reference/settings/)
   limits typing to `maxTypingFrequency`, 60 keystrokes a minute by
   default, because faster typing drops characters. A fixed pace is slow
-  for long text and still loses to a slow app; Demi waits for each
+  for long text and still loses to a slow app; Jush waits for each
   character instead.
 - [appium-ios-simulator](https://github.com/appium/appium-ios-simulator/pull/315)
   sets `DidShowContinuousPathIntroduction` when it boots a simulator, so
-  the keyboard tutorial does not block typing. Demi does the same at
+  the keyboard tutorial does not block typing. Jush does the same at
   `open`.
 - Appium's UiAutomator2 driver sets text through accessibility by default,
-  not with keys. Demi keeps keys first, because an app's key handling,
+  not with keys. Jush keeps keys first, because an app's key handling,
   such as a code row's focus moves, only runs for keys.
 
 ## Alternatives

@@ -4,10 +4,10 @@
 //! cancellation. A log line names the plugin, the host and the status,
 //! never a header or a body.
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     PluginId, PortFailure, PortRefusal, WebFailure, WebHeader, WebMethod, WebRequest, WebResponse,
 };
-use demi_shared_types::B64Bytes;
+use jush_shared_types::B64Bytes;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use tokio_util::sync::CancellationToken;
 

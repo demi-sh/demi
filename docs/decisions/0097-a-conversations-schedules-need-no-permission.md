@@ -11,7 +11,7 @@ permission.
 ## Problem
 
 Alex asks the agent to check the build every morning at nine. The agent runs
-`demi schedule create`, and the conversation stops on a card that asks Alex to
+`jush schedule create`, and the conversation stops on a card that asks Alex to
 let the agents of this conversation manage schedules. Alex has just asked for
 the schedule, and has to approve it again before it exists.
 
@@ -31,7 +31,7 @@ composer, and turns one off or deletes it there.
 
 The design to build from:
 
-* `backend-user-shard`: the `demi schedule` group registers no permission,
+* `backend-user-shard`: the `jush schedule` group registers no permission,
   and `create`, `edit` and `delete` require none. `MANAGE`, its action and
   its description go, and the commands' summaries no longer say that they
   need the user's permission. The group's entry comment says what guards it

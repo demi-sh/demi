@@ -43,7 +43,7 @@
 //! - A completion is the notice of how the round ended, finished, failed or
 //!   stopped, with every text the child wrote since the round began, whole and
 //!   in order, so no later answer of its own replaces an earlier one. A failed
-//!   child's notice carries the failure reason Demi recorded after them. The
+//!   child's notice carries the failure reason Jush recorded after them. The
 //!   parent receives one notice per end, and none for a child it aborted
 //!   itself (`abort` told it), nor for the children a closing child takes
 //!   with it (the closing child decided that). A child the user stops from the
@@ -93,26 +93,26 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use demi_agent_session::{
+use jush_agent_session::{
     AgentMessageError, AgentSession, Execution, ModelSwitch, SessionEvent, Settle,
     Subscription,
 };
-use demi_agent_store::{ClosePhase, Kind, NodeClose, NodeRecord, Placement, Reprofile};
-use demi_agent_transcript::last_failure;
-use demi_agent_tools::{DeviceResolver, SubagentSource};
-use demi_conversation_lane_protocol::{
+use jush_agent_store::{ClosePhase, Kind, NodeClose, NodeRecord, Placement, Reprofile};
+use jush_agent_transcript::last_failure;
+use jush_agent_tools::{DeviceResolver, SubagentSource};
+use jush_conversation_lane_protocol::{
     JobModel, JobPhase, TranscriptPatch,
 };
-use demi_provider_common::ProviderRuntime;
-use demi_shared_gates::Purpose;
-use demi_shared_types::{
+use jush_provider_common::ProviderRuntime;
+use jush_shared_gates::Purpose;
+use jush_shared_types::{
     AgentMessage, AgentMessageEvent, Block, BlockId, CommandId, CompletionId, CompletionOutcome,
     ModelSelection, NodeId, QueuedMessage, Sender, Sequence, SessionPhase, Timestamp, ToolCallBlock,
     ToolCallStatus, TurnId, UserContentBlock,
     output::{self, Fields, Table, seconds},
 };
-use demi_device_interface::ShellEnvironment;
-use demi_device_paths::relative_to;
+use jush_device_interface::ShellEnvironment;
+use jush_device_paths::relative_to;
 use futures_util::future::{LocalBoxFuture, join_all};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -139,7 +139,7 @@ const RESULT_MAX_BYTES: usize = 32 * 1024;
 /// context window.
 const SHOW_RECENT_TOOLS: usize = 8;
 /// Why the root's directory does not change (`crates/agent-server/src/node/mod.rs`).
-const ROOT_CWD: &str = "The main agent works in the conversation's directory; move the conversation with `demi device move` to work elsewhere.";
+const ROOT_CWD: &str = "The main agent works in the conversation's directory; move the conversation with `jush device move` to work elsewhere.";
 /// Why a side question starts no subagent, sends no message and keeps its
 /// directory.
 const SIDE_SPAWNS: &str = "a side question cannot start subagents";
@@ -212,7 +212,7 @@ pub(crate) enum StartInput {
         /// caller's own.
         cwd: Option<String>,
     },
-    /// `demi agent resume`; `profile_name` moves the child to another
+    /// `jush agent resume`; `profile_name` moves the child to another
     /// profile for this round on, none keeps the one it runs on.
     Resume {
         id: NodeId,
@@ -227,7 +227,7 @@ pub(crate) enum Stop {
     /// The child's parent aborts it, or closes and takes its children with
     /// it: the parent knows, so no notice reaches it.
     Parent,
-    /// The user stops it from the page, or Demi's transition of a device does
+    /// The user stops it from the page, or Jush's transition of a device does
     /// as the user's Stop would: its parent is told once, as of any end.
     User,
 }
@@ -441,7 +441,7 @@ impl<H: DeviceResolver> Tree<H> {
         self.children.borrow().len() + self.admitted.get()
     }
 
-    /// Starts a child of `caller` for `demi agent spawn` or `resume`.
+    /// Starts a child of `caller` for `jush agent spawn` or `resume`.
     ///
     /// It creates or reopens the child in a task of the tree, so the start runs
     /// to its end even when the call is cancelled. Starts of one owner take
@@ -644,7 +644,7 @@ impl<H: DeviceResolver> Tree<H> {
             .map_err(|error| error.to_string())?;
         let Some(record) = stored.filter(|record| record.parent.as_ref() == Some(owner.id()))
         else {
-            return Err("no such subagent of yours (see `demi agent list`)".to_owned());
+            return Err("no such subagent of yours (see `jush agent list`)".to_owned());
         };
         let number = record.number;
         if self.is_live(&id) {
@@ -654,7 +654,7 @@ impl<H: DeviceResolver> Tree<H> {
         }
         if record.closed.is_none() {
             return Err(format!(
-                "no archived subagent {number} (see `demi agent list`)"
+                "no archived subagent {number} (see `jush agent list`)"
             ));
         }
         if !record.delivered {
@@ -1643,7 +1643,7 @@ impl<H: DeviceResolver> Tree<H> {
             .ok_or("this session is not in the agent directory")?;
         let no_live = || {
             format!(
-                "no live agent \"{target}\" (see `demi agent list`; an archived child is revived only by its parent via resume)"
+                "no live agent \"{target}\" (see `jush agent list`; an archived child is revived only by its parent via resume)"
             )
         };
         let recipient_id = if target == "parent" {
@@ -2126,7 +2126,7 @@ fn bounded(text: &str) -> &str {
 /// The child's preamble, after the one it inherits (`crates/agent-server/src/node/mod.rs`).
 fn subagent_preamble(child: u64, parent: u64, can_spawn: bool) -> String {
     let spawning = if can_spawn {
-        "`demi agent spawn` spawns your own children."
+        "`jush agent spawn` spawns your own children."
     } else {
         "This session may not spawn subagents."
     };
@@ -2244,7 +2244,7 @@ fn tool_title(call: &ToolCallBlock) -> String {
     }
     serde_json::from_str::<Titled>(&call.input)
         .ok()
-        .map(|titled| demi_shared_types::trim(&titled.description).to_owned())
+        .map(|titled| jush_shared_types::trim(&titled.description).to_owned())
         .filter(|title| !title.is_empty())
         .unwrap_or_else(|| call.tool_name.clone())
 }
@@ -2260,7 +2260,7 @@ fn at(millisecond: i64) -> Timestamp {
     Timestamp::from_millisecond(millisecond).unwrap_or(Timestamp::UNIX_EPOCH)
 }
 
-/// One node of `demi agent list`.
+/// One node of `jush agent list`.
 struct ListNode {
     id: NodeId,
     number: u64,
@@ -2289,12 +2289,12 @@ enum EntryKind {
     Archived,
 }
 
-/// `demi agent list`'s tree.
+/// `jush agent list`'s tree.
 pub(crate) struct Listing {
     root: ListNode,
 }
 
-/// One agent of `demi agent list --json`: the table's row and more.
+/// One agent of `jush agent list --json`: the table's row and more.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct TreeEntry {
@@ -2362,7 +2362,7 @@ impl Listing {
     }
 }
 
-/// `demi agent list`'s table of `entries`.
+/// `jush agent list`'s table of `entries`.
 pub(crate) fn list_text(entries: &[TreeEntry]) -> String {
     let mut table = Table::new([
         "id",
@@ -2389,7 +2389,7 @@ pub(crate) fn list_text(entries: &[TreeEntry]) -> String {
     table.render()
 }
 
-/// `demi agent show --json`'s agent: its instants, and its spans in
+/// `jush agent show --json`'s agent: its instants, and its spans in
 /// milliseconds up to the query.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -2417,7 +2417,7 @@ pub(crate) struct AgentSnapshot {
     device: Option<String>,
 }
 
-/// `demi agent show --json`'s agent: a live child's snapshot, or what an
+/// `jush agent show --json`'s agent: a live child's snapshot, or what an
 /// archived child closed with; an archived child's status is how it closed.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(untagged)]
@@ -2426,7 +2426,7 @@ pub(crate) enum ShownAgent {
     Archived(ArchivedSnapshot),
 }
 
-/// An archived child as `demi agent show --json` gives it: how and when it
+/// An archived child as `jush agent show --json` gives it: how and when it
 /// closed, and its failure with the bound of a completion's.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -2539,17 +2539,17 @@ fn snapshot<H: DeviceResolver>(
 /// reads as its end: a position is a database integer.
 const PATH_END: usize = 1 << 62;
 
-/// The last line of `demi agent show`'s text: the history read of the
+/// The last line of `jush agent show`'s text: the history read of the
 /// agent `number`'s latest blocks, from its last text on, or from its first
 /// block when it wrote none.
 fn more(number: u64, last_text: Option<usize>) -> String {
     format!(
-        "demi conversation history read {}.. --agent {number}",
+        "jush conversation history read {}.. --agent {number}",
         last_text.unwrap_or(0)
     )
 }
 
-/// `demi agent show`'s text of a live child.
+/// `jush agent show`'s text of a live child.
 fn show_text(snapshot: &AgentSnapshot, more: &str) -> String {
     let mut fields = Fields::new();
     fields
@@ -2581,7 +2581,7 @@ fn show_text(snapshot: &AgentSnapshot, more: &str) -> String {
     fields.render()
 }
 
-/// `demi agent show`'s text of an archived child.
+/// `jush agent show`'s text of an archived child.
 fn archived_text(archived: &ArchivedSnapshot, more: &str) -> String {
     let mut fields = Fields::new();
     fields

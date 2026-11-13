@@ -10,7 +10,7 @@
 //!
 //! The prompt is rendered once, when the node is assembled, and holds no time,
 //! id, device or state, so the prefix of every request changes only when the
-//! node's command set changes, with a Demi release, or on a model switch.
+//! node's command set changes, with a Jush release, or on a model switch.
 //!
 //! - What changes, or differs by device, user or project, reaches the model as a
 //!   `context` block appended to the transcript, never as a change to a layer.
@@ -24,10 +24,10 @@
 //!
 //! Writing the layers:
 //!
-//! - The identity says what Demi is, not one job it does. Guidance that holds
+//! - The identity says what Jush is, not one job it does. Guidance that holds
 //!   only for software is written as a working habit that applies to any work.
 //! - A profile's instructions never replace the identity, so a profile's node
-//!   is Demi with the same harness, tools, capabilities and model, told what
+//!   is Jush with the same harness, tools, capabilities and model, told what
 //!   its kind of work is.
 //! - A guideline is only what the model cannot tell from its tools and what
 //!   the product's display needs; anything about one command is that
@@ -36,8 +36,8 @@
 //!   written by hand: a name that does not follow the configuration makes the
 //!   model claim to be another.
 
-use demi_agent_session::{PromptLayer, SystemPrompt};
-use demi_device_interface::CapabilityIndex;
+use jush_agent_session::{PromptLayer, SystemPrompt};
+use jush_device_interface::CapabilityIndex;
 
 /// What the model identity line names of the model that serves a node,
 /// from its model selection.

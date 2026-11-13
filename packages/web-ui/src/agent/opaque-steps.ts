@@ -1,4 +1,4 @@
-import type { SearchAction } from '@demicodes/protocol'
+import type { SearchAction } from '@jush-ai/protocol'
 import { t } from './locales/text'
 
 /**

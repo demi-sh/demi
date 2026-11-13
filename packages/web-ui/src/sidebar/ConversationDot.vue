@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { t } from './locales/text'
 import { computed } from 'vue'
-import StatusDot from '@demicodes/web-ui/ui/StatusDot.vue'
-import CornerDot from '@demicodes/web-ui/ui/CornerDot.vue'
+import StatusDot from '@jush-ai/web-ui/ui/StatusDot.vue'
+import CornerDot from '@jush-ai/web-ui/ui/CornerDot.vue'
 import { conversationDotTone } from './conversation-dot'
 import type { SidebarConversation } from './types'
 

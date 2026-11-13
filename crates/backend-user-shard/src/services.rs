@@ -7,45 +7,45 @@ use std::path::Path;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_backend_accounts::email_change::{AccountMail, CodeKey, EmailChanges};
-use demi_backend_accounts::login_limiter::LoginLimiter;
-use demi_backend_accounts::passwords::{HashError, PasswordHasher};
-use demi_backend_accounts::push::{PublicPushTransport, PushKey, PushTransport, Pusher};
-use demi_backend_accounts::sessions::WebSessions;
-use demi_backend_blobs::blobs::BlobStores;
-use demi_backend_cloud::CloudServices;
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::conversations::{self, ConversationStores};
-use demi_backend_database::search::SearchIndexes;
-use demi_backend_database::server_log::ServerLog;
-use demi_shared_types::BlobRef;
-use demi_web_api_protocol::ids::ConversationId;
-use demi_backend_device_access::stream::UserStreams;
-use demi_backend_page_sync::SyncRegistry;
-use demi_plugin_host::{Registry, RegistryError};
-use demi_provider_registry::registry::ProviderRegistry;
-use demi_provider_registry::catalog_cache::ModelCatalogCache;
-use demi_provider_claude_code::releases::ClaudeReleases;
-use demi_provider_registry::families::FamilyRegistry;
-use demi_provider_registry::vendors::VendorCatalog;
-use demi_backend_providers::vault::entries::{VaultReseal, SeededAccount, Vault};
-use demi_backend_providers::vault::logins::{LoginFlows, LoginTiming};
-use demi_backend_providers::vault::operations::ProviderOperations;
-use demi_provider_registry::quotas::AccountQuotas;
-use demi_provider_registry::store::RegistryStore;
-use demi_backend_providers::vault::seal::VaultKey;
-use demi_backend_runners::claims::PendingClaims;
-use demi_backend_runners::devices::Returning;
-use demi_backend_runners::native::NativeCatalog;
-use demi_backend_runners::install::RunnerReleases;
-use demi_backend_runners::prefetch::Prefetches;
-use demi_backend_runners::public_url::PublicUrl;
-use demi_runner_protocol::direct::StunUrl;
-use demi_plugin_interface::PluginFactory;
-use demi_provider_common::media_catalog::MediaCatalog;
-use demi_provider_common::models_dev::ModelsDevClient;
-use demi_shared_types::Clock;
+use jush_backend_accounts::email_change::{AccountMail, CodeKey, EmailChanges};
+use jush_backend_accounts::login_limiter::LoginLimiter;
+use jush_backend_accounts::passwords::{HashError, PasswordHasher};
+use jush_backend_accounts::push::{PublicPushTransport, PushKey, PushTransport, Pusher};
+use jush_backend_accounts::sessions::WebSessions;
+use jush_backend_blobs::blobs::BlobStores;
+use jush_backend_cloud::CloudServices;
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::conversations::{self, ConversationStores};
+use jush_backend_database::search::SearchIndexes;
+use jush_backend_database::server_log::ServerLog;
+use jush_shared_types::BlobRef;
+use jush_web_api_protocol::ids::ConversationId;
+use jush_backend_device_access::stream::UserStreams;
+use jush_backend_page_sync::SyncRegistry;
+use jush_plugin_host::{Registry, RegistryError};
+use jush_provider_registry::registry::ProviderRegistry;
+use jush_provider_registry::catalog_cache::ModelCatalogCache;
+use jush_provider_claude_code::releases::ClaudeReleases;
+use jush_provider_registry::families::FamilyRegistry;
+use jush_provider_registry::vendors::VendorCatalog;
+use jush_backend_providers::vault::entries::{VaultReseal, SeededAccount, Vault};
+use jush_backend_providers::vault::logins::{LoginFlows, LoginTiming};
+use jush_backend_providers::vault::operations::ProviderOperations;
+use jush_provider_registry::quotas::AccountQuotas;
+use jush_provider_registry::store::RegistryStore;
+use jush_backend_providers::vault::seal::VaultKey;
+use jush_backend_runners::claims::PendingClaims;
+use jush_backend_runners::devices::Returning;
+use jush_backend_runners::native::NativeCatalog;
+use jush_backend_runners::install::RunnerReleases;
+use jush_backend_runners::prefetch::Prefetches;
+use jush_backend_runners::public_url::PublicUrl;
+use jush_runner_protocol::direct::StunUrl;
+use jush_plugin_interface::PluginFactory;
+use jush_provider_common::media_catalog::MediaCatalog;
+use jush_provider_common::models_dev::ModelsDevClient;
+use jush_shared_types::Clock;
 use object_store::ObjectStore;
 
 use crate::conversation::claude_cli::{CliInstalls, MachineSlot};
@@ -155,7 +155,7 @@ pub struct ProviderSetup {
     /// copy (`crates/provider-common/src/media_catalog.rs`).
     pub media_catalog_url: Option<url::Url>,
     /// The media catalog the release carries, or a test's.
-    pub media_catalog: Arc<demi_provider_common::media_catalog::Catalog>,
+    pub media_catalog: Arc<jush_provider_common::media_catalog::Catalog>,
     /// The Claude Code distribution.
     pub claude_releases: url::Url,
     /// Where the Claude Code machine is, which the master's shard puts there
@@ -206,9 +206,9 @@ pub struct ServiceSettings {
     pub upgrade_request: Option<std::path::PathBuf>,
     /// The channel Settings › Updates starts on until an administrator
     /// chooses another.
-    pub upgrade_channel: demi_web_api_protocol::server_upgrade::UpgradeChannel,
+    pub upgrade_channel: jush_web_api_protocol::server_upgrade::UpgradeChannel,
     /// The backend's update state, which says when it stops for an update.
-    pub update: Arc<demi_backend_database::update::Update>,
+    pub update: Arc<jush_backend_database::update::Update>,
 }
 
 /// Why the services did not start.
@@ -276,8 +276,8 @@ pub enum CloseError {
 impl Storage {
     /// The bytes of the databases in `data_dir` that the next start
     /// migrates or converts; none when all have the current form.
-    pub fn due(data_dir: &Path) -> Result<Option<demi_backend_database::update::Due>, StorageError> {
-        demi_backend_database::update::due(&data_dir.join(CONTROL_DATABASE), &data_dir.join(CONVERSATION_DATABASES))
+    pub fn due(data_dir: &Path) -> Result<Option<jush_backend_database::update::Due>, StorageError> {
+        jush_backend_database::update::due(&data_dir.join(CONTROL_DATABASE), &data_dir.join(CONVERSATION_DATABASES))
     }
 
     /// The databases in `data_dir`, beside the object store `objects`; an
@@ -410,7 +410,7 @@ impl Services {
             providers.clock.clone(),
             &providers.families.effort_vendors(),
         );
-        let shutdowns = demi_provider_registry::shutdowns::ModelShutdowns::new(
+        let shutdowns = jush_provider_registry::shutdowns::ModelShutdowns::new(
             http.clone(),
             providers.model_shutdowns_url,
             providers.clock.clone(),
@@ -425,7 +425,7 @@ impl Services {
         let announced = sync.clone();
         edge.spawn(async move {
             while catalogs.changed().await.is_ok() {
-                announced.mark_everyone(&demi_backend_page_sync::Part::Providers);
+                announced.mark_everyone(&jush_backend_page_sync::Part::Providers);
             }
         });
         let claude_releases =
@@ -449,7 +449,7 @@ impl Services {
         let announced = sync.clone();
         tokio::spawn(async move {
             while models.changed().await.is_ok() {
-                announced.mark_everyone(&demi_backend_page_sync::Part::Models);
+                announced.mark_everyone(&jush_backend_page_sync::Part::Models);
             }
         });
         let operations = Arc::new(ProviderOperations::default());
@@ -523,14 +523,14 @@ impl Services {
     /// enforces it. The master's choice changes them, and so does what the
     /// machine manager enforces with each isolation.
     pub fn isolation_changed(&self) {
-        self.sync.mark_everyone(&demi_backend_page_sync::Part::CloudIsolation);
-        self.sync.mark_everyone(&demi_backend_page_sync::Part::Users);
+        self.sync.mark_everyone(&jush_backend_page_sync::Part::CloudIsolation);
+        self.sync.mark_everyone(&jush_backend_page_sync::Part::Users);
     }
 
     /// Tells Settings › Cloud that a runtime's download moved on, which
     /// changes nothing Settings › Users shows.
     pub fn download_changed(&self) {
-        self.sync.mark_everyone(&demi_backend_page_sync::Part::CloudIsolation);
+        self.sync.mark_everyone(&jush_backend_page_sync::Part::CloudIsolation);
     }
 
     /// Cancels the logins, drains the catalog refreshes and quota

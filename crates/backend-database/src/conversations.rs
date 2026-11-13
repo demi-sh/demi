@@ -21,9 +21,9 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use bytes::Bytes;
-use demi_shared_gates::{KeyedPermit, KeyedSerialGate};
-use demi_shared_types::BlobRef;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_shared_gates::{KeyedPermit, KeyedSerialGate};
+use jush_shared_types::BlobRef;
+use jush_web_api_protocol::ids::ConversationId;
 use hashlink::LruCache;
 use rusqlite::{Connection, OpenFlags};
 

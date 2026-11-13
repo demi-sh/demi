@@ -10,12 +10,12 @@ a Host receives a skill's directory when a job runs there.
 ## Problem
 
 Alex's agent runs `git log` on his build machine. The machine's runner
-reconnected a minute earlier, so Demi first checks the skills' directories
+reconnected a minute earlier, so Jush first checks the skills' directories
 there, finds all 111 of Work's missing, and writes them at once. The machine
 finishes one or two a second; the writes still waiting after 60 seconds fail,
 the rest are cancelled, and `git log` never starts: it ends with exit status
 127 and *the device did not finish writing
-~/.demi/plugins/skills/api-case-generation-… within 60 seconds*. The agent
+~/.jush/plugins/skills/api-case-generation-… within 60 seconds*. The agent
 tries again, and each try writes the directories still missing and stops at
 the same wall. For ten minutes no command runs, though nothing is wrong with
 them; the skills, which `git log` never needed, decided it.

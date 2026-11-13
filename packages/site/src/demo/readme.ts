@@ -2,14 +2,14 @@
 // first message to its second answer, on the computer and the phone at once.
 // `readme-picture.ts` records it frame by frame on one stopped clock.
 import { reactive } from 'vue'
-import type { TerminalRecord } from '@demicodes/web-ui/agent/terminals'
-import type { ReplyAsking, ShownSideQuestion } from '@demicodes/web-ui/agent/comments/asks'
-import { anchorOfText } from '@demicodes/web-ui/agent/comments/anchors'
-import { heldTranscript } from '@demicodes/web-ui/transport/protocol'
-import type { WorkspaceView } from '@demicodes/web-ui/workspaces/workspaces'
-import { askAnswer, askMessage, askStep } from '@demicodes/web-gallery/fixtures/asks'
-import type { GalleryScreen } from '@demicodes/web-gallery/fixtures/live-mobile'
-import { gallerySubagents } from '@demicodes/web-gallery/fixtures/subagents'
+import type { TerminalRecord } from '@jush-ai/web-ui/agent/terminals'
+import type { ReplyAsking, ShownSideQuestion } from '@jush-ai/web-ui/agent/comments/asks'
+import { anchorOfText } from '@jush-ai/web-ui/agent/comments/anchors'
+import { heldTranscript } from '@jush-ai/web-ui/transport/protocol'
+import type { WorkspaceView } from '@jush-ai/web-ui/workspaces/workspaces'
+import { askAnswer, askMessage, askStep } from '@jush-ai/web-gallery/fixtures/asks'
+import type { GalleryScreen } from '@jush-ai/web-gallery/fixtures/live-mobile'
+import { gallerySubagents } from '@jush-ai/web-gallery/fixtures/subagents'
 import { press, shown, shownText } from './dom'
 import harborInner from './assets/harbor-inner.webp'
 import harborOuter from './assets/harbor-outer.webp'
@@ -31,7 +31,7 @@ const DUO_BODY_PATH = '/Applications/Xcode.app/iPhone Duo.usdz'
 
 /**
  * Each display's picture, in its own pixels: Harbor, a small SwiftUI app,
- * running in the iPhone Duo simulator, captured with `demi mobile screenshot`.
+ * running in the iPhone Duo simulator, captured with `jush mobile screenshot`.
  */
 const SCREENS = { outer: picture(harborOuter), inner: picture(harborInner) }
 
@@ -62,7 +62,7 @@ const HARBOR = '/Users/alex/Projects/harbor'
 const SIMULATOR_LOG: TerminalRecord = {
   id: 'svc-log',
   title: 'Stream Harbor’s log from iPhone Duo',
-  script: 'demi mobile log m1 --app app.harbor.ios --follow',
+  script: 'jush mobile log m1 --app app.harbor.ios --follow',
   phase: 'running',
   startedAt: new Date(Date.now() - 30 * 60_000).toISOString(),
   output: 'OrderList: 2 columns, width 760\n',
@@ -83,24 +83,24 @@ const ASK = { quote: 'wider than 600 points', question: 'Why 600?', title: 'Why 
  * once, as the picture is watched in a few seconds.
  */
 const FIRST_TURN: readonly (readonly [ShellStep, number])[] = [
-  [{ description: 'Open iPhone Duo', script: 'demi mobile open "iPhone Duo"', ms: 2200 }, 250],
-  [{ description: 'Build and install Harbor', script: 'xcodebuild -scheme Harbor -destination "name=iPhone Duo" build && demi mobile install m1 build/Harbor.app', output: '** BUILD SUCCEEDED **\n', ms: 88_000 }, 500],
-  [{ description: 'Unfold it and look at the orders', script: 'demi mobile fold m1 open && demi mobile screenshot m1 | demi file view', ms: 1800 }, 700],
+  [{ description: 'Open iPhone Duo', script: 'jush mobile open "iPhone Duo"', ms: 2200 }, 250],
+  [{ description: 'Build and install Harbor', script: 'xcodebuild -scheme Harbor -destination "name=iPhone Duo" build && jush mobile install m1 build/Harbor.app', output: '** BUILD SUCCEEDED **\n', ms: 88_000 }, 500],
+  [{ description: 'Unfold it and look at the orders', script: 'jush mobile fold m1 open && jush mobile screenshot m1 | jush file view', ms: 1800 }, 700],
   [{ description: 'Find the order list’s layout', script: 'rg -n "LazyVStack" Harbor/Orders', output: 'Harbor/Orders/OrderList.swift:18:        LazyVStack(spacing: 12) {\n', ms: 400 }, 200],
   [{
     description: 'Lay the orders out in a grid when wide',
-    script: 'demi file edit Harbor/Orders/OrderList.swift Harbor/Orders/OrderCard.swift',
+    script: 'jush file edit Harbor/Orders/OrderList.swift Harbor/Orders/OrderCard.swift',
     files: [{ path: 'Harbor/Orders/OrderList.swift', added: 14, removed: 5 }, { path: 'Harbor/Orders/OrderCard.swift', added: 3, removed: 1 }],
     ms: 1200,
   }, 300],
-  [{ description: 'Keep the reading place through a fold', script: 'demi file edit Harbor/Orders/OrderList.swift', files: [{ path: 'Harbor/Orders/OrderList.swift', added: 9, removed: 0 }], ms: 900 }, 250],
+  [{ description: 'Keep the reading place through a fold', script: 'jush file edit Harbor/Orders/OrderList.swift', files: [{ path: 'Harbor/Orders/OrderList.swift', added: 9, removed: 0 }], ms: 900 }, 250],
   [{ description: 'Run the UI tests on both displays', script: 'xcodebuild test -scheme HarborUITests -destination "name=iPhone Duo"', output: 'Executed 42 tests, with 0 failures\n', ms: 214_000 }, 500],
-  [{ description: 'Ask a reviewer', script: 'demi agent spawn --profile reviewer --description "Review the order grid" < brief.md', output: 'No issues found.\n', ms: 96_000 }, 400],
+  [{ description: 'Ask a reviewer', script: 'jush agent spawn --profile reviewer --description "Review the order grid" < brief.md', output: 'No issues found.\n', ms: 96_000 }, 400],
 ]
 
 const SECOND_TURN: readonly (readonly [ShellStep, number])[] = [
-  [{ description: 'Let order cards grow with their notes', script: 'demi file edit Harbor/Orders/OrderCard.swift', files: [{ path: 'Harbor/Orders/OrderCard.swift', added: 6, removed: 2 }], ms: 900 }, 400],
-  [{ description: 'Check a long note on the open display', script: 'demi mobile tap m1 text="Towels, set of 4" && demi mobile screenshot m1 | demi file view', ms: 2600 }, 1300],
+  [{ description: 'Let order cards grow with their notes', script: 'jush file edit Harbor/Orders/OrderCard.swift', files: [{ path: 'Harbor/Orders/OrderCard.swift', added: 6, removed: 2 }], ms: 900 }, 400],
+  [{ description: 'Check a long note on the open display', script: 'jush mobile tap m1 text="Towels, set of 4" && jush mobile screenshot m1 | jush file view', ms: 2600 }, 1300],
 ]
 
 export const README_SCENES: Record<string, ReadmeScene> = {
@@ -120,15 +120,15 @@ export const README_SCENES: Record<string, ReadmeScene> = {
     services: [SIMULATOR_LOG],
     workflow: {
       choice: { type: 'workflow', id: 'review' },
-      list: { state: 'read', workflows: [{ id: 'review', name: 'Review before merge', path: `${HARBOR}/.demi/workflows/review.yaml`, unavailable: null, profiles: ['reviewer'], userProfiles: true }] },
+      list: { state: 'read', workflows: [{ id: 'review', name: 'Review before merge', path: `${HARBOR}/.jush/workflows/review.yaml`, unavailable: null, profiles: ['reviewer'], userProfiles: true }] },
     },
     saved: ['Run the UI tests on the Android foldable too', 'Write the release notes for 2.3'],
     screen: HARBOR_SCREEN,
     async play({ conversation: c, work, devices, commenting }) {
       devices.attached = [WINDOWS_PC_DEVICE]
       const desktop = document.documentElement.clientWidth > 600
-      const cues: ReadmeCues = (window.demiReadme = { marks: {} })
-      // `demi mobile open` shows the device in its window, as the product's
+      const cues: ReadmeCues = (window.jushReadme = { marks: {} })
+      // `jush mobile open` shows the device in its window, as the product's
       // does; the window stands open from the start, so the conversation never
       // narrows on camera.
       if (desktop) {
@@ -140,7 +140,7 @@ export const README_SCENES: Record<string, ReadmeScene> = {
       await new Promise<void>((resolve) => (cues.cue = resolve))
       c.asked('The order list feels cramped on iPhone Duo when it’s unfolded. Use two columns on the open display, check it in the simulator, and get it reviewed.', 0)
       for (const [step, playMs] of FIRST_TURN) {
-        if (step.script.startsWith('demi mobile fold') && desktop)
+        if (step.script.startsWith('jush mobile fold') && desktop)
           void work.mobile.agentFolds()
         await c.run(step, playMs)
       }
@@ -165,7 +165,7 @@ export const README_SCENES: Record<string, ReadmeScene> = {
         commenting.remove(comment.id)
       c.commented('Otherwise it looks good.', [{ ...comment, content: [{ type: 'text', text: COMMENT.text }] }])
       for (const [step, playMs] of SECOND_TURN) {
-        if (step.script.startsWith('demi mobile tap'))
+        if (step.script.startsWith('jush mobile tap'))
           cues.marks.check = performance.now()
         await c.run(step, playMs)
       }
@@ -183,7 +183,7 @@ function sideQuestion(blockId: string, words: { start: number; end: number }, sh
   const id = 'ask-1'
   const blocks = [
     askMessage(id, 0, ASK.quote, [{ type: 'text', text: ASK.question }]),
-    askStep(id, 0, 0, { description: 'Read both displays’ sizes', script: 'demi mobile list | grep Duo', output: 'iPhone Duo · cover 466×678 pt · open 951×669 pt\n' }),
+    askStep(id, 0, 0, { description: 'Read both displays’ sizes', script: 'jush mobile list | grep Duo', output: 'iPhone Duo · cover 466×678 pt · open 951×669 pt\n' }),
     askAnswer(id, 0, ASK.answer),
   ].slice(0, shown)
   return {

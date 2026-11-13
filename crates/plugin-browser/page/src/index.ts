@@ -2,7 +2,7 @@
 // `browser` tab kind with the live view, its store of each
 // conversation's browser, and the types of its state, parameters, results and
 // stream, generated from the plugin's manifest.
-import { definePage } from '@demicodes/plugin-sdk'
+import { definePage } from '@jush-ai/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import { browserTabKind } from './live/kind'
 import { browserStore } from './live/store'

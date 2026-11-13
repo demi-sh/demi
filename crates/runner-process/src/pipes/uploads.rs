@@ -23,7 +23,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_runner_protocol::wire;
+use jush_runner_protocol::wire;
 use futures_util::{Stream, StreamExt};
 use tokio::{sync::oneshot, time::Instant};
 use tokio_util::sync::CancellationToken;
@@ -337,7 +337,7 @@ impl PipeClient {
         let mut offset = 0u64;
         let mut resumed = 0u32;
         let mut lost_since: Option<Instant> = None;
-        let mut backoff = demi_command_sdk::descriptors::Backoff::default();
+        let mut backoff = jush_command_sdk::descriptors::Backoff::default();
         loop {
             let end = (offset + wire::UPLOAD_CHUNK_BYTES).min(total);
             let complete = end == total;
@@ -387,7 +387,7 @@ impl PipeClient {
                     }
                     // Out of open files, the connection waits for one
                     // (`crates/command-sdk/src/descriptors.rs`).
-                    if demi_command_sdk::descriptors::exhausted(&error) {
+                    if jush_command_sdk::descriptors::exhausted(&error) {
                         backoff.wait().await;
                         continue;
                     }

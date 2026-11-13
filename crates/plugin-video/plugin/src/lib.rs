@@ -1,4 +1,4 @@
-//! The `video` plugin: the `demi video` group.
+//! The `video` plugin: the `jush video` group.
 //!
 //! The group asks the port's Providers service for one video's job, says on
 //! stderr how the job moves, checks the MP4 that comes back, writes it to
@@ -9,7 +9,7 @@ mod video;
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     CommandPlugin, Manifest, Plugin, PluginError, PluginFactory, PluginId, PluginPort, Reply, Request,
 };
 
@@ -23,7 +23,7 @@ impl Video {
         let mut manifest = Manifest::new(
             PluginId::try_from("video").expect("a valid plugin id"),
             "Video Generation",
-            "Makes videos through your Grok subscription, an xAI, Google, MiniMax, BytePlus ModelArk or Volcengine Ark key or a compatible API with demi video.",
+            "Makes videos through your Grok subscription, an xAI, Google, MiniMax, BytePlus ModelArk or Volcengine Ark key or a compatible API with jush video.",
         );
         manifest.commands = commands::commands().manifest_commands();
         Self { manifest }

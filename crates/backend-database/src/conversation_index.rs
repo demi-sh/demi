@@ -16,9 +16,9 @@
 //! in and compared without case, so an id another conversation holds in any
 //! spelling is taken.
 
-use demi_shared_types::{ModelSelection, Timestamp, WorkflowChoice};
-use demi_web_api_protocol::conversations::{ConversationTarget, ModelChoice};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId, UserId, WorkspaceId};
+use jush_shared_types::{ModelSelection, Timestamp, WorkflowChoice};
+use jush_web_api_protocol::conversations::{ConversationTarget, ModelChoice};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId, UserId, WorkspaceId};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 
@@ -1029,7 +1029,7 @@ pub struct AttachedDeviceRecord {
     pub device: DeviceId,
     /// The directory its commands start in, fixed when it was attached: the
     /// conversation's directory there for a departed primary target; none
-    /// for a device `demi device attach` attached, whose commands start in its
+    /// for a device `jush device attach` attached, whose commands start in its
     /// home.
     #[serde(deserialize_with = "Option::deserialize")]
     #[garde(skip)]

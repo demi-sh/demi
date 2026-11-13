@@ -6,8 +6,8 @@
 //! backend's upload route and its content resolution both use these rules; the
 //! agent never reads a file's bytes itself.
 
-use demi_command_protocol::sniff_media_type;
-use demi_shared_types::{
+use jush_command_protocol::sniff_media_type;
+use jush_shared_types::{
     Attachment, B64Bytes, BlobRef, DocumentSource, MediaSource, ModelMediaKind, UserContentBlock,
     char_offset, model_media_type_for,
 };

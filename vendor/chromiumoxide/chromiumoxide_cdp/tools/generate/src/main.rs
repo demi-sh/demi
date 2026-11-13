@@ -2,7 +2,7 @@
 //!
 //! The validation catalog (`pdl/protocol.json`) holds every domain, since a
 //! raw CDP command may name any. The bindings (`src/cdp.rs`) hold only the
-//! domains that Demi and chromiumoxide use and the domains their types refer
+//! domains that Jush and chromiumoxide use and the domains their types refer
 //! to: the rest are about a third of the generated code and nothing reads
 //! them, and an event of a domain left out decodes as `CdpEvent::Other`.
 //!
@@ -18,7 +18,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// The domains whose types Demi (`crates/`) and chromiumoxide name.
+/// The domains whose types Jush (`crates/`) and chromiumoxide name.
 const USED: &[&str] = &[
     "Accessibility",
     "Animation",
@@ -135,7 +135,7 @@ fn send_empty(bindings: &str) -> Result<String, Box<dyn std::error::Error>> {
                 .ok_or_else(|| format!("{structure}'s {field} is not skipped when empty"))?;
         bindings.replace_range(
             at..at + attribute.len(),
-            "// Demi: a required parameter, sent empty too.",
+            "// Jush: a required parameter, sent empty too.",
         );
     }
     Ok(bindings)
@@ -320,7 +320,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     mark_nullable(&mut value)?;
     fs::write(root.join("pdl/protocol.json"), serde_json::to_vec(&value)?)?;
     let kept = kept(value["domains"].as_array().ok_or("PDL domains are not an array")?)?;
-    let directory = std::env::temp_dir().join(format!("demi-cdp-{}", std::process::id()));
+    let directory = std::env::temp_dir().join(format!("jush-cdp-{}", std::process::id()));
     let generated = write_kept(&root, &paths, &kept, &directory).and_then(|kept_paths| {
         Generator::default()
             .out_dir(root.join("src"))

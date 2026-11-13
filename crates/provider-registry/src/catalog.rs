@@ -13,7 +13,7 @@
 //! no refresh clears.
 //!
 //! A vendor's list leaves out each model that does not serve a
-//! conversation, as far as Demi can tell:
+//! conversation, as far as Jush can tell:
 //!
 //! - One models.dev marks deprecated or not for chat, or LiteLLM dates as
 //!   shut down (`crate::vendors`).
@@ -31,9 +31,9 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{Provider, is_snapshot};
-use demi_shared_types::{ModelCost, ModelSelection, ModelWire, ProviderModel, ProviderModelList, ServiceTier, Timestamp};
-use demi_web_api_protocol::providers::{CatalogModel, CatalogProvider, ConfiguredModel, ModelKind};
+use jush_provider_common::{Provider, is_snapshot};
+use jush_shared_types::{ModelCost, ModelSelection, ModelWire, ProviderModel, ProviderModelList, ServiceTier, Timestamp};
+use jush_web_api_protocol::providers::{CatalogModel, CatalogProvider, ConfiguredModel, ModelKind};
 use futures_util::future::join_all;
 use sha2::{Digest, Sha256};
 
@@ -130,7 +130,7 @@ impl ProviderRegistry {
             EntryCredential::ApiKey(_) if self.reads_directory(entry) => None,
             EntryCredential::ApiKey(config) => {
                 // The model menu's are the text models; an image model of
-                // the list is `demi image`'s
+                // the list is `jush image`'s
                 // (`crates/backend-user-shard/src/provider_settings.rs`).
                 if let Some(models) = &config.models {
                     let text = models.0.iter().filter(|model| model.kind == ModelKind::Text);

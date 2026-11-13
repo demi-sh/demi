@@ -1,7 +1,7 @@
 import { nextTick } from 'vue'
 import { defineStore } from 'pinia'
-import { coded, errorFields, shownError, type ShownError } from '@demicodes/web-ui/infra/errors'
-import { pageLog } from '@demicodes/web-ui/infra/log'
+import { coded, errorFields, shownError, type ShownError } from '@jush-ai/web-ui/infra/errors'
+import { pageLog } from '@jush-ai/web-ui/infra/log'
 import {
   identitySchema,
   setupStatusSchema,

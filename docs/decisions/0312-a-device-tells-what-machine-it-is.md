@@ -25,20 +25,20 @@ is which.
 
 ## Decision
 
-`demi device list` names each device's system and machine, and how busy it
-is now; `demi device show <device>` tells all of it, as `kubectl get nodes`
+`jush device list` names each device's system and machine, and how busy it
+is now; `jush device show <device>` tells all of it, as `kubectl get nodes`
 and `kubectl describe node` do:
 
 ```text
-$ demi device list
+$ jush device list
 NAME          ID     STATUS   ROLE     SYSTEM                     CPU          MEMORY            DISK              DIRECTORY
-Cloud         3d1f…  online   primary  Ubuntu 26.04 x86_64        4 cores 12%  1.9 of 3.8 GiB    21.0 of 79.0 GiB  /home/demi
+Cloud         3d1f…  online   primary  Ubuntu 26.04 x86_64        4 cores 12%  1.9 of 3.8 GiB    21.0 of 79.0 GiB  /home/jush
 alex-desktop  5f0c…  online   -        Windows 11 Pro (build      32 cores 7%  21.3 of 63.8 GiB  1.2 of 1.8 TiB    -
                                        26100) x86_64
 alex-desktop  c81b…  online   -        Ubuntu 24.04 (WSL) x86_64  32 cores 3%  4.1 of 31.9 GiB   80.0 of 1007 GiB  -
 alex-mac      77e2…  offline  -        macOS 26.5 aarch64         18 cores     48.0 GiB          1.8 TiB           -
 
-$ demi device show alex-desktop
+$ jush device show alex-desktop
 Name: alex-desktop
 ID: 5f0c9e1a-2b7d-4c3e-9a61-0d8e4b2f7a10
 Status: online
@@ -210,18 +210,18 @@ listed as `GPU shared by Windows`, and the Windows device names them.
   kernel; `kubectl describe node` tells the capacity, which the kubelet
   reports when it registers, and its status every 10 seconds by default;
   usage is `kubectl top`, from a metrics server that samples every 15
-  seconds by default. Demi's tiers follow the same split: what the machine
+  seconds by default. Jush's tiers follow the same split: what the machine
   is once, how busy it is often.
 - Coder's [agent metadata](https://coder.com/docs/templates/agent-metadata)
   has each workspace agent run a script per value at that value's own
-  interval, and warns that every report is a database write. Demi's
+  interval, and warns that every report is a database write. Jush's
   intervals are fixed, and its usage is never written.
 - [`coder stat`](https://coder.com/docs/cli/stat) shows the host's CPU,
   memory and home disk as a table or JSON, in the "used of total" form this
   list takes.
 - [fastfetch](https://github.com/fastfetch-cli/fastfetch/wiki/Modules-GPU)
   names Linux GPUs from `/sys` and `pci.ids`, and loses only the model's name
-  when `pci.ids` is missing, as Demi does.
+  when `pci.ids` is missing, as Jush does.
 - `tailscale status` shows each machine's system beside its name.
 
 ## Alternatives

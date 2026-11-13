@@ -16,11 +16,11 @@
       },
     },
     "crates/plugin-browser/page": {
-      "name": "@demicodes/plugin-browser",
+      "name": "@jush-ai/plugin-browser",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/plugin-sdk": "workspace:^",
-        "@demicodes/utils": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
+        "@jush-ai/utils": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "@vueuse/core": "^14.3.0",
         "vue": "^3.5.38",
@@ -33,10 +33,10 @@
       },
     },
     "crates/plugin-changes/page": {
-      "name": "@demicodes/plugin-changes",
+      "name": "@jush-ai/plugin-changes",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/plugin-sdk": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "@vueuse/core": "^14.3.0",
         "vue": "^3.5.38",
@@ -48,10 +48,10 @@
       },
     },
     "crates/plugin-file-browser/page": {
-      "name": "@demicodes/plugin-file-browser",
+      "name": "@jush-ai/plugin-file-browser",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/plugin-sdk": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "vue": "^3.5.38",
         "zod": "^4.0.0",
@@ -62,11 +62,11 @@
       },
     },
     "crates/plugin-mobile/page": {
-      "name": "@demicodes/plugin-mobile",
+      "name": "@jush-ai/plugin-mobile",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/plugin-sdk": "workspace:^",
-        "@demicodes/utils": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
+        "@jush-ai/utils": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "three": "^0.186.1",
         "vue": "^3.5.38",
@@ -80,10 +80,10 @@
       },
     },
     "crates/plugin-skills/page": {
-      "name": "@demicodes/plugin-skills",
+      "name": "@jush-ai/plugin-skills",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/plugin-sdk": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "vue": "^3.5.38",
         "zod": "^4.0.0",
@@ -94,10 +94,10 @@
       },
     },
     "crates/plugin-web/page": {
-      "name": "@demicodes/plugin-web",
+      "name": "@jush-ai/plugin-web",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/plugin-sdk": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "vue": "^3.5.38",
         "zod": "^4.0.0",
@@ -108,10 +108,10 @@
       },
     },
     "crates/plugin-widget/page": {
-      "name": "@demicodes/plugin-widget",
+      "name": "@jush-ai/plugin-widget",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/plugin-sdk": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "vue": "^3.5.38",
         "zod": "^4.0.0",
@@ -122,29 +122,29 @@
       },
     },
     "packages/browse": {
-      "name": "@demicodes/browse",
+      "name": "@jush-ai/browse",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/protocol": "workspace:^",
-        "@demicodes/web": "workspace:^",
-        "@demicodes/web-ui": "workspace:^",
+        "@jush-ai/protocol": "workspace:^",
+        "@jush-ai/web": "workspace:^",
+        "@jush-ai/web-ui": "workspace:^",
         "playwright": "1.63.0",
         "zod": "^4.0.0",
       },
     },
     "packages/conversation-client": {
-      "name": "@demicodes/conversation-client",
+      "name": "@jush-ai/conversation-client",
       "version": "0.24.0",
       "dependencies": {
-        "@demicodes/protocol": "workspace:^",
-        "@demicodes/utils": "workspace:^",
+        "@jush-ai/protocol": "workspace:^",
+        "@jush-ai/utils": "workspace:^",
       },
     },
     "packages/plugin-sdk": {
-      "name": "@demicodes/plugin-sdk",
+      "name": "@jush-ai/plugin-sdk",
       "version": "4.0.0",
       "dependencies": {
-        "@demicodes/web-ui": "workspace:^",
+        "@jush-ai/web-ui": "workspace:^",
         "vue": "^3.5.38",
       },
       "devDependencies": {
@@ -153,22 +153,22 @@
       },
     },
     "packages/protocol": {
-      "name": "@demicodes/protocol",
+      "name": "@jush-ai/protocol",
       "version": "0.24.0",
       "dependencies": {
         "zod": "^4.0.0",
       },
     },
     "packages/site": {
-      "name": "@demicodes/site",
+      "name": "@jush-ai/site",
       "version": "0.0.0",
       "dependencies": {
-        "@demicodes/protocol": "workspace:^",
-        "@demicodes/web-gallery": "workspace:^",
-        "@demicodes/web-ui": "workspace:^",
         "@fontsource-variable/geist-mono": "^5.3.0",
         "@fontsource-variable/inter": "^5.3.0",
         "@fontsource-variable/newsreader": "^5.3.0",
+        "@jush-ai/protocol": "workspace:^",
+        "@jush-ai/web-gallery": "workspace:^",
+        "@jush-ai/web-ui": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "vue": "^3.5.21",
       },
@@ -184,25 +184,25 @@
       },
     },
     "packages/utils": {
-      "name": "@demicodes/utils",
+      "name": "@jush-ai/utils",
       "version": "0.24.0",
     },
     "packages/web": {
-      "name": "@demicodes/web",
+      "name": "@jush-ai/web",
       "version": "0.24.0",
       "dependencies": {
-        "@demicodes/conversation-client": "workspace:^",
-        "@demicodes/plugin-browser": "workspace:^",
-        "@demicodes/plugin-changes": "workspace:^",
-        "@demicodes/plugin-file-browser": "workspace:^",
-        "@demicodes/plugin-mobile": "workspace:^",
-        "@demicodes/plugin-sdk": "workspace:^",
-        "@demicodes/plugin-skills": "workspace:^",
-        "@demicodes/plugin-web": "workspace:^",
-        "@demicodes/plugin-widget": "workspace:^",
-        "@demicodes/protocol": "workspace:^",
-        "@demicodes/utils": "workspace:^",
-        "@demicodes/web-ui": "workspace:^",
+        "@jush-ai/conversation-client": "workspace:^",
+        "@jush-ai/plugin-browser": "workspace:^",
+        "@jush-ai/plugin-changes": "workspace:^",
+        "@jush-ai/plugin-file-browser": "workspace:^",
+        "@jush-ai/plugin-mobile": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
+        "@jush-ai/plugin-skills": "workspace:^",
+        "@jush-ai/plugin-web": "workspace:^",
+        "@jush-ai/plugin-widget": "workspace:^",
+        "@jush-ai/protocol": "workspace:^",
+        "@jush-ai/utils": "workspace:^",
+        "@jush-ai/web-ui": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "@vueuse/core": "^14.3.0",
         "pinia": "^3.0.3",
@@ -220,25 +220,25 @@
       },
     },
     "packages/web-gallery": {
-      "name": "@demicodes/web-gallery",
+      "name": "@jush-ai/web-gallery",
       "version": "0.24.0",
       "dependencies": {
         "@codemirror/state": "6.6.0",
-        "@demicodes/conversation-client": "workspace:^",
-        "@demicodes/plugin-browser": "workspace:^",
-        "@demicodes/plugin-changes": "workspace:^",
-        "@demicodes/plugin-file-browser": "workspace:^",
-        "@demicodes/plugin-mobile": "workspace:^",
-        "@demicodes/plugin-sdk": "workspace:^",
-        "@demicodes/plugin-skills": "workspace:^",
-        "@demicodes/plugin-web": "workspace:^",
-        "@demicodes/plugin-widget": "workspace:^",
-        "@demicodes/protocol": "workspace:^",
-        "@demicodes/utils": "workspace:^",
-        "@demicodes/web-ui": "workspace:^",
         "@fontsource-variable/geist": "^5.3.0",
         "@fontsource-variable/geist-mono": "^5.3.0",
         "@fontsource-variable/inter": "^5.3.0",
+        "@jush-ai/conversation-client": "workspace:^",
+        "@jush-ai/plugin-browser": "workspace:^",
+        "@jush-ai/plugin-changes": "workspace:^",
+        "@jush-ai/plugin-file-browser": "workspace:^",
+        "@jush-ai/plugin-mobile": "workspace:^",
+        "@jush-ai/plugin-sdk": "workspace:^",
+        "@jush-ai/plugin-skills": "workspace:^",
+        "@jush-ai/plugin-web": "workspace:^",
+        "@jush-ai/plugin-widget": "workspace:^",
+        "@jush-ai/protocol": "workspace:^",
+        "@jush-ai/utils": "workspace:^",
+        "@jush-ai/web-ui": "workspace:^",
         "@lucide/vue": "^1.40.0",
         "pinia": "^3.0.3",
         "vue": "^3.5.21",
@@ -255,7 +255,7 @@
       },
     },
     "packages/web-ui": {
-      "name": "@demicodes/web-ui",
+      "name": "@jush-ai/web-ui",
       "version": "0.24.0",
       "dependencies": {
         "@codemirror/commands": "6.10.3",
@@ -271,10 +271,10 @@
         "@codemirror/search": "6.6.0",
         "@codemirror/state": "6.6.0",
         "@codemirror/view": "6.40.0",
-        "@demicodes/conversation-client": "workspace:^",
-        "@demicodes/protocol": "workspace:^",
-        "@demicodes/utils": "workspace:^",
         "@floating-ui/vue": "^2.0.0",
+        "@jush-ai/conversation-client": "workspace:^",
+        "@jush-ai/protocol": "workspace:^",
+        "@jush-ai/utils": "workspace:^",
         "@lezer/common": "1.5.1",
         "@lezer/highlight": "1.2.3",
         "@lucide/vue": "^1.40.0",
@@ -433,38 +433,6 @@
 
     "@cspotcode/source-map-support": ["@cspotcode/source-map-support@0.8.1", "", { "dependencies": { "@jridgewell/trace-mapping": "0.3.9" } }, "sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw=="],
 
-    "@demicodes/browse": ["@demicodes/browse@workspace:packages/browse"],
-
-    "@demicodes/conversation-client": ["@demicodes/conversation-client@workspace:packages/conversation-client"],
-
-    "@demicodes/plugin-browser": ["@demicodes/plugin-browser@workspace:crates/plugin-browser/page"],
-
-    "@demicodes/plugin-changes": ["@demicodes/plugin-changes@workspace:crates/plugin-changes/page"],
-
-    "@demicodes/plugin-file-browser": ["@demicodes/plugin-file-browser@workspace:crates/plugin-file-browser/page"],
-
-    "@demicodes/plugin-mobile": ["@demicodes/plugin-mobile@workspace:crates/plugin-mobile/page"],
-
-    "@demicodes/plugin-sdk": ["@demicodes/plugin-sdk@workspace:packages/plugin-sdk"],
-
-    "@demicodes/plugin-skills": ["@demicodes/plugin-skills@workspace:crates/plugin-skills/page"],
-
-    "@demicodes/plugin-web": ["@demicodes/plugin-web@workspace:crates/plugin-web/page"],
-
-    "@demicodes/plugin-widget": ["@demicodes/plugin-widget@workspace:crates/plugin-widget/page"],
-
-    "@demicodes/protocol": ["@demicodes/protocol@workspace:packages/protocol"],
-
-    "@demicodes/site": ["@demicodes/site@workspace:packages/site"],
-
-    "@demicodes/utils": ["@demicodes/utils@workspace:packages/utils"],
-
-    "@demicodes/web": ["@demicodes/web@workspace:packages/web"],
-
-    "@demicodes/web-gallery": ["@demicodes/web-gallery@workspace:packages/web-gallery"],
-
-    "@demicodes/web-ui": ["@demicodes/web-ui@workspace:packages/web-ui"],
-
     "@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.12.0", "", {}, "sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow=="],
 
     "@emnapi/runtime": ["@emnapi/runtime@1.11.3", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA=="],
@@ -608,6 +576,38 @@
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.6.0", "", {}, "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw=="],
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
+
+    "@jush-ai/browse": ["@jush-ai/browse@workspace:packages/browse"],
+
+    "@jush-ai/conversation-client": ["@jush-ai/conversation-client@workspace:packages/conversation-client"],
+
+    "@jush-ai/plugin-browser": ["@jush-ai/plugin-browser@workspace:crates/plugin-browser/page"],
+
+    "@jush-ai/plugin-changes": ["@jush-ai/plugin-changes@workspace:crates/plugin-changes/page"],
+
+    "@jush-ai/plugin-file-browser": ["@jush-ai/plugin-file-browser@workspace:crates/plugin-file-browser/page"],
+
+    "@jush-ai/plugin-mobile": ["@jush-ai/plugin-mobile@workspace:crates/plugin-mobile/page"],
+
+    "@jush-ai/plugin-sdk": ["@jush-ai/plugin-sdk@workspace:packages/plugin-sdk"],
+
+    "@jush-ai/plugin-skills": ["@jush-ai/plugin-skills@workspace:crates/plugin-skills/page"],
+
+    "@jush-ai/plugin-web": ["@jush-ai/plugin-web@workspace:crates/plugin-web/page"],
+
+    "@jush-ai/plugin-widget": ["@jush-ai/plugin-widget@workspace:crates/plugin-widget/page"],
+
+    "@jush-ai/protocol": ["@jush-ai/protocol@workspace:packages/protocol"],
+
+    "@jush-ai/site": ["@jush-ai/site@workspace:packages/site"],
+
+    "@jush-ai/utils": ["@jush-ai/utils@workspace:packages/utils"],
+
+    "@jush-ai/web": ["@jush-ai/web@workspace:packages/web"],
+
+    "@jush-ai/web-gallery": ["@jush-ai/web-gallery@workspace:packages/web-gallery"],
+
+    "@jush-ai/web-ui": ["@jush-ai/web-ui@workspace:packages/web-ui"],
 
     "@lezer/common": ["@lezer/common@1.5.1", "", {}, "sha512-6YRVG9vBkaY7p1IVxL4s44n5nUnaNnGM2/AckNgYOnxTG2kWh1vR8BMxPseWPjRNpb5VtXnMpeYAEAADoRV1Iw=="],
 

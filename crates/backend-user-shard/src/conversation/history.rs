@@ -1,4 +1,4 @@
-//! `demi conversation history`: an agent finds and reads a transcript, its
+//! `jush conversation history`: an agent finds and reads a transcript, its
 //! own, another agent's of its conversation, or an agent's of another
 //! conversation of the user, which keeps every block a compaction summarized,
 //! from the conversation's database.
@@ -26,20 +26,20 @@
 use std::ops::{Range, RangeInclusive};
 use std::rc::{Rc, Weak};
 
-use demi_agent_tools::duration;
-use demi_backend_database::search::{HistoryBound, HistoryQuery, SearchKind, occurrences, searchable_text};
-use demi_backend_database::tree::{self, Transcript};
-use demi_backend_device_access::device_commands::conversation_of;
-use demi_backend_device_access::{DeviceShard, root_of};
-use demi_device_interface::{
+use jush_agent_tools::duration;
+use jush_backend_database::search::{HistoryBound, HistoryQuery, SearchKind, occurrences, searchable_text};
+use jush_backend_database::tree::{self, Transcript};
+use jush_backend_device_access::device_commands::conversation_of;
+use jush_backend_device_access::{DeviceShard, root_of};
+use jush_device_interface::{
     Call, FileContents, GroupBuilder, Device as _, LeafBuilder, RpcError, RpcPort, TypedRpc, WhenExists, WriteOptions,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     AgentMessageEvent, Block, DocumentSource, MediaSource, NodeId, ShellViewStatus, Timestamp, ToolCallBlock,
     ToolView, UserContentBlock,
     output::{self, Cell, Table},
 };
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use jiff::civil::Date;
 use jiff::tz::TimeZone;
 use schemars::JsonSchema;
@@ -67,11 +67,11 @@ const SEARCH_SUMMARY: &str = "Find your messages, your user's or parent's messag
 
 const READ_SUMMARY: &str = "Print the transcript in a range of block indices, 4213..4260, 4213.. or ..4260: each message and each of your texts whole, every other block as one line saying what it is and how to open it, such as [4214 command: Run the tests · exit 0 · 3s]; thinking and context blocks are left out. With --from user only your user's or parent's messages are printed, with --from agent only your texts and command lines, as search --from counts them. A read stops at about 8,000 characters, at a block's end, and its last line says where to go on.";
 
-const TIMING_SUMMARY: &str = "Print where the time of each turn that starts in a range of block indices went, 4213..4260, 4213.. or ..4260: one row per turn, by the index of its first block, with its time and how many requests it made, and the time of each part in milliseconds. preparing is Demi's own before a request left, waiting from a request leaving to its first output, thinking, text the model writing its answer, calls the model writing tool calls, tools the calls running, compacting, retrying a failed request and the wait after it, and other the time no part covers, so the parts add up to the turn; time two parts share counts once. Fifty turns a page; stderr names the next page.";
+const TIMING_SUMMARY: &str = "Print where the time of each turn that starts in a range of block indices went, 4213..4260, 4213.. or ..4260: one row per turn, by the index of its first block, with its time and how many requests it made, and the time of each part in milliseconds. preparing is Jush's own before a request left, waiting from a request leaving to its first output, thinking, text the model writing its answer, calls the model writing tool calls, tools the calls running, compacting, retrying a failed request and the wait after it, and other the time no part covers, so the parts add up to the turn; time two parts share counts once. Fifty turns a page; stderr names the next page.";
 
-const COST_SUMMARY: &str = "Print what each turn that starts in a range of block indices cost, 4213..4260, 4213.. or ..4260: one row per turn, by the index of its first block, with its calls to the model's vendor, the prompt tokens of its first and last turn call, the tokens it sent uncached (input), wrote to the cache, read from it and the output, the share of the prompt the cache served, and the price in dollars at API prices, which a subscription's calls are priced at too and which is no bill; notes say why a call missed the cache, a compaction, a call not answered and the media made. --calls prints one row per call instead: its number among your turn calls, purpose, model, the subscription account that answered it, its tokens, price, how it ended and why it missed the cache. Fifty turns a page; stderr names the next page. `demi conversation cost` sums the whole conversation.";
+const COST_SUMMARY: &str = "Print what each turn that starts in a range of block indices cost, 4213..4260, 4213.. or ..4260: one row per turn, by the index of its first block, with its calls to the model's vendor, the prompt tokens of its first and last turn call, the tokens it sent uncached (input), wrote to the cache, read from it and the output, the share of the prompt the cache served, and the price in dollars at API prices, which a subscription's calls are priced at too and which is no bill; notes say why a call missed the cache, a compaction, a call not answered and the media made. --calls prints one row per call instead: its number among your turn calls, purpose, model, the subscription account that answered it, its tokens, price, how it ended and why it missed the cache. Fifty turns a page; stderr names the next page. `jush conversation cost` sums the whole conversation.";
 
-const OPEN_SUMMARY: &str = "Print what a read names in one line, by its index: a command's script, exit code, duration and output, the output a page at a time as demi shell output pages it; a thinking block's text; a subagent's report; a compaction's summary. An attachment or an image of a message, such as 4213/a1, is saved under $DEMI_SCRATCH and its path printed, for demi file view or the ordinary tools. --page <n> takes the next page.";
+const OPEN_SUMMARY: &str = "Print what a read names in one line, by its index: a command's script, exit code, duration and output, the output a page at a time as jush shell output pages it; a thinking block's text; a subagent's report; a compaction's summary. An attachment or an image of a message, such as 4213/a1, is saved under $JUSH_SCRATCH and its path printed, for jush file view or the ordinary tools. --page <n> takes the next page.";
 
 /// Whose texts a search or a read keeps: the agent's user's or parent's,
 /// or the agent's own.
@@ -102,11 +102,11 @@ struct Target {
     agent: Option<u32>,
     /// Another conversation of the user, by its id; its main agent unless
     /// `agent` names another
-    #[schemars(extend("patternDescription" = "a conversation's id, as demi conversation list shows it"))]
+    #[schemars(extend("patternDescription" = "a conversation's id, as jush conversation list shows it"))]
     conversation: Option<ConversationId>,
 }
 
-/// The input of `demi conversation history search`.
+/// The input of `jush conversation history search`.
 #[derive(Deserialize, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 struct SearchArgs {
@@ -133,7 +133,7 @@ struct SearchArgs {
     target: Target,
 }
 
-/// The input of `demi conversation history read`.
+/// The input of `jush conversation history read`.
 #[derive(Deserialize, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 struct ReadArgs {
@@ -146,7 +146,7 @@ struct ReadArgs {
     target: Target,
 }
 
-/// The input of `demi conversation history timing`.
+/// The input of `jush conversation history timing`.
 #[derive(Deserialize, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 struct TimingArgs {
@@ -157,7 +157,7 @@ struct TimingArgs {
     target: Target,
 }
 
-/// The input of `demi conversation history cost`.
+/// The input of `jush conversation history cost`.
 #[derive(Deserialize, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 struct CostArgs {
@@ -170,7 +170,7 @@ struct CostArgs {
     target: Target,
 }
 
-/// The input of `demi conversation history open`.
+/// The input of `jush conversation history open`.
 #[derive(Deserialize, JsonSchema)]
 #[schemars(deny_unknown_fields)]
 struct OpenArgs {
@@ -184,7 +184,7 @@ struct OpenArgs {
     target: Target,
 }
 
-/// The `history` group of `demi conversation`, whose handlers read in
+/// The `history` group of `jush conversation`, whose handlers read in
 /// `shard`.
 pub(crate) fn history_group(shard: Weak<Shard>) -> GroupBuilder {
     GroupBuilder::new("history", GROUP_SUMMARY)
@@ -547,7 +547,7 @@ async fn search(shard: Rc<Shard>, call: Call<SearchArgs>, port: RpcPort) -> Resu
             let quoted: Vec<String> = words.iter().map(|word| shell_word(word)).collect();
             options.push(format!("--page {}", page + 1));
             note.push_str(&format!(
-                "; next: demi conversation history search{} {} -- {}",
+                "; next: jush conversation history search{} {} -- {}",
                 reader.flags(),
                 options.join(" "),
                 quoted.join(" ")
@@ -574,7 +574,7 @@ async fn search(shard: Rc<Shard>, call: Call<SearchArgs>, port: RpcPort) -> Resu
     Ok(0)
 }
 
-/// A row of `demi conversation history search`: a hit, or the message
+/// A row of `jush conversation history search`: a hit, or the message
 /// before or after it.
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -758,15 +758,15 @@ async fn read(shard: Rc<Shard>, call: Call<ReadArgs>, port: RpcPort) -> Result<u
     }
     let option = from_side.map_or_else(String::new, |side| format!("--from {} ", side.as_str()));
     let next = |at: usize| match to {
-        Some(_) => format!("demi conversation history read{} {option}{}..{end}", reader.flags(), at + 1),
-        None => format!("demi conversation history read{} {option}{}..", reader.flags(), at + 1),
+        Some(_) => format!("jush conversation history read{} {option}{}..{end}", reader.flags(), at + 1),
+        None => format!("jush conversation history read{} {option}{}..", reader.flags(), at + 1),
     };
     if let Some(at) = stopped {
         printed.push(format!("Stopped at {at} · next: {}", next(at)));
     }
     match cut {
         Some((at, pages)) if pages > 1 => {
-            let mut line = format!("Cut {at} · rest: demi conversation history open {at}{} --page 2", reader.flags());
+            let mut line = format!("Cut {at} · rest: jush conversation history open {at}{} --page 2", reader.flags());
             if at < end {
                 line.push_str(&format!(" · next: {}", next(at)));
             }
@@ -789,7 +789,7 @@ async fn timing(shard: Rc<Shard>, call: Call<TimingArgs>, port: RpcPort) -> Resu
     let reader = Reader::of(&shard, &call, &call.args.target).await?;
     let page = turn_page(&shard, &reader, &call.args.range).await?;
     let timings: Vec<TurnTiming> = page.turns.into_iter().map(|turn| turn.timing()).collect();
-    let command = "demi conversation history timing";
+    let command = "jush conversation history timing";
     let mut notes = Vec::new();
     if let Some(name) = reader.name() {
         notes.push(format!("transcript of {name}"));
@@ -858,7 +858,7 @@ async fn cost(shard: Rc<Shard>, call: Call<CostArgs>, port: RpcPort) -> Result<u
         .turn_calls(reader.conversation.clone(), agent, ids)
         .await
         .map_err(failed)?;
-    let command = "demi conversation history cost";
+    let command = "jush conversation history cost";
     let mut notes = Vec::new();
     if let Some(name) = reader.name() {
         notes.push(format!("transcript of {name}"));
@@ -1000,7 +1000,7 @@ fn item(reader: &Reader, at: usize, block: &Block) -> Option<Shown> {
                     Some(conversation) => format!("conversation {} agent {}", conversation.id, sender.number),
                     None => format!("agent {}", sender.number),
                 },
-                None => "Demi".to_owned(),
+                None => "Jush".to_owned(),
             };
             let kind = match &message.message.event {
                 AgentMessageEvent::Completion { .. } => return line(report_line(at, message)),
@@ -1018,7 +1018,7 @@ fn item(reader: &Reader, at: usize, block: &Block) -> Option<Shown> {
         Block::Error(error) => line(format!("[{at} error: {}]", error.message)),
         Block::AccountSwitch(switch) => line(format!("[{at} account switched from {} to {}]", switch.from, switch.to)),
         Block::CompactionBoundary(_) => line(format!(
-            "[{at} summary of the earlier conversation: demi conversation history open {at}{}]",
+            "[{at} summary of the earlier conversation: jush conversation history open {at}{}]",
             reader.flags()
         )),
         Block::Text(_)
@@ -1115,7 +1115,7 @@ fn command(call: &ToolCallBlock) -> Option<String> {
 }
 
 /// The notice of a subagent's end as one line: who, and how its round ended.
-fn report_line(at: usize, message: &demi_shared_types::AgentMessageBlock) -> String {
+fn report_line(at: usize, message: &jush_shared_types::AgentMessageBlock) -> String {
     let who = message
         .message
         .sender
@@ -1207,7 +1207,7 @@ async fn open(shard: Rc<Shard>, call: Call<OpenArgs>, port: RpcPort) -> Result<u
             Some(Shown { head, body: Some(body) }) => paged(&reader, &head, &body, at, page)?,
             _ => {
                 return Err(failed(format!(
-                    "a read shows all of {at}: demi conversation history read{} {at}..{at}",
+                    "a read shows all of {at}: jush conversation history read{} {at}..{at}",
                     reader.flags()
                 )));
             }
@@ -1261,7 +1261,7 @@ fn next_line(reader: &Reader, at: usize, page: u64, pages: u64) -> String {
         return String::new();
     }
     format!(
-        "Page {page} of {pages} · next: demi conversation history open {at}{} --page {}\n",
+        "Page {page} of {pages} · next: jush conversation history open {at}{} --page {}\n",
         reader.flags(),
         page + 1
     )
@@ -1316,7 +1316,7 @@ async fn save<A>(
             // as the job's command context names it, which its job made.
             let mut scratch = identity.paths.join(
                 &identity.scratch_root,
-                &demi_command_protocol::scratch_name(&invocation.context.conversation),
+                &jush_command_protocol::scratch_name(&invocation.context.conversation),
             );
             if let Some(folder) = invocation.context.caller.scratch_folder() {
                 scratch = identity.paths.join(&scratch, &folder);

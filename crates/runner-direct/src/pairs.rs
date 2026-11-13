@@ -1,7 +1,7 @@
 //! The peers between this runner and the other runners of the user it talks
 //! with directly, one per pair of runners, whichever of the two offered it,
 //! and the path each connection between a pair takes: a forwarded
-//! connection's or a pipe's (`demi_runner_protocol::pairs`).
+//! connection's or a pipe's (`jush_runner_protocol::pairs`).
 //!
 //! - A pair's first connection has the backend introduce the two runners, this
 //!   one offering, and goes through the relay itself, since nothing waits for
@@ -60,8 +60,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use demi_runner_protocol::direct::{CONNECT_TIMEOUT, MAX_CHANNELS};
-use demi_runner_protocol::pairs::{PEER_IDLE, PairHeader, PairReason, PairRoute, RETRY_WAITS};
+use jush_runner_protocol::direct::{CONNECT_TIMEOUT, MAX_CHANNELS};
+use jush_runner_protocol::pairs::{PEER_IDLE, PairHeader, PairReason, PairRoute, RETRY_WAITS};
 use futures_util::future::BoxFuture;
 use tokio::sync::{mpsc, oneshot, watch};
 use tokio::task::JoinSet;

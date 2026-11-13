@@ -219,8 +219,8 @@ codegen-units = 1
 panic = "abort"
 inherits = "release"
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "The walk starts from the root resolved against the shell job's working directory and shows paths as the command named them",
     "WalkEntry's file kind checks are the context_* ones, as uucore::context's are",

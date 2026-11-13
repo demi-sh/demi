@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/lockup-dark.svg">
-    <img alt="Demi" src="docs/assets/brand/lockup-light.svg" height="72">
+    <img alt="Jush" src="docs/assets/brand/lockup-light.svg" height="72">
   </picture>
 </p>
 
@@ -12,8 +12,8 @@
 
 <p align="center">
   <a href="#license"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue"></a>
-  <a href="https://github.com/demi-sh/demi/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/demi-sh/demi"></a>
-  <a href="https://github.com/demi-sh/demi/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/demi-sh/demi/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/jush-ai/jush/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/jush-ai/jush"></a>
+  <a href="https://github.com/jush-ai/jush/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/jush-ai/jush/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 <p align="center">
@@ -21,24 +21,24 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/product.webp" alt="Demi in a browser: an agent builds a two-column layout for an iPhone app, with a comment and a side question on its reply and suggested replies under it, the app on a half-folded iPhone Duo in the side panel, and the same conversation on a phone." width="800">
+  <img src="docs/assets/product.webp" alt="Jush in a browser: an agent builds a two-column layout for an iPhone app, with a comment and a side question on its reply and suggested replies under it, the app on a half-folded iPhone Duo in the side panel, and the same conversation on a phone." width="800">
 </p>
 
-Demi is a web-based AI agent you host on your own server. Open it in any
+Jush is a web-based AI agent you host on your own server. Open it in any
 browser and hand it anything: research, websites, files or code. Your
 conversations stay on your server, and the work runs in a cloud sandbox or on
 your own machines, even after you close the tab.
 
 > [!NOTE]
-> Demi is in early development. Expect breaking changes between releases.
+> Jush is in early development. Expect breaking changes between releases.
 
 ## Quick start
 
-Deploy Demi in a few clicks:
+Deploy Jush in a few clicks:
 
 <p>
   <a href="docs/delivery/railway.md"><img alt="Deploy on Railway" src="https://railway.com/button.svg" height="36"></a>
-  <a href="https://render.com/deploy?repo=https://github.com/demi-sh/demi"><img alt="Deploy on Render" src="docs/assets/deploy/deploy-on-render.svg" height="36"></a>
+  <a href="https://render.com/deploy?repo=https://github.com/jush-ai/jush"><img alt="Deploy on Render" src="docs/assets/deploy/deploy-on-render.svg" height="36"></a>
   <a href="docs/delivery/fly.md"><img alt="Deploy on Fly.io" src="docs/assets/deploy/deploy-on-fly.svg" height="36"></a>
   <a href="docs/delivery/docker-compose.md"><img alt="Run with Docker Compose" src="docs/assets/deploy/run-with-docker-compose.svg" height="36"></a>
 </p>
@@ -46,21 +46,21 @@ Deploy Demi in a few clicks:
 Or install it on a Linux server of your own, with a domain name:
 
 ```sh
-curl -fsSL https://demi.sh/install.sh | sudo bash
+curl -fsSL https://jush.ai/install.sh | sudo bash
 ```
 
 Or ask a coding agent, such as Claude Code or Codex, to install it:
 
 ```text
-Install Demi on my server by following https://raw.githubusercontent.com/demi-sh/demi/main/docs/delivery/install-with-an-agent.md
+Install Jush on my server by following https://raw.githubusercontent.com/jush-ai/jush/main/docs/delivery/install-with-an-agent.md
 ```
 
-Then open Demi, create the admin account, and add a model in
+Then open Jush, create the admin account, and add a model in
 **Settings › Providers**. The [installation guide](docs/delivery/installation.md)
 covers supported systems, HTTPS, the Canary channel and what each setup costs.
 
 <p align="center">
-  <img src="docs/assets/concept.webp" alt="From a computer or a phone, you reach one Demi server, which holds every conversation and works through runners on your laptop, desktop, HomeLab and VPS, or in cloud sandboxes." width="800">
+  <img src="docs/assets/concept.webp" alt="From a computer or a phone, you reach one Jush server, which holds every conversation and works through runners on your laptop, desktop, HomeLab and VPS, or in cloud sandboxes." width="800">
 </p>
 
 ## Key features
@@ -70,7 +70,7 @@ covers supported systems, HTTPS, the Canary channel and what each setup costs.
 - **One conversation for everything**: quick questions and multi-step jobs alike.
 - **Coding**: edit repositories, run builds and tests, review each change as a diff.
 - **Research**: search the web and read pages, PDFs and documents.
-- **Real browser**: Demi drives Chrome. Watch it and take over any time.
+- **Real browser**: Jush drives Chrome. Watch it and take over any time.
 - **Phone apps**: install and test apps on iOS Simulators and Android Emulators.
 - **Files and data**: documents, spreadsheets and images, returned as attachments.
 - **Images, video and audio**: made through the model providers you add.
@@ -95,7 +95,7 @@ covers supported systems, HTTPS, the Canary channel and what each setup costs.
 - **Profiles and workflows**: specialist agents, shared through your repository.
 - **Schedules**: wake a conversation on a timer, by cron, or on a change.
 - **Conversations work together**: one conversation messages or reads another.
-- **Skills**: teach Demi new tasks.
+- **Skills**: teach Jush new tasks.
 - **Secure credentials**: secrets go through a form, never the conversation.
 
 ### Models and teams
@@ -108,14 +108,14 @@ covers supported systems, HTTPS, the Canary channel and what each setup costs.
 
 ## An agent built on a shell
 
-Demi doesn't wrap Claude Code or Codex: its own runtime drives every model.
-Where most agents give the model a long list of tools, Demi gives it one, a
-shell. The browser, other machines and subagents are `demi` commands in it:
+Jush doesn't wrap Claude Code or Codex: its own runtime drives every model.
+Where most agents give the model a long list of tools, Jush gives it one, a
+shell. The browser, other machines and subagents are `jush` commands in it:
 
 ```sh
-T=$(demi browser tab new) && demi browser open $T http://localhost:5173 && demi browser screenshot $T | demi file view
-demi device shell --device windows 'cargo test'
-demi agent spawn --profile research --description "Compare pricing pages" < brief.md
+T=$(jush browser tab new) && jush browser open $T http://localhost:5173 && jush browser screenshot $T | jush file view
+jush device shell --device windows 'cargo test'
+jush agent spawn --profile research --description "Compare pricing pages" < brief.md
 ```
 
 - **Composable**: commands chain with pipes, so one step does the work of several tool calls.
@@ -125,7 +125,7 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
 - **Built for long jobs**: commands run in the background and report back.
 
 > [!NOTE]
-> **Planned**: an OpenAPI for the Demi server, so your own programs can use
+> **Planned**: an OpenAPI for the Jush server, so your own programs can use
 > its conversations, agents and cloud sandboxes.
 
 ## Architecture
@@ -135,7 +135,7 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
         │  HTTPS + WebSocket
         ▼
   ┌──────────────────────────┐   HTTPS   ┌────────────────────┐
-  │ Demi server              │──────────▶│ Model providers    │
+  │ Jush server              │──────────▶│ Model providers    │
   │ users, conversations,    │           └────────────────────┘
   │ agents                   │
   └──────────────────────────┘
@@ -159,16 +159,16 @@ Read the [design docs](docs/README.md), starting with the
 
 ## Comparison
 
-How Demi differs from OpenHands, Orca, T3 Code, DeepSeek Harness, opencode,
-Pi and herdr, feature by feature: [Demi compared](docs/comparison.md).
+How Jush differs from OpenHands, Orca, T3 Code, DeepSeek Harness, opencode,
+Pi and herdr, feature by feature: [Jush compared](docs/comparison.md).
 
 ## Documentation
 
-- [Design docs](docs/README.md): how every part of Demi works
+- [Design docs](docs/README.md): how every part of Jush works
 - [Contributing](CONTRIBUTING.md): development setup, checks, and adding a
   provider
 - [Security](SECURITY.md): reporting vulnerabilities and where data is stored
 
 ## License
 
-Demi is released under the [Apache License 2.0](LICENSE).
+Jush is released under the [Apache License 2.0](LICENSE).

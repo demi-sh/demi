@@ -13,12 +13,12 @@ pub use failure::{
 };
 pub use operations::*;
 
-use demi_shared_types::MAX_SAFE_INTEGER;
+use jush_shared_types::MAX_SAFE_INTEGER;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 
 /// The prefix of every browser operation's name, as a literal for `concat!`.
 macro_rules! prefix {
@@ -501,7 +501,7 @@ impl BrowserQuery {
     /// Decodes the query tree `find --query` reads from stdin: every branch
     /// has exactly one base.
     pub fn parse(body: &str) -> Result<Self, DecodeError> {
-        let query: Self = demi_shared_types::decode_slice(body.as_bytes())?;
+        let query: Self = jush_shared_types::decode_slice(body.as_bytes())?;
         for branch in query.branches() {
             let bases = usize::from(branch.r#match.is_some())
                 + usize::from(branch.and.is_some())

@@ -6,16 +6,16 @@ status: accepted
 
 ## Summary
 
-`demi conversation history` reads any transcript, not only the agent's
+`jush conversation history` reads any transcript, not only the agent's
 own: an agent of this conversation's tree by its number, or an agent of
-another conversation of the user. `demi conversation list` finds the user's
-conversations. `demi agent show` keeps to an agent's state, and the history
+another conversation of the user. `jush conversation list` finds the user's
+conversations. `jush agent show` keeps to an agent's state, and the history
 commands are the one way to read what any agent said.
 
 ## Motivation
 
 * A subagent ended without sending its report. Its parent can see only what
-  `demi agent show` keeps, the titles of its last commands and its last
+  `jush agent show` keeps, the titles of its last commands and its last
   text; the history commands read only the transcript of the agent that
   runs them.
 * A user asks, in a new conversation, to go on with what an earlier
@@ -25,12 +25,12 @@ commands are the one way to read what any agent said.
 ## Guide-level explanation
 
 ```text
-$ demi conversation history search --agent 1099 measured
-$ demi conversation history read 4210..4260 --agent 1099
-$ demi conversation list cache
+$ jush conversation history search --agent 1099 measured
+$ jush conversation history read 4210..4260 --agent 1099
+$ jush conversation list cache
 ID                                    TITLE                  PROJECT  CHANGED
 6f1c…                                 Cache the index        shop     2026-10-21T18:04:12Z
-$ demi conversation history read ..40 --conversation 6f1c…
+$ jush conversation history read ..40 --conversation 6f1c…
 ```
 
 * `--agent <n>` reads an agent of this conversation's tree, the main agent
@@ -39,7 +39,7 @@ $ demi conversation history read ..40 --conversation 6f1c…
   agent unless `--agent` names one of its agents. The first list or read of
   another conversation asks the user once in the calling conversation, as
   any permission does; after that the conversation reads any other.
-* `demi agent show` says what an agent is doing: its execution state, its
+* `jush agent show` says what an agent is doing: its execution state, its
   idle time, its recent commands, how it closed. It no longer prints the
   agent's last text; its output names the history read that does.
 
@@ -61,7 +61,7 @@ struct Target {
 
 // SearchArgs, ReadArgs and OpenArgs each gain `#[serde(flatten)] target: Target`.
 
-/// The input of `demi conversation list`.
+/// The input of `jush conversation list`.
 #[derive(Deserialize, JsonSchema)]
 struct ListArgs {
     /// Words the title or the messages hold, as the app's Search finds them
@@ -111,11 +111,11 @@ Host is reached only as today's `open` reaches one: to write an opened
 attachment to the caller's scratch directory, and to read the output of a
 command still running, from the Host it runs on.
 
-### `demi agent show`
+### `jush agent show`
 
 * Its "Last assistant text" lines are removed.
 * Its last line names the read of the agent's latest blocks:
-  `More: demi conversation history read <from>.. --agent <n>`.
+  `More: jush conversation history read <from>.. --agent <n>`.
 
 ## Upgrade and version skew
 
@@ -138,7 +138,7 @@ together, as for every manifest change.
 
 ## Rationale and alternatives
 
-* `demi agent history <id>`: a second way to read a transcript beside the
+* `jush agent history <id>`: a second way to read a transcript beside the
   history commands, for agents only, and none for other conversations.
 * Keep the last text in `agent show`: the same text read in two places.
 
@@ -151,7 +151,7 @@ together, as for every manifest change.
   rather than the model.
 * OpenHands' server lists conversations and searches a conversation's
   messages a page at a time; Cline searches every session's text.
-* Demi departs in asking the user before another conversation is read; none
+* Jush departs in asking the user before another conversation is read; none
   of them asks per conversation.
 
 ## Unresolved questions

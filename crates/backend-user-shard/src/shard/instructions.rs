@@ -5,8 +5,8 @@
 //! request of every node, since the instructions source reads them at each
 //! request.
 
-use demi_backend_database::StorageError;
-use demi_backend_page_sync::Part;
+use jush_backend_database::StorageError;
+use jush_backend_page_sync::Part;
 
 use super::Shard;
 

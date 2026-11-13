@@ -1,4 +1,4 @@
-import { pageMessageFiles, type PageMessageFiles } from '@demicodes/web-ui/agent/comments/page-files'
+import { pageMessageFiles, type PageMessageFiles } from '@jush-ai/web-ui/agent/comments/page-files'
 import { galleryUploads } from './upload-sweep'
 
 /**

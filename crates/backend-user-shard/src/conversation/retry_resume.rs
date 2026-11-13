@@ -31,10 +31,10 @@ use std::collections::HashMap;
 use std::rc::{Rc, Weak};
 use std::time::Duration;
 
-use demi_backend_device_access::root_of;
-use demi_shared_gates::Purpose;
-use demi_shared_types::{Block, BlockId, ErrorBlock, SessionPhase, Timestamp};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_device_access::root_of;
+use jush_shared_gates::Purpose;
+use jush_shared_types::{Block, BlockId, ErrorBlock, SessionPhase, Timestamp};
+use jush_web_api_protocol::ids::ConversationId;
 use tokio_util::task::AbortOnDropHandle;
 
 use super::failure_facts;

@@ -11,22 +11,22 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::devices::{DeviceChange, DeviceRecord};
-use demi_web_api_protocol::text::Trimmed;
-use demi_backend_runners::claims::ClaimRefusal;
-use demi_backend_runners::files::browse_directory;
-use demi_device_interface::{DeviceError, DeviceErrorKind, MkdirOptions};
-use demi_web_api_protocol::devices::{
+use jush_backend_database::devices::{DeviceChange, DeviceRecord};
+use jush_web_api_protocol::text::Trimmed;
+use jush_backend_runners::claims::ClaimRefusal;
+use jush_backend_runners::files::browse_directory;
+use jush_device_interface::{DeviceError, DeviceErrorKind, MkdirOptions};
+use jush_web_api_protocol::devices::{
     ChangeDevice, Claim, DeviceAnswer, DeviceKind,
     Devices, RevokedDevice,
 };
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::files::{
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::files::{
     CreateDeviceDirectory, CreatedDirectory, DeviceDirectoryQuery, Directory,
 };
-use demi_web_api_protocol::ids::DeviceId;
-use demi_web_api_protocol::workflows::{KeptWorkflowList, WorkflowsQuery};
-use demi_backend_user_shard::conversation::workflows::DeviceWorkflowsRefusal;
+use jush_web_api_protocol::ids::DeviceId;
+use jush_web_api_protocol::workflows::{KeptWorkflowList, WorkflowsQuery};
+use jush_backend_user_shard::conversation::workflows::DeviceWorkflowsRefusal;
 
 use super::AppState;
 use super::body::JsonBody;
@@ -222,7 +222,7 @@ pub(super) async fn make_directory(
                 .await
                 .ok_or_else(ApiError::device_offline)?;
             let recursive = MkdirOptions { recursive: true };
-            demi_device_interface::DeviceFs::mkdir(&device, &path, recursive)
+            jush_device_interface::DeviceFs::mkdir(&device, &path, recursive)
                 .await
                 .map_err(device_fs_error)?;
             Ok::<_, ApiError>(CreatedDirectory { path })
@@ -234,7 +234,7 @@ pub(super) async fn make_directory(
 /// The caller's device `id`, of `kind` when one is named; 404 otherwise.
 pub(super) async fn owned_device(
     state: &AppState,
-    user: &demi_web_api_protocol::ids::UserId,
+    user: &jush_web_api_protocol::ids::UserId,
     id: &str,
     kind: Option<DeviceKind>,
 ) -> Result<DeviceRecord, ApiError> {

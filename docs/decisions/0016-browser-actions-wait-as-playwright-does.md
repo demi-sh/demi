@@ -6,7 +6,7 @@ status: accepted
 
 ## Context and Problem Statement
 
-A `demi browser click` on a button that only changes its own text takes
+A `jush browser click` on a button that only changes its own text takes
 about 300 ms, while Playwright clicks the same button in about 33 ms. Most of
 the difference is one wait: after the input, the click waits a fixed 250 ms
 to see whether a navigation starts. The rest is work done for every action
@@ -33,7 +33,7 @@ waiting on a clock.
   When the input started a navigation, which the browser signals as it starts,
   the action waits for that navigation as it does today. A navigation that a
   page starts later, from a timer, is the next command's to wait for, with
-  `demi browser wait` or `--wait-url`, as in Playwright.
+  `jush browser wait` or `--wait-url`, as in Playwright.
 * An action reads only what it needs: a reference or a CSS selector is
   resolved directly, and cleanup releases what the action used without
   reading the page again. A role or a name still reads what the match needs.

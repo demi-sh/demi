@@ -14,14 +14,14 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     audio::{AudioMaker, AudioOption, AudioRequest, MadeAudio, Voice, searched},
     endpoint_url, json_body,
     media::{MediaAnswer, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor, unreadable},
     media_catalog::{Catalog, MediaKind, Voices},
 };
-use demi_shared_types::{AudioKind, Clock};
+use jush_shared_types::{AudioKind, Clock};
 use futures_util::future::BoxFuture;
 use reqwest::{
     Url,
@@ -62,7 +62,7 @@ impl KeyAudio {
         headers
     }
 
-    async fn list(&self, http: &demi_provider_common::ProviderHttp, catalog: &Catalog) -> Result<Vec<MediaModelInfo>, MediaFailure> {
+    async fn list(&self, http: &jush_provider_common::ProviderHttp, catalog: &Catalog) -> Result<Vec<MediaModelInfo>, MediaFailure> {
         if let Flavor::Compatible { models, .. } = &self.flavor {
             return Ok(models.clone());
         }
@@ -83,7 +83,7 @@ impl KeyAudio {
 
     /// What a compatible endpoint's `GET …/audio/voices` lists: none for
     /// a server without the route.
-    async fn listed_voices(&self, http: &demi_provider_common::ProviderHttp) -> Result<Option<Vec<Voice>>, MediaFailure> {
+    async fn listed_voices(&self, http: &jush_provider_common::ProviderHttp) -> Result<Option<Vec<Voice>>, MediaFailure> {
         let url = endpoint_url(&self.base, "/audio/voices");
         let Some(text) = key_call(false, &*self.clock).get_if_served(http, &url, self.headers(), true).await? else {
             return Ok(None);
@@ -111,7 +111,7 @@ impl MediaMaker for KeyAudio {
 
     fn models<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(self.list(http, catalog))
@@ -136,7 +136,7 @@ impl AudioMaker for KeyAudio {
 
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
         request: AudioRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeAudio>> {
@@ -154,7 +154,7 @@ impl AudioMaker for KeyAudio {
 
     fn voices<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         model: &'a str,
         search: Option<&'a str>,

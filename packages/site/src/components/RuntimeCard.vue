@@ -1,14 +1,14 @@
 <script setup lang="ts">
-// Demi's runtime as a card at the browser's corner, beside a demo whose
-// scene says what it uses: Demi, with the marks of the models it runs on,
-// its one tool, the shell, and what the shell runs, the system's programs and the `demi` commands for the browser,
+// Jush's runtime as a card at the browser's corner, beside a demo whose
+// scene says what it uses: Jush, with the marks of the models it runs on,
+// its one tool, the shell, and what the shell runs, the system's programs and the `jush` commands for the browser,
 // other machines and other agents. The part the agent uses now lights up,
 // and a bar shows how full the context the model reads is, which a
 // compaction empties.
 import { computed } from 'vue'
-import claudeUrl from '@demicodes/web-ui/settings/logos/claude.svg?url&no-inline'
-import geminiUrl from '@demicodes/web-ui/settings/logos/google.svg?url&no-inline'
-import openaiUrl from '@demicodes/web-ui/settings/logos/openai.svg?url&no-inline'
+import claudeUrl from '@jush-ai/web-ui/settings/logos/claude.svg?url&no-inline'
+import geminiUrl from '@jush-ai/web-ui/settings/logos/google.svg?url&no-inline'
+import openaiUrl from '@jush-ai/web-ui/settings/logos/openai.svg?url&no-inline'
 import { OTTER_SVG } from '@/brand'
 import type { RuntimePart, StageCard } from '@/demo/message'
 import { useKept } from './stageCard'
@@ -31,9 +31,9 @@ const MAKERS: readonly { name: string; url: string; fit: number; paint: string }
 
 const PARTS: readonly { part: Exclude<RuntimePart, 'compact'>; label: string }[] = [
   { part: 'programs', label: 'rg · git · …' },
-  { part: 'browser', label: 'demi browser' },
-  { part: 'device', label: 'demi device' },
-  { part: 'agent', label: 'demi agent' },
+  { part: 'browser', label: 'jush browser' },
+  { part: 'device', label: 'jush device' },
+  { part: 'agent', label: 'jush agent' },
 ]
 
 const percent = computed(() => Math.round(last.value.context * 100))
@@ -43,7 +43,7 @@ const compacting = computed(() => last.value.part === 'compact')
 <template>
   <div class="runtime stage-card" :class="{ shown: card !== null }" aria-hidden="true">
     <div class="model">
-      <span class="demi"><span class="otter" v-html="OTTER_SVG" />Demi</span>
+      <span class="jush"><span class="otter" v-html="OTTER_SVG" />Jush</span>
       <span class="makers">
         <i v-for="maker in MAKERS" :key="maker.name" class="mark" :title="maker.name" :style="{ maskImage: `url('${maker.url}')`, maskSize: `${maker.fit * 100}%`, background: maker.paint }" />
       </span>
@@ -86,7 +86,7 @@ const compacting = computed(() => last.value.part === 'compact')
   background: var(--cream);
 }
 
-.demi {
+.jush {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;

@@ -145,7 +145,7 @@ None ran. Read in the code:
 - [VS Code](https://github.com/microsoft/vscode) keeps a task's terminal in
   the Terminal panel after the task exits, with its output, until the user
   closes it.
-- Demi's own Agents window lists finished subagents under Completed. This
+- Jush's own Agents window lists finished subagents under Completed. This
   record gives commands the same.
 
 ## Alternatives

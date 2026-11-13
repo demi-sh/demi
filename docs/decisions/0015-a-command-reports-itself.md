@@ -9,9 +9,9 @@ status: superseded by 0052
 An agent can wait for a command it started in two ways. The command reports
 to the agent at its interval and when it ends, and an agent with nothing
 else to do ends its turn and is woken by that report. Besides,
-`demi shell status <id> --wait <duration>` blocks inside a call until the
+`jush shell status <id> --wait <duration>` blocks inside a call until the
 command ends. A shell call also returns early when a message from another
-agent arrives, and its result then suggests `demi shell status` as the next
+agent arrives, and its result then suggests `jush shell status` as the next
 step, so an agent tends to start a second call that only waits for the
 first. The page then shows two running commands for one piece of work, and
 the agent's instructions say both "do not poll" and how to block.
@@ -29,7 +29,7 @@ Chosen option: one way, the command's own report, because a report already
 carries the command's output and wakes the agent, and one way leaves the
 agent nothing to choose between.
 
-* `demi shell status` shows a command's output and state at once and has no
+* `jush shell status` shows a command's output and state at once and has no
   `--wait`. `--interval` and `--resident` stay: they change how the command
   reports.
 * A call that returns while its command runs says that the command keeps

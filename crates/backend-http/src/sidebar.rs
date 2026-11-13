@@ -5,15 +5,15 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_database::sidebar::Reorder;
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::sidebar::SidebarReorder;
+use jush_backend_database::sidebar::Reorder;
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::sidebar::SidebarReorder;
 
 use super::body::JsonBody;
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 pub(super) async fn reorder(
     State(services): State<Arc<Services>>,

@@ -2,14 +2,14 @@
 // the script the scene plays on it. Every name, place and number in them is
 // invented.
 import type { Ref } from 'vue'
-import type { DeviceMark } from '@demicodes/web-ui/devices/mark'
-import type { SidebarConversation, SidebarProject } from '@demicodes/web-ui/sidebar/types'
-import type { GalleryWork } from '@demicodes/web-gallery/fixtures/work'
-import type { TerminalRecord } from '@demicodes/web-ui/agent/terminals'
-import type { WorkflowChoice, WorkflowList } from '@demicodes/web-ui/agent/workflow-menu'
-import type { ConversationSchedule, ScheduleTask } from '@demicodes/web-ui/schedules/types'
-import type { ReplyCommenting } from '@demicodes/web-ui/agent/comments/comments'
-import type { DeviceOption, MenuDevice } from '@demicodes/web-ui/targets/types'
+import type { DeviceMark } from '@jush-ai/web-ui/devices/mark'
+import type { SidebarConversation, SidebarProject } from '@jush-ai/web-ui/sidebar/types'
+import type { GalleryWork } from '@jush-ai/web-gallery/fixtures/work'
+import type { TerminalRecord } from '@jush-ai/web-ui/agent/terminals'
+import type { WorkflowChoice, WorkflowList } from '@jush-ai/web-ui/agent/workflow-menu'
+import type { ConversationSchedule, ScheduleTask } from '@jush-ai/web-ui/schedules/types'
+import type { ReplyCommenting } from '@jush-ai/web-ui/agent/comments/comments'
+import type { DeviceOption, MenuDevice } from '@jush-ai/web-ui/targets/types'
 import { DEMOS, type DemoId, type Form } from '@/features'
 import type { Conversation, ShellStep } from './conversation'
 import clip1 from './assets/clip-1.mp4'
@@ -128,11 +128,11 @@ const CLIPS = [clip1, clip2, clip3]
  */
 const AGENT_STEPS: readonly ({ part: RuntimePart; step: ShellStep } | 'compact')[] = [
   { part: 'programs', step: { description: 'Find the price math', script: 'rg -n "toFixed" src/pricing', output: 'src/pricing/total.ts:14:  return total.toFixed(1)\n', ms: 350 } },
-  { part: 'browser', step: { description: 'Look at the pricing page', script: 'T=$(demi browser tab new) && demi browser open $T http://localhost:5173/pricing && demi browser screenshot $T | demi file view', ms: 450 } },
+  { part: 'browser', step: { description: 'Look at the pricing page', script: 'T=$(jush browser tab new) && jush browser open $T http://localhost:5173/pricing && jush browser screenshot $T | jush file view', ms: 450 } },
   { part: 'programs', step: { description: 'Round to cents', script: 'sed -i \'s/toFixed(1)/toFixed(2)/\' src/pricing/total.ts', files: [{ path: 'src/pricing/total.ts', added: 1, removed: 1 }], ms: 300 } },
-  { part: 'device', step: { description: 'Test on the Windows PC', script: 'demi device shell --device "Windows PC" "bun test pricing"', output: '24 pass\n', ms: 500 } },
+  { part: 'device', step: { description: 'Test on the Windows PC', script: 'jush device shell --device "Windows PC" "bun test pricing"', output: '24 pass\n', ms: 500 } },
   'compact',
-  { part: 'agent', step: { description: 'Ask a reviewer', script: 'demi agent spawn --profile review --description "Review the rounding fix" < brief.md', output: 'No issues found.\n', ms: 500 } },
+  { part: 'agent', step: { description: 'Ask a reviewer', script: 'jush agent spawn --profile review --description "Review the rounding fix" < brief.md', output: 'No issues found.\n', ms: 500 } },
   { part: 'programs', step: { description: 'Ship it', script: 'git commit -am "Round prices to cents" && git push', output: 'main -> main\n', ms: 350 } },
 ]
 
@@ -165,25 +165,25 @@ const HELPERS: readonly Helper[] = [
     pieces: ['schedule', 'web', 'notify'],
     ask: 'Tell me when this jacket drops below $120: shop.example.com/jacket',
     description: 'Check the page hourly, notify on a drop',
-    script: `demi schedule create --name "Jacket under $120" --watch 'demi web fetch https://shop.example.com/jacket | grep -o "\\$[0-9]*"' --every 1h <<'EOF'\nIf the jacket is under $120, notify me with demi notify.\nEOF`,
+    script: `jush schedule create --name "Jacket under $120" --watch 'jush web fetch https://shop.example.com/jacket | grep -o "\\$[0-9]*"' --every 1h <<'EOF'\nIf the jacket is under $120, notify me with jush notify.\nEOF`,
     reply: 'I’ll check the price every hour and notify you when it drops.',
-    schedule: scheduled('sc-jacket', 'Jacket under $120', { kind: 'change', command: 'demi web fetch https://shop.example.com/jacket | grep -o "\\$[0-9]*"', everyMinutes: 60 }, 60),
+    schedule: scheduled('sc-jacket', 'Jacket under $120', { kind: 'change', command: 'jush web fetch https://shop.example.com/jacket | grep -o "\\$[0-9]*"', everyMinutes: 60 }, 60),
   },
   {
     name: 'Morning briefing',
     pieces: ['schedule', 'search', 'write', 'speech'],
     ask: 'Read me a news briefing at 7 every morning.',
     description: 'Each morning: search the news, write, read it aloud',
-    script: `demi schedule create --name "Morning briefing" --repeat day --task-at "07:00" <<'EOF'\nSearch today’s news on my topics, write a two-minute briefing, and send it read aloud with demi audio speech.\nEOF`,
+    script: `jush schedule create --name "Morning briefing" --repeat day --task-at "07:00" <<'EOF'\nSearch today’s news on my topics, write a two-minute briefing, and send it read aloud with jush audio speech.\nEOF`,
     reply: 'Every morning at 7 you’ll get a spoken two-minute briefing.',
-    schedule: scheduled('sc-briefing', 'Morning briefing', { kind: 'time', timing: { kind: 'repeat', repeat: { every: 1, unit: 'days', start: null }, tasks: [task('sc-briefing-1', '07:00', [], 'Search today’s news on my topics, write a two-minute briefing, and send it read aloud with demi audio speech.')] } }, 9 * 60),
+    schedule: scheduled('sc-briefing', 'Morning briefing', { kind: 'time', timing: { kind: 'repeat', repeat: { every: 1, unit: 'days', start: null }, tasks: [task('sc-briefing-1', '07:00', [], 'Search today’s news on my topics, write a two-minute briefing, and send it read aloud with jush audio speech.')] } }, 9 * 60),
   },
   {
     name: 'Weekly report',
     pieces: ['schedule', 'git', 'write', 'file'],
     ask: 'Every Friday, turn the week’s commits into a report.',
     description: 'Each Friday: read the git log, write a report',
-    script: `demi schedule create --name "Weekly report" --repeat week --task-at "fri 17:00" <<'EOF'\nSummarize this week’s git log as a report for the team and attach it.\nEOF`,
+    script: `jush schedule create --name "Weekly report" --repeat week --task-at "fri 17:00" <<'EOF'\nSummarize this week’s git log as a report for the team and attach it.\nEOF`,
     reply: 'Every Friday at 5 PM, the week’s report will be here.',
     schedule: scheduled('sc-report', 'Weekly report', { kind: 'time', timing: { kind: 'repeat', repeat: { every: 1, unit: 'weeks', start: null }, tasks: [task('sc-report-1', '17:00', ['fri'], 'Summarize this week’s git log as a report for the team and attach it.')] } }, 3 * 24 * 60),
   },
@@ -220,7 +220,7 @@ export const PROJECTS: SidebarProject[] = [
     id: 'p-notes',
     name: 'notes',
     targetKind: 'cloud',
-    path: '/home/demi/notes',
+    path: '/home/jush/notes',
     savedScope: 'conversation',
     savedCount: 0,
   },
@@ -328,7 +328,7 @@ export const SCENES: Record<DemoId, Scene> = {
   machines: {
     title: 'Weekly sales update',
     sidebar: false,
-    cwd: '/home/demi',
+    cwd: '/home/jush',
     devices: [MACBOOK, WINDOWS_PC, HOME_LAB, VPS],
     async play({ conversation: c, devices, open, compose, card, schedules }) {
       // One conversation on every device at once (`AnywhereStage.vue`): the
@@ -362,7 +362,7 @@ export const SCENES: Record<DemoId, Scene> = {
       await c.send('Summarize this week’s sales for the team update.')
       // Whichever device asks, the work runs on the machine it needs.
       devices.attached = [deviceOf(VPS)]
-      await on('vps', c.shell({ description: 'Pull this week’s orders from the VPS', script: 'demi device shell --device VPS "psql shop -f weekly.sql"', output: '1,284 orders · $48,920\n', ms: 1100 }))
+      await on('vps', c.shell({ description: 'Pull this week’s orders from the VPS', script: 'jush device shell --device VPS "psql shop -f weekly.sql"', output: '1,284 orders · $48,920\n', ms: 1100 }))
       // The phone comes in and takes over.
       at('phone')
       await c.say('This week: **1,284 orders** and **$48,920** in sales, up 12% on last week. Linens sold best.', 1200)
@@ -372,14 +372,14 @@ export const SCENES: Record<DemoId, Scene> = {
       // The tablet comes in as the browser goes: the two work on together.
       at('both')
       devices.attached = [deviceOf(VPS), deviceOf(HOME_LAB)]
-      await on('home-lab', c.shell({ description: 'Draw the chart on the Home Lab', script: 'demi device shell --device "Home Lab" "python chart.py" > sales.png', ms: 1100 }))
+      await on('home-lab', c.shell({ description: 'Draw the chart on the Home Lab', script: 'jush device shell --device "Home Lab" "python chart.py" > sales.png', ms: 1100 }))
       const chart = c.attach({ name: 'sales.png', mediaType: 'image/webp', url: salesChart, size: 21_000, width: 960, height: 600 })
       await c.say(`<attachment id="${chart}" />`, 300)
       c.done()
       await c.wait(500)
       await compose('Looks good. Post it to #team.', 500, 'tablet')
       devices.attached = [deviceOf(VPS), deviceOf(HOME_LAB), deviceOf(MACBOOK)]
-      await on('macbook', c.shell({ description: 'Post it to #team from the MacBook', script: 'demi device shell --device MacBook "slack-post #team update.md"', ms: 900 }))
+      await on('macbook', c.shell({ description: 'Post it to #team from the MacBook', script: 'jush device shell --device MacBook "slack-post #team update.md"', ms: 900 }))
       await c.say('Posted to #team.', 400)
       c.done()
       await c.wait(900)
@@ -390,7 +390,7 @@ export const SCENES: Record<DemoId, Scene> = {
       await compose('Do this every Friday at 5.', 450, 'desktop')
       await on('vps', c.shell({
         description: 'Schedule it on the VPS for Fridays',
-        script: `demi schedule create --name "Weekly sales update" --repeat week --task-at "fri 17:00" <<'EOF'\nSummarize this week’s sales with a chart and post it to #team.\nEOF`,
+        script: `jush schedule create --name "Weekly sales update" --repeat week --task-at "fri 17:00" <<'EOF'\nSummarize this week’s sales with a chart and post it to #team.\nEOF`,
         ms: 700,
       }))
       schedules.value = [...schedules.value, scheduled('sc-sales', 'Weekly sales update', { kind: 'time', timing: { kind: 'repeat', repeat: { every: 1, unit: 'weeks', start: null }, tasks: [task('sc-sales-1', '17:00', ['fri'], 'Summarize this week’s sales with a chart and post it to #team.')] } }, 3 * 24 * 60)]
@@ -406,7 +406,7 @@ export const SCENES: Record<DemoId, Scene> = {
     devices: [MACBOOK, WINDOWS_PC, HOME_LAB, VPS],
     async play({ conversation: c, devices, open, look, shoot, compose }) {
       c.asked('Run the end-to-end tests on every machine, and fix what fails.', 4000)
-      c.ran({ description: 'Attach the machines', script: 'demi device attach "Windows PC" "Home Lab" VPS', ms: 400 })
+      c.ran({ description: 'Attach the machines', script: 'jush device attach "Windows PC" "Home Lab" VPS', ms: 400 })
       devices.attached = [deviceOf(WINDOWS_PC), deviceOf(HOME_LAB), deviceOf(VPS)]
       await shown(c, '[data-block-id]')
       await open(area('steps'))
@@ -436,9 +436,9 @@ export const SCENES: Record<DemoId, Scene> = {
       square()
       const tests = c.together([
         { description: 'Test on the MacBook', script: 'bun test e2e', output: '212 pass\n', ms: 1200 },
-        { description: 'Test on the Windows PC', script: 'demi device shell --device "Windows PC" "bun test e2e"', output: '209 pass\n3 fail\n', exitCode: 1, ms: 1700 },
-        { description: 'Test on the home lab', script: 'demi device shell --device "Home Lab" "bun test e2e"', output: '212 pass\n', ms: 1400 },
-        { description: 'Test on the VPS', script: 'demi device shell --device VPS "bun test e2e"', output: '212 pass\n', ms: 1550 },
+        { description: 'Test on the Windows PC', script: 'jush device shell --device "Windows PC" "bun test e2e"', output: '209 pass\n3 fail\n', exitCode: 1, ms: 1700 },
+        { description: 'Test on the home lab', script: 'jush device shell --device "Home Lab" "bun test e2e"', output: '212 pass\n', ms: 1400 },
+        { description: 'Test on the VPS', script: 'jush device shell --device VPS "bun test e2e"', output: '212 pass\n', ms: 1550 },
       ])
       c.after(1200, () => (lines['macbook'].push('212 pass'), square()))
       c.after(1400, () => (lines['home-lab'].push('212 pass'), square()))
@@ -457,7 +457,7 @@ export const SCENES: Record<DemoId, Scene> = {
       square([traces])
       await c.shell({
         description: 'Copy the failures’ traces here',
-        script: 'demi device shell --device "Windows PC" "tar c traces" | tar x',
+        script: 'jush device shell --device "Windows PC" "tar c traces" | tar x',
         ms: 2200,
       })
       active = ['macbook']
@@ -491,7 +491,7 @@ export const SCENES: Record<DemoId, Scene> = {
       lines['vps'].push('~/shop $ git pull')
       lines['windows-pc'].push('PS C:\\shop> bun test e2e')
       square()
-      await c.shell({ description: 'Retest on the Windows PC', script: 'demi device shell --device "Windows PC" "git pull && bun test e2e"', output: '212 pass\n', ms: 1500 })
+      await c.shell({ description: 'Retest on the Windows PC', script: 'jush device shell --device "Windows PC" "git pull && bun test e2e"', output: '212 pass\n', ms: 1500 })
       lines['windows-pc'].push('212 pass')
       active = ['vps', 'home-lab']
       lines['vps'].push('~/shop $ tar c dist')
@@ -500,7 +500,7 @@ export const SCENES: Record<DemoId, Scene> = {
       square([ship])
       await c.shell({
         description: 'Ship the build to the home lab',
-        script: 'tar c dist | demi device shell --device "Home Lab" "tar x -C /srv/shop"',
+        script: 'tar c dist | jush device shell --device "Home Lab" "tar x -C /srv/shop"',
         ms: 2200,
       })
       lines['home-lab'].push('live')
@@ -521,7 +521,7 @@ export const SCENES: Record<DemoId, Scene> = {
   media: {
     title: 'Make the summer sale teaser',
     sidebar: false,
-    cwd: '/home/demi/teaser',
+    cwd: '/home/jush/teaser',
     async play({ conversation: c, open, look, card }) {
       // The timeline card lays out the whole production from the start, and
       // fills in track by track; each part the agent makes shows in the
@@ -536,15 +536,15 @@ export const SCENES: Record<DemoId, Scene> = {
       const show = (ids: readonly string[]): string => ids.map((id) => `<attachment id="${id}" />`).join('\n')
       const STEPS: readonly { step: ShellStep; reply: () => string }[] = [
         {
-          step: { description: 'Draw the storyboard', script: 'demi image generate "Linen on a sunny shelf, a folded towel, lemonade on the table" --count 3 --aspect 1:1', ms: 1200 },
+          step: { description: 'Draw the storyboard', script: 'jush image generate "Linen on a sunny shelf, a folded towel, lemonade on the table" --count 3 --aspect 1:1', ms: 1200 },
           reply: () => `The storyboard:\n\n${show(STORYBOARD.map((url, n) => attach(`shot-${n + 1}.png`, 'image/webp', url, 31_000, 480)))}`,
         },
         {
-          step: { description: 'Record the voiceover and compose the music', script: 'demi audio speech "Summer at Harbor Goods: twenty percent off every linen." > voice.mp3 && demi audio music "Light acoustic summer tune" --seconds 15 > music.mp3', ms: 1100 },
+          step: { description: 'Record the voiceover and compose the music', script: 'jush audio speech "Summer at Harbor Goods: twenty percent off every linen." > voice.mp3 && jush audio music "Light acoustic summer tune" --seconds 15 > music.mp3', ms: 1100 },
           reply: () => `The voiceover and the music:\n\n${show([attach('voice.mp3', 'audio/mpeg', voiceover, 35_570), attach('music.mp3', 'audio/mpeg', music, 56_468)])}`,
         },
         {
-          step: { description: 'Animate each shot', script: 'for f in shot-*.png; do demi video generate --from "$f" --seconds 5 > "${f%.png}.mp4"; done', ms: 1200 },
+          step: { description: 'Animate each shot', script: 'for f in shot-*.png; do jush video generate --from "$f" --seconds 5 > "${f%.png}.mp4"; done', ms: 1200 },
           reply: () => `A clip from each shot:\n\n${show(CLIPS.map((url, n) => attach(`shot-${n + 1}.mp4`, 'video/mp4', url, 45_000, 480)))}`,
         },
         {
@@ -566,14 +566,14 @@ export const SCENES: Record<DemoId, Scene> = {
   apps: {
     title: 'Check Harbor on iPhone Duo',
     sidebar: false,
-    cwd: '/home/demi',
+    cwd: '/home/jush',
     async play({ conversation: c, work, form, open, look }) {
       c.asked('Sign up for Harbor on iPhone Duo, then check the orders unfolded.', 12_000)
-      c.ran({ description: 'Open iPhone Duo', script: 'demi mobile open "iPhone Duo"', ms: 2200 })
-      c.ran({ description: 'Install Harbor', script: 'demi mobile install m1 build/Harbor.app', output: 'app.harbor.ios\n', ms: 1800 })
+      c.ran({ description: 'Open iPhone Duo', script: 'jush mobile open "iPhone Duo"', ms: 2200 })
+      c.ran({ description: 'Install Harbor', script: 'jush mobile install m1 build/Harbor.app', output: 'app.harbor.ios\n', ms: 1800 })
       // The phone keeps to the conversation; the desktop shows the device beside it, in 3D.
       if (form === 'desktop') {
-        // `demi mobile open` shows the device in its window, as the product's does.
+        // `jush mobile open` shows the device in its window, as the product's does.
         await work.mobile.agentOpens('iPhone Duo')
         work.select(work.tabsState.value.tabs.find((tab) => tab.kind === 'mobile')?.id ?? 'mobile')
         press(await shownText(c, '[data-work-window] [role="tab"]', 'Duo'))
@@ -587,10 +587,10 @@ export const SCENES: Record<DemoId, Scene> = {
       }
       // The steps keep time with the film: closed, the button pressed; half
       // open; an order picked; open flat.
-      await c.shell({ description: 'Tap Sign Up', script: 'demi mobile tap m1 text="Sign Up"', ms: 1000 })
-      await c.shell({ description: 'Unfold it halfway', script: 'demi mobile fold m1 half-open', ms: 1100 })
-      await c.shell({ description: 'Open the towels’ order', script: 'demi mobile tap m1 text="Towels, set of 4"', ms: 1100 })
-      await c.shell({ description: 'Open it flat', script: 'demi mobile fold m1 open', ms: 900 })
+      await c.shell({ description: 'Tap Sign Up', script: 'jush mobile tap m1 text="Sign Up"', ms: 1000 })
+      await c.shell({ description: 'Unfold it halfway', script: 'jush mobile fold m1 half-open', ms: 1100 })
+      await c.shell({ description: 'Open the towels’ order', script: 'jush mobile tap m1 text="Towels, set of 4"', ms: 1100 })
+      await c.shell({ description: 'Open it flat', script: 'jush mobile fold m1 open', ms: 900 })
       void look(area('conversation'))
       await c.say('Signed up, and the orders read well on both the cover and the open display.', 600)
       c.done()
@@ -598,7 +598,7 @@ export const SCENES: Record<DemoId, Scene> = {
   },
   pieces: {
     title: 'Little helpers',
-    cwd: '/home/demi',
+    cwd: '/home/jush',
     sidebar: false,
     async play({ conversation: c, schedules, open, look, card }) {
       // Each request snaps a few of the same pieces together, which the card
@@ -631,13 +631,13 @@ export const SCENES: Record<DemoId, Scene> = {
       const watch = HELPERS[0]!
       await c.fired('The jacket’s page changed.', { id: watch.schedule.id, name: watch.schedule.name })
       void look(area('later'))
-      const fetched = c.shell({ description: 'Read the price', script: 'demi web fetch https://shop.example.com/jacket | grep -o "\\$[0-9]*"', output: '$109\n', ms: 700 })
+      const fetched = c.shell({ description: 'Read the price', script: 'jush web fetch https://shop.example.com/jacket | grep -o "\\$[0-9]*"', output: '$109\n', ms: 700 })
       show(0)
       await c.wait(350)
       show(1)
       await fetched
       show(2)
-      await c.shell({ description: 'Tell you', script: 'demi notify "The jacket is $109 now" --url https://shop.example.com/jacket', ms: 400 })
+      await c.shell({ description: 'Tell you', script: 'jush notify "The jacket is $109 now" --url https://shop.example.com/jacket', ms: 400 })
       await c.say('The jacket dropped to **$109**. I sent the link to your phone.', 400)
       c.done()
       show(null)
@@ -668,7 +668,7 @@ export const SCENES: Record<DemoId, Scene> = {
       choice: { type: 'workflow', id: 'review' },
       list: {
         state: 'read',
-        workflows: [{ id: 'review', name: 'Review before merge', path: `${TIDEPOOL_PROJECT}/.demi/workflows/review.yaml`, unavailable: null, profiles: ['reviewer'], userProfiles: true }],
+        workflows: [{ id: 'review', name: 'Review before merge', path: `${TIDEPOOL_PROJECT}/.jush/workflows/review.yaml`, unavailable: null, profiles: ['reviewer'], userProfiles: true }],
       },
     },
     play: release,
@@ -680,7 +680,7 @@ export const SCENES: Record<DemoId, Scene> = {
  *
  * The fix is made and tested on the Mac in the browser; then the stage cuts to
  * each machine as the agent's work reaches it, the Windows PC for the
- * tests, the VPS and the home lab for the rollout, from the user's own Demi
+ * tests, the VPS and the home lab for the rollout, from the user's own Jush
  * server. The desktop's tab closes halfway and the phone carries on to the
  * notification; the tab opens again on the finished conversation, and the
  * stage ends on every machine at once.
@@ -707,7 +707,7 @@ async function release({ conversation: c, devices, open, look, shoot, compose }:
   mac.lines = ['% rg -n "join" src/paths.rs', 'src/paths.rs:42:  a + "/" + b']
   desk(mac)
   await c.shell({ description: 'Find where sync paths are joined', script: 'rg -n "join" src/paths.rs', output: 'src/paths.rs:42:  a + "/" + b\n', ms: 1100 })
-  await c.shell({ description: 'Attach the Windows PC and the VPS', script: 'demi device attach "Windows PC" && demi device attach VPS', ms: 300 })
+  await c.shell({ description: 'Attach the Windows PC and the VPS', script: 'jush device attach "Windows PC" && jush device attach VPS', ms: 300 })
   devices.attached = [deviceOf(WINDOWS_PC), deviceOf(VPS)]
 
   // The Windows PC shows the bug.
@@ -715,17 +715,17 @@ async function release({ conversation: c, devices, open, look, shoot, compose }:
   desk(win)
   await c.shell({
     description: 'Reproduce the bug on the Windows PC',
-    script: 'demi device shell --device "Windows PC" "cargo test paths"',
+    script: 'jush device shell --device "Windows PC" "cargo test paths"',
     output: 'test paths::join ... FAILED\n',
     ms: 2900,
   })
 
   // Back on the Mac: the fix, its tests and the push.
-  mac.lines.push('% demi file edit src/paths.rs')
+  mac.lines.push('% jush file edit src/paths.rs')
   desk(mac)
   await c.shell({
     description: 'Join the sync paths with the platform’s separator',
-    script: 'demi file edit src/paths.rs tests/paths.rs',
+    script: 'jush file edit src/paths.rs tests/paths.rs',
     files: [{ path: 'src/paths.rs', added: 4, removed: 2 }, { path: 'tests/paths.rs', added: 18, removed: 0 }],
     ms: 900,
   })
@@ -743,7 +743,7 @@ async function release({ conversation: c, devices, open, look, shoot, compose }:
   desk(win)
   await c.shell({
     description: 'Run the tests on the Windows PC',
-    script: 'demi device shell --device "Windows PC" "git pull && cargo test"',
+    script: 'jush device shell --device "Windows PC" "git pull && cargo test"',
     output: 'test result: ok. 212 passed; 0 failed\n',
     ms: 2200,
   })
@@ -766,7 +766,7 @@ async function release({ conversation: c, devices, open, look, shoot, compose }:
   void look(null)
   const deploy = c.shell({
     description: 'Deploy v1.4.0 on the VPS',
-    script: 'demi device shell --device VPS "docker compose pull && docker compose up -d"',
+    script: 'jush device shell --device VPS "docker compose pull && docker compose up -d"',
     output: 'Container tidepool-server-1  Started\n',
     ms: 2200,
   })
@@ -778,7 +778,7 @@ async function release({ conversation: c, devices, open, look, shoot, compose }:
   vps.lines.push('✓ healthy · 1.4.0')
   vps.done = true
   away(vps)
-  await c.shell({ description: 'Attach the Home Lab', script: 'demi device attach "Home Lab"', ms: 1100 })
+  await c.shell({ description: 'Attach the Home Lab', script: 'jush device attach "Home Lab"', ms: 1100 })
   devices.attached = [deviceOf(WINDOWS_PC), deviceOf(VPS), deviceOf(HOME_LAB)]
 
   // The home lab comes up beside the VPS, takes its data, and updates.
@@ -787,7 +787,7 @@ async function release({ conversation: c, devices, open, look, shoot, compose }:
   away(vps, homeLab)
   await c.shell({
     description: 'Copy the database from the VPS to the Home Lab',
-    script: 'demi device shell --device VPS "pg_dump tidepool" | demi device shell --device "Home Lab" "psql tidepool"',
+    script: 'jush device shell --device VPS "pg_dump tidepool" | jush device shell --device "Home Lab" "psql tidepool"',
     ms: 1300,
   })
   vps.lines.push('✓ sent 48 MB')
@@ -796,7 +796,7 @@ async function release({ conversation: c, devices, open, look, shoot, compose }:
   away(vps, homeLab)
   await c.shell({
     description: 'Update the Home Lab',
-    script: 'demi device shell --device "Home Lab" "docker compose up -d && docker compose exec server tidepool migrate"',
+    script: 'jush device shell --device "Home Lab" "docker compose up -d && docker compose exec server tidepool migrate"',
     output: 'Applied 2 migrations\n',
     ms: 1000,
   })

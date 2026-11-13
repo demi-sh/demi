@@ -4,7 +4,7 @@
  */
 
 import type { InjectionKey } from 'vue'
-import { clamp } from '@demicodes/utils'
+import { clamp } from '@jush-ai/utils'
 import { prefersReducedMotion } from '../ui/stream-reveal'
 
 /**

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import { ChangeView, baseName, joinPath, treeLayout, usePage, usePaneReady, type RepositoryEntry, type TabUpdate } from '@demicodes/plugin-sdk'
+import { ChangeView, baseName, joinPath, treeLayout, usePage, usePaneReady, type RepositoryEntry, type TabUpdate } from '@jush-ai/plugin-sdk'
 import {
   changePath,
   changeView,

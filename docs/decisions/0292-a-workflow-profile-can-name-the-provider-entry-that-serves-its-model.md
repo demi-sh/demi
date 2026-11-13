@@ -16,7 +16,7 @@ list to move one profile moves every profile and the user's own menus.
 ## Decision
 
 A profile takes an optional `provider`, one of the user's provider entries
-by its name, as `demi providers list` shows it and Settings › Providers
+by its name, as `jush providers list` shows it and Settings › Providers
 names it, or by its id:
 
 ```yaml
@@ -39,13 +39,13 @@ pub struct WorkflowProfile {
 * It needs `model`, as `effort`, `tier` and `context` do.
 * With it, that entry serves the model; without it, the first entry that
   offers the model does, as now.
-* It finds the entry as `demi agent profiles create --provider` does, with
+* It finds the entry as `jush agent profiles create --provider` does, with
   the same code: an id first, else the one entry of that name. A name two
   entries share is refused with both ids, since names are the user's to
   repeat.
 * An entry it doesn't find, one that is hidden, or one whose model is
   hidden or cannot be used, makes the profile unavailable with the reason,
-  as a model no entry offers does now: `demi agent profiles list` shows
+  as a model no entry offers does now: `jush agent profiles list` shows
   it, and its spawns fail with it. `profiles list` and `show` name the
   entry a workflow's profile runs on, as they name a user's profile's.
 * A name first: the file is written and read by people and kept in a

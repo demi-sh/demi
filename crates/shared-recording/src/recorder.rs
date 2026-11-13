@@ -38,7 +38,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use demi_shared_recording_protocol::{
+use jush_shared_recording_protocol::{
     Area, EndReason, Input, InputRow, MAX_BYTES, MAX_DURATION, RecordingId, RecordingInfo,
 };
 use tokio_util::sync::CancellationToken;
@@ -351,7 +351,7 @@ pub(crate) fn start(
         deadline_reason: limit.1,
     };
     std::thread::Builder::new()
-        .name("demi-recording".into())
+        .name("jush-recording".into())
         .spawn(move || writer.run())
         .map_err(|error| Error::Failed(format!("the recording's thread did not start: {error}")))?;
     Ok(Live {

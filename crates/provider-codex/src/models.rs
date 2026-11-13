@@ -7,17 +7,17 @@
 //!
 //! - `max_context_window` is not read: Codex sends no field that chooses a
 //!   window, so a window above the one the service states may not be served,
-//!   and Demi offers no way past it.
+//!   and Jush offers no way past it.
 //! - There is no Off option: omitting reasoning gets Codex's default instead of
 //!   turning reasoning off.
 
 use std::num::NonZeroU32;
 
-use demi_provider_common::{
+use jush_provider_common::{
     CatalogError, refusal_words,
     wire::{NonEmpty, decode_untagged},
 };
-use demi_shared_types::{Clock, ProviderModel, ProviderModelList, ServiceTier};
+use jush_shared_types::{Clock, ProviderModel, ProviderModelList, ServiceTier};
 use http::{HeaderValue, StatusCode, header::ACCEPT};
 use reqwest::Url;
 use serde::{Deserialize, Deserializer};
@@ -115,7 +115,7 @@ struct ModelsAnswer {
     models: Vec<CodexModel>,
 }
 
-/// One model as the backend describes it; only the fields Demi reads.
+/// One model as the backend describes it; only the fields Jush reads.
 #[derive(Deserialize)]
 struct CodexModel {
     slug: NonEmpty,
@@ -188,7 +188,7 @@ impl CodexModel {
             // images alone (`crates/shared-types/src/model.rs`).
             accepted_extensions: images.map(|images| {
                 if images {
-                    demi_shared_types::IMAGE_FILE_EXTENSIONS.to_vec()
+                    jush_shared_types::IMAGE_FILE_EXTENSIONS.to_vec()
                 } else {
                     Vec::new()
                 }

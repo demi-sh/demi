@@ -5,7 +5,7 @@
 //! device and hands the waiting runner its token, and the runner's socket moves
 //! into the user's shard. Each user may try ten codes a minute.
 //!
-//! An agent pairs a computer it reaches without the user typing the code (`demi
+//! An agent pairs a computer it reaches without the user typing the code (`jush
 //! device pair`): the code is proof enough, since it reaches only the runner's
 //! output and its log, which only an account that runs commands on that
 //! computer reads, so an agent holding it already controls the computer.
@@ -14,17 +14,17 @@ use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::devices::DeviceRecord;
-use demi_runner_protocol::values::DeviceToken;
-use demi_runner_protocol::wire::RunnerInfo;
-use demi_web_api_protocol::devices::DeviceDto;
-use demi_web_api_protocol::ids::UserId;
+use jush_backend_database::StorageError;
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::devices::DeviceRecord;
+use jush_runner_protocol::values::DeviceToken;
+use jush_runner_protocol::wire::RunnerInfo;
+use jush_web_api_protocol::devices::DeviceDto;
+use jush_web_api_protocol::ids::UserId;
 use tokio::sync::oneshot;
 
-use demi_shared_gates::RateWindow;
+use jush_shared_gates::RateWindow;
 
 use crate::codes::{ClaimCode, new_device_token};
 
@@ -98,7 +98,7 @@ impl PendingClaims {
     /// Pairs the runner waiting under `code`, spelled as a person types it,
     /// with `user`: the device is made, its token goes to that runner alone,
     /// and the answer is the device once the runner's socket is bound in the
-    /// user's shard. Add Device's `POST /devices/claim` and `demi device pair`
+    /// user's shard. Add Device's `POST /devices/claim` and `jush device pair`
     /// both claim this way.
     pub async fn claim(
         &self,

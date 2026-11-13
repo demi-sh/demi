@@ -1,5 +1,5 @@
 [package]
-name = "demi-provider-minimax"
+name = "jush-provider-minimax"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,8 +12,8 @@ test = false
 bench = false
 
 [dependencies]
-demi-shared-types = { path = "../shared-types" }
-demi-provider-common = { path = "../provider-common" }
+jush-shared-types = { path = "../shared-types" }
+jush-provider-common = { path = "../provider-common" }
 bytes.workspace = true
 futures-util.workspace = true
 reqwest = { workspace = true, features = ["rustls"] }

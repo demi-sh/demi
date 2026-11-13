@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import { RegionStatus } from '@demicodes/plugin-sdk'
+import { RegionStatus } from '@jush-ai/plugin-sdk'
 import type { MobileDevicesController } from './controller'
 import { t } from '../locales/text'
 

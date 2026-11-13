@@ -8,7 +8,7 @@
 use std::sync::LazyLock;
 
 use data_encoding::{BitOrder, Encoding, Specification};
-use demi_runner_protocol::values::DeviceToken;
+use jush_runner_protocol::values::DeviceToken;
 
 /// Crockford's base32: no `I`, `L`, `O` or `U`, so a code reads aloud and
 /// types without confusion. Decoding takes either case, reads `O` as `0` and

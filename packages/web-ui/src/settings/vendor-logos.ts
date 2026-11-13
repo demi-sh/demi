@@ -32,14 +32,14 @@ function mark(id: string): string | null {
   return MARKS[`./logos/${id}.svg`] ?? null
 }
 
-/** The mark of vendor `vendorId`; null when Demi has none for it. */
+/** The mark of vendor `vendorId`; null when Jush has none for it. */
 export function vendorLogo(vendorId: string | null): string | null {
   return vendorId ? mark(WORN[vendorId] ?? vendorId) : null
 }
 
 /**
  * The mark of a provider entry: a subscription's by its provider type, an
- * API key's by its vendor; null for a bare endpoint or a vendor Demi has no
+ * API key's by its vendor; null for a bare endpoint or a vendor Jush has no
  * mark for.
  */
 export function providerLogo(entry: {

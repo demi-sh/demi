@@ -14,7 +14,7 @@
 use std::sync::LazyLock;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use demi_runner_protocol::wire::ReadAt;
+use jush_runner_protocol::wire::ReadAt;
 
 static COUNT: AtomicU64 = AtomicU64::new(0);
 

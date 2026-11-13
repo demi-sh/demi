@@ -10,12 +10,12 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::saved::ScopeSwitch;
-use demi_backend_database::projects::{ProjectChange, ProjectCreation, new_project_id};
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::ProjectId;
-use demi_web_api_protocol::projects::{
+use jush_backend_database::saved::ScopeSwitch;
+use jush_backend_database::projects::{ProjectChange, ProjectCreation, new_project_id};
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::ProjectId;
+use jush_web_api_protocol::projects::{
     ChangeProject, CreateProject, SavedScopeSwitch, ProjectAnswer, Projects,
 };
 
@@ -23,8 +23,8 @@ use super::AppState;
 use super::body::JsonBody;
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_user_shard::conversation::CloudProject;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::conversation::CloudProject;
+use jush_backend_user_shard::services::Services;
 
 pub(super) async fn list(
     State(services): State<Arc<Services>>,

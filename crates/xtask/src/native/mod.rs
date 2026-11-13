@@ -22,7 +22,7 @@ pub use package::{Caches, Spec, Versioning, package, split};
 
 use std::path::{Path, PathBuf};
 
-use demi_command_protocol::TARGETS;
+use jush_command_protocol::TARGETS;
 
 /// Where the builds go and the packaging reads them, unless `--artifacts`
 /// names another Cargo target directory.
@@ -96,7 +96,7 @@ pub enum Error {
         path: PathBuf,
     },
     #[error(
-        "demi-mobile for aarch64-apple-darwin carries the iOS helper, which only a Mac with Xcode builds; build that target on a Mac, outside the container"
+        "jush-mobile for aarch64-apple-darwin carries the iOS helper, which only a Mac with Xcode builds; build that target on a Mac, outside the container"
     )]
     IosHelperNeedsMac,
     #[error("the release record is invalid: {0}")]
@@ -104,7 +104,7 @@ pub enum Error {
     #[error("{} holds another file of that name: the files directory belongs to another build", .0.display())]
     OtherFile(PathBuf),
     #[error(transparent)]
-    Artifact(#[from] demi_shared_artifacts::Error),
+    Artifact(#[from] jush_shared_artifacts::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -113,23 +113,23 @@ pub enum Error {
 /// package.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum Executable {
-    #[value(name = "demi-runner")]
+    #[value(name = "jush-runner")]
     Runner,
-    #[value(name = "demi-file")]
+    #[value(name = "jush-file")]
     File,
-    #[value(name = "demi-fetch")]
+    #[value(name = "jush-fetch")]
     Fetch,
-    #[value(name = "demi-browser")]
+    #[value(name = "jush-browser")]
     Browser,
-    #[value(name = "demi-claude-code")]
+    #[value(name = "jush-claude-code")]
     Claude,
-    #[value(name = "demi-mobile")]
+    #[value(name = "jush-mobile")]
     Mobile,
-    #[value(name = "demi-backend")]
+    #[value(name = "jush-backend")]
     Backend,
-    #[value(name = "demi-machine-manager")]
+    #[value(name = "jush-machine-manager")]
     Machines,
-    #[value(name = "demi-server")]
+    #[value(name = "jush-server")]
     Server,
 }
 
@@ -156,15 +156,15 @@ impl Executable {
     /// The Cargo package, which is also the executable's name.
     pub fn name(self) -> &'static str {
         match self {
-            Self::Runner => demi_runner_protocol::release::RUNNER,
-            Self::File => "demi-file",
-            Self::Fetch => "demi-fetch",
-            Self::Browser => "demi-browser",
-            Self::Claude => "demi-claude-code",
-            Self::Mobile => "demi-mobile",
-            Self::Backend => "demi-backend",
-            Self::Machines => "demi-machine-manager",
-            Self::Server => "demi-server",
+            Self::Runner => jush_runner_protocol::release::RUNNER,
+            Self::File => "jush-file",
+            Self::Fetch => "jush-fetch",
+            Self::Browser => "jush-browser",
+            Self::Claude => "jush-claude-code",
+            Self::Mobile => "jush-mobile",
+            Self::Backend => "jush-backend",
+            Self::Machines => "jush-machine-manager",
+            Self::Server => "jush-server",
         }
     }
 
@@ -200,7 +200,7 @@ impl Executable {
                 "x86_64-unknown-linux-musl",
             ],
             // gVisor, namespaces, cgroups, loop devices and nftables exist
-            // only on Linux, and so do the servers demi-server installs.
+            // only on Linux, and so do the servers jush-server installs.
             Self::Machines | Self::Server => {
                 &["aarch64-unknown-linux-musl", "x86_64-unknown-linux-musl"]
             }

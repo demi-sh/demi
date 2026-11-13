@@ -4,7 +4,7 @@ import { computed, ref } from 'vue'
 import { z } from 'zod'
 import SettingsSkills from './SettingsSkills.vue'
 import type { AddSourceAnswer, SettingsSkillDevice, SettingsSkillDraft, SettingsSkillFetcher, SettingsSkillSource } from './types'
-import { formatBytes, PluginCallError, usePage, type HeadlineText } from '@demicodes/plugin-sdk'
+import { formatBytes, PluginCallError, usePage, type HeadlineText } from '@jush-ai/plugin-sdk'
 import {
   addedSourceSchema,
   skillsStateSchema,
@@ -36,7 +36,7 @@ const plugin = page.plugin
 const state = plugin.state(skillsStateSchema)
 
 /**
- * Why the last fetch failed, in the page's words: one of Demi's finds, or
+ * Why the last fetch failed, in the page's words: one of Jush's finds, or
  * git's or the system's own words, as they came.
  */
 function fetchFailure(failure: Failure): string {

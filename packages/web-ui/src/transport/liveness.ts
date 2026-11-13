@@ -140,7 +140,7 @@ function reconnectWait(failures: number): number {
  *   not a failure of the page: its owner connects again.
  */
 export function openSocket(url: string | URL, name: string): WebSocket {
-  // The page names its load in the URL, as in `X-Demi-Page` of its requests.
+  // The page names its load in the URL, as in `X-Jush-Page` of its requests.
   const target = new URL(url, globalThis.location?.href)
   target.searchParams.set(PAGE_PARAMETER, PAGE_ID)
   const socket = new WebSocket(target)

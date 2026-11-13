@@ -11,7 +11,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     credentials::{
         AccountKit, AccountsCapability, LoginError, LoginIo, LoginKind, NewAccount,
@@ -20,7 +20,7 @@ use demi_provider_common::{
     oauth::{PollInterval, ResponseError, decode_json_response},
     wire::NonEmpty,
 };
-use demi_shared_types::{Clock, LoginPending};
+use jush_shared_types::{Clock, LoginPending};
 use futures_util::future::BoxFuture;
 use reqwest::{StatusCode, Url, header::CONTENT_TYPE};
 use serde::Deserialize;
@@ -29,7 +29,7 @@ use crate::auth::{AccountId, CLIENT_ID, CodexSecret, token_account};
 
 /// What Codex adds to the account operations: its device login.
 pub(crate) struct CodexKit {
-    pub(crate) http: demi_provider_common::ProviderHttp,
+    pub(crate) http: jush_provider_common::ProviderHttp,
     /// The sign-in service, such as `https://auth.openai.com`.
     pub(crate) auth_url: Url,
     pub(crate) clock: Arc<dyn Clock>,
@@ -55,7 +55,7 @@ impl AccountKit for CodexKit {
 
 impl CodexKit {
     fn url(&self, path: &str) -> Url {
-        demi_provider_common::endpoint_url(&self.auth_url, path)
+        jush_provider_common::endpoint_url(&self.auth_url, path)
     }
 
     async fn device_login(
@@ -195,7 +195,7 @@ impl CodexKit {
     }
 }
 
-fn transport(error: impl Into<demi_provider_common::SendError>) -> LoginError {
+fn transport(error: impl Into<jush_provider_common::SendError>) -> LoginError {
     LoginError::Failed(format!(
         "Codex sign-in request failed: {}",
         error.into().without_url()

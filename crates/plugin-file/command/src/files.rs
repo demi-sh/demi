@@ -1,7 +1,7 @@
 //! The `file.*` operations: showing the model a file, and creating, editing or
 //! patching files one mutation at a time.
 //!
-//! `demi file view` hands each file it names (or its stdin) to its job as one
+//! `jush file view` hands each file it names (or its stdin) to its job as one
 //! medium and writes nothing to its stdout. A medium goes to the model through
 //! the command that was asked to show it, never through where its bytes happen
 //! to flow. A file a script only copies, pipes or saves never reaches the
@@ -12,7 +12,7 @@
 //!   written. A line a command prints stands for a picture the model will see,
 //!   and one cut short fails the command.
 //! - The media types the model reads come with the job when the backend starts
-//!   it. A job that `demi device shell` starts on another device carries none,
+//!   it. A job that `jush device shell` starts on another device carries none,
 //!   since its output is relayed and no result reports its end.
 
 use std::{
@@ -21,18 +21,18 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_command_package_file_protocol::{EditArgsError, Operation, PatchArgs, ViewArgs};
-use demi_command_protocol::{
+use jush_command_package_file_protocol::{EditArgsError, Operation, PatchArgs, ViewArgs};
+use jush_command_protocol::{
     CommandError, Completion, MAX_MEDIUM_BYTES, is_binary, sniff_media_type,
 };
-use demi_command_sdk::{
+use jush_command_sdk::{
     InvocationContext, ResidentError,
     errors::reason,
     edits::{Recorder, Recording},
 };
-use demi_shared_artifacts::{Mode, Permissions, Publication};
-use demi_shared_gates::SerialGate;
-use demi_shared_types::DecodeError;
+use jush_shared_artifacts::{Mode, Permissions, Publication};
+use jush_shared_gates::SerialGate;
+use jush_shared_types::DecodeError;
 use tokio::io::AsyncReadExt;
 use tokio_util::sync::CancellationToken;
 
@@ -58,7 +58,7 @@ pub enum FileError {
     #[error("{}", reason(.0))]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    Publication(#[from] demi_shared_artifacts::Error),
+    Publication(#[from] jush_shared_artifacts::Error),
     #[error("a text file; read it with cat {0}")]
     Text(String),
     #[error("not an image, a video or a PDF ({0} bytes)")]
@@ -66,14 +66,14 @@ pub enum FileError {
     #[error("{:.1} MiB; a medium is at most 16 MiB", *.0 as f64 / (1024.0 * 1024.0))]
     TooLarge(u64),
     #[error(transparent)]
-    Undecodable(#[from] demi_shared_types::whole_image::Undecodable),
+    Undecodable(#[from] jush_shared_types::whole_image::Undecodable),
     #[error("this conversation's model, {model}, does not read {media_type} in a tool result")]
     NotViewable { model: String, media_type: String },
     #[error(
         "it is not known which files this conversation's model, {0}, reads; its provider entry can name them"
     )]
     UnknownTypes(String),
-    #[error("a job on another device shows the model nothing; pipe its bytes into demi file view in your own script")]
+    #[error("a job on another device shows the model nothing; pipe its bytes into jush file view in your own script")]
     NoModel,
     #[error("File has no parent directory")]
     NoParent,
@@ -247,7 +247,7 @@ async fn view(mut context: InvocationContext, args: &ViewArgs) -> Result<Complet
 /// Shows the model the file at `path`. A file over the medium bound is
 /// judged by its first bytes, so a large text file still names `cat`.
 async fn view_file(context: &InvocationContext, path: &str) -> Result<(), FileError> {
-    let resolved = demi_command_sdk::paths::resolve(&context.request.cwd, path)?;
+    let resolved = jush_command_sdk::paths::resolve(&context.request.cwd, path)?;
     let mut file = tokio::fs::File::open(resolved).await?;
     let size = file.metadata().await?.len();
     if size > MAX_MEDIUM_BYTES {
@@ -420,12 +420,12 @@ pub(crate) fn atomic_write(path: &Path, bytes: &[u8], create: bool) -> Result<()
             durable: true,
         }
     };
-    demi_shared_artifacts::publish_bytes_blocking(&destination, bytes, publication)?;
+    jush_shared_artifacts::publish_bytes_blocking(&destination, bytes, publication)?;
     Ok(())
 }
 
 pub(crate) fn resolve(cwd: &str, path: &str) -> Result<PathBuf, FileError> {
-    Ok(demi_command_sdk::paths::resolve(cwd, path)?)
+    Ok(jush_command_sdk::paths::resolve(cwd, path)?)
 }
 
 /// The full path an error names for the resolved `path`: its parent

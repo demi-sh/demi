@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provideEditSelection, type EditSelectionHandler } from '@demicodes/web-ui/agent/edit-selection'
+import { provideEditSelection, type EditSelectionHandler } from '@jush-ai/web-ui/agent/edit-selection'
 
 /**
  * What the file pills below open: `select`, or nothing at all, as with the

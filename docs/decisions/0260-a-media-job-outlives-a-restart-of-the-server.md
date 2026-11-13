@@ -10,7 +10,7 @@ the answer over the video at an address.
 
 ## Problem
 
-Alex's agent runs `demi video generate` for a 10-second shot with Gemini
+Alex's agent runs `jush video generate` for a 10-second shot with Gemini
 Omni, which takes about a minute and costs about a dollar. Google takes the
 job. Fifteen seconds later the server's operator updates the server, and
 the backend restarts. The command ends with
@@ -19,7 +19,7 @@ the backend restarts. The command ends with
 error: i/o error: stream closed because of a broken pipe
 ```
 
-and writes an empty file. Nothing remains of the job in Demi, so the agent
+and writes an empty file. Nothing remains of the job in Jush, so the agent
 cannot get the video: it tries Google's API by hand with the key, schedules
 a check every minute, and finds nothing. Alex pays for the video and for
 the one asked again.
@@ -42,9 +42,9 @@ gets its video.** The agent sees the restart as a line on the command's
 stderr, and the video arrives as it would have:
 
 ```text
-demi video generate: asked gemini-omni-1.1-flash (Google AI Studio), job v1_ChdOR…
-demi video generate: running
-demi video generate: reconnected; following job v1_ChdOR… again
+jush video generate: asked gemini-omni-1.1-flash (Google AI Studio), job v1_ChdOR…
+jush video generate: running
+jush video generate: reconnected; following job v1_ChdOR… again
 5 s 1280×720 MP4 with sound from gemini-omni-1.1-flash (Google AI Studio), $0.48
 ```
 
@@ -62,7 +62,7 @@ as it does today:
 | Speech | Google, MiniMax, Doubao Speech | OpenAI, ElevenLabs, BytePlus Speech |
 | Music and sound effects | Google | ElevenLabs, ByteDance's Seed Audio |
 
-A provider another Demi borrows (0245) works the same: the borrower's
+A provider another Jush borrows (0245) works the same: the borrower's
 backend keeps the video's job and follows it through the lender, and an
 image or a sound over the loan stays one request.
 
@@ -185,7 +185,7 @@ Each point ran against the vendor with a paid key. The Gemini videos were
 - **A dropped stream.** A streamed request whose connection was closed 12
   seconds in still made its video, which a read by its id returned. One
   job dropped by a backend's restart never did, and Google documents no
-  rule for either, so Demi does not rely on it.
+  rule for either, so Jush does not rely on it.
 - **A Gemini image in the background.** `gemini-3.1-flash-lite-image` with
   `background: true` read `completed` within seconds, with its image in the
   interaction.
@@ -206,7 +206,7 @@ Each point ran against the vendor with a paid key. The Gemini videos were
   `/v1/t2a_async_v2` answered a task id at once and read `Success` in 5
   seconds; its file is a TAR of the audio and its timing.
 - **Doubao speech, a long-text job.** `/api/v3/tts/submit` took the key,
-  model and speaker Demi sends `/api/v3/tts/unidirectional` today
+  model and speaker Jush sends `/api/v3/tts/unidirectional` today
   (`X-Api-Key`, `seed-tts-2.0`, a Seed speech 2.0 speaker) and answered a
   `task_id` with `task_status` 1; `/api/v3/tts/query` read 2, done, within
   6 seconds, with the audio's address. Doubao Speech keeps the audio for 7
@@ -235,7 +235,7 @@ Each point ran against the vendor with a paid key. The Gemini videos were
   (`packages/database/src/schemas/asyncTask.ts`,
   `apps/server/src/services/generation/videoBackgroundPolling.ts` in
   [lobehub/lobehub](https://github.com/lobehub/lobehub)). Its Omni requests
-  are `background: true` with `delivery: "uri"`, edits included. Demi
+  are `background: true` with `delivery: "uri"`, edits included. Jush
   follows the same shape; it does not take webhooks, since polling works
   for every vendor and needs no address the vendor can reach.
 - Google's and OpenAI's guides to background work both say to keep the

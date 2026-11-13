@@ -178,14 +178,14 @@ Where this departs:
 
 * VS Code and Zed keep finding files by name (Quick Open, ⌘P) apart from
   searching their text, which has toggles for case, words and patterns, and
-  globs of files. Demi has one field for both, as the conversations' search
+  globs of files. Jush has one field for both, as the conversations' search
   finds a conversation by its title or its messages, and no options.
 * Zed detects a file's encoding and decodes it, so a Latin-1 `café` is
-  found and shown as such. Demi searches what Files shows, which decodes
+  found and shown as such. Jush searches what Files shows, which decodes
   only UTF-8.
-* Zed and VS Code list every match. Demi lists each file once, with its
+* Zed and VS Code list every match. Jush lists each file once, with its
   first line that matches, since what the user does next is open it.
-* Zed sorts results in the runner. Demi lets the walk run in parallel and
+* Zed sorts results in the runner. Jush lets the walk run in parallel and
   sorts on the page.
 
 ## Alternatives

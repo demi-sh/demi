@@ -35,15 +35,15 @@
 
 use std::rc::Rc;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::devices::DeviceRecord;
-use demi_backend_database::managed::ManagedOperation;
-use demi_machine_manager_protocol::{
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::devices::DeviceRecord;
+use jush_backend_database::managed::ManagedOperation;
+use jush_machine_manager_protocol::{
     Capacity, CurrentBaseVersionParams, ReconcileParams, ResetParams,
 };
-use demi_web_api_protocol::cloud::ResetPhase;
-use demi_web_api_protocol::ids::{DeviceId, OperationId};
+use jush_web_api_protocol::cloud::ResetPhase;
+use jush_web_api_protocol::ids::{DeviceId, OperationId};
 use tokio::time::Instant;
 
 use crate::machine::{CloudError, Machine, Phase};

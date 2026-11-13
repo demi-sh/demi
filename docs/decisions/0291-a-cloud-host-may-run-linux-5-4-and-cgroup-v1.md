@@ -6,7 +6,7 @@ status: proposed
 
 ## Problem
 
-An operator sets up Demi Cloud on a server that runs Debian 10, with Linux
+An operator sets up Jush Cloud on a server that runs Debian 10, with Linux
 5.4, booted with `systemd.unified_cgroup_hierarchy=0` for an older Docker,
 so it has the cgroup v1 hierarchies and no unified one. The setup guide asks
 for Linux 5.14 and cgroup v2, and the manager agrees: `--check-host` fails

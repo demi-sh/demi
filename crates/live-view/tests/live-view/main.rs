@@ -6,7 +6,7 @@
 
 use std::time::Duration;
 
-use demi_live_view::testing::{Scenario, run};
+use jush_live_view::testing::{Scenario, run};
 
 const SECOND: Duration = Duration::from_secs(1);
 

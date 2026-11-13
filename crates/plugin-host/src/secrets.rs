@@ -3,7 +3,7 @@
 //!
 //! The product's one owner of sealing seals them at rest, with the plugin, the
 //! user and the secret's name as the additional data. The plugin reads only the
-//! names [`SecretName`](demi_plugin_interface::SecretName) allows. The host
+//! names [`SecretName`](jush_plugin_interface::SecretName) allows. The host
 //! keeps a sign-in's tokens under a name outside that rule.
 //!
 //! Only the plugin that wrote a secret reads it, and no page call, page state
@@ -13,7 +13,7 @@
 use crate::store::StoreError;
 use crate::store::SecretRow;
 use crate::store::Written;
-use demi_plugin_interface::{PortFailure, PortRefusal, StoredSecret};
+use jush_plugin_interface::{PortFailure, PortRefusal, StoredSecret};
 
 use crate::user::{Shared, storage};
 

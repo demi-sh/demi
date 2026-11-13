@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { fillText, truncate } from '@demicodes/utils'
-import { markdownPlainText } from '@demicodes/web-ui/markdown/plain-text'
-import { deviceTitleIn, requestTitleIn } from '@demicodes/web-ui/permissions/title-words'
+import { fillText, truncate } from '@jush-ai/utils'
+import { markdownPlainText } from '@jush-ai/web-ui/markdown/plain-text'
+import { deviceTitleIn, requestTitleIn } from '@jush-ai/web-ui/permissions/title-words'
 import { pushMessageSchema, type PushMessage } from '../api/generated/web-api'
 
 /**
@@ -13,11 +13,11 @@ import { pushMessageSchema, type PushMessage } from '../api/generated/web-api'
  */
 
 /** Where the page leaves the words for its worker. */
-export const WORDS_CACHE = 'demi-notifications'
+export const WORDS_CACHE = 'jush-notifications'
 export const WORDS_KEY = '/words'
 
 /** What a page tells the worker of a click: open the conversation. */
-export const OPEN_CONVERSATION = 'demi-open-conversation'
+export const OPEN_CONVERSATION = 'jush-open-conversation'
 
 /**
  * What the worker tells a page of a failure of its own, for the page to write in
@@ -25,7 +25,7 @@ export const OPEN_CONVERSATION = 'demi-open-conversation'
  * message is `{ type, event, fields }`; a push that comes while no page is open
  * leaves no line.
  */
-export const WORKER_LOG = 'demi-worker-log'
+export const WORKER_LOG = 'jush-worker-log'
 
 /** How much of the answer a notification says, because a system notification shows only so much. */
 const ANSWER_START_CHARS = 120
@@ -54,7 +54,7 @@ export interface Shown {
 /**
  * The notification `message` is shown as, in `words`. The tag names its
  * conversation and turn, its request or the agent's notification, so a
- * browser shows each once; the icon is Demi's.
+ * browser shows each once; the icon is Jush's.
  */
 export function notificationOf(message: PushMessage, words: NotificationWords): Shown {
   const title = message.kind === 'agent' ? message.title : (message.title ?? words.untitled)
@@ -95,11 +95,11 @@ function askOf(ask: Extract<PushMessage, { kind: 'permission' }>['ask'], words: 
 }
 
 /**
- * What a push without the page's words says: the wordmark demi, and the values the
+ * What a push without the page's words says: the wordmark jush, and the values the
  * push carries, as on a browser whose words were cleared.
  */
 const NO_WORDS: NotificationWords = {
-  untitled: 'demi',
+  untitled: 'jush',
   turnStopped: '',
   saveCredential: '',
   allow: '',
@@ -110,7 +110,7 @@ const NO_WORDS: NotificationWords = {
 /**
  * The notification a push's `message` shows, in the words `readWords`
  * reads. Every push shows one, as the browser requires: a push that does
- * not read shows Demi, and words that cannot be read, such as when the
+ * not read shows Jush, and words that cannot be read, such as when the
  * browser's storage fails, give way to the push's own values.
  */
 export async function pushedNotification(
@@ -121,7 +121,7 @@ export async function pushedNotification(
   const parsed = pushMessageSchema.safeParse(message)
   if (!parsed.success) {
     failed('push.unreadable', { where: 'shape', error_class: parsed.error.name, issues: parsed.error.issues.length })
-    return { title: 'demi' }
+    return { title: 'jush' }
   }
   let words: NotificationWords | null = null
   try {

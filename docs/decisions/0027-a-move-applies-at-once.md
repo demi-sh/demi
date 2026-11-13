@@ -9,7 +9,7 @@ status: accepted, superseded in part by 0287
 Moving a conversation to another project, directory or Host waits for its
 agents to stop. Three parts each own a piece of that wait:
 
-* `demi host move` records the move and returns at once, though nothing has
+* `jush host move` records the move and returns at once, though nothing has
   moved yet.
 * The backend applies a recorded move only once the whole agent tree is idle.
 * The page stops each subagent, then each terminal one by one, then the
@@ -34,7 +34,7 @@ Chosen option: apply it at once, because nothing a move changes needs the
 agents to stop, and a move the user asked for should take effect when they
 ask.
 
-* A move is one backend operation that the page and `demi host move` both
+* A move is one backend operation that the page and `jush host move` both
   call. It checks the destination with one question to its Host, changes the
   conversation's project, Host and directory, and answers when that is done.
   The sidebar shows the conversation in its new place at once.

@@ -5,9 +5,9 @@
 - Upstream's version, the same on amd64 and arm64
 - The SHA-512 of each architecture's archive
 
-`demi-server` fetches the archive of the server's architecture from upstream,
+`jush-server` fetches the archive of the server's architecture from upstream,
 checks its SHA-512 and unpacks what the manager runs into
-`/opt/demi/gvisor/<version>/` (`crates/server/src/gvisor.rs`).
+`/opt/jush/gvisor/<version>/` (`crates/server/src/gvisor.rs`).
 
 The runtime profile belongs to `crates/machine-manager/src/sandbox/oci.rs`.
 
@@ -21,7 +21,7 @@ earlier versions had:
   returns `SECCOMP_RET_TRAP`, Linux delivers SIGSYS with X0 still holding the
   syscall's first argument. gVisor before release-20261005.0 wrote the syscall
   number there instead, and Chrome's sandbox, whose signal handler reads that
-  argument, crashed. Demi ran a patched arm64 build until upstream fixed it.
+  argument, crashed. Jush ran a patched arm64 build until upstream fixed it.
 
   `seccomp-trap.c` traps a `getpid` call whose first argument is `0x123456` and
   prints what the handler finds in X0. On arm64, natively and under the new

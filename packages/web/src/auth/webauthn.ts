@@ -1,4 +1,4 @@
-import { coded } from '@demicodes/web-ui/infra/errors'
+import { coded } from '@jush-ai/web-ui/infra/errors'
 /**
  * The browser's side of passkeys (`crates/backend-accounts/src/passkeys.rs`):
  *
@@ -9,7 +9,7 @@ import { coded } from '@demicodes/web-ui/infra/errors'
  * Everything here is feature-detected: a browser without `PublicKeyCredential`
  * is offered no passkeys, and one without a signal method is told nothing.
  */
-import { base64urlDecode, base64urlEncode } from '@demicodes/utils'
+import { base64urlDecode, base64urlEncode } from '@jush-ai/utils'
 import type {
   AuthenticationResponseJson,
   CreationOptionsJson,

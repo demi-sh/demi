@@ -4,7 +4,7 @@
 
 use std::{fmt, io};
 
-use demi_machine_manager_protocol::{BaseVersion, IdError};
+use jush_machine_manager_protocol::{BaseVersion, IdError};
 
 use super::admission::Closed;
 use crate::{

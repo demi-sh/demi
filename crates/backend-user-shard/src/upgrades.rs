@@ -2,7 +2,7 @@
 //! its channel on GitHub, and an update an administrator runs.
 //!
 //! ```text
-//! Update Now ─► request file ─► demi-upgrade.service (root): demi-server
+//! Update Now ─► request file ─► jush-upgrade.service (root): jush-server
 //!                                    │ a line per step, on the management
 //!                                    ▼ socket (`backend-http`'s `manage`)
 //!     pages ◄── the state channel ◄── heard(notice)
@@ -11,15 +11,15 @@
 //! When an administrator turns it on, every check that finds a newer release
 //! has the server get it ready ahead: the backend writes its version to the
 //! prepare request beside the update's, whose appearance has systemd start
-//! `demi-server prepare --requested`, and shows the administrators how far
+//! `jush-server prepare --requested`, and shows the administrators how far
 //! the release is got ready. Off, as a server starts, Update Now downloads
 //! the release itself, so a channel that publishes often costs no download
 //! of a release no one installs.
 //!
 //! The backend cannot update the server itself: it runs as an unprivileged
 //! user, and the update stops it. It writes the version to the request file,
-//! whose appearance has systemd start `demi-server upgrade --requested` as
-//! root, and shows the administrators what `demi-server` tells it of each
+//! whose appearance has systemd start `jush-server upgrade --requested` as
+//! root, and shows the administrators what `jush-server` tells it of each
 //! step. Before the stop it tells every page, so each shows the update's
 //! screen until the new release serves.
 //!
@@ -31,19 +31,19 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex, PoisonError, Weak};
 use std::time::{Duration, Instant};
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::update::Update;
-use demi_backend_page_sync::{Part, SyncRegistry};
-use demi_runner_protocol::release::{
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::update::Update;
+use jush_backend_page_sync::{Part, SyncRegistry};
+use jush_runner_protocol::release::{
     PREPARE_REQUEST_NAME, StepProgress, StepState, UpdateRecord, UpgradeNotice, UpgradeStepKind,
 };
-use demi_shared_artifacts::releases::{self, Channel};
-use demi_shared_types::{Clock, Timestamp};
-use demi_web_api_protocol::server_upgrade::{
+use jush_shared_artifacts::releases::{self, Channel};
+use jush_shared_types::{Clock, Timestamp};
+use jush_web_api_protocol::server_upgrade::{
     OfferedRelease, ServerUpgrade, UpgradeChannel, UpgradeCheck, UpgradePreparation, UpgradeRun,
 };
-use demi_web_api_protocol::state::UpdateState;
+use jush_web_api_protocol::state::UpdateState;
 use semver::Version;
 
 /// How often the backend looks for a newer release of `channel` by itself,
@@ -73,14 +73,14 @@ const AHEAD: [UpgradeStepKind; 4] = [
 ];
 
 /// How long a step of an update may go unheard before the backend takes the
-/// update as stopped: `demi-server` repeats its step every 10 seconds.
+/// update as stopped: `jush-server` repeats its step every 10 seconds.
 const UNHEARD: Duration = Duration::from_secs(60);
 
 /// How often the backend looks whether an update went unheard.
 const WATCH_EVERY: Duration = Duration::from_secs(10);
 
 /// How long the backend gives the pages to hear that it stops before it
-/// lets `demi-server` stop it.
+/// lets `jush-server` stop it.
 const PAGES_HEAR: Duration = Duration::from_secs(1);
 
 /// Why an update a page offered was not run.
@@ -124,9 +124,9 @@ struct State {
     check: UpgradeCheck,
     preparation: UpgradePreparation,
     run: UpgradeRun,
-    /// When `demi-server` last told how far the run is.
+    /// When `jush-server` last told how far the run is.
     heard: Instant,
-    /// Whether the run's own `demi-server` told how far it is: until it
+    /// Whether the run's own `jush-server` told how far it is: until it
     /// does, as while it waits for the work ahead, the run shows that work.
     told: bool,
     /// When the last check ended; none before the first.
@@ -163,7 +163,7 @@ impl Upgrades {
         };
         let upgrades = Arc::new(Self {
             request,
-            running: Version::parse(demi_shared_artifacts::BUILD_VERSION).expect("the build version is a version"),
+            running: Version::parse(jush_shared_artifacts::BUILD_VERSION).expect("the build version is a version"),
             control,
             sync,
             update,
@@ -369,7 +369,7 @@ impl Upgrades {
         }
     }
 
-    /// Removes a prepare request `demi-server` has not taken yet.
+    /// Removes a prepare request `jush-server` has not taken yet.
     fn withdraw_preparation(&self) {
         let Some(prepare) = self.prepare_request() else {
             return;
@@ -382,7 +382,7 @@ impl Upgrades {
     }
 
     /// Runs the update to `version`: writes the request that has systemd
-    /// start `demi-server`. The page names the version it offered, which
+    /// start `jush-server`. The page names the version it offered, which
     /// must be newer than the running one.
     pub fn run(&self, version: &str) -> Result<(), RunRefused> {
         let request = self.request.as_ref().ok_or(RunRefused::NotOffered)?;
@@ -396,7 +396,7 @@ impl Upgrades {
                 return Err(RunRefused::Running);
             }
             write_request(request, &to.to_string())?;
-            // The download starts as `demi-server` does, which says how far
+            // The download starts as `jush-server` does, which says how far
             // it is from its first bytes.
             let mut record = UpdateRecord::new(&self.running.to_string(), &to.to_string());
             *record.upgrade_step(UpgradeStepKind::Download) = StepState::running();
@@ -412,11 +412,11 @@ impl Upgrades {
         Ok(())
     }
 
-    /// What `demi-server` told of the update, which the administrators'
+    /// What `jush-server` told of the update, which the administrators'
     /// pages show; before the stop every page hears it, and this returns
     /// once they had the time to.
     pub async fn heard(&self, notice: UpgradeNotice) {
-        tracing::info!(event = "upgrade.heard", ?notice, "demi-server told how far the update of the server is");
+        tracing::info!(event = "upgrade.heard", ?notice, "jush-server told how far the update of the server is");
         let restart = {
             let mut state = self.locked();
             state.heard = Instant::now();
@@ -424,7 +424,7 @@ impl Upgrades {
                 UpgradeNotice::Preparing { update } => {
                     state.preparation = preparation_of(&update);
                     // A run that waits for the work ahead shows it, and
-                    // hears from it, until its own `demi-server` tells.
+                    // hears from it, until its own `jush-server` tells.
                     let told = state.told;
                     let mut shown = false;
                     if let UpgradeRun::Updating { to, steps } = &mut state.run
@@ -506,7 +506,7 @@ impl Upgrades {
                 .iter()
                 .any(|step| step.kind == UpgradeStepKind::Restart && step.state != StepState::Waiting);
             tracing::warn!(event = "upgrade.unheard", to = %to, "the update of the server went unheard and is taken as stopped");
-            let reason = "The update stopped without saying why. On the server, journalctl -u demi-upgrade shows what happened.";
+            let reason = "The update stopped without saying why. On the server, journalctl -u jush-upgrade shows what happened.";
             // The step that ran is the one it stopped at.
             for step in &mut steps {
                 if matches!(step.state, StepState::Running { .. }) {

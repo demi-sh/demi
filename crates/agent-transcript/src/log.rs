@@ -7,16 +7,16 @@
 
 use std::{collections::BTreeMap, rc::Rc, sync::Arc};
 
-use demi_conversation_lane_protocol::{TranscriptPatch, Version, Versions};
-use demi_provider_common::{AccountSwitch, OpaqueStep, ToolCall};
-use demi_shared_types::{ScheduleMark, CodeFile, MessageComment, PictureCopy, ReplyPicture, 
+use jush_conversation_lane_protocol::{TranscriptPatch, Version, Versions};
+use jush_provider_common::{AccountSwitch, OpaqueStep, ToolCall};
+use jush_shared_types::{ScheduleMark, CodeFile, MessageComment, PictureCopy, ReplyPicture, 
     AbortBlock, AccountSwitchBlock, AgentMessage, AgentMessageBlock, Block, BlockId, Clock, CompactionBoundaryBlock,
     CompactionMarkerBlock, ContextBlock, Entry, ErrorBlock, InstructionEntry, KeptMessage, ModelSelection, ProviderErrorDiagnostics,
     OpaqueBlock, OpaqueStatus, ResponseBlock, ResumeBlock, SteerBlock, TextBlock, ThinkingBlock,
     Timestamp, TokenUsage, ToolCallBlock, ToolCallStatus, ToolResultContentBlock, ToolView, TurnId,
     UserBlock, UserContentBlock, WakeupBlock, WakeupPlacement, CommandReport,
 };
-use demi_agent_store::changes::{request_of, run_of};
+use jush_agent_store::changes::{request_of, run_of};
 use serde_json::Value;
 
 use super::{
@@ -72,7 +72,7 @@ pub struct TranscriptLog {
     asked_end: Option<AskedEnd>,
 }
 
-/// When a request left Demi and its first output came, which its response
+/// When a request left Jush and its first output came, which its response
 /// block keeps.
 #[derive(Debug, Clone, Copy)]
 pub struct RequestTimes {
@@ -349,7 +349,7 @@ impl TranscriptLog {
         }), sender_below);
     }
 
-    /// The turn continues after a cut; `reason` says what made Demi resume
+    /// The turn continues after a cut; `reason` says what made Jush resume
     /// it, none when the user did.
     pub fn push_resume(&mut self, turn_id: TurnId, model: &ModelSelection, reason: Option<String>) {
         let (id, created_at) = self.stamp();
@@ -682,7 +682,7 @@ impl TranscriptLog {
     /// Where the running turn's output starts: after its input. A vendor's
     /// step can end in a later request of the turn than the one it started
     /// in, as the Claude Code CLI's own web search does when the model called
-    /// Demi's tools beside it; a vendor's call ids are its own, so one names
+    /// Jush's tools beside it; a vendor's call ids are its own, so one names
     /// one step.
     fn turn_start(&self) -> usize {
         self.blocks

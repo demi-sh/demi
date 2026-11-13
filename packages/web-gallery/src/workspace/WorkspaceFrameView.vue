@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import SidebarLayout from '@demicodes/web-ui/sidebar/SidebarLayout.vue'
-import AppSidebar from '@demicodes/web-ui/sidebar/AppSidebar.vue'
-import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
-import { provideLiveCalls } from '@demicodes/web-ui/agent/live-calls'
-import { useCallTerminals } from '@demicodes/web-ui/agent/terminals'
-import { provideMediaViewer } from '@demicodes/web-ui/files/media-viewer'
-import { providePageHost, sidebarEntries } from '@demicodes/web-ui/plugins/page'
-import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
+import SidebarLayout from '@jush-ai/web-ui/sidebar/SidebarLayout.vue'
+import AppSidebar from '@jush-ai/web-ui/sidebar/AppSidebar.vue'
+import ChatSession from '@jush-ai/web-ui/agent/ChatSession.vue'
+import { provideLiveCalls } from '@jush-ai/web-ui/agent/live-calls'
+import { useCallTerminals } from '@jush-ai/web-ui/agent/terminals'
+import { provideMediaViewer } from '@jush-ai/web-ui/files/media-viewer'
+import { providePageHost, sidebarEntries } from '@jush-ai/web-ui/plugins/page'
+import { appShortcuts } from '@jush-ai/web-ui/settings/shortcuts'
 import GalleryComposer from '../components/GalleryComposer.vue'
 import { demoModel, transcriptDemoBlocks } from '../fixtures/blocks'
 import { galleryBrowser } from '../fixtures/live-browser'
@@ -142,7 +142,7 @@ const activeConversation = ref<string | null>('c-login')
       >
         <template #composer>
           <GalleryComposer
-            placeholder="Ask Demi about the failing login test…"
+            placeholder="Ask Jush about the failing login test…"
             :running="session.phase === 'running' || flow.startingTurn.value"
             :compacting="session.phase === 'compacting'"
             :usage="session.contextUsage ?? undefined"

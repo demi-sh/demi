@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-cloud"
+name = "jush-backend-cloud"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,18 +12,18 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-backend-idle-watch = { path = "../backend-idle-watch" }
-demi-backend-providers = { path = "../backend-providers" }
-demi-provider-registry = { path = "../provider-registry" }
-demi-backend-runners = { path = "../backend-runners" }
-demi-backend-database = { path = "../backend-database" }
-demi-backend-page-sync = { path = "../backend-page-sync" }
-demi-shared-gates = { path = "../shared-gates" }
-demi-runner-client = { path = "../runner-client" }
-demi-machine-manager-protocol = { path = "../machine-manager-protocol" }
-demi-runner-protocol = { path = "../runner-protocol" }
-demi-device-interface = { path = "../device-interface" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-backend-idle-watch = { path = "../backend-idle-watch" }
+jush-backend-providers = { path = "../backend-providers" }
+jush-provider-registry = { path = "../provider-registry" }
+jush-backend-runners = { path = "../backend-runners" }
+jush-backend-database = { path = "../backend-database" }
+jush-backend-page-sync = { path = "../backend-page-sync" }
+jush-shared-gates = { path = "../shared-gates" }
+jush-runner-client = { path = "../runner-client" }
+jush-machine-manager-protocol = { path = "../machine-manager-protocol" }
+jush-runner-protocol = { path = "../runner-protocol" }
+jush-device-interface = { path = "../device-interface" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 futures-util.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

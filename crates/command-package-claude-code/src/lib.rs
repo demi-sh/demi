@@ -1,8 +1,8 @@
-//! The `demi.claude-code` command package: Demi's own verified copy of the
+//! The `jush.claude-code` command package: Jush's own verified copy of the
 //! Claude Code CLI on the machine that runs it, which the runner installs.
 //!
 //! It is a package of its own. The runner knows nothing about Claude Code, and
-//! removing the package and the backend's use of it leaves the rest of Demi as
+//! removing the package and the backend's use of it leaves the rest of Jush as
 //! it was.
 //!
 //! # Rules
@@ -16,7 +16,7 @@
 //!   platform the release does not carry is `unsupported_platform`, never
 //!   another platform's build.
 //! - It reads no pointers and chooses no versions: the backend builds the
-//!   release record, and Demi is the only thing that changes the CLI's version
+//!   release record, and Jush is the only thing that changes the CLI's version
 //!   (the CLI's own updater is off).
 //! - It starts no CLI, and is never linked into the runner or another command
 //!   program.
@@ -28,9 +28,9 @@ pub mod release;
 use std::{future::Future, pin::Pin};
 
 use bytes::Bytes;
-use demi_command_package_claude_code_protocol::{Failure, Installed, Operation, Reply};
-use demi_command_protocol::{CommandError, Completion, Invocation};
-use demi_command_sdk::{Artifacts, Handler, Input, InvocationContext, ResidentError};
+use jush_command_package_claude_code_protocol::{Failure, Installed, Operation, Reply};
+use jush_command_protocol::{CommandError, Completion, Invocation};
+use jush_command_sdk::{Artifacts, Handler, Input, InvocationContext, ResidentError};
 use serde::Serialize;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
@@ -43,13 +43,13 @@ const MAX_INPUT_BYTES: usize = 64 * 1024;
 
 /// The resident holds no conversation state, so the trait's empty conversation
 /// status and its `close` stand.
-pub struct DemiClaude {
+pub struct JushClaude {
     /// The resident's artifacts source, which it takes before it admits a
     /// call.
     artifacts: watch::Sender<Option<Artifacts>>,
 }
 
-impl Default for DemiClaude {
+impl Default for JushClaude {
     fn default() -> Self {
         Self {
             artifacts: watch::Sender::new(None),
@@ -57,7 +57,7 @@ impl Default for DemiClaude {
     }
 }
 
-impl Handler for DemiClaude {
+impl Handler for JushClaude {
     type Metadata = Invocation;
 
     fn artifacts(&self, artifacts: Artifacts) {
@@ -88,7 +88,7 @@ impl Handler for DemiClaude {
             };
             let result = match artifacts {
                 None => Err(EnsureError::InstallFailed(
-                    "demi-claude-code has no artifacts source".into(),
+                    "jush-claude-code has no artifacts source".into(),
                 )),
                 Some(artifacts) => match operation {
                     Operation::Ensure => {

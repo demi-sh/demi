@@ -25,9 +25,9 @@ use std::sync::atomic::{AtomicU16, AtomicU64, Ordering};
 use reqwest::Url;
 
 use bytes::Bytes;
-use demi_runner_process::pipes::{PipeClient, report_pipe};
-use demi_runner_protocol::device_requests::{CONNECT_TIMEOUT, HttpHeader, MAX_HEADERS};
-use demi_runner_protocol::wire::{self, Inbound, Outbound, PipeRef};
+use jush_runner_process::pipes::{PipeClient, report_pipe};
+use jush_runner_protocol::device_requests::{CONNECT_TIMEOUT, HttpHeader, MAX_HEADERS};
+use jush_runner_protocol::wire::{self, Inbound, Outbound, PipeRef};
 use futures_util::StreamExt as _;
 use reqwest::header::{CONNECTION, HeaderMap, HeaderName, HeaderValue};
 use tokio::sync::mpsc;
@@ -80,7 +80,7 @@ impl DeviceRequests {
             .redirect(reqwest::redirect::Policy::none())
             .connect_timeout(CONNECT_TIMEOUT)
             // Beyond what the relay carries, so an answer with a few more
-            // fails in Demi's words; hyper's own limit is 100.
+            // fails in Jush's words; hyper's own limit is 100.
             .http1_max_headers(4 * MAX_HEADERS)
             .build()
             .map_err(io::Error::other)?;
@@ -345,7 +345,7 @@ fn answered(id: &str, response: &reqwest::Response) -> Result<wire::Frame, Strin
         .collect();
     if headers.len() > MAX_HEADERS {
         return Err(format!(
-            "The answer has {} headers, more than the {MAX_HEADERS} Demi carries",
+            "The answer has {} headers, more than the {MAX_HEADERS} Jush carries",
             headers.len()
         ));
     }

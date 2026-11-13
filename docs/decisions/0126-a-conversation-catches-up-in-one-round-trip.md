@@ -83,7 +83,7 @@ since the page comes from the backend it talks to.
   ([RFC 9000 §2.1](https://www.rfc-editor.org/rfc/rfc9000#section-2.1)).
 * SSH waits for `SSH_MSG_CHANNEL_OPEN_CONFIRMATION` before a channel's
   data ([RFC 4254 §5.1](https://www.rfc-editor.org/rfc/rfc4254#section-5.1)),
-  as Demi's lanes do today. Demi follows HTTP/2, since a lane's open is
+  as Jush's lanes do today. Jush follows HTTP/2, since a lane's open is
   refused only for what the page can do nothing about at once.
 
 ## Alternatives

@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::time::Instant;
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Timestamp};
+use jush_shared_types::{MAX_SAFE_INTEGER, Timestamp};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -135,7 +135,7 @@ pub struct PageSubscription {
     pub key: String,
     #[garde(skip)]
     pub kind: SubscriptionKind,
-    #[garde(length(chars, min = 1), custom(demi_command_protocol::without_nul))]
+    #[garde(length(chars, min = 1), custom(jush_command_protocol::without_nul))]
     pub path: String,
     /// See [`Subject::suffix`].
     #[serde(default, skip_serializing_if = "Option::is_none", with = "unwrap_or_skip")]

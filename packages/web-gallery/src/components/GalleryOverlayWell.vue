@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { provide, ref } from 'vue'
-import { overlayContainerKey } from '@demicodes/web-ui/overlay/overlayContainer'
+import { overlayContainerKey } from '@jush-ai/web-ui/overlay/overlayContainer'
 
 /**
  * A host for overlays pinned open. The well is a containing block, so the same floating

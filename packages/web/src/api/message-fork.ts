@@ -1,4 +1,4 @@
-import type { MessageForkRequest } from '@demicodes/web-ui/agent/message-fork'
+import type { MessageForkRequest } from '@jush-ai/web-ui/agent/message-fork'
 import { apiRequest, jsonBody, readResponse } from './client'
 import { forkAnswerSchema, type ForkRequest } from './generated/web-api'
 

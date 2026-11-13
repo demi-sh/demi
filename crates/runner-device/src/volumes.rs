@@ -2,7 +2,7 @@
 //! a managed guest's writable filesystems, or every filesystem where none is
 //! named, before the guest is saved.
 
-use demi_runner_protocol::wire;
+use jush_runner_protocol::wire;
 use std::{io, path::PathBuf, sync::Arc};
 use tokio::sync::{Semaphore, mpsc};
 use tokio_util::{sync::CancellationToken, task::TaskTracker};

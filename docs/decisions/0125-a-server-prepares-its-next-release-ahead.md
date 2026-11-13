@@ -10,7 +10,7 @@ the devices download the new runner from Update Now on.
 
 ## Problem
 
-Alex is an administrator of a server on the Canary channel. Demi looks for a
+Alex is an administrator of a server on the Canary channel. Jush looks for a
 newer release once a day, so a fix published in the morning shows in
 Settings › Updates the next day. When Alex clicks **Update Now**, the server
 first downloads the release, unpacks it, downloads gVisor and imports the
@@ -26,11 +26,11 @@ what needs the administrator: two quick checks and the restart.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ Demi 0.1.5500 is available                             [Update Now]  │
+│ Jush 0.1.5500 is available                             [Update Now]  │
 │ Downloading in the background: 88 MB of 214 MB                       │
 └──────────────────────────────────────────────────────────────────────┘
 ┌──────────────────────────────────────────────────────────────────────┐
-│ Demi 0.1.5500 is available                             [Update Now]  │
+│ Jush 0.1.5500 is available                             [Update Now]  │
 │ Ready to install. You have 0.1.5469.                                 │
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -44,12 +44,12 @@ what needs the administrator: two quick checks and the restart.
   anything that runs. The row's second line says how far it is:
   *Downloading in the background: 88 MB of 214 MB*, *Installing in the
   background…*, then *Ready to install. You have 0.1.5469.*
-- **A failure** says *Couldn’t download Demi 0.1.5500 in the background.
+- **A failure** says *Couldn’t download Jush 0.1.5500 in the background.
   You have 0.1.5469.*, and the next hourly check tries again. Update Now
   still works: it does what is missing.
 - **Update Now** lists the same seven steps as today. What was done ahead
   shows at once as *Already installed*; the configuration's and the
-  databases' checks run, and Demi restarts. Clicked while the work ahead
+  databases' checks run, and Jush restarts. Clicked while the work ahead
   still runs, it takes that work over: the list shows its steps where they
   are and goes on from them.
 - Nothing is offered to turn this off: every server gets its next release
@@ -84,28 +84,28 @@ more. A newer release replaces the one prepared before it.
 - `CHECK_EVERY` becomes one hour. A check is one request to GitHub, far
   below its 60 requests an hour per address.
 - After every check that finds a newer release, the backend writes its
-  version to a second request file, `/run/demi-upgrade/prepare`. A path unit
-  of the release, `demi-prepare.path`, starts `demi-prepare.service`, which
-  runs `demi-server prepare --requested` as root.
-- `demi-server prepare` fetches the release as `upgrade` does, then hands
-  over to that release's own `demi-server prepare`, which downloads its
+  version to a second request file, `/run/jush-upgrade/prepare`. A path unit
+  of the release, `jush-prepare.path`, starts `jush-prepare.service`, which
+  runs `jush-server prepare --requested` as root.
+- `jush-server prepare` fetches the release as `upgrade` does, then hands
+  over to that release's own `jush-server prepare`, which downloads its
   gVisor, imports its image and tells the running backend over the
   management socket that the release comes next, as the prefetch does
   today. A release already prepared costs a few checks and tells the
   backend again, so a backend that restarted meanwhile hears of it within
   the hour. Its steps reach the backend as notices of their own, which the
   row's second line shows; they never show as an update that runs.
-- `demi-server upgrade --requested` waits for the lock that a running
+- `jush-server upgrade --requested` waits for the lock that a running
   `prepare` holds, instead of failing, and finds its work done. A `prepare`
   that finds the lock held removes its request and ends, and the next check
   asks again.
-- A run that hands over to a newer release's `demi-server` passes the lock
+- A run that hands over to a newer release's `jush-server` passes the lock
   it holds to it, so no other run, such as `prepare`, takes the lock between
   the two and removes the release the move goes to.
 - `prepare` waits at most a minute for the backend to answer its
   announcement of the runner release, so a backend that does not answer
   never holds the lock, and an update behind it, for longer.
-- `demi-machine-manager --import` records the base it imported beside a
+- `jush-machine-manager --import` records the base it imported beside a
   running manager in the store's `ahead.json`, and removes the one recorded
   before it, unless a manager is configured with it. A manager configured
   with the recorded base removes the record, and keeps the recorded base
@@ -137,7 +137,7 @@ prefetch exist; what changes is when they run and what each removes.
 - Chrome downloads and stages its next version while it runs, and applies it
   at the next relaunch.
 
-Demi takes macOS's default without its switch: a server's download costs
+Jush takes macOS's default without its switch: a server's download costs
 nothing a user waits for, and one behavior is easier to reason about.
 
 ## Alternatives

@@ -1,4 +1,4 @@
-import type { Block } from '@demicodes/protocol'
+import type { Block } from '@jush-ai/protocol'
 import { demoModel, inRequests } from './blocks'
 
 /**

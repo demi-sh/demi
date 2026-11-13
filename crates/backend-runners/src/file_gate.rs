@@ -8,8 +8,8 @@
 //! gate. The gates live in the conversations' slots of device access, which takes
 //! their leases.
 
-use demi_shared_gates::{ActivityGate, GateLease, Purpose};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_shared_gates::{ActivityGate, GateLease, Purpose};
+use jush_web_api_protocol::ids::ConversationId;
 
 /// The file gate of one conversation.
 pub struct FileGate {

@@ -91,7 +91,7 @@ Whether a page that stops acknowledging slows another page's picture, and by
 how much. Two pages watched one iPhone Duo on this Mac's runner. The second
 page's script was paused with the debugger for 22 seconds while the first
 tapped four rows of Settings, three seconds apart, recorded with
-`demi browser record`.
+`jush browser record`.
 
 | Tap | Second page running | Second page paused |
 | --- | --- | --- |
@@ -116,7 +116,7 @@ Host logged `live_view_capture.unanswered` with `window` 0.
   ([`KeyFrameRequestManager.cpp`](https://github.com/versatica/mediasoup/blob/v3/worker/src/RTC/KeyFrameRequestManager.cpp)).
 
 Where this departs: LiveKit decides from its estimate of the subscriber's
-bandwidth and keeps a track paused for at least five seconds. Demi's sender
+bandwidth and keeps a track paused for at least five seconds. Jush's sender
 waits for acknowledgements, so it decides from a window held full, and lets a
 viewer catch up as soon as its window has room, since catching up costs one
 key frame.

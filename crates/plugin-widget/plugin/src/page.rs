@@ -27,7 +27,7 @@
 //! The page's own head comes after, so its `@theme` and CSS override any of
 //! it name by name.
 
-use demi_plugin_interface::PluginFile;
+use jush_plugin_interface::PluginFile;
 
 use crate::markup;
 

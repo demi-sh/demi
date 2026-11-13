@@ -5,14 +5,14 @@
 //! A command outlives its runner, which an update replaces. A call to the
 //! backend that waits for what outlives the runner too, such as a vendor's
 //! media job, comes back: the runner tells the client the call's id
-//! ([`demi_command_protocol::Record::Resumable`]), and a client that loses
+//! ([`jush_command_protocol::Record::Resumable`]), and a client that loses
 //! the runner before the end sends the command line again to the next one,
 //! naming the call to resume ([`Resuming`]), unless it wrote some of its
 //! standard output, which the call would write again.
 
 use bytes::Bytes;
-use demi_command_protocol::{Completion, LocalInvocation, MAX_RECORD_BYTES};
-use demi_command_sdk::{
+use jush_command_protocol::{Completion, LocalInvocation, MAX_RECORD_BYTES};
+use jush_command_sdk::{
     Client, CommandInput, CommandOutput, Exchange, ExchangeError, InputSource, OutputSink,
 };
 use serde::{Deserialize, Serialize};
@@ -22,8 +22,8 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use crate::local_socket::connect_returning;
 use tokio_util::{sync::CancellationToken, task::AbortOnDropHandle};
 
-pub const ENDPOINT_ENV: &str = "DEMI_RUNNER_ENDPOINT";
-pub const CONTEXT_ENV: &str = "DEMI_CONTEXT_ID";
+pub const ENDPOINT_ENV: &str = "JUSH_RUNNER_ENDPOINT";
+pub const CONTEXT_ENV: &str = "JUSH_CONTEXT_ID";
 
 /// The local operation that runs a command line, whose arguments are a
 /// [`RawCommand`].
@@ -328,7 +328,7 @@ impl<O: AsyncWrite + Unpin, E: AsyncWrite + Unpin> OutputSink for Terminal<O, E>
 
     /// The runner hands the media of the commands it runs to their job; it
     /// sends a local caller only their output.
-    async fn medium(&mut self, _: demi_command_protocol::MediumFacts, _: Bytes) -> io::Result<()> {
+    async fn medium(&mut self, _: jush_command_protocol::MediumFacts, _: Bytes) -> io::Result<()> {
         Err(io::Error::other("a local command returned a medium"))
     }
 }

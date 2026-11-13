@@ -1,4 +1,4 @@
-import { shownMark, type DeviceMark } from '@demicodes/web-ui/devices/mark'
+import { shownMark, type DeviceMark } from '@jush-ai/web-ui/devices/mark'
 
 /**
  * The marks the gallery's devices show, as the product's `shownMark` gives them for an account

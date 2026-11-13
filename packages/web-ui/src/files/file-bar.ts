@@ -1,4 +1,4 @@
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { formatCount } from '../ui/numbers'
 import { entryKind, fileExtension, formatBytes } from './format'
 import { t } from './locales/text'

@@ -7,7 +7,7 @@ import type { SessionLoad } from './session-status'
  *   of a message that starts a turn, its delivery included. A recovery the
  *   server has not acknowledged yet and the agent's own retries are the same
  *   wait and keep the same word.
- * - `resuming` is the wait for Demi to take up by itself a turn a restart of
+ * - `resuming` is the wait for Jush to take up by itself a turn a restart of
  *   the backend interrupted, before the turn asks the provider anything.
  *
  * A lost or not yet made lane is no wait of the transcript's: the spinner
@@ -30,7 +30,7 @@ export interface ActivitySlotInput {
    */
   actionSent: boolean
   /**
-   * A message sent to start a turn is on its way to Demi: the wait for its
+   * A message sent to start a turn is on its way to Jush: the wait for its
    * answer has begun, though the server has confirmed neither the message nor
    * the turn yet.
    */
@@ -38,7 +38,7 @@ export interface ActivitySlotInput {
   /** The server says the agent waits for the model's answer. */
   waiting: boolean
   /**
-   * Demi resumes by itself the turn a restart of the backend interrupted,
+   * Jush resumes by itself the turn a restart of the backend interrupted,
    * and the agent is idle still.
    */
   resuming: boolean

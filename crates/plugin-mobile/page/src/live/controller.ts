@@ -8,8 +8,8 @@
  * tabs are there.
  */
 import { ref, shallowRef, watch, type Ref } from 'vue'
-import { clientPlatform } from '@demicodes/utils'
-import { pageVisibility, picturesSupported, type HeadlineText, type PluginCache } from '@demicodes/plugin-sdk'
+import { clientPlatform } from '@jush-ai/utils'
+import { pageVisibility, picturesSupported, type HeadlineText, type PluginCache } from '@jush-ai/plugin-sdk'
 import { LIVE_NO_FOCUSED_FIELD, type FoldResult, type ControlReason, type Simulator } from '../generated/plugin'
 import { MobileError, type MobileApi } from '../devices'
 import { DeviceSession } from './session'
@@ -190,7 +190,7 @@ export class MobileDevicesController {
   }
 
   /**
-   * Folds `device` to `to`, as `demi mobile fold` does: answers how it is
+   * Folds `device` to `to`, as `jush mobile fold` does: answers how it is
    * folded once it got there, or none when it refused, which is a toast.
    */
   async fold(device: string, to: string): Promise<FoldResult | null> {

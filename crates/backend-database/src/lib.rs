@@ -13,7 +13,7 @@
 //! The object store is `backend-blobs`'.
 //!
 //! ```text
-//! data directory (DEMI_BACKEND_DATA)
+//! data directory (JUSH_BACKEND_DATA)
 //! +-- control.sqlite               deployment-wide product records
 //! +-- conversations/<id>.sqlite    one agent tree per conversation
 //! +-- search/<userId>.sqlite       a user's search index, derived
@@ -24,7 +24,7 @@
 //! +-- snapshots/<version>/         the databases as an upgrade found them
 //! ```
 //!
-//! `snapshots/` is `demi-server`'s: the copy a rollback restores, which the
+//! `snapshots/` is `jush-server`'s: the copy a rollback restores, which the
 //! backend never reads.
 //!
 //! # What lives elsewhere
@@ -81,7 +81,7 @@
 //!   and compares the result with a new database (`schema/mod.rs`).
 //! - A migration is SQL, or Rust where SQL cannot express the change, such as
 //!   re-encoding a stored value. It stands alone: it uses none of the types
-//!   and functions the rest of Demi serves with, which change after it
+//!   and functions the rest of Jush serves with, which change after it
 //!   (`schema/mod.rs`).
 //! - A value stored as JSON is part of its schema: the schema's text names the
 //!   format of each such column in a comment (`-- nodes.state: checkpoint state
@@ -95,7 +95,7 @@
 //!   adds or drops the columns queries read, and never decodes every row.
 //! - The control database is migrated as the backend starts, before it serves; a
 //!   conversation's database when the conversation is next opened, so a start
-//!   does not wait for every conversation a server ever had. `demi-server`
+//!   does not wait for every conversation a server ever had. `jush-server`
 //!   copies the databases that will migrate before the new release first opens
 //!   them.
 
@@ -163,10 +163,10 @@ pub mod workspaces;
 pub enum StorageError {
     #[error("SQLite failed: {0}")]
     Sqlite(#[from] rusqlite::Error),
-    /// The database was made by a newer release or another build of Demi,
+    /// The database was made by a newer release or another build of Jush,
     /// whose schema this build does not read and never changes.
     #[error(
-        "{} was made by a newer release or another build of Demi: return to the release that made it, or restore the databases of this release with `demi-server rollback`",
+        "{} was made by a newer release or another build of Jush: return to the release that made it, or restore the databases of this release with `jush-server rollback`",
         path.display()
     )]
     OtherSchema { path: std::path::PathBuf },

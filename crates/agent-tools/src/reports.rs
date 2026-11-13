@@ -4,15 +4,15 @@
 //! A report is its progress while it runs, or its end, each with the output
 //! since the node's last look as a `shell` result shows it. A report is data;
 //! the text the model reads is rendered from it where it is replayed
-//! ([`demi_agent_transcript::report_text`]).
+//! ([`jush_agent_transcript::report_text`]).
 //!
 //! Its output moves the node's place only when the report is written into the
 //! transcript, so a report dropped because a look showed the end first moves
 //! nothing.
 
-use demi_agent_transcript::{REPLAY_CHARS, report_text};
-use demi_device_interface::CommandStatus;
-use demi_shared_types::{CommandId, CommandReport, ReportEvent, StoppedBy};
+use jush_agent_transcript::{REPLAY_CHARS, report_text};
+use jush_device_interface::CommandStatus;
+use jush_shared_types::{CommandId, CommandReport, ReportEvent, StoppedBy};
 
 use crate::{Stopper, result::report_output};
 

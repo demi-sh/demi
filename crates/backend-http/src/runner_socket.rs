@@ -10,16 +10,16 @@
 use std::sync::Arc;
 
 use axum::extract::ws::{Message, WebSocket};
-use demi_backend_database::accounts::TokenHash;
-use demi_runner_protocol::values::DeviceToken;
-use demi_runner_protocol::wire::{self, HelloErrorCode, Inbound, Outbound, RunnerInfo};
+use jush_backend_database::accounts::TokenHash;
+use jush_runner_protocol::values::DeviceToken;
+use jush_runner_protocol::wire::{self, HelloErrorCode, Inbound, Outbound, RunnerInfo};
 
-use demi_backend_runners::claims::ClaimGrant;
-use demi_backend_runners::codes::ClaimCode;
-use demi_backend_runners::devices::{RunnerSocket, send};
+use jush_backend_runners::claims::ClaimGrant;
+use jush_backend_runners::codes::ClaimCode;
+use jush_backend_runners::devices::{RunnerSocket, send};
 
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::{KeptJobs, Shards};
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::{KeptJobs, Shards};
 
 /// Serves a runner's socket until it is handed to a shard or closes.
 pub(crate) async fn accept(services: Arc<Services>, shards: Shards, mut socket: RunnerSocket) {

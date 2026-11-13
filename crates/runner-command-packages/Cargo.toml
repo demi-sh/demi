@@ -1,5 +1,5 @@
 [package]
-name = "demi-runner-command-packages"
+name = "jush-runner-command-packages"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,11 +12,11 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-sdk = { path = "../command-sdk" }
-demi-runner-process = { path = "../runner-process" }
-demi-runner-protocol = { path = "../runner-protocol" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-sdk = { path = "../command-sdk" }
+jush-runner-process = { path = "../runner-process" }
+jush-runner-protocol = { path = "../runner-protocol" }
 futures-util.workspace = true
 process-wrap.workspace = true
 reqwest.workspace = true

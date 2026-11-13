@@ -2,7 +2,7 @@
 //! account's secret document with its version. A provider crate never knows
 //! where the pool keeps them.
 
-use demi_shared_types::{AccountInfo, Timestamp};
+use jush_shared_types::{AccountInfo, Timestamp};
 use futures_util::future::BoxFuture;
 use sha2::{Digest, Sha256};
 

@@ -7,8 +7,8 @@ status: proposed
 ## Problem
 
 Alex asks an agent to accept a change on the running product with a video.
-The agent drives a tab with `demi browser`, records it with
-`demi browser record`, and hands Alex an MP4. In the video a chart's number
+The agent drives a tab with `jush browser`, records it with
+`jush browser record`, and hands Alex an MP4. In the video a chart's number
 changes, a switch flips, a tab appears in the work panel and the settings
 open, and nothing says why: the recording keeps the tab's pixels, and a
 browser that Chrome drives draws no pointer. A hover, a click, a right
@@ -226,7 +226,7 @@ moves and holds the picture while nothing does.
   (`crates/project/src/cursor.rs`) and draws them, with a spring that
   smooths the moves and a ripple for a click, when it renders
   (`crates/rendering/src/cursor_interpolation.rs`,
-  `layers/click_ripple.rs`, `layers/keyboard.rs`). Demi keeps the same
+  `layers/click_ripple.rs`, `layers/keyboard.rs`). Jush keeps the same
   split, inputs beside the video and drawn at export, and adds the button,
   the wheel and the touch, which Cap's clicks do not tell.
 - Playwright's trace viewer marks where each action acted on its

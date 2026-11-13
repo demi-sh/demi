@@ -1,4 +1,4 @@
-import type { SessionPhase } from '@demicodes/protocol'
+import type { SessionPhase } from '@jush-ai/protocol'
 import type { StatusDotTone } from '../ui/StatusDot.vue'
 import type { ConversationState } from './types'
 import { isSubagentRunning, type SubagentRecord } from './subagents'

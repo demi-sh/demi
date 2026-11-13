@@ -12,7 +12,7 @@ use chromiumoxide::cdp::{
 // The browser design requires this context-scoped permission grant; upstream marks it deprecated.
 #[allow(deprecated)]
 use chromiumoxide::cdp::browser_protocol::browser::GrantPermissionsParams;
-use demi_command_sdk::InvocationContext;
+use jush_command_sdk::InvocationContext;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
@@ -60,7 +60,7 @@ pub async fn capability(page: &chromiumoxide::Page) -> Result<Capability> {
         available: reason.is_none(),
         reason: reason.map(str::to_owned),
         schema: reason.is_none().then(|| {
-            json!({"mimeTypes": ["text/plain", "text/html", "image/png"], "help": "demi browser clipboard --help"})
+            json!({"mimeTypes": ["text/plain", "text/html", "image/png"], "help": "jush browser clipboard --help"})
         }),
     })
 }

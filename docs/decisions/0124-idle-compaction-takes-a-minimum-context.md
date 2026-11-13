@@ -85,10 +85,10 @@ None.
 
 Claude Code reads its minimum from the environment variable
 `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`: 200,000 by default, any positive
-whole number, and a value below 100,000 is raised to 100,000. Demi has the
+whole number, and a value below 100,000 is raised to 100,000. Jush has the
 same default and the same floor, and departs in these ways:
 
-- It is a row in Settings, not a variable, because Demi's preferences are
+- It is a row in Settings, not a variable, because Jush's preferences are
   the user's and are set on the page.
 - A value below the floor is refused where it is typed, not raised in
   silence, so the setting never holds a number other than the one shown.

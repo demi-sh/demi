@@ -2,13 +2,13 @@
 //! output the conversation keeps, which a page reads when it first shows the
 //! command, and the script its call ran.
 
-use demi_agent_store::{StoreError, StoredOutput, media::BlobStore};
-use demi_backend_database::tree;
-use demi_device_interface::{Seen, Streams};
-use demi_shared_types::CommandId;
-use demi_agent_tools::VIEW_CHARS;
-use demi_web_api_protocol::conversations::EndedOutput;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_agent_store::{StoreError, StoredOutput, media::BlobStore};
+use jush_backend_database::tree;
+use jush_device_interface::{Seen, Streams};
+use jush_shared_types::CommandId;
+use jush_agent_tools::VIEW_CHARS;
+use jush_web_api_protocol::conversations::EndedOutput;
+use jush_web_api_protocol::ids::ConversationId;
 use serde_json::Value;
 
 use crate::shard::Shard;

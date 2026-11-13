@@ -4,11 +4,11 @@
 //!
 //! No device is in two conversations.
 //!
-//! - A device Demi booted shuts down when its conversation closes it or is
+//! - A device Jush booted shuts down when its conversation closes it or is
 //!   released; a device the user booted is only let go. Nothing closes a
 //!   device for being unused: it lasts until someone closes it or it is gone.
 //! - The program's end shuts nothing down and forgets nothing: the record
-//!   ([`Kept`]) holds the simulators Demi booted and the open devices with
+//!   ([`Kept`]) holds the simulators Jush booted and the open devices with
 //!   their conversations and handles.
 //! - A conversation's devices are taken back when it first reaches the
 //!   resident, each under its handle, while it is *resuming*: listed as open,
@@ -42,15 +42,15 @@ use tokio::{
 };
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_command_package_mobile_protocol::mobile::{
+use jush_command_package_mobile_protocol::mobile::{
     DeviceId, DevicesChange, ListResult, MobileMessage, MobilePlatform, PowerState,
     Simulator, Unavailable,
 };
-use demi_command_protocol::ResidentSequence;
-use demi_command_sdk::{Messages, Numbers};
-use demi_live_view_protocol::{LiveActivity, LivePoint};
-use demi_shared_recording::Live;
-use demi_shared_recording_protocol::{EndReason, Input, InputBy, InputPhase, RecordingId};
+use jush_command_protocol::ResidentSequence;
+use jush_command_sdk::{Messages, Numbers};
+use jush_live_view_protocol::{LiveActivity, LivePoint};
+use jush_shared_recording::Live;
+use jush_shared_recording_protocol::{EndReason, Input, InputBy, InputPhase, RecordingId};
 
 use crate::{
     driver::{Device, Driver, DriverError},
@@ -90,7 +90,7 @@ pub struct OpenDevice {
     /// The model, such as iPhone 17 or iPad Air 13-inch (M3).
     pub model: String,
     pub os: String,
-    /// Whether Demi booted it, so it shuts down when it closes.
+    /// Whether Jush booted it, so it shuts down when it closes.
     pub booted: bool,
     pub device: Arc<dyn Device>,
     /// The device's log since it opened, which outlasts its connections.
@@ -432,7 +432,7 @@ pub struct Devices {
     tasks: TaskTracker,
     /// Cancelled once the resident closes: its tasks end.
     stopping: CancellationToken,
-    /// The simulators Demi booted and the open devices, across the
+    /// The simulators Jush booted and the open devices, across the
     /// programs' ends.
     kept: Kept,
     /// Whether a conversation is still on this device.
@@ -470,7 +470,7 @@ impl Devices {
 
     /// Releases what the record holds for the conversations that are no
     /// longer on this device, which no release reached: the device was offline
-    /// when they ended, or no resident ran. A simulator Demi booted for one
+    /// when they ended, or no resident ran. A simulator Jush booted for one
     /// shuts down, as its conversation's release shuts it down.
     async fn sweep(self: Arc<Self>) {
         for device in self.kept.forget_where_gone(|conversation| (self.exists)(conversation)) {
@@ -482,13 +482,13 @@ impl Devices {
                 reason = "conversation_gone",
                 "a device closed"
             );
-            self.shut_down_if_demis(device.platform, &device.native_id).await;
+            self.shut_down_if_jushs(device.platform, &device.native_id).await;
         }
     }
 
-    /// Shuts the simulator down when Demi booted it, in the boot it is in;
+    /// Shuts the simulator down when Jush booted it, in the boot it is in;
     /// answers whether it did, and why it could not.
-    async fn shut_down_if_demis(&self, platform: MobilePlatform, native_id: &str) -> (bool, Option<String>) {
+    async fn shut_down_if_jushs(&self, platform: MobilePlatform, native_id: &str) -> (bool, Option<String>) {
         let Probe::Booted(simulator) = self.probe(platform, native_id).await else {
             return (false, None);
         };
@@ -715,7 +715,7 @@ impl Devices {
 
     /// Closes a device of this resident that has no connection: removes it
     /// from the registry and the record, and shuts its simulator down when
-    /// Demi booted it, as the close of a connected one does.
+    /// Jush booted it, as the close of a connected one does.
     async fn end_resuming(self: &Arc<Self>, entry: &Opened, why: Closing) -> Ended {
         let removed = {
             let mut state = self.state.lock().expect("the registry is intact");
@@ -748,7 +748,7 @@ impl Devices {
             resuming = true,
             "a device closed"
         );
-        let (shut_down, failure) = self.shut_down_if_demis(entry.platform, &entry.native_id).await;
+        let (shut_down, failure) = self.shut_down_if_jushs(entry.platform, &entry.native_id).await;
         self.changed(&entry.conversation);
         Ended { shut_down, failure }
     }
@@ -945,7 +945,7 @@ impl Devices {
                 return Err(MobileError::Busy(simulator.name));
             }
         }
-        // Demi booted it now, or the program before this one did.
+        // Jush booted it now, or the program before this one did.
         let booting = simulator.state != PowerState::Booted;
         let booted = booting || self.kept.holds(driver.platform(), &simulator.native_id, simulator.boot);
         if booting {
@@ -955,7 +955,7 @@ impl Devices {
                 native_id: &simulator.native_id,
             };
             // A boot that began and was not undone leaves the simulator
-            // Demi's, to shut down with the device that opens it next.
+            // Jush's, to shut down with the device that opens it next.
             driver
                 .boot(&simulator.native_id, &recorded)
                 .await
@@ -968,7 +968,7 @@ impl Devices {
             Err(error) => {
                 if booted {
                     // The device it booted for nothing goes down again; one
-                    // that does not stays Demi's, since the open's own
+                    // that does not stays Jush's, since the open's own
                     // failure is what the caller needs.
                     match driver.shutdown(&simulator.native_id).await {
                         Ok(()) => self.kept.unbooted(driver.platform(), &simulator.native_id),
@@ -1045,7 +1045,7 @@ impl Devices {
     /// resuming meanwhile, its recording ended and its connection let go,
     /// and whoever booted it still has it booted. A close meanwhile closes
     /// it as any resuming device, and the erase then leaves it shut down
-    /// when Demi booted it.
+    /// when Jush booted it.
     pub async fn erase(self: &Arc<Self>, open: &Arc<OpenDevice>) -> Result<(), MobileError> {
         let devices = self.clone();
         let open = open.clone();
@@ -1110,7 +1110,7 @@ impl Devices {
             if open.booted {
                 self.kept.unbooted(open.platform, &open.native_id);
             }
-            // The boot is Demi's only where the one before was.
+            // The boot is Jush's only where the one before was.
             let recorded = Recorded {
                 kept: &self.kept,
                 platform: open.platform,
@@ -1143,10 +1143,10 @@ impl Devices {
         }
         // Closed while it was erased: the boot was for nothing.
         if open.booted {
-            self.shut_down_if_demis(open.platform, &open.native_id).await;
+            self.shut_down_if_jushs(open.platform, &open.native_id).await;
         }
         Err(MobileError::Failed(format!(
-            "{} was closed while it was erased; the simulator is erased, and shut down when demi mobile booted it",
+            "{} was closed while it was erased; the simulator is erased, and shut down when jush mobile booted it",
             open.handle
         )))
     }
@@ -1220,11 +1220,11 @@ impl Devices {
         }
     }
 
-    /// Closes `open` once, for `why`: detaches it, shuts it down when Demi
+    /// Closes `open` once, for `why`: detaches it, shuts it down when Jush
     /// booted it and it is still there, and tells the plugin. The closing
     /// runs to its end on its own, whatever becomes of the request that
 
-    /// Closes `open` once, for `why`: detaches it, shuts it down when Demi
+    /// Closes `open` once, for `why`: detaches it, shuts it down when Jush
     /// booted it and it is still there, and tells the plugin. The closing
     /// runs to its end on its own, whatever becomes of the request that
     /// asked for it.
@@ -1303,7 +1303,7 @@ impl Devices {
         // started inside it ends; it is never shut down for going away.
         let failure = self.let_go(&driver, &open.device, &open.native_id, shut_down).await;
         // A device that went away may still be booted, as when its helper
-        // ended: it stays Demi's until it is shut down.
+        // ended: it stays Jush's until it is shut down.
         if shut_down && failure.is_none() {
             self.kept.unbooted(open.platform, &open.native_id);
         }
@@ -1518,7 +1518,7 @@ impl From<DriverError> for MobileError {
     }
 }
 
-/// A boot `open` started, recorded in the simulators Demi booted as it
+/// A boot `open` started, recorded in the simulators Jush booted as it
 /// begins and taken out again once the driver undid a failed one.
 struct Recorded<'a> {
     kept: &'a Kept,
@@ -1526,7 +1526,7 @@ struct Recorded<'a> {
     native_id: &'a str,
 }
 
-/// A boot that is not Demi's, as the erase of a device the user booted
+/// A boot that is not Jush's, as the erase of a device the user booted
 /// starts.
 struct Unrecorded;
 
@@ -1554,7 +1554,7 @@ impl crate::driver::Booting for Recorded<'_> {
 /// ran as it began, which alone lists it, and when it first gave the device
 /// an input, the time it lists it at.
 struct UnderWay {
-    sink: Option<demi_shared_recording::Sink>,
+    sink: Option<jush_shared_recording::Sink>,
     first: Mutex<Option<std::time::Instant>>,
     began: std::time::Instant,
 }

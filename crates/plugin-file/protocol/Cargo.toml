@@ -1,5 +1,5 @@
 [package]
-name = "demi-command-package-file-protocol"
+name = "jush-command-package-file-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,7 +12,7 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-types = { path = "../../shared-types" }
+jush-shared-types = { path = "../../shared-types" }
 garde.workspace = true
 schemars.workspace = true
 serde.workspace = true

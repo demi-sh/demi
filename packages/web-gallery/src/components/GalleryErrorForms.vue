@@ -2,23 +2,23 @@
 import { GALLERY_MARKS, shownAmong } from '../fixtures/device-marks'
 import { correction, requestFailure } from '../fixtures/request-failures'
 import { ref } from 'vue'
-import EmailLoginPage from '@demicodes/web-ui/auth/EmailLoginPage.vue'
-import ScrollArea from '@demicodes/web-ui/ui/ScrollArea.vue'
+import EmailLoginPage from '@jush-ai/web-ui/auth/EmailLoginPage.vue'
+import ScrollArea from '@jush-ai/web-ui/ui/ScrollArea.vue'
 import ChangeEmailDialog, {
   type ChangeEmailPhase,
-} from '@demicodes/web-ui/settings/ChangeEmailDialog.vue'
+} from '@jush-ai/web-ui/settings/ChangeEmailDialog.vue'
 import ChangePasswordDialog, {
   type ChangePasswordPhase,
-} from '@demicodes/web-ui/settings/ChangePasswordDialog.vue'
+} from '@jush-ai/web-ui/settings/ChangePasswordDialog.vue'
 import ProviderLoginDialog, {
   type ProviderLoginPhase,
-} from '@demicodes/web-ui/settings/ProviderLoginDialog.vue'
-import ModelDialog from '@demicodes/web-ui/settings/ModelDialog.vue'
-import DevicePairingDialog from '@demicodes/web-ui/devices/DevicePairingDialog.vue'
-import ProjectDialog from '@demicodes/web-ui/targets/ProjectDialog.vue'
-import type { ProjectDeviceChoice } from '@demicodes/web-ui/targets/project'
-import type { PairingPhase } from '@demicodes/web-ui/devices/pairing'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
+} from '@jush-ai/web-ui/settings/ProviderLoginDialog.vue'
+import ModelDialog from '@jush-ai/web-ui/settings/ModelDialog.vue'
+import DevicePairingDialog from '@jush-ai/web-ui/devices/DevicePairingDialog.vue'
+import ProjectDialog from '@jush-ai/web-ui/targets/ProjectDialog.vue'
+import type { ProjectDeviceChoice } from '@jush-ai/web-ui/targets/project'
+import type { PairingPhase } from '@jush-ai/web-ui/devices/pairing'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
 import { createGalleryFileDevices } from '../fixtures/files'
 import { demoInstallCommands } from '../fixtures/device-installation'
 import { productWould } from '../product-would'

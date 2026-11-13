@@ -4,13 +4,13 @@
 //! The command:
 //!
 //! 1. Reads the version's official download metadata.
-//! 2. Downloads the archive of each platform Demi supports through `artifact`,
+//! 2. Downloads the archive of each platform Jush supports through `artifact`,
 //!    measures it, and checks that it holds the executable the record names.
 //! 3. Does the same for the runtime release's archives.
 //! 4. Writes the release record with command-package-browser-protocol's type,
-//!    which `demi-browser` installs from.
+//!    which `jush-browser` installs from.
 //!
-//! The downloads are not kept: nothing in a Demi release carries Chrome or the
+//! The downloads are not kept: nothing in a Jush release carries Chrome or the
 //! runtime. Chrome for Testing publishes no Windows arm64 build, so the record
 //! carries five of the six targets.
 //!
@@ -53,11 +53,11 @@
 
 use std::collections::BTreeMap;
 
-use demi_command_package_browser_protocol::release::{
+use jush_command_package_browser_protocol::release::{
     BrowserRelease, ChromeRuntime, RUNTIME_FONTS_ENTRY, RUNTIME_LIBRARIES_ENTRY, ReleasePlatform,
     RuntimeArchive,
 };
-use demi_shared_artifacts::{Mode, Permissions, Publication};
+use jush_shared_artifacts::{Mode, Permissions, Publication};
 use serde::Deserialize;
 use tokio_util::sync::CancellationToken;
 
@@ -68,7 +68,7 @@ const ARCHIVES: &str = "https://storage.googleapis.com/";
 /// Where the Chrome runtime's releases are, each in a directory named by its
 /// number
 /// (`crates/plugin-browser/command-chrome/src/driver/installation.rs`).
-const RUNTIME: &str = "https://github.com/demi-sh/demi-chrome-runtime/releases/download";
+const RUNTIME: &str = "https://github.com/jush-ai/jush-chrome-runtime/releases/download";
 /// The runtime's fonts' archive, which every Linux target shares.
 const RUNTIME_FONTS: &str = "fonts.tar.zst";
 /// The pinned record, which `BrowserRelease::pinned` reads.
@@ -84,7 +84,7 @@ const METADATA_BYTES: u64 = 1024 * 1024;
 /// without end.
 const ARCHIVE_BYTES: u64 = 1024 * 1024 * 1024;
 
-/// A platform Demi pins Chrome for: Chrome for Testing's name for it, its
+/// A platform Jush pins Chrome for: Chrome for Testing's name for it, its
 /// target, the executable's path in its archive, and on Linux the runtime's
 /// archive of its libraries.
 struct Platform {
@@ -183,7 +183,7 @@ pub enum Error {
     #[error("the release record is invalid: {0}")]
     Record(String),
     #[error(transparent)]
-    Artifact(#[from] demi_shared_artifacts::Error),
+    Artifact(#[from] jush_shared_artifacts::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -198,7 +198,7 @@ pub fn run(options: Options) -> Result<(), Error> {
     crate::interruptible(|cancel| async move {
         // GitHub serves the runtime's assets through a redirect to
         // short-lived storage; what arrives is measured either way.
-        let client = demi_shared_artifacts::download_client()?;
+        let client = jush_shared_artifacts::download_client()?;
         let bytes = prepare(
             &client,
             &sources,
@@ -212,7 +212,7 @@ pub fn run(options: Options) -> Result<(), Error> {
             permissions: Permissions::Default,
             durable: true,
         };
-        demi_shared_artifacts::publish_bytes(&record, &bytes, publication).await?;
+        jush_shared_artifacts::publish_bytes(&record, &bytes, publication).await?;
         println!(
             "Chrome for Testing {} with the Chrome runtime {}: {}",
             options.version,
@@ -255,7 +255,7 @@ struct Download {
 /// The release record of `version` with the runtime release `runtime`, as
 /// the file's bytes.
 async fn prepare(
-    client: &demi_shared_artifacts::Client,
+    client: &jush_shared_artifacts::Client,
     sources: &Sources<'_>,
     version: &str,
     runtime: u32,
@@ -266,7 +266,7 @@ async fn prepare(
         reason,
     };
     let url = format!("{}/{version}.json", sources.metadata);
-    let (received, bytes) = demi_shared_artifacts::download_bytes(
+    let (received, bytes) = jush_shared_artifacts::download_bytes(
         client,
         followed(&url, METADATA_BYTES),
         cancel,
@@ -299,7 +299,7 @@ async fn prepare(
         }
         let path = downloads.path().join(format!("{}.zip", platform.name));
         let digest = measured(client, &download.url, &path, cancel).await?;
-        if !demi_shared_artifacts::holds(&path, platform.executable).await? {
+        if !jush_shared_artifacts::holds(&path, platform.executable).await? {
             return Err(Error::NoExecutable {
                 platform: platform.name,
                 executable: platform.executable,
@@ -366,29 +366,29 @@ async fn prepare(
 /// A download of `url` that follows redirects, as GitHub serves the
 /// runtime's assets through one to short-lived storage, and holds at most
 /// `limit` bytes.
-fn followed(url: &str, limit: u64) -> demi_shared_artifacts::Download<'_> {
-    demi_shared_artifacts::Download {
+fn followed(url: &str, limit: u64) -> jush_shared_artifacts::Download<'_> {
+    jush_shared_artifacts::Download {
         limit,
         redirects: 10,
-        ..demi_shared_artifacts::Download::new(url)
+        ..jush_shared_artifacts::Download::new(url)
     }
 }
 
 /// Downloads the archive at `url` into `path` and measures what arrived.
 async fn measured(
-    client: &demi_shared_artifacts::Client,
+    client: &jush_shared_artifacts::Client,
     url: &str,
     path: &std::path::Path,
     cancel: &CancellationToken,
-) -> Result<demi_shared_artifacts::Digest, Error> {
-    demi_shared_artifacts::download(client, followed(url, ARCHIVE_BYTES), path, cancel, |_, _| {})
+) -> Result<jush_shared_artifacts::Digest, Error> {
+    jush_shared_artifacts::download(client, followed(url, ARCHIVE_BYTES), path, cancel, |_, _| {})
         .await?
         .plain()?;
-    Ok(demi_shared_artifacts::digest(path, ARCHIVE_BYTES, cancel).await?)
+    Ok(jush_shared_artifacts::digest(path, ARCHIVE_BYTES, cancel).await?)
 }
 
 async fn runtime_archive(
-    client: &demi_shared_artifacts::Client,
+    client: &jush_shared_artifacts::Client,
     sources: &Sources<'_>,
     runtime: u32,
     archive: &'static str,
@@ -399,7 +399,7 @@ async fn runtime_archive(
     let url = format!("{}/{runtime}/{archive}", sources.runtime);
     let path = downloads.join(archive);
     let digest = measured(client, &url, &path, cancel).await?;
-    if !demi_shared_artifacts::holds(&path, entry).await? {
+    if !jush_shared_artifacts::holds(&path, entry).await? {
         return Err(Error::NoRuntimeEntry { archive, entry });
     }
     tokio::fs::remove_file(&path).await?;

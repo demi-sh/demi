@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { t } from '@demicodes/web-ui/settings/locales/text'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { reportError, shownError } from '@demicodes/web-ui/infra/errors'
-import { showToast } from '@demicodes/web-ui/infra/toast'
-import SettingsCloud from '@demicodes/web-ui/settings/SettingsCloud.vue'
+import { t } from '@jush-ai/web-ui/settings/locales/text'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { reportError, shownError } from '@jush-ai/web-ui/infra/errors'
+import { showToast } from '@jush-ai/web-ui/infra/toast'
+import SettingsCloud from '@jush-ai/web-ui/settings/SettingsCloud.vue'
 import {
   destinationProblemText,
   type CloudIsolationSetting,
@@ -15,8 +15,8 @@ import {
   type NetworkGroup,
   type NetworkPolicy,
   withPolicy,
-} from '@demicodes/web-ui/settings/cloud'
-import type { SentenceText } from '@demicodes/web-ui/ui/ui-text'
+} from '@jush-ai/web-ui/settings/cloud'
+import type { SentenceText } from '@jush-ai/web-ui/ui/ui-text'
 import { ApiError, apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   cloudIsolationSchema,

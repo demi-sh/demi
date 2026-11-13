@@ -17,7 +17,7 @@
 //!
 //! Media reach the model only in the result that reports the job's end, the
 //! `shell` result or the end report, so each medium is attached once and a
-//! job's media arrive together in order. A `demi shell status` that shows the
+//! job's media arrive together in order. A `jush shell status` that shows the
 //! end attaches nothing, and the end report then still comes carrying the media
 //! alone.
 //!
@@ -41,15 +41,15 @@
 
 use std::sync::Arc;
 
-use demi_agent_session::ToolOutcome;
-use demi_agent_store::images;
-use demi_agent_transcript::REPLAY_CHARS;
-use demi_device_interface::{
+use jush_agent_session::ToolOutcome;
+use jush_agent_store::images;
+use jush_agent_transcript::REPLAY_CHARS;
+use jush_device_interface::{
     BinaryOutput, CommandMedium, CommandState, CommandStatus, Newest, OutputText,
     Piece, Seen, Streams, Unreachable, WholeOutput, WholeView,
 };
-use demi_provider_common::{MediaBytes, RequestLimits, ResultPart, ToolResultKinds};
-use demi_shared_types::{
+use jush_provider_common::{MediaBytes, RequestLimits, ResultPart, ToolResultKinds};
+use jush_shared_types::{
     B64Bytes, CommandId, Model, ModelMediaKind, OutputChunk, OutputView, ShellToolView,
     ShellViewStatus, StreamView, ToolView, model_media_type_for,
 };
@@ -143,7 +143,7 @@ pub(super) async fn shell_outcome(
 }
 
 /// What a look at a command shows the model, as a result shows it: the text
-/// of `demi shell status`.
+/// of `jush shell status`.
 pub fn look_text(status: &CommandStatus, look: Look) -> String {
     result_text(status, &unseen_output(status), look)
 }
@@ -296,12 +296,12 @@ fn result_text(status: &CommandStatus, text: &OutputText, look: Look) -> String 
 }
 
 /// The line that says where the command is, as the model reads it
-/// (`crates/agent-server/src/server/shell_output.rs`): running, as far as Demi knows
+/// (`crates/agent-server/src/server/shell_output.rs`): running, as far as Jush knows
 /// while its device is `unreachable`; exited; stopped; or lost, with why.
 fn status_line(state: &CommandState, unreachable: Option<Unreachable>) -> String {
     match (state, unreachable) {
         (CommandState::Running { .. }, Some(unreachable)) => format!(
-            "status: running, as far as Demi knows; its device has been unreachable for {}, and its runner keeps it running",
+            "status: running, as far as Jush knows; its device has been unreachable for {}, and its runner keeps it running",
             super::duration(unreachable.away_ms),
         ),
         (CommandState::Running { .. }, None) => "status: running".to_owned(),
@@ -354,7 +354,7 @@ fn unreceived_line(status: &CommandStatus, newest: &[&Newest]) -> Option<String>
     let running = matches!(status.state, CommandState::Running { .. });
     (running && status.unreceived > 0 && newest.is_empty()).then(|| {
         format!(
-            "[... {} bytes not shown so far; the newest: demi shell output {} --tail {NEWEST_LINES} ...]",
+            "[... {} bytes not shown so far; the newest: jush shell output {} --tail {NEWEST_LINES} ...]",
             status.unreceived, status.command_id
         )
     })
@@ -583,14 +583,14 @@ fn marker(text: &OutputText, command: &CommandId, start: usize, end: usize) -> S
 
 fn lines_marker(command: &CommandId, first: u64, last: u64, bytes: usize) -> String {
     format!(
-        "[... lines {first}-{last} not shown ({bytes} bytes); read them: demi shell output {command} --lines {first}-{last} ...]"
+        "[... lines {first}-{last} not shown ({bytes} bytes); read them: jush shell output {command} --lines {first}-{last} ...]"
     )
 }
 
 fn chars_marker(command: &CommandId, line: u64, from: usize, to: usize) -> String {
     let part_end = to.min(from + PAGE_CHARS - 1);
     format!(
-        "[... characters {from}-{to} of line {line} not shown; read them: demi shell output {command} --raw | sed -n {line}p | cut -c {from}-{part_end} ...]"
+        "[... characters {from}-{to} of line {line} not shown; read them: jush shell output {command} --raw | sed -n {line}p | cut -c {from}-{part_end} ...]"
     )
 }
 
@@ -679,7 +679,7 @@ async fn attached_media(
     }
     if let Some(binary) = binary {
         lines.push(format!(
-            "[binary stdout, {} bytes: not shown; to look at an image, a video or a PDF, pipe it into demi file view; to keep it, redirect it to a file]",
+            "[binary stdout, {} bytes: not shown; to look at an image, a video or a PDF, pipe it into jush file view; to keep it, redirect it to a file]",
             binary.info.total_bytes
         ));
     }

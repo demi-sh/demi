@@ -1,14 +1,14 @@
 <script setup lang="ts">
-// The fourth screen: the models Demi runs on, from the user's own
+// The fourth screen: the models Jush runs on, from the user's own
 // subscriptions and keys, with what each subscription has left.
 import { ArrowUpIcon, CheckIcon, ChevronDownIcon, KeyRoundIcon, SquareTerminalIcon } from '@lucide/vue'
-// The vendors' own marks, the files Demi's settings and model menu show.
-import claudeUrl from '@demicodes/web-ui/settings/logos/claude.svg?url&no-inline'
-import openaiUrl from '@demicodes/web-ui/settings/logos/openai.svg?url&no-inline'
-import xaiUrl from '@demicodes/web-ui/settings/logos/xai.svg?url&no-inline'
-import kimiUrl from '@demicodes/web-ui/settings/logos/kimi-code-plan-global.svg?url&no-inline'
-import zaiUrl from '@demicodes/web-ui/settings/logos/zai-coding-plan.svg?url&no-inline'
-import minimaxUrl from '@demicodes/web-ui/settings/logos/minimax-coding-plan.svg?url&no-inline'
+// The vendors' own marks, the files Jush's settings and model menu show.
+import claudeUrl from '@jush-ai/web-ui/settings/logos/claude.svg?url&no-inline'
+import openaiUrl from '@jush-ai/web-ui/settings/logos/openai.svg?url&no-inline'
+import xaiUrl from '@jush-ai/web-ui/settings/logos/xai.svg?url&no-inline'
+import kimiUrl from '@jush-ai/web-ui/settings/logos/kimi-code-plan-global.svg?url&no-inline'
+import zaiUrl from '@jush-ai/web-ui/settings/logos/zai-coding-plan.svg?url&no-inline'
+import minimaxUrl from '@jush-ai/web-ui/settings/logos/minimax-coding-plan.svg?url&no-inline'
 
 /**
  * A mark, and how much of its box it is drawn across. The files leave
@@ -46,7 +46,7 @@ const providers = [
     ],
   },
   { name: 'API keys', text: 'Anthropic, OpenAI, Gemini or any compatible endpoint.', icon: KeyRoundIcon, tint: '#ebe4f1', color: '#6b5a80' },
-  { name: 'Local models', text: 'Run Ollama on your own computer. Demi reaches it through port forwarding.', icon: SquareTerminalIcon, tint: '#f4e6d2', color: '#8a6235' },
+  { name: 'Local models', text: 'Run Ollama on your own computer. Jush reaches it through port forwarding.', icon: SquareTerminalIcon, tint: '#f4e6d2', color: '#8a6235' },
 ]
 
 const models = [
@@ -68,7 +68,7 @@ const usage = [
       <h2 class="section-title">Bring the AI you already pay for.</h2>
       <p class="section-lede">
         Sign in with your subscriptions, or use coding plans and API keys.<br />
-        Add several accounts, and Demi switches to the next when one hits its limit.
+        Add several accounts, and Jush switches to the next when one hits its limit.
       </p>
     </div>
 
@@ -155,7 +155,7 @@ const usage = [
   background: var(--paper);
 }
 
-/* A vendor's mark, monochrome, painted in the text's color as Demi paints it. */
+/* A vendor's mark, monochrome, painted in the text's color as Jush paints it. */
 .mark {
   display: inline-block;
   flex: none;

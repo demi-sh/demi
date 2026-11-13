@@ -43,8 +43,8 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-use demi_shared_types::{Model, QuotaSnapshot, QuotaWindow, QuotaWindowName, Rotation, Timestamp};
-use demi_web_api_protocol::ids::{CredentialId, ProviderId};
+use jush_shared_types::{Model, QuotaSnapshot, QuotaWindow, QuotaWindowName, Rotation, Timestamp};
+use jush_web_api_protocol::ids::{CredentialId, ProviderId};
 
 /// How long an account whose failure and quota name no moment stays used up.
 pub const USED_UP_FOR_MS: i64 = 30 * 60 * 1000;

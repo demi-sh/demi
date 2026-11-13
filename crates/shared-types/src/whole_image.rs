@@ -1,7 +1,7 @@
 //! Whether an image's bytes are a whole picture.
 //!
-//! It is the one check `demi file view` runs before it shows the model an
-//! image, and `demi image` runs on a vendor's answer before it writes it
+//! It is the one check `jush file view` runs before it shows the model an
+//! image, and `jush image` runs on a vendor's answer before it writes it
 //! (`crates/plugin-file/command/src/files.rs`,
 //! `crates/plugin-image/plugin/src/image.rs`). A picture cut short is refused, never
 //! shown or converted as the decoder fills it in.

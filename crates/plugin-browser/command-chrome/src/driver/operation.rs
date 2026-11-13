@@ -27,7 +27,7 @@ use thiserror::Error;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
-use demi_command_package_browser_protocol::browser::{
+use jush_command_package_browser_protocol::browser::{
     ActionProgress, AssetsExportResult, BrowserErrorCode, ErrorDetails,
 };
 
@@ -85,7 +85,7 @@ pub enum BrowserError {
     Recording(String),
     #[error("{0}")]
     NoRecording(String),
-    #[error("five recordings are running, so no other can start; stop one with demi browser record <r> stop")]
+    #[error("five recordings are running, so no other can start; stop one with jush browser record <r> stop")]
     TooManyRecordings,
     /// A payload, an image or a counter past what a command can hold, such as
     /// the clipboard's text or picture.
@@ -286,7 +286,7 @@ impl<'a> Operation<'a> {
 
 /// The number of the agent a browser command acts for: tabs, debugging
 /// sessions and temporary tabs belong to it (`crates/command-protocol/src/invocation.rs`).
-pub fn agent(context: &demi_command_sdk::InvocationContext) -> Result<u64> {
+pub fn agent(context: &jush_command_sdk::InvocationContext) -> Result<u64> {
     context
         .request
         .context
@@ -429,9 +429,9 @@ impl BrowserError {
     }
 }
 
-impl From<demi_shared_types::buffer::BufferError> for BrowserError {
-    fn from(error: demi_shared_types::buffer::BufferError) -> Self {
-        use demi_shared_types::buffer::BufferError;
+impl From<jush_shared_types::buffer::BufferError> for BrowserError {
+    fn from(error: jush_shared_types::buffer::BufferError) -> Self {
+        use jush_shared_types::buffer::BufferError;
         match error {
             BufferError::StaleCursor => Self::StaleCursor,
             BufferError::Unserializable(reason) => Self::InvalidResult(reason),
@@ -440,9 +440,9 @@ impl From<demi_shared_types::buffer::BufferError> for BrowserError {
     }
 }
 
-impl From<demi_shared_recording::Error> for BrowserError {
-    fn from(error: demi_shared_recording::Error) -> Self {
-        use demi_shared_recording::Error;
+impl From<jush_shared_recording::Error> for BrowserError {
+    fn from(error: jush_shared_recording::Error) -> Self {
+        use jush_shared_recording::Error;
         match error {
             Error::NoRecording(_) | Error::Removed(_) => Self::NoRecording(error.to_string()),
             Error::TooManyRunning => Self::TooManyRecordings,

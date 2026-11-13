@@ -16,7 +16,7 @@ restarts, that service starts again with an empty list, and the backend
 removes every device tab of every conversation, though each simulator is
 still running on the Host. The agent's handles stop working too.
 
-The service also shuts down a device Demi booted after an hour in which
+The service also shuts down a device Jush booted after an hour in which
 nobody watched it and no command used it, and closes its tab. A user who
 comes back after a meeting finds the tab gone.
 
@@ -38,7 +38,7 @@ done with a device.
 * When the runner restarts or updates, the tab stays and says the device is
   reconnecting. The Host's mobile service keeps which conversation has which
   device open, under which handle, across its restarts, as it keeps which
-  simulators Demi booted. When it starts again it takes each device back
+  simulators Jush booted. When it starts again it takes each device back
   under the same handle, so the tab's picture returns and the agent's handles
   work as before.
 * A device that no longer exists when the service starts again is closed as

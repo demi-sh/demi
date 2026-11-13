@@ -26,8 +26,8 @@ use std::collections::VecDeque;
 use std::io;
 
 use bytes::Bytes;
-use demi_runner_protocol::pairs::PairRoute;
-use demi_runner_protocol::wire::PipePath;
+use jush_runner_protocol::pairs::PairRoute;
+use jush_runner_protocol::wire::PipePath;
 use futures_util::future::BoxFuture;
 use futures_util::stream::BoxStream;
 use futures_util::StreamExt as _;

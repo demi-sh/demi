@@ -21,22 +21,22 @@ use std::{
     time::Duration,
 };
 
-use demi_agent_session::{
+use jush_agent_session::{
     AgentMessageError, Continuation, ForkError, ForkSeed, IdleCompactionDue, ModelSwitch, SessionConfig, fork_seed,
 };
-use demi_agent_store::media::HeldMedia;
-use demi_agent_store::{AgentTreeStore, NodeRecord, Placement, SideOf, StoreError};
-use demi_conversation_lane_protocol::{AgentEntry, CacheChart, Version};
-use demi_agent_tools::{
+use jush_agent_store::media::HeldMedia;
+use jush_agent_store::{AgentTreeStore, NodeRecord, Placement, SideOf, StoreError};
+use jush_conversation_lane_protocol::{AgentEntry, CacheChart, Version};
+use jush_agent_tools::{
     CALL_WINDOW_MS, ContextSource, DeviceResolver, ProfileModel, ShellEnvironmentFactory,
     SubagentSource, Toolset, ToolsetSource, Unavailable,
 };
-use demi_agent_transcript::{ForkEnd, IdSource};
+use jush_agent_transcript::{ForkEnd, IdSource};
 
-use demi_provider_common::{Ahead, ProviderRuntime};
-use demi_device_interface::{CommandSet, RegisterError};
-use demi_shared_gates::KeyedSerialGate;
-use demi_shared_types::{AgentMessage, BlockId, Clock, ModelSelection, NodeId, SessionPhase, UserContentBlock};
+use jush_provider_common::{Ahead, ProviderRuntime};
+use jush_device_interface::{CommandSet, RegisterError};
+use jush_shared_gates::KeyedSerialGate;
+use jush_shared_types::{AgentMessage, BlockId, Clock, ModelSelection, NodeId, SessionPhase, UserContentBlock};
 use futures_util::future::{LocalBoxFuture, join_all};
 use tokio_util::task::TaskTracker;
 
@@ -184,7 +184,7 @@ pub struct ServerDeps<H: DeviceResolver> {
     /// which the server grafts its own groups per node.
     pub toolsets: Rc<dyn ToolsetSource>,
     /// The user's Subagents switch, limits and profiles, read at each spawn
-    /// and each `demi agent profiles`.
+    /// and each `jush agent profiles`.
     pub subagents: Rc<dyn SubagentSource>,
     /// The instructions of every node's system prompt, its identity, which a
     /// profile's replace.
@@ -292,8 +292,8 @@ impl<H: DeviceResolver> AgentServer<H> {
 
     /// The commands a root node that opens now starts from.
     ///
-    /// They are the product's current ones with the server's `demi agent` and
-    /// `demi shell` groups grafted, whose declarations, such as their
+    /// They are the product's current ones with the server's `jush agent` and
+    /// `jush shell` groups grafted, whose declarations, such as their
     /// permission categories, the product reads beside its own.
     pub async fn node_commands(self: &Rc<Self>) -> Result<Rc<CommandSet>, String> {
         let toolset = self.toolset().await?;
@@ -327,7 +327,7 @@ impl<H: DeviceResolver> AgentServer<H> {
         Ok(self.command_sets.hold_toolset(composed))
     }
 
-    /// `inherited` with the server's `demi agent` and `demi shell` groups for
+    /// `inherited` with the server's `jush agent` and `jush shell` groups for
     /// a node with the spawning right `can_spawn`: the set another node of
     /// the same two holds, or a new one that later nodes share.
     fn runtime_commands(

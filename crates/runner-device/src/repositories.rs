@@ -25,7 +25,7 @@ use std::{
     sync::{Arc, atomic::AtomicBool},
 };
 
-use demi_runner_protocol::wire;
+use jush_runner_protocol::wire;
 
 use crate::git::{GitError, locate};
 use crate::history::interrupted;

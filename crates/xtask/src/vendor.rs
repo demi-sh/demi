@@ -3,7 +3,7 @@
 //! It downloads that release from crates.io through `artifact`, checks it
 //! against the SHA-256 the crates.io index records, and compares it with the
 //! vendored copy file by file, so an upgrade or a review sees every local
-//! change, not only the ones `[package.metadata.demi]` describes.
+//! change, not only the ones `[package.metadata.jush]` describes.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -51,7 +51,7 @@ pub enum Error {
     #[error("{0}")]
     Io(#[from] std::io::Error),
     #[error("{0}")]
-    Artifact(#[from] demi_shared_artifacts::Error),
+    Artifact(#[from] jush_shared_artifacts::Error),
     #[error("cargo metadata: {0}")]
     Metadata(String),
     #[error("the crates.io index of {name}: {reason}")]
@@ -100,7 +100,7 @@ pub fn run(command: Command) -> Result<(), Error> {
         }
     }
     crate::interruptible(|cancel| async move {
-        let client = demi_shared_artifacts::download_client()?;
+        let client = jush_shared_artifacts::download_client()?;
         let scratch = tempfile::tempdir()?;
         for crate_ in &vendored {
             let upstream = upstream(&client, crate_, scratch.path(), &cancel).await?;
@@ -154,17 +154,17 @@ fn index_path(name: &str) -> String {
 /// Downloads and unpacks `crate_`'s upstream release below `scratch`, after
 /// checking it against the index, and returns its directory.
 async fn upstream(
-    client: &demi_shared_artifacts::Client,
+    client: &jush_shared_artifacts::Client,
     crate_: &Vendored,
     scratch: &Path,
     cancel: &CancellationToken,
 ) -> Result<PathBuf, Error> {
     let url = format!("{INDEX}/{}", index_path(&crate_.name));
-    let (received, index) = demi_shared_artifacts::download_bytes(
+    let (received, index) = jush_shared_artifacts::download_bytes(
         client,
-        demi_shared_artifacts::Download {
+        jush_shared_artifacts::Download {
             limit: DOWNLOAD_BYTES,
-            ..demi_shared_artifacts::Download::new(&url)
+            ..jush_shared_artifacts::Download::new(&url)
         },
         cancel,
     )
@@ -189,14 +189,14 @@ async fn upstream(
     })?;
     let url = format!("{ARCHIVES}/{0}/{0}-{1}.crate", crate_.name, crate_.version);
     let path = scratch.join(format!("{}-{}.crate", crate_.name, crate_.version));
-    let request = demi_shared_artifacts::Download {
+    let request = jush_shared_artifacts::Download {
         limit: DOWNLOAD_BYTES,
-        ..demi_shared_artifacts::Download::new(&url)
+        ..jush_shared_artifacts::Download::new(&url)
     };
-    demi_shared_artifacts::download(client, request, &path, cancel, |_, _| {})
+    jush_shared_artifacts::download(client, request, &path, cancel, |_, _| {})
         .await?
         .plain()?;
-    let digest = demi_shared_artifacts::digest(&path, DOWNLOAD_BYTES, cancel).await?;
+    let digest = jush_shared_artifacts::digest(&path, DOWNLOAD_BYTES, cancel).await?;
     let archive = tokio::fs::read(&path).await?;
     if digest.sha256 != recorded {
         return Err(Error::Checksum {

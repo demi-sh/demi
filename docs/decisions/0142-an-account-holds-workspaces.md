@@ -6,7 +6,7 @@ status: proposed
 
 ## Problem
 
-Alex uses one Demi account for his own projects and for his job. The
+Alex uses one Jush account for his own projects and for his job. The
 sidebar lists both together: a conversation about his garden planner sits
 between two about his employer's billing service, and Search, Archived and
 the schedules mix them too. The only way to separate them today is a
@@ -29,7 +29,7 @@ the same in every workspace.
 | | Plugins and skills |
 
 The separation is for order, not for security. An agent still sees every
-workspace: `demi conversation list` and `demi conversation projects` list
+workspace: `jush conversation list` and `jush conversation projects` list
 all of them, with a column naming each one's workspace, and `send` reaches
 any conversation.
 
@@ -43,7 +43,7 @@ answer not yet read.
 
 ```text
 ┌──────────────────────────────┐
-│ demi                     [▤] │
+│ jush                     [▤] │
 │ ┌──────────────────────────┐ │
 │ │ [▣] Personal         •  ⇅│ │   the switcher
 │ └──────────────────────────┘ │
@@ -170,7 +170,7 @@ does not check it while `target_project_id` is null, a conversation
 outside projects. The migration gives every user one workspace, holding all their
 conversations and projects, and a new account starts with one. Its name is
 null until the user names it, and each page says *Personal* in its own
-language, as *个人* in Chinese; Demi's commands say *Personal*.
+language, as *个人* in Chinese; Jush's commands say *Personal*.
 
 A git repository's linked worktrees are a fact of its folder, which may
 now be a project in two workspaces. The runner's report is kept by device
@@ -236,7 +236,7 @@ None.
   as a workspace's tile does here.
 - **VS Code** lets one folder belong to several multi-root workspaces.
 
-Demi departs from Linear, Slack and Notion in two ways: a workspace is the
+Jush departs from Linear, Slack and Notion in two ways: a workspace is the
 user's own, with no members or billing, and Settings are the account's
 rather than each workspace's.
 

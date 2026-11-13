@@ -22,8 +22,8 @@ use std::path::{Path, PathBuf};
 
 use chromiumoxide::browser::BrowserConfigBuilder;
 
-use demi_live_view_protocol::VIDEO_CODEC;
-use demi_command_protocol::{ColorScheme, CommandLocale};
+use jush_live_view_protocol::VIDEO_CODEC;
+use jush_command_protocol::{ColorScheme, CommandLocale};
 
 use crate::driver::operation::Result;
 
@@ -33,7 +33,7 @@ pub const CAPTURE_EXTENSION_ID: &str = "ekadkclcinpnbbdeloemlmaimcklplko";
 
 /// Where the capture extension of the browser with `profile` lies.
 pub fn capture_extension(profile: &Path) -> PathBuf {
-    profile.join("demi-capture")
+    profile.join("jush-capture")
 }
 
 const CAPTURE_EXTENSION: &[(&str, &str)] = &[
@@ -260,7 +260,7 @@ pub async fn configure(
     }
     kept["intl"]["accept_languages"] = serde_json::Value::String(locale.languages.join(","));
     // Replaced whole, so a start that ends halfway leaves the file as it was.
-    let staged = preferences.join("Preferences.demi");
+    let staged = preferences.join("Preferences.jush");
     tokio::fs::write(
         &staged,
         serde_json::to_vec(&kept).map_err(|error| {

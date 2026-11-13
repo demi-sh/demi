@@ -17,14 +17,14 @@ mod videos;
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     Capabilities, InferenceRequest, OfferedModel, Provider, ProviderHttp, ProviderRun, ProviderRuntime,
     RequestLimits, ToolResultKinds, RuntimeEnv, RuntimeError, Secret, read_http_failure,
     audio::AudioMaker,
     images::ImageMaker,
     videos::VideoMaker,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     AuthState, Clock, Model, ProviderErrorDiagnostics, ProviderFailureFacts,
     RuntimeState, Timestamp,
 };
@@ -188,7 +188,7 @@ impl Provider for GoogleProvider {
 /// A session's runtime: it holds nothing between runs.
 struct GoogleRuntime {
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
 }
 
 impl ProviderRuntime for GoogleRuntime {

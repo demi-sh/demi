@@ -1,5 +1,5 @@
 {
-  "name": "@demicodes/plugin-skills",
+  "name": "@jush-ai/plugin-skills",
   "description": "The skills plugin's page: its settings section.",
   "version": "0.0.0",
   "private": true,
@@ -10,7 +10,7 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@demicodes/plugin-sdk": "workspace:^",
+    "@jush-ai/plugin-sdk": "workspace:^",
     "@lucide/vue": "^1.40.0",
     "vue": "^3.5.38",
     "zod": "^4.0.0"

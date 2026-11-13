@@ -1,4 +1,4 @@
 _version: 1
 verification:
-  subject: "Dein Bestätigungscode für Demi"
-  body: "Gib %{code} in Demi ein, um die E-Mail-Adresse deines Kontos in %{email} zu ändern. Der Code läuft in %{minutes} Minuten ab.\n\nWenn du diese Änderung nicht angefordert hast, ignoriere diese E-Mail."
+  subject: "Dein Bestätigungscode für Jush"
+  body: "Gib %{code} in Jush ein, um die E-Mail-Adresse deines Kontos in %{email} zu ändern. Der Code läuft in %{minutes} Minuten ab.\n\nWenn du diese Änderung nicht angefordert hast, ignoriere diese E-Mail."

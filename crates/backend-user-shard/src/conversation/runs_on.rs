@@ -4,10 +4,10 @@
 //! model's name and Fast tier from the catalog the menu reads. The `subagent`
 //! frames and the conversation's subagents route both read it here.
 
-use demi_agent_tools::runs_on as job_model;
-use demi_conversation_lane_protocol::JobModel;
-use demi_shared_types::ModelSelection;
-use demi_web_api_protocol::ids::UserId;
+use jush_agent_tools::runs_on as job_model;
+use jush_conversation_lane_protocol::JobModel;
+use jush_shared_types::ModelSelection;
+use jush_web_api_protocol::ids::UserId;
 
 use crate::services::Services;
 

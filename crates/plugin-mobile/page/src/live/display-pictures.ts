@@ -10,7 +10,7 @@
  * shows it, and it opens again as the device's own does.
  */
 import { reactive } from 'vue'
-import { CanvasPictures, LiveLink, encodeControl, type LiveConnection, type OpenUserStream } from '@demicodes/plugin-sdk'
+import { CanvasPictures, LiveLink, encodeControl, type LiveConnection, type OpenUserStream } from '@jush-ai/plugin-sdk'
 import {
   LIVE_CAPTURE_FAILED,
   LIVE_CAPTURE_UNAVAILABLE,

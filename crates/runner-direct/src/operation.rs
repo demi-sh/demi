@@ -7,15 +7,15 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_runner_protocol::direct::{
+use jush_runner_protocol::direct::{
     ChannelError, ChannelErrorCode, ChannelHeader, ChannelRefusal, Introduction, Listed,
     MESSAGE_BYTES, Opened, QUEUE_BYTES, ReadOpened, ResidentBinding, StreamWatched, TextOpened,
     WATCH_HEARTBEAT, WriteEnd,
 };
-use demi_live_view_protocol::{FrameSplitter, VIDEO_FRAME, raw_kind};
-use demi_runner_protocol::files::{DirectoryEntry, FileWatchMessage, FileWatchRequest};
-use demi_runner_protocol::search::SearchQuery;
-use demi_runner_protocol::wire::ReadAt;
+use jush_live_view_protocol::{FrameSplitter, VIDEO_FRAME, raw_kind};
+use jush_runner_protocol::files::{DirectoryEntry, FileWatchMessage, FileWatchRequest};
+use jush_runner_protocol::search::SearchQuery;
+use jush_runner_protocol::wire::ReadAt;
 use futures_util::{Stream, StreamExt, future::BoxFuture};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -49,7 +49,7 @@ pub struct Scope {
 pub struct FileRange {
     pub size: u64,
     pub version: String,
-    pub modified: demi_runner_protocol::wire::Timestamp,
+    pub modified: jush_runner_protocol::wire::Timestamp,
     pub read_at: ReadAt,
     pub body: ByteStream,
 }

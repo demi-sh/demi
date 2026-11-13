@@ -18,8 +18,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use demi_plugin_interface::PluginPort;
-use demi_shared_types::{B64Bytes, BlobRef};
+use jush_plugin_interface::PluginPort;
+use jush_shared_types::{B64Bytes, BlobRef};
 use gix::bstr::ByteSlice;
 
 use crate::skill::{self, Parsed, SkipProblem};
@@ -66,7 +66,7 @@ pub struct Skipped {
     pub problem: Option<SkipProblem>,
 }
 
-/// Why a fetch gave no skills, as the page words it: one of Demi's finds, or
+/// Why a fetch gave no skills, as the page words it: one of Jush's finds, or
 /// a failure in git's or the system's words, which the failure's message
 /// keeps.
 #[derive(

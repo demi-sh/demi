@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import AssistantTextBlock from '@demicodes/web-ui/agent/blocks/AssistantTextBlock.vue'
-import SchedulesButton from '@demicodes/web-ui/schedules/SchedulesButton.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import AssistantTextBlock from '@jush-ai/web-ui/agent/blocks/AssistantTextBlock.vue'
+import SchedulesButton from '@jush-ai/web-ui/schedules/SchedulesButton.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { gallerySchedules, switched } from '../fixtures/schedules'
 import { gallerySubagents } from '../fixtures/subagents'
 import { previewService, runningRunCommand } from '../fixtures/terminals'
@@ -35,7 +35,7 @@ function pause(id: string, paused: boolean): void {
   }
 }
 
-/** Stands in for the agent making its schedules again with `demi schedule create`. */
+/** Stands in for the agent making its schedules again with `jush schedule create`. */
 function restore(): void {
   schedules.splice(0, schedules.length, ...gallerySchedules())
 }

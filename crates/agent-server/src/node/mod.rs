@@ -17,14 +17,14 @@
 //! turned on or off changes them, but its capability index, part of its system
 //! prompt, stays as it was rendered.
 //!
-//! A child starts with an empty transcript: isolation is the point, so Demi
+//! A child starts with an empty transcript: isolation is the point, so Jush
 //! never rewrites or summarizes the parent's conversation into it. Its context
 //! is:
 //!
 //! - the system prompt (a profile's instructions added to the product's, never
 //!   replacing them; the inherit profile copies its parent's whole);
 //! - a preamble naming its identity;
-//! - the brief as its first user message, which Demi neither inspects nor pads.
+//! - the brief as its first user message, which Jush neither inspects nor pads.
 //!
 //! The context sources tell it what they tell the parent. Its provider runtime
 //! is its own, closed with its session; a model switch changes the root's
@@ -35,7 +35,7 @@
 //! - The root's is the conversation's, and a move of the conversation moves
 //!   it.
 //! - A child's is its parent's when it is spawned, or the directory `--cwd`
-//!   names on its parent's device, and changes only by its own `demi agent
+//!   names on its parent's device, and changes only by its own `jush agent
 //!   cwd`, on the same device. A move of the conversation leaves it, so work
 //!   a child started goes on where it started.
 //! - A child's instructions are read from its own directory; its skills are the
@@ -51,30 +51,30 @@ use std::{
     sync::Arc,
 };
 
-use demi_agent_session::{
+use jush_agent_session::{
     AgentSession, CommandLook, Continuation, ForkSeed, NewContext, RestoreError, RunningWork, SeenContext,
     SessionConfig, SessionDeps, SessionInit, SessionRuntime, StepOutcomes, SystemPrompt,
     ToolInvocation,
 };
-use demi_agent_store::{
+use jush_agent_store::{
     AgentTreeStore, Checkpoint, NodeRecord, Placement, RunningCommand, StoreError,
     StoredCommand, StoredOutput,
     media::store_result,
 };
-use demi_agent_tools::{
+use jush_agent_tools::{
     CallError, ContextSource, EndOf, Environments, DeviceResolver, ModelIdentity, NodeContext, OwnPlacement,
     ShellAccess, ShellEnvironmentFactory, Stopper, StoreNumbers, definitions, end_report,
     fill_output, interrupted_look, progress_report, report_media, runs_together, stored_running_commands,
     system_prompt, whole_status,
 };
-use demi_agent_transcript::IdSource;
-use demi_device_interface::{
+use jush_agent_transcript::IdSource;
+use jush_device_interface::{
     CapabilityIndex, CommandSet, CommandState, CommandStatus, Ending, FileKind, Device, DeviceError, Numbers, PageFeed, PageState, PageView, Seen,
     ShellEnvironment,
 };
-use demi_provider_common::{ProviderRuntime, RequestLimits, ToolDefinition};
-use demi_shared_gates::{ActivityGate, GateLease, Purpose, Reservation};
-use demi_shared_types::{
+use jush_provider_common::{ProviderRuntime, RequestLimits, ToolDefinition};
+use jush_shared_gates::{ActivityGate, GateLease, Purpose, Reservation};
+use jush_shared_types::{
     Clock, CommandEnd, CommandId, CommandReport, ModelSelection, ReportEvent, NodeId, QueuedMessage, TurnId,
     WORKING_DIRECTORY_SOURCE,
 };
@@ -82,9 +82,9 @@ use futures_util::{FutureExt, future::LocalBoxFuture};
 
 use crate::server::{AgentServer, ProviderResolver};
 
-/// What made Demi resume a child's turn the process interrupted, as its
+/// What made Jush resume a child's turn the process interrupted, as its
 /// model reads it.
-const RESTARTED: &str = "Demi resumed this turn after the backend restarted.";
+const RESTARTED: &str = "Jush resumed this turn after the backend restarted.";
 
 /// A node's place in its tree, which sets its lifecycle policy.
 ///
@@ -116,7 +116,7 @@ impl<H: DeviceResolver> Node<H> {
         &self.runtime.node
     }
 
-    /// The node's record as it is now: a child's place changes with `demi
+    /// The node's record as it is now: a child's place changes with `jush
     /// agent cwd`.
     pub fn record(&self) -> NodeRecord {
         self.runtime.record.borrow().clone()
@@ -192,14 +192,14 @@ impl<H: DeviceResolver> Node<H> {
     }
 
     /// The commands the node's shell offers: the product's, with the
-    /// `demi agent` group grafted. The backend's command router dispatches
+    /// `jush agent` group grafted. The backend's command router dispatches
     /// the node's `rpc` calls through them.
     pub fn commands(&self) -> Rc<CommandSet> {
         self.runtime.commands.borrow().clone()
     }
 
     /// The node's commands are `commands`, `inherited` with the node's
-    /// `demi agent` group grafted, from now on: its shells' jobs offer them
+    /// `jush agent` group grafted, from now on: its shells' jobs offer them
     /// as they start, and its jobs' calls run in them. Its capability index
     /// stays.
     pub(crate) fn replace_commands(&self, inherited: Rc<CommandSet>, commands: Rc<CommandSet>) {
@@ -409,7 +409,7 @@ impl<H: DeviceResolver> Node<H> {
     }
 
     /// The product's commands a child of this node inherits: this node's,
-    /// before the `demi agent` graft, which every node of the tree shares.
+    /// before the `jush agent` graft, which every node of the tree shares.
     pub(crate) fn inherited_commands(&self) -> Rc<CommandSet> {
         self.runtime.inherited.borrow().clone()
     }
@@ -521,7 +521,7 @@ pub(crate) struct NodeRuntime<H: DeviceResolver> {
     server: Weak<AgentServer<H>>,
     /// Where the window in use for a model comes from.
     providers: Rc<dyn ProviderResolver>,
-    /// The node's record, the one live copy: `demi agent cwd` changes a
+    /// The node's record, the one live copy: `jush agent cwd` changes a
     /// child's place in it.
     record: RefCell<NodeRecord>,
     devices: Rc<H>,
@@ -568,7 +568,7 @@ impl<H: DeviceResolver> OwnPlacement for NodeRuntime<H> {
 fn working_directory_text(cwd: &str, device: Option<&str>) -> String {
     let on = device.map(|device| format!(" on {device}")).unwrap_or_default();
     format!(
-        "Your working directory is {cwd}{on}: your shell calls start there, and the relative paths you write are read against it. `demi agent cwd <dir>` changes it."
+        "Your working directory is {cwd}{on}: your shell calls start there, and the relative paths you write are read against it. `jush agent cwd <dir>` changes it."
     )
 }
 
@@ -1260,10 +1260,10 @@ pub(crate) struct NodeSpec<H: DeviceResolver> {
     /// A child's identity, the text before each of its user turns.
     pub(crate) preamble: Option<String>,
     pub(crate) context: Rc<[Rc<dyn ContextSource>]>,
-    /// The product's commands before the `demi agent` graft: what the
+    /// The product's commands before the `jush agent` graft: what the
     /// node's own children inherit.
     pub(crate) inherited: Rc<CommandSet>,
-    /// `inherited` with the node's `demi agent` group grafted.
+    /// `inherited` with the node's `jush agent` group grafted.
     pub(crate) commands: Rc<CommandSet>,
     pub(crate) store: Rc<dyn AgentTreeStore>,
     pub(crate) shells: Rc<dyn ShellEnvironmentFactory<H::Device>>,

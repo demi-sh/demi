@@ -1,5 +1,5 @@
 //! What every recording says of itself:
-//! the types that `demi browser record` and `demi mobile record` share, so a
+//! the types that `jush browser record` and `jush mobile record` share, so a
 //! recording reads the same wherever it was made.
 //!
 //! The crate holds types and their checks, and the lock that says a
@@ -21,9 +21,9 @@ use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
 
 #[macro_use]
-extern crate demi_shared_types;
+extern crate jush_shared_types;
 
-use demi_shared_types::MAX_SAFE_INTEGER;
+use jush_shared_types::MAX_SAFE_INTEGER;
 
 /// The longest a recording runs, whether or not it was given a duration: a
 /// still screen draws almost nothing, so no size would ever end it.

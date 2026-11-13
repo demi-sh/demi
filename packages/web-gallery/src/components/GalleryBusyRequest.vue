@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import AgentMessageList from '@demicodes/web-ui/agent/AgentMessageList.vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
+import AgentMessageList from '@jush-ai/web-ui/agent/AgentMessageList.vue'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
 import GallerySection from './GallerySection.vue'
 import GallerySpecimen from './GallerySpecimen.vue'
 import { busyRequestBlocks } from '../fixtures/blocks'

@@ -1,4 +1,4 @@
-import { clientPlatform } from '@demicodes/utils'
+import { clientPlatform } from '@jush-ai/utils'
 
 /**
  * Keyboard shortcuts come in two sets, the Mac's and the PC's. A page uses the set of

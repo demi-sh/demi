@@ -5,7 +5,7 @@
 
 use base64::Engine as _;
 
-use demi_command_package_mobile_protocol::{
+use jush_command_package_mobile_protocol::{
     live::{LiveButtonMark, LiveCorners, LiveFrame, LiveRect, LiveSide},
     mobile::{MobilePlatform, Orientation},
 };

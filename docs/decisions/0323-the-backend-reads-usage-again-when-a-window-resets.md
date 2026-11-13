@@ -123,7 +123,7 @@ CodexBar, a macOS menu bar app for Codex and Claude usage, added the same in
 0.38.0 ([#1847](https://github.com/steipete/CodexBar/pull/1847)). It sets one
 refresh at the next known reset plus 30 seconds, and remembers the resets it
 tried, so a provider that keeps a stale snapshot is not asked again and waits
-for the regular polling. CodexBar also polls every 1 to 15 minutes. Demi does
+for the regular polling. CodexBar also polls every 1 to 15 minutes. Jush does
 not: the backend hears each response's usage, and Smart reads old snapshots
 before it chooses.
 

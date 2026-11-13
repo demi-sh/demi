@@ -67,8 +67,8 @@ version = "2.0.18"
 [dev-dependencies.assert_matches]
 version = "1.5.0"
 
-[package.metadata.demi]
-maintainer = "demi-runner-direct"
+[package.metadata.jush]
+maintainer = "jush-runner-direct"
 patches = [
     "An incoming stream reset sends no reciprocal reset for a stream the application already reset with stop() or close() unless that reset failed; its own request completes the Finished, at once when already answered with success. The redundant request kept a just reused id's new generation unwritable, so the runner could not acknowledge a data channel the browser reopened on it (upstream through 0.10.6)",
     "TransportConfig::with_congestion_window_floor sets the least the congestion window and the slow start threshold ever are, at start, in fast recovery and after a T3-rtx timeout, so a sender that paces itself, such as a live view's, runs without SCTP's congestion control while its loss recovery stays (upstream through 0.10.6 has no such setting)",

@@ -5,8 +5,8 @@
 
 use std::{io, path::Path, time::Duration};
 
-use demi_machine_manager_protocol::{BaseVersion, SandboxMachine, Volume};
-use demi_runner_protocol::boot::ManagedBoot;
+use jush_machine_manager_protocol::{BaseVersion, SandboxMachine, Volume};
+use jush_runner_protocol::boot::ManagedBoot;
 use tokio::task::JoinHandle;
 
 use super::{
@@ -72,7 +72,7 @@ pub struct Sandbox {
     directory: RuntimeDirectory,
     /// `runsc wait`, which ends when the sandbox exits.
     waiter: Option<JoinHandle<Result<(), ToolError>>>,
-    /// The base whose `/opt/demi` the sandbox mounts, which a manager that
+    /// The base whose `/opt/jush` the sandbox mounts, which a manager that
     /// leaves it records for the next (`crates/machine-manager/src/handover.rs`);
     /// none for a boot recovery found.
     programs: Option<BaseVersion>,
@@ -107,7 +107,7 @@ impl Sandbox {
     }
 
     /// The running boot `record` names, which a manager before this one left
-    /// on `lease`'s slot with Demi's programs from base `programs`, running a
+    /// on `lease`'s slot with Jush's programs from base `programs`, running a
     /// `machine`: it is waited for from now on, as one this manager started.
     pub fn adopted(
         core: &Core,
@@ -172,7 +172,7 @@ impl Sandbox {
     }
 
     /// Starts the boot on the working pair with the base at `base` and
-    /// Demi's programs from `programs`, of base `programs_base`, the
+    /// Jush's programs from `programs`, of base `programs_base`, the
     /// configured base's, whose runner is of `runner_release`. On an error
     /// the caller closes the sandbox, which releases what it holds.
     pub async fn start(
@@ -233,6 +233,7 @@ impl Sandbox {
         let credentials = boot.clone();
         let dns = core.gvisor().network.dns().to_vec();
         blocking::run(move |off| -> io::Result<()> {
+            crate::renamed::move_home(&directory.home())?;
             mount::system_overlay(
                 off,
                 &directory.base(),

@@ -1,4 +1,4 @@
-import { TEXT_FILE_BYTES } from '@demicodes/protocol'
+import { TEXT_FILE_BYTES } from '@jush-ai/protocol'
 import { DeviceFiles } from './file-cache'
 import { keptSource } from './kept-source'
 import { isBinary } from './text-start'

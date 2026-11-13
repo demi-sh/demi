@@ -29,7 +29,7 @@
     "clearDraft": "Entwurf konnte nicht verworfen werden",
     "recallMessage": "Nachricht konnte nicht zurückgeholt werden",
     "connectionLost": "Verbindung unterbrochen",
-    "connectionLostMessage": "Demi hat deine Anfrage möglicherweise nicht erhalten. Prüfe den Chat, sobald die Verbindung wieder besteht.",
+    "connectionLostMessage": "Jush hat deine Anfrage möglicherweise nicht erhalten. Prüfe den Chat, sobald die Verbindung wieder besteht.",
     "requestNotAccepted": "Der Chat hat die Anfrage nicht angenommen.",
     "fieldsNotUpdated": "Einige Felder wurden nicht aktualisiert.",
     "readFileWatch": "Nachricht der Dateiüberwachung konnte nicht gelesen werden",

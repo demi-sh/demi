@@ -12,21 +12,21 @@ use axum::extract::{ConnectInfo, Path, State};
 use axum::http::header::{CONTENT_LENGTH, ETAG, IF_NONE_MATCH, LAST_MODIFIED, RANGE};
 use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode};
 use axum::response::{IntoResponse, Response};
-use demi_runner_client::{ConditionalRead, byte_stream};
-use demi_backend_runners::files::{
+use jush_runner_client::{ConditionalRead, byte_stream};
+use jush_backend_runners::files::{
     TEXT_RANGE, TextError, TextRefusal, browse_directory, text_of, text_of_stream,
 };
-use demi_device_interface::{FileStat, DeviceError, DeviceFs, MkdirOptions, RmOptions};
-use demi_shared_types::ReadAt;
-use demi_runner_protocol::files::protected_path;
-use demi_shared_types::preview_media_type;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::files::{
+use jush_device_interface::{FileStat, DeviceError, DeviceFs, MkdirOptions, RmOptions};
+use jush_shared_types::ReadAt;
+use jush_runner_protocol::files::protected_path;
+use jush_shared_types::preview_media_type;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::files::{
     AbsolutePath, ChangeSides, ChangesQuery, CommitName, CommitQuery, CommittedFileQuery, CreateDirectory, CreatedDirectory, Directory, DirectoryLists, DirectoryQuery, ListedDirectories, ListedDirectory, LogQuery,
     FileQuery, FileText, RawFileQuery, RemoveQuery, RepositoriesRequest, SearchRequest, TreeFileQuery,
     UploadQuery, WorkingTreeChanges,
 };
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 use typed_path::Utf8TypedPath;
 
 use super::AppState;
@@ -37,8 +37,8 @@ use super::gate::AuthUser;
 use super::listener::Peer;
 use super::query::QueryParams;
 use super::transfer::{TRANSFER_IDLE, UploadEnd, copy_upload, paced_body};
-use demi_backend_device_access::access::{ConversationDevice, DeviceAccessError, Refusal};
-use demi_backend_device_access::transfer::{
+use jush_backend_device_access::access::{ConversationDevice, DeviceAccessError, Refusal};
+use jush_backend_device_access::transfer::{
     Download, DownloadPath, DownloadRequest, OpenSearch, RangeAnswer,
 };
 
@@ -672,7 +672,7 @@ pub(super) async fn changed_file(
 /// The working tree's side of a changed file as text, or why it is not
 /// text, with the device's number before it read.
 async fn read_working_side(
-    device: &demi_runner_client::RemoteDevice,
+    device: &jush_runner_client::RemoteDevice,
     path: &str,
 ) -> Result<(Result<String, TextRefusal>, ReadAt), DeviceError> {
     let opened = device.read_pipe(path, TEXT_RANGE).await?;

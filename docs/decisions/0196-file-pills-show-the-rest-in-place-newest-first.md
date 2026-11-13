@@ -59,7 +59,7 @@ agent changed last are the ones that show.**
   more…" and show them in place.
 - **macOS**'s Finder sidebar shows a section's rest in place with Show More
   and Show Less.
-- A row's pictures in Demi already stand newest first, the oldest counted.
+- A row's pictures in Jush already stand newest first, the oldest counted.
 
 ## Alternatives
 

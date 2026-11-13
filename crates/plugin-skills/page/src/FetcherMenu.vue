@@ -2,11 +2,11 @@
 import { t } from './locales/text'
 import { computed, type Component } from 'vue'
 import { Server } from '@lucide/vue'
-import type { OverlayStore } from '@demicodes/plugin-sdk'
-import { Dropdown } from '@demicodes/plugin-sdk'
-import { Menu } from '@demicodes/plugin-sdk'
-import { MenuItem } from '@demicodes/plugin-sdk'
-import { deviceGlyph, deviceStatusLabel } from '@demicodes/plugin-sdk'
+import type { OverlayStore } from '@jush-ai/plugin-sdk'
+import { Dropdown } from '@jush-ai/plugin-sdk'
+import { Menu } from '@jush-ai/plugin-sdk'
+import { MenuItem } from '@jush-ai/plugin-sdk'
+import { deviceGlyph, deviceStatusLabel } from '@jush-ai/plugin-sdk'
 import type { SettingsSkillDevice } from './types'
 
 /**

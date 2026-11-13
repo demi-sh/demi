@@ -12,7 +12,7 @@ when it cannot register itself to start at login, says where the file it could
 not write is, through a private function in `runner-protocol`:
 
 ```text
-the file that registers it, ~/.config/systemd/user/demi-runner.service, could not be written
+the file that registers it, ~/.config/systemd/user/jush-runner.service, could not be written
 ```
 
 The private function reads `\` as a separator on macOS and Linux too, where it

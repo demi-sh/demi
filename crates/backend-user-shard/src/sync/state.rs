@@ -6,20 +6,20 @@
 //! not be: its version is taken before it is read, so a change made while it
 //! is read is one after the version, which the page follows the state from.
 
-use demi_backend_providers::vault::entries::Vault;
-use demi_backend_accounts::passkeys::{passkey_list, relying_party_id};
-use demi_backend_database::StorageError;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_page_sync::Part;
-use demi_backend_runners::install::install_commands;
-use demi_conversation_lane_protocol::Version;
-use demi_plugin_interface::PluginError;
-use demi_web_api_protocol::auth::{Role, UserDto};
-use demi_web_api_protocol::instructions::InstructionsAnswer;
-use demi_web_api_protocol::port_forwards::PortForwardList;
-use demi_web_api_protocol::users::Users;
-use demi_web_api_protocol::providers::{ProviderReading, ProviderState};
-use demi_web_api_protocol::state::{ProductState, SyncEvent};
+use jush_backend_providers::vault::entries::Vault;
+use jush_backend_accounts::passkeys::{passkey_list, relying_party_id};
+use jush_backend_database::StorageError;
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_page_sync::Part;
+use jush_backend_runners::install::install_commands;
+use jush_conversation_lane_protocol::Version;
+use jush_plugin_interface::PluginError;
+use jush_web_api_protocol::auth::{Role, UserDto};
+use jush_web_api_protocol::instructions::InstructionsAnswer;
+use jush_web_api_protocol::port_forwards::PortForwardList;
+use jush_web_api_protocol::users::Users;
+use jush_web_api_protocol::providers::{ProviderReading, ProviderState};
+use jush_web_api_protocol::state::{ProductState, SyncEvent};
 use serde::Serialize;
 use sha2::{Digest as _, Sha256};
 use std::time::Instant;
@@ -295,7 +295,7 @@ impl Shard {
                 }
                 let list = Users {
                     users: control.users().await?,
-                    cloud_storage_limits: demi_backend_cloud::isolation::storage_limits(control, &self.services().cloud).await?,
+                    cloud_storage_limits: jush_backend_cloud::isolation::storage_limits(control, &self.services().cloud).await?,
                 };
                 SyncEvent::Users {
                     etag: etag_of(&list),
@@ -309,7 +309,7 @@ impl Shard {
                     return Ok(None);
                 }
                 SyncEvent::CloudIsolation {
-                    isolation: demi_backend_cloud::isolation::setting(control, &self.services().cloud).await?,
+                    isolation: jush_backend_cloud::isolation::setting(control, &self.services().cloud).await?,
                     etag: String::new(),
                 }
             }

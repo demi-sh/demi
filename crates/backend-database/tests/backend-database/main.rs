@@ -3,10 +3,10 @@
 //! leave the database a new one of the current schema would be, so that a
 //! server that upgraded and one installed afresh hold the same tables.
 
-use demi_backend_database::DatabaseKind;
-use demi_backend_database::providers::ResealSealed;
-use demi_backend_database::testing::{current, history, migrate, migrate_control, version_of};
-use demi_web_api_protocol::ids::ProviderId;
+use jush_backend_database::DatabaseKind;
+use jush_backend_database::providers::ResealSealed;
+use jush_backend_database::testing::{current, history, migrate, migrate_control, version_of};
+use jush_web_api_protocol::ids::ProviderId;
 use rusqlite::Connection;
 
 #[test]
@@ -31,15 +31,91 @@ fn the_grants_and_requests_of_the_other_conversations_go() {
         .execute_batch(
             "INSERT INTO permission_grants VALUES ('c1', 'conversation.use', 1), ('c1', 'credentials.use', 1);
              INSERT INTO permission_requests (id, conversation_id, kind, categories, command, node_id, created_at, decision, decided_at) VALUES
-               ('waits', 'c1', 'permission', '[\"conversation.use\"]', 'demi conversation list', 'n', 1, NULL, NULL),
-               ('reached', 'c1', 'permission', '[\"conversation.use\"]', 'demi conversation send', 'n', 1, 'reached', 2),
-               ('other', 'c1', 'permission', '[\"credentials.use\"]', 'demi credentials list', 'n', 1, NULL, NULL);",
+               ('waits', 'c1', 'permission', '[\"conversation.use\"]', 'jush conversation list', 'n', 1, NULL, NULL),
+               ('reached', 'c1', 'permission', '[\"conversation.use\"]', 'jush conversation send', 'n', 1, 'reached', 2),
+               ('other', 'c1', 'permission', '[\"credentials.use\"]', 'jush credentials list', 'n', 1, NULL, NULL);",
         )
         .unwrap();
     migrate(DatabaseKind::Control, &mut connection).unwrap();
     let grants = query(&connection, "SELECT category FROM permission_grants", |row| row.get::<_, String>(0));
     let requests = query(&connection, "SELECT id FROM permission_requests", |row| row.get::<_, String>(0));
     assert_eq!((grants, requests), (vec!["credentials.use".to_owned()], vec!["other".to_owned()]));
+}
+
+#[test]
+fn what_is_stored_under_the_earlier_names_takes_the_new_ones() {
+    let shipped = include_str!("../../src/schema/control/from_0_1_65_dev_jush.sql");
+    let mut connection = Connection::open_in_memory().unwrap();
+    connection.execute_batch(shipped).unwrap();
+    connection.pragma_update(None, "user_version", version_of(shipped)).unwrap();
+    // The rows need no owner of their own.
+    connection.pragma_update(None, "foreign_keys", false).unwrap();
+    connection
+        .execute_batch(
+            "INSERT INTO devices (id, user_id, kind, name, platform, claimed_at, home, installed) VALUES
+               ('cloud', 'u1', 'managed', 'Cloud', 'linux', 1, '/home/demi', '[]'),
+               ('laptop', 'u1', 'user', 'Laptop', 'macos', 1, '/Users/alex',
+                '[{\"package\":\"demi.browser\",\"name\":\"Chrome for Testing\"}]'),
+               ('server', 'u1', 'user', 'Server', 'linux', 1, '/home/demi', '[]');
+             INSERT INTO conversation_devices (conversation_id, device_id, attached_at, cwd) VALUES
+               ('c1', 'cloud', 1, '/home/demi/sessions/c1'), ('c2', 'laptop', 1, '/Users/alex/demiurge'),
+               ('c3', 'desktop', 1, 'C:\\Users\\alex\\.demi\\runner\\x\\scratch\\c3'),
+               ('c4', 'server', 1, '/home/demi/app');
+             INSERT INTO conversation_pins (conversation_id, id, device_id, path, pinned_at, text, read_at) VALUES
+               ('c1', 1, 'cloud', '/home/demi/.demi/scratch/c1/plan.md', 1, 'Plan', 1),
+               ('c2', 1, 'laptop', '/Users/alex/.demi/runner/x/scratch/c2/plan.md', 1, 'Plan', 1),
+               ('c2', 2, 'laptop', '/Users/alex/app/.demi/workflows/review.yaml', 1, 'Review', 1);
+             INSERT INTO schedules (id, conversation_id, name, trigger, time_zone, if_busy, prompt, paused, since, created_at, updated_at) VALUES
+               ('s1', 'c2', 'Check the build', '{\"command\":\"test -f ~/.demi/runner/x/scratch/done && echo $DEMI_SCRATCH $DEMI_DEPLOY_HOST\"}',
+                'UTC', 'queue', 'Ask demi about it', 0, 1, 1, 1);",
+        )
+        .unwrap();
+    migrate(DatabaseKind::Control, &mut connection).unwrap();
+    let homes = query(&connection, "SELECT home, installed FROM devices ORDER BY id", |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    });
+    let cwds = query(&connection, "SELECT cwd FROM conversation_devices ORDER BY conversation_id", |row| row.get::<_, String>(0));
+    let pins = query(&connection, "SELECT path FROM conversation_pins ORDER BY conversation_id, id", |row| {
+        row.get::<_, String>(0)
+    });
+    let schedules = query(&connection, "SELECT trigger, prompt FROM schedules", |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    });
+    assert_eq!(
+        homes,
+        vec![
+            ("/home/jush".to_owned(), "[]".to_owned()),
+            (
+                "/Users/alex".to_owned(),
+                "[{\"package\":\"jush.browser\",\"name\":\"Chrome for Testing\"}]".to_owned()
+            ),
+            ("/home/demi".to_owned(), "[]".to_owned()),
+        ]
+    );
+    assert_eq!(
+        cwds,
+        vec![
+            "/home/jush/sessions/c1".to_owned(),
+            "/Users/alex/demiurge".to_owned(),
+            "C:\\Users\\alex\\.jush\\runner\\x\\scratch\\c3".to_owned(),
+            "/home/demi/app".to_owned(),
+        ]
+    );
+    assert_eq!(
+        pins,
+        vec![
+            "/home/jush/.jush/scratch/c1/plan.md".to_owned(),
+            "/Users/alex/.jush/runner/x/scratch/c2/plan.md".to_owned(),
+            "/Users/alex/app/.demi/workflows/review.yaml".to_owned(),
+        ]
+    );
+    assert_eq!(
+        schedules,
+        vec![(
+            "{\"command\":\"test -f ~/.jush/runner/x/scratch/done && echo $JUSH_SCRATCH $DEMI_DEPLOY_HOST\"}".to_owned(),
+            "Ask demi about it".to_owned()
+        )]
+    );
 }
 
 #[test]

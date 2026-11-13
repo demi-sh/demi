@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SettingsWorkspaces from '@demicodes/web-ui/settings/SettingsWorkspaces.vue'
+import SettingsWorkspaces from '@jush-ai/web-ui/settings/SettingsWorkspaces.vue'
 import {
   changeGalleryWorkspace,
   createGalleryWorkspace,

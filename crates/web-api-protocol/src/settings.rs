@@ -3,8 +3,8 @@
 
 use std::collections::BTreeMap;
 
-use demi_command_protocol::{COMMAND_LOCALE_LANGUAGES, ColorScheme, CommandLocale};
-use demi_shared_types::{IDLE_COMPACTION_CONTEXT_FLOOR, MAX_SAFE_INTEGER, Nullable, WorkflowChoice};
+use jush_command_protocol::{COMMAND_LOCALE_LANGUAGES, ColorScheme, CommandLocale};
+use jush_shared_types::{IDLE_COMPACTION_CONTEXT_FLOOR, MAX_SAFE_INTEGER, Nullable, WorkflowChoice};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -598,7 +598,7 @@ impl IdleLifetime {
     }
 }
 
-/// A language Demi speaks (`localization.md`), by its BCP 47 tag: the
+/// A language Jush speaks (`localization.md`), by its BCP 47 tag: the
 /// page's text and the backend's are written in each.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 pub enum Language {
@@ -680,7 +680,7 @@ impl BrowserLocale {
     }
 }
 
-/// The language the user chose in Settings › General: one Demi speaks, or
+/// The language the user chose in Settings › General: one Jush speaks, or
 /// the system's, which follows the browser's languages. Absent means
 /// `system`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
@@ -888,7 +888,7 @@ pub struct Preferences {
     #[garde(custom(stored_limits))]
     pub context_limits: ContextLimits,
     /// The provider entries the user turned off in Settings › Providers,
-    /// which every model menu and `demi agent models` leave out without the
+    /// which every model menu and `jush agent models` leave out without the
     /// entry being deleted.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     #[garde(skip)]
@@ -961,7 +961,7 @@ pub struct Preferences {
     #[schemars(with = "FileTree")]
     #[garde(dive)]
     pub file_tree: Option<FileTree>,
-    /// The rules for what Demi keeps on the user's devices, which `PUT
+    /// The rules for what Jush keeps on the user's devices, which `PUT
     /// /storage/rules` sets. Absent means the defaults.
     #[serde(
         default,

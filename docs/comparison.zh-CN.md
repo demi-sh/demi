@@ -1,8 +1,8 @@
-# Demi 对比
+# Jush 对比
 
 [English](comparison.md) · [Deutsch](comparison.de.md) · [Español](comparison.es.md) · [Français](comparison.fr.md) · [Português](comparison.pt-BR.md) · **简体中文** · [繁體中文](comparison.zh-TW.md) · [日本語](comparison.ja.md) · [한국어](comparison.ko.md)
 
-Demi 与同类 Agent 应用的差异，截至 2026 年 10 月，依据各产品的文档和源码整理。只列出各产品之间有差异的项，以及一项目前都不支持的能力。各列按与 Demi 的接近程度，从最接近排到最不接近。
+Jush 与同类 Agent 应用的差异，截至 2026 年 10 月，依据各产品的文档和源码整理。只列出各产品之间有差异的项，以及一项目前都不支持的能力。各列按与 Jush 的接近程度，从最接近排到最不接近。
 
 表中使用以下符号和标签：
 
@@ -14,7 +14,7 @@ Demi 与同类 Agent 应用的差异，截至 2026 年 10 月，依据各产品�
 
 下表逐项对比各产品：
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **模型与订阅** | | | | | | | | |
 | Claude 订阅 | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@ Demi 与同类 Agent 应用的差异，截至 2026 年 10 月，依据各产品�
 - **在 diff 的行上评论**：对改动的某一行写评论，评论会交给 Agent。
 - **自研 Agent**：由产品自己的 Agent 驱动模型，而不是运行 Claude Code、Codex 等现成的 Agent。
 - **只用 Shell 一个工具**：模型只拿到一个工具，就是 Shell，所有能力都是 Shell 里的命令。
-- **第三方插件**：用户能装别人写的代码，给产品加上工具或界面，不算 Skills 和 MCP。Demi 自己的功能都是插件，但不加载别人的插件。
+- **第三方插件**：用户能装别人写的代码，给产品加上工具或界面，不算 Skills 和 MCP。Jush 自己的功能都是插件，但不加载别人的插件。
 - **给 Agent 用的密钥**：用户按名字保存的密钥，Agent 在命令里使用。
 - **实时查看和操作浏览器**：用户能实时看到 Agent 在用的浏览器，也能自己上手操作。
 - **电脑操作**：Agent 通过截屏、鼠标和键盘操作电脑桌面，不限于浏览器。

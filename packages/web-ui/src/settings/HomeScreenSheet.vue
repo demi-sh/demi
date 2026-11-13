@@ -9,7 +9,7 @@ import { t } from './locales/text'
 
 /**
  * How to get notifications on an iPhone or iPad. Safari sends push notifications
- * only to Demi added to the Home Screen, so turning them on in Safari shows these
+ * only to Jush added to the Home Screen, so turning them on in Safari shows these
  * three steps, each beside the icon it names, instead of the browser's question.
  *
  * It is a sheet on a phone, a dialog on an iPad's wider screen.
@@ -17,7 +17,7 @@ import { t } from './locales/text'
 defineProps<{
   open: boolean
   overlayStore: OverlayStore
-  /** Demi's Home Screen icon, which the last step names. */
+  /** Jush's Home Screen icon, which the last step names. */
   appIcon: string
 }>()
 

@@ -1,5 +1,5 @@
 {
-  "name": "@demicodes/web-ui",
+  "name": "@jush-ai/web-ui",
   "version": "0.24.0",
   "private": true,
   "type": "module",
@@ -16,11 +16,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/demi-sh/demi.git",
+    "url": "git+https://github.com/jush-ai/jush.git",
     "directory": "packages/web-ui"
   },
-  "homepage": "https://github.com/demi-sh/demi/tree/main/packages/web-ui#readme",
-  "bugs": "https://github.com/demi-sh/demi/issues",
+  "homepage": "https://github.com/jush-ai/jush/tree/main/packages/web-ui#readme",
+  "bugs": "https://github.com/jush-ai/jush/issues",
   "scripts": {
     "typecheck": "bun ../../scripts/typecheck-vue.ts tsconfig.json"
   },
@@ -38,9 +38,9 @@
     "@codemirror/search": "6.6.0",
     "@codemirror/state": "6.6.0",
     "@codemirror/view": "6.40.0",
-    "@demicodes/conversation-client": "workspace:^",
-    "@demicodes/protocol": "workspace:^",
-    "@demicodes/utils": "workspace:^",
+    "@jush-ai/conversation-client": "workspace:^",
+    "@jush-ai/protocol": "workspace:^",
+    "@jush-ai/utils": "workspace:^",
     "@floating-ui/vue": "^2.0.0",
     "@lezer/common": "1.5.1",
     "@lezer/highlight": "1.2.3",

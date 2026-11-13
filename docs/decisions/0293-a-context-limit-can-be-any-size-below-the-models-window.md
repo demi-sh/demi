@@ -6,14 +6,14 @@ status: proposed
 
 ## Problem
 
-A user limits the context Demi uses for a model, and a subagent profile
+A user limits the context Jush uses for a model, and a subagent profile
 names a Context of its own, from three sizes: 500K, 300K and 200K, offered
 only on a window of 500K or more. A product that wants a 1M model to
 compact at 350K, or a 500K one at 272K, has no way to say it: the menu
 offers neither, the settings route refuses both, and a stored size outside
 the three is taken as no limit at all.
 
-The three sizes are the model menu's, a short list to pick from; Demi uses
+The three sizes are the model menu's, a short list to pick from; Jush uses
 a limit only to place its compaction thresholds and its usage indicator,
 which work at any size, as they do for a model whose own window is small.
 
@@ -28,12 +28,12 @@ profile's Context any up to it:
   the generated lookups, on the page.
 * **What is stored.** `PATCH /settings/preferences` takes any `tokens` of
   at least 1, as does a profile's `contextLimit`.
-* **Words.** `demi agent profiles --context` and a workflow's `context:`
+* **Words.** `jush agent profiles --context` and a workflow's `context:`
   take `default`, `full`, or a size such as `350K`, `1M` or `272000`.
   A size above the model's window is refused with the window.
-* **A command.** `demi providers context <entry> <model> <size>` sets the
+* **A command.** `jush providers context <entry> <model> <size>` sets the
   user's limit on a model, `full` to remove it, as the model menu's
-  Context row does, with the user's permission as `demi providers hide`
+  Context row does, with the user's permission as `jush providers hide`
   has. Without it an agent could set no limit at all.
 * **The page.** The Context row and a profile's Context still offer the
   three sizes. A size stored outside them shows as one more item, checked,

@@ -12,9 +12,9 @@
 
 use std::num::NonZeroU32;
 
-use demi_web_api_protocol::conversations::ModelSettings;
-use demi_web_api_protocol::ids::{ProfileId, UserId};
-use demi_web_api_protocol::subagents::{
+use jush_web_api_protocol::conversations::ModelSettings;
+use jush_web_api_protocol::ids::{ProfileId, UserId};
+use jush_web_api_protocol::subagents::{
     NewProfile, SubagentLimit, SubagentProfile, SubagentSettings, SubagentsPatch,
 };
 use rusqlite::{Connection, OptionalExtension, Row, params};

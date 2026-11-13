@@ -8,14 +8,14 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use demi_shared_types::{Clock, Timestamp};
-use demi_web_api_protocol::auth::{Role, UserDto};
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::server_upgrade::UpgradeChannel;
-use demi_web_api_protocol::settings::{CustomNetworkPolicy, InstanceMode, Isolation, NetworkPolicy, Preferences};
-use demi_web_api_protocol::storage::LogRetention;
-use demi_web_api_protocol::text::EmailAddress;
-use demi_web_api_protocol::users::{CloudStorage, ListedUser};
+use jush_shared_types::{Clock, Timestamp};
+use jush_web_api_protocol::auth::{Role, UserDto};
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::server_upgrade::UpgradeChannel;
+use jush_web_api_protocol::settings::{CustomNetworkPolicy, InstanceMode, Isolation, NetworkPolicy, Preferences};
+use jush_web_api_protocol::storage::LogRetention;
+use jush_web_api_protocol::text::EmailAddress;
+use jush_web_api_protocol::users::{CloudStorage, ListedUser};
 use jiff::SignedDuration;
 use rusqlite::{Connection, OptionalExtension, Row, Transaction, params};
 use tokio::sync::broadcast;

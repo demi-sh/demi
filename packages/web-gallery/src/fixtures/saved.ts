@@ -1,4 +1,4 @@
-import type { ComposerAttachmentInput } from '@demicodes/web-ui/agent/message-input/attachments'
+import type { ComposerAttachmentInput } from '@jush-ai/web-ui/agent/message-input/attachments'
 
 /** A message saved for later that a specimen starts with: its text and its files, and whether the server has not taken it yet. */
 export interface SeedSaved {

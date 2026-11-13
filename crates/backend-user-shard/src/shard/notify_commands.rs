@@ -1,4 +1,4 @@
-//! The product's `demi notify` group.
+//! The product's `jush notify` group.
 //!
 //! - `send` sends the user a notification from the conversation.
 //! - `status` says whether one would reach the user.
@@ -11,11 +11,11 @@
 
 use std::rc::{Rc, Weak};
 
-use demi_backend_device_access::device_commands::conversation_of;
-use demi_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
-use demi_shared_types::output::{Fields, warning};
-use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::push::PushMessage;
+use jush_backend_device_access::device_commands::conversation_of;
+use jush_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
+use jush_shared_types::output::{Fields, warning};
+use jush_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::push::PushMessage;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -28,7 +28,7 @@ use crate::conversation::organize::{failed, refused, verb};
 const TITLE_MAX: usize = 80;
 const BODY_MAX: usize = 200;
 
-const SUMMARY: &str = "Notifications to the user: send one from this conversation, which reaches the user's browsers and phone even with Demi closed, or check whether one would reach the user.";
+const SUMMARY: &str = "Notifications to the user: send one from this conversation, which reaches the user's browsers and phone even with Jush closed, or check whether one would reach the user.";
 
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "A notification to the user's browsers and phone.";
@@ -105,7 +105,7 @@ async fn send(shard: Rc<Shard>, call: Call<SendArgs>, port: RpcPort) -> Result<u
     if let Some((mark, _)) = shard.schedule_input(&conversation)
         && shard.services().control.notify_run(mark.run_id).await.map_err(failed)?
     {
-        shard.mark(demi_backend_page_sync::Part::Metadata(conversation.clone()));
+        shard.mark(jush_backend_page_sync::Part::Metadata(conversation.clone()));
     }
     // Counted now, so the agent is told at once; delivery goes on in the
     // background, and a browser its push service no longer knows is
@@ -183,7 +183,7 @@ async fn ask_to_turn_on(shard: &Shard, conversation: &ConversationId) -> Result<
         .await
         .map_err(failed)?
     {
-        shard.mark(demi_backend_page_sync::Part::Metadata(conversation.clone()));
+        shard.mark(jush_backend_page_sync::Part::Metadata(conversation.clone()));
     }
     Ok(())
 }

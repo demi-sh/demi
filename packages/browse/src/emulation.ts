@@ -1,4 +1,4 @@
-// What `demi.emulate` sets (browse.md § What `demi` adds), as the DevTools
+// What `jush.emulate` sets (browse.md § What `jush` adds), as the DevTools
 // protocol applies it to a page as it is, without reloading it: the screen's
 // size, pixel ratio and touch, a phone's user agent, the system the page reads
 // from its navigator, the theme, the locale and the time zone.
@@ -9,7 +9,7 @@
 import { devices, type CDPSession } from 'playwright'
 import type { Emulation } from './state'
 
-/** The viewport and pixel ratio of a browser no `demi.emulate` changed. */
+/** The viewport and pixel ratio of a browser no `jush.emulate` changed. */
 const DEFAULT_VIEWPORT = { width: 1440, height: 900 }
 const DEFAULT_SCALE = 2
 

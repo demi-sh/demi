@@ -1,4 +1,4 @@
-//! The `demi.fetch` package: `demi web fetch` reads a URL from the device, as
+//! The `jush.fetch` package: `jush web fetch` reads a URL from the device, as
 //! `curl` there would, and prints a page as Markdown one part at a time, or
 //! saves a file that is no text.
 //!
@@ -17,14 +17,14 @@ mod saved;
 
 use std::{future::Future, pin::Pin};
 
-use demi_command_package_fetch_protocol::{OPERATIONS, Operation, OperationError};
-use demi_command_protocol::{Completion, Invocation};
-use demi_command_sdk::{Handler, InvocationContext, ResidentError};
+use jush_command_package_fetch_protocol::{OPERATIONS, Operation, OperationError};
+use jush_command_protocol::{Completion, Invocation};
+use jush_command_sdk::{Handler, InvocationContext, ResidentError};
 
 /// The resident.
-pub struct DemiFetch;
+pub struct JushFetch;
 
-impl Handler for DemiFetch {
+impl Handler for JushFetch {
     type Metadata = Invocation;
 
     fn operations(&self) -> Vec<String> {

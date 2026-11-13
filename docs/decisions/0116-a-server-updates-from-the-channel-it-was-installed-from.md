@@ -10,10 +10,10 @@ installed.
 
 ## Problem
 
-An operator installs Demi with `install.sh --canary` to try the newest
-builds. Settings › Updates then says *Update channel: Beta* and *Demi is up
+An operator installs Jush with `install.sh --canary` to try the newest
+builds. Settings › Updates then says *Update channel: Beta* and *Jush is up
 to date*, although newer Canary builds exist: Beta offers only the releases
-Demi publishes, and Demi has published none. The operator learns about the
+Jush publishes, and Jush has published none. The operator learns about the
 channel only by opening the menu, and a developer's backend started with
 `xtask dev` shows Beta too, though it runs a build no Beta has.
 
@@ -29,8 +29,8 @@ install.sh --version 0.1.22  ->  Beta when 0.1.22 is a published release,
                                  Canary when it is a pre-release
 ```
 
-* `demi-server setup` writes the channel into the configuration it writes,
-  `DEMI_UPGRADE_CHANNEL=beta|canary` in `/opt/demi/config/demi.env`, beside
+* `jush-server setup` writes the channel into the configuration it writes,
+  `JUSH_UPGRADE_CHANNEL=beta|canary` in `/opt/jush/config/jush.env`, beside
   the other settings of the installation. `install.sh` passes its `--beta`
   or `--canary` on to `setup`, whose own `--beta` and `--canary` take the
   same newest release and name the channel; every released `setup` accepts
@@ -45,15 +45,15 @@ install.sh --version 0.1.22  ->  Beta when 0.1.22 is a published release,
   holds none (`ControlService::upgrade_channel`); an administrator's choice
   writes the row, which wins from then on. A configuration without the
   variable is Beta, as a hand-written configuration is.
-* `xtask dev` with `--offer-updates` sets `DEMI_UPGRADE_CHANNEL=canary`: a
+* `xtask dev` with `--offer-updates` sets `JUSH_UPGRADE_CHANNEL=canary`: a
   development build is a pre-release.
 * No release edits the configuration, so an existing server keeps what it
   shows; its administrator changes the channel in Settings, as today.
 
 ```rust
-/// `DEMI_UPGRADE_CHANNEL`: the channel the installation came from, which
+/// `JUSH_UPGRADE_CHANNEL`: the channel the installation came from, which
 /// Settings › Updates shows until an administrator chooses another.
-#[arg(long, env = "DEMI_UPGRADE_CHANNEL", value_enum, default_value = "beta")]
+#[arg(long, env = "JUSH_UPGRADE_CHANNEL", value_enum, default_value = "beta")]
 pub upgrade_channel: UpgradeChannel,
 ```
 
@@ -70,7 +70,7 @@ releases, and the backend already reads the row.
 * **Chrome** and **VS Code** ship one installer per channel (Beta,
   Insiders), and an installation updates from the channel of its installer.
 
-Demi takes the same rule, with one installer that records the channel it
+Jush takes the same rule, with one installer that records the channel it
 was asked for, and keeps the administrator's switch, which Firefox has only
 through its preferences.
 

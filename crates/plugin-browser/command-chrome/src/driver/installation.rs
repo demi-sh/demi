@@ -7,7 +7,7 @@
 //! downloads anything itself.
 //!
 //! The installation is shared by every conversation and resident of the runner
-//! and goes through the runner's artifact cache, so it needs no root. Demi
+//! and goes through the runner's artifact cache, so it needs no root. Jush
 //! keeps one version; the cache removes the older one when a release pins a
 //! newer.
 //!
@@ -22,20 +22,20 @@
 //! - Chrome finds the runtime through its own environment alone (`launch`). Set
 //!   for the runner or a shell, its libraries would load into the device's own
 //!   programs.
-//! - The runtime is built and published by `demi-sh/demi-chrome-runtime`, whose
+//! - The runtime is built and published by `jush-ai/jush-chrome-runtime`, whose
 //!   releases carry the licenses and the source packages the libraries' LGPL
 //!   and MPL terms require.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use demi_command_package_browser_protocol::browser::InstallResult;
-use demi_command_package_browser_protocol::release::{
+use jush_command_package_browser_protocol::browser::InstallResult;
+use jush_command_package_browser_protocol::release::{
     ARTIFACT, BrowserRelease, ChromeRuntime, RUNTIME_FONTS, RUNTIME_FONTS_ENTRY,
     RUNTIME_LIBRARIES, RUNTIME_LIBRARIES_ENTRY, ReleasePlatform, RuntimeArchive, RuntimeArchives,
 };
-use demi_command_protocol::{ArtifactForm, ArtifactInstall, ArtifactProgress, host_target};
-use demi_command_sdk::Artifacts;
+use jush_command_protocol::{ArtifactForm, ArtifactInstall, ArtifactProgress, host_target};
+use jush_command_sdk::Artifacts;
 use tokio::sync::{mpsc, watch};
 
 use crate::driver::glibc::{self, GlibcVersion};
@@ -206,7 +206,7 @@ impl Chrome {
     /// resident takes it before it admits one.
     fn source(&self) -> Result<Artifacts> {
         self.artifacts.borrow().clone().ok_or_else(|| {
-            BrowserError::Installation("demi-browser has no artifacts source".to_owned())
+            BrowserError::Installation("jush-browser has no artifacts source".to_owned())
         })
     }
 }
@@ -231,7 +231,7 @@ async fn install_reporting(
     install: ArtifactInstall,
     lines: &mpsc::Sender<String>,
     mut line: impl FnMut(ArtifactProgress) -> Option<String>,
-) -> std::result::Result<PathBuf, demi_command_sdk::ResidentError> {
+) -> std::result::Result<PathBuf, jush_command_sdk::ResidentError> {
     let (progress, mut reports) = Artifacts::progress();
     let installing = source.install(install, Some(progress));
     tokio::pin!(installing);

@@ -59,12 +59,12 @@ None.
   ([`pending_input_preview.rs`](https://github.com/openai/codex/blob/67f0994b532b8740f14b5b738af7b7b2a915b1d6/codex-rs/tui/src/bottom_pane/pending_input_preview.rs)):
   pending steers first, each saying it is submitted after the next tool
   result unless the interrupt key sends it now, then the queued messages,
-  with a key that takes them back into the composer. Demi shows the same two
+  with a key that takes them back into the composer. Jush shows the same two
   states and the same two actions, on each message where it stands in the
   transcript.
 - Messages on macOS and iOS marks an outgoing message it has not delivered
   beside the bubble, with its status under it, and keeps it in its place in
-  the conversation. Demi departs in putting the controls inside the bubble,
+  the conversation. Jush departs in putting the controls inside the bubble,
   where a long message's Show More already is.
 
 ## Alternatives

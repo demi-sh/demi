@@ -9,10 +9,10 @@
 
 use std::{num::NonZeroU32, sync::Arc};
 
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceItem, InferenceRequest, PromptCache, ProviderEvent, ProviderRuntime, RequestPurpose, UserPart,
 };
-use demi_shared_types::ModelSelection;
+use jush_shared_types::ModelSelection;
 use futures_util::StreamExt;
 use tokio_util::sync::CancellationToken;
 

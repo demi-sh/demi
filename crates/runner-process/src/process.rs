@@ -7,7 +7,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_command_sdk::descriptors::{self, Backoff};
+use jush_command_sdk::descriptors::{self, Backoff};
 use futures_util::StreamExt;
 use process_wrap::tokio::{ChildWrapper, CommandWrap, KillOnDrop};
 use tokio::{
@@ -55,7 +55,7 @@ pub struct SpawnFailure {
     pub message: String,
 }
 
-use demi_runner_protocol::wire::{OutputStream, Signal, SpawnErrorKind};
+use jush_runner_protocol::wire::{OutputStream, Signal, SpawnErrorKind};
 
 pub struct OutputChunk {
     pub stream: OutputStream,
@@ -572,7 +572,7 @@ const BUSY_WAIT: Duration = Duration::from_secs(1);
 /// When a failed process start is tried again:
 ///
 /// - Out of open files, always: another descriptor will close
-///   (`demi_command_sdk::descriptors`).
+///   (`jush_command_sdk::descriptors`).
 /// - While its program is busy (`ETXTBSY`), for at most `BUSY_WAIT`. A program
 ///   still busy after `BUSY_WAIT` is open for writing elsewhere, and the start
 ///   fails with it.
@@ -918,7 +918,7 @@ pub fn signal_process(pid: i32, signal: i32) -> io::Result<()> {
 /// The variable that names a job in the environment of every process the job
 /// starts, by which a stop finds the processes that left the job's groups
 /// (`crates/runner-shell/src/job.rs`).
-pub const JOB_ID_ENV: &str = "DEMI_JOB_ID";
+pub const JOB_ID_ENV: &str = "JUSH_JOB_ID";
 
 /// A process a stop of its job reaches by its own id, outside the job's
 /// process groups, with when it started, so that a later signal never

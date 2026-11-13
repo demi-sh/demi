@@ -1,6 +1,6 @@
 //! The user's Cloud: its status and its reset.
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Nullable};
+use jush_shared_types::{MAX_SAFE_INTEGER, Nullable};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

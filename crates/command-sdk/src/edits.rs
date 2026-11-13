@@ -75,9 +75,9 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
-use demi_shared_artifacts::{Mode, Permissions, Publication};
+use jush_shared_artifacts::{Mode, Permissions, Publication};
 
-use demi_command_protocol::{
+use jush_command_protocol::{
     EDIT_FILE_BYTES, EDIT_JOB_BYTES, EDIT_JOB_FILES, EDIT_JOB_PATH_CHANGES, EDIT_JOB_SEGMENTS,
     EditContext, EditCopies, EditFile, EditJournal, EditKind, PathChange,
 };
@@ -656,7 +656,7 @@ fn opening_binary(path: &Path) -> bool {
     let mut opening = Vec::new();
     crate::descriptors::retry_blocking(|| File::open(path))
         .and_then(|file| file.take(8 * 1024).read_to_end(&mut opening).map(|_| ()))
-        .is_ok_and(|()| demi_command_protocol::is_binary(&opening))
+        .is_ok_and(|()| jush_command_protocol::is_binary(&opening))
 }
 
 /// Whether a lookup failed because nothing is at the path: a path below a
@@ -705,13 +705,13 @@ impl Contents {
     }
 
     fn binary(&self) -> bool {
-        matches!(self, Self::Bytes(bytes, _) if demi_command_protocol::is_binary(bytes))
+        matches!(self, Self::Bytes(bytes, _) if jush_command_protocol::is_binary(bytes))
     }
 
     fn text_or_missing(&self) -> bool {
         match self {
             Self::Missing => true,
-            Self::Bytes(bytes, _) => !demi_command_protocol::is_binary(bytes),
+            Self::Bytes(bytes, _) => !jush_command_protocol::is_binary(bytes),
             _ => false,
         }
     }
@@ -734,9 +734,9 @@ fn publish_file(path: &Path, bytes: &[u8]) -> io::Result<()> {
         durable: false,
     };
     crate::descriptors::retry_blocking(|| {
-        demi_shared_artifacts::publish_bytes_blocking(path, bytes, publication).map_err(|error| {
+        jush_shared_artifacts::publish_bytes_blocking(path, bytes, publication).map_err(|error| {
             match error {
-                demi_shared_artifacts::Error::Io(error) => error,
+                jush_shared_artifacts::Error::Io(error) => error,
                 // A publication of bytes fails only in its file operations.
                 other => io::Error::other(other),
             }

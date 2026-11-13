@@ -15,11 +15,11 @@ Gemini models, and several of them cannot serve a conversation:
   `gemini-3.6-flash`: Google routes it to its successor, which the menu
   lists too.
 - `gemini-3.1-flash-live-preview` speaks only `bidiGenerateContent`, a live
-  audio socket Demi does not open.
+  audio socket Jush does not open.
 
 An API-key entry's models are its vendor's list on models.dev and nothing
 else. models.dev marks a model `status: "deprecated"` for only some of them
-(2 of Google's 36), and Demi does not read the mark even then. The vendor's
+(2 of Google's 36), and Jush does not read the mark even then. The vendor's
 own list is no better alone: Google's still lists `gemini-2.5-pro` and the
 preview it reroutes. Alex picks a model, sends a message and reads a 404, or
 gets another model than the one the menu says.
@@ -27,7 +27,7 @@ gets another model than the one the menu says.
 ## Decision
 
 An entry whose models come from its vendor's list on models.dev offers a
-model only when every source Demi has agrees that the model serves a
+model only when every source Jush has agrees that the model serves a
 conversation. Four rules take a model out, each where its fact is known:
 
 | Rule | Source | Applies |
@@ -38,7 +38,7 @@ conversation. Four rules take a model out, each where its fact is known:
 | 4. The vendor answers with another model | A call whose answer names another model | After that call |
 
 A model taken out is not in the model menu, in Settings › Providers' list or
-in `demi providers show`, as a model the vendor never listed is not. The
+in `jush providers show`, as a model the vendor never listed is not. The
 rules apply only to a list read from models.dev: an entry's configured
 list is the user's and is never filtered, and a subscription's directory is
 the vendor's own word on what the account may use.
@@ -51,7 +51,7 @@ the vendor's own word on what the account may use.
   ```rust
   /// The ids of the models the key may call for a conversation, by the
   /// vendor's own list read through `http`, the entry's client; `None` for
-  /// a provider whose vendor keeps no such list Demi trusts.
+  /// a provider whose vendor keeps no such list Jush trusts.
   fn offered_models<'a>(&'a self, http: &'a ProviderHttp)
       -> BoxFuture<'a, Option<Result<Vec<String>, String>>>;
   ```
@@ -73,8 +73,8 @@ the vendor's own word on what the account may use.
   no model, and its page says the vendor's list could not be read.
 - A models.dev model whose `type` is set and is not `chat`, such as
   `realtime`, `embedding`, `speech`, `image` or `video`, is not a model of
-  the menu. An image, video or audio model stays `demi image`'s,
-  `demi video`'s or `demi audio`'s, which list their vendors' media models
+  the menu. An image, video or audio model stays `jush image`'s,
+  `jush video`'s or `jush audio`'s, which list their vendors' media models
   apart.
 
 ### 2. Its vendor retired it
@@ -87,11 +87,11 @@ the vendor's own word on what the account may use.
   a day after, so a catalog's refresh never waits for it, and keeps the
   last copy after a failed read (`crates/provider-registry/src/shutdowns.rs`).
   A model whose day has come is taken out.
-- A LiteLLM model is matched to a Demi vendor by its `litellm_provider`,
+- A LiteLLM model is matched to a Jush vendor by its `litellm_provider`,
   through one table beside the vendor list (`google` → `gemini`,
   `anthropic` → `anthropic`, `openai` → `openai`, …), and by its id after
   the provider's prefix. A vendor with no row has no dates.
-- Demi's media catalog (`catalog/media/v1/models.json`) holds what vendors
+- Jush's media catalog (`catalog/media/v1/models.json`) holds what vendors
   publish of their media models, so a media model its vendor shut down
   leaves it: Veo 3.1, Veo 3.1 Fast and Veo 3.1 Lite on the Gemini API.
 
@@ -192,17 +192,17 @@ output token:
 - [LiteLLM](https://github.com/BerriAI/litellm) keeps each model's
   `deprecation_date` in its model table, which its proxy reports.
 - Clients that read a vendor's `GET /models`, such as LobeChat and Cherry
-  Studio, offer what the vendor lists. Demi departs by keeping models.dev's
+  Studio, offer what the vendor lists. Jush departs by keeping models.dev's
   facts and using the vendor's list only to take models out.
 
-None of them learns from a call that a model is refused or rerouted; Demi
+None of them learns from a call that a model is refused or rerouted; Jush
 does because the vendor's own list keeps such models.
 
 ## Alternatives
 
 - **The vendor's list alone.** Google's keeps the models it refuses and
   reroutes, and it holds no window, price or thinking facts.
-- **Demi's own list of retired text models**, kept in the repository like
+- **Jush's own list of retired text models**, kept in the repository like
   the media catalog. It could take a rerouted model out before anyone calls
   it, but it is a second owner of facts models.dev and LiteLLM keep, and it
   is stale whenever no one updates it.
@@ -212,4 +212,4 @@ does because the vendor's own list keeps such models.
 ## Open questions
 
 - A rerouted model nobody has called yet stays in the menu until its first
-  call; Demi's own list is the only way to take it out sooner.
+  call; Jush's own list is the only way to take it out sooner.

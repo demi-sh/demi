@@ -40,9 +40,9 @@
 //! the backend stops a package's residents when the user turns its plugin off
 //! (`crates/plugin-host/src/lib.rs`).
 //!
-//! For example, a job whose manifest names `demi.browser` holds a lease on its
+//! For example, a job whose manifest names `jush.browser` holds a lease on its
 //! artifact while the job runs, and the installed manifest holds another. When
-//! the connection installs a manifest with a newer `demi.browser`, the old
+//! the connection installs a manifest with a newer `jush.browser`, the old
 //! artifact's last lease ends when its last job does. The registry then asks
 //! the old resident which conversations it holds: it stops a resident that holds
 //! none, and keeps one that holds some or cannot say.
@@ -54,20 +54,20 @@ use std::{
     time::Duration,
 };
 
-use demi_command_protocol::{
+use jush_command_protocol::{
     ArtifactForm, ArtifactProgress, ConversationRequest, ConversationStatus, PackageDescriptor,
     Record, ResidentInfo, megabytes,
 };
-use demi_command_sdk::{Client, ResidentError};
-use demi_runner_process::backend::Backend;
-use demi_runner_protocol::wire::DeviceArtifact;
+use jush_command_sdk::{Client, ResidentError};
+use jush_runner_process::backend::Backend;
+use jush_runner_protocol::wire::DeviceArtifact;
 use tokio::{
     sync::{mpsc, oneshot, watch},
     task::JoinSet,
 };
 use tokio_util::sync::CancellationToken;
 
-use demi_command_protocol::host_target;
+use jush_command_protocol::host_target;
 
 /// The line name of a package's executable (`crates/runner-command-packages/src/cache.rs`).
 const PROGRAM: &str = "program";
@@ -957,7 +957,7 @@ impl Owner {
 /// located for, where its requests to the backend go, and its working
 /// directory and environment.
 struct Start<'a> {
-    artifact: &'a demi_command_protocol::PackageArtifact,
+    artifact: &'a jush_command_protocol::PackageArtifact,
     descriptor: &'a PackageDescriptor,
     invocations: Invocations,
     resolver: Arc<dyn ArtifactResolver>,

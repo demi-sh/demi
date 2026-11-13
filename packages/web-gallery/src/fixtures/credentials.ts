@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
-import type { CredentialLookup, MessageCredentials } from '@demicodes/web-ui/markdown/types'
-import type { SettingsCredential } from '@demicodes/web-ui/settings/types'
+import type { CredentialLookup, MessageCredentials } from '@jush-ai/web-ui/markdown/types'
+import type { SettingsCredential } from '@jush-ai/web-ui/settings/types'
 import { galleryVerification } from './handoff'
 import { ahead } from './time'
 

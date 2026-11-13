@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 import { Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, Gauge } from '@lucide/vue'
-import { upperFirst } from '@demicodes/utils'
+import { upperFirst } from '@jush-ai/utils'
 import { find, t } from './locales/text'
 import type { ModelInfo } from '../transport/protocol'
 import { firstEffort, THINKING_OFF } from './model-selection'

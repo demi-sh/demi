@@ -1,4 +1,4 @@
-//! `demi-backend`: the executable around the library.
+//! `jush-backend`: the executable around the library.
 //!
 //! It reads its configuration, publishes its server release's command
 //! packages, serves until SIGINT or SIGTERM, then shuts down in order
@@ -18,9 +18,9 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use clap::{CommandFactory as _, Parser as _};
-use demi_backend::{Backend, BackendConfig, Config, StartError, publish_commands};
-use demi_backend_database::server_log;
-use demi_backend_runners::native::NativeCatalog;
+use jush_backend::{Backend, BackendConfig, Config, StartError, publish_commands};
+use jush_backend_database::server_log;
+use jush_backend_runners::native::NativeCatalog;
 use tokio::signal::unix::{Signal, SignalKind, signal};
 use tokio_util::sync::CancellationToken;
 use tracing_subscriber::layer::SubscriberExt as _;
@@ -28,12 +28,12 @@ use tracing_subscriber::util::SubscriberInitExt as _;
 
 fn main() -> ExitCode {
     // A panic leaves its report on standard error.
-    demi_shared_cli::install_panic_hook();
+    jush_shared_cli::install_panic_hook();
     // Every socket, database and stream shares one table of open files, and
     // systemd starts the backend with a soft limit of 1024 under a hard one
     // of 524288; the outcome is logged once the log is up.
     #[cfg(unix)]
-    let open_files = demi_shared_cli::raise_open_file_limit();
+    let open_files = jush_shared_cli::raise_open_file_limit();
     // An unusable value stops here, naming its variable, and so does a
     // variable no setting reads, such as a misspelt one. The machine
     // manager's own settings, which share the configuration file, are its
@@ -42,12 +42,12 @@ fn main() -> ExitCode {
     let variables = std::env::vars_os().filter(|(name, _)| {
         !name
             .to_string_lossy()
-            .starts_with(demi_shared_cli::MANAGED_PREFIX)
+            .starts_with(jush_shared_cli::MANAGED_PREFIX)
     });
-    if let Some(name) = demi_shared_cli::unknown_variable(&Config::command(), "DEMI_", variables)
+    if let Some(name) = jush_shared_cli::unknown_variable(&Config::command(), "JUSH_", variables)
     {
         eprintln!(
-            "demi-backend: {name} is not a backend setting; `demi-backend --help` lists them"
+            "jush-backend: {name} is not a backend setting; `jush-backend --help` lists them"
         );
         return ExitCode::FAILURE;
     }
@@ -57,7 +57,7 @@ fn main() -> ExitCode {
     {
         Ok(runtime) => runtime,
         Err(error) => {
-            eprintln!("demi-backend: the runtime cannot start: {error}");
+            eprintln!("jush-backend: the runtime cannot start: {error}");
             return ExitCode::FAILURE;
         }
     };
@@ -70,7 +70,7 @@ fn main() -> ExitCode {
 
 async fn run(
     config: Config,
-    #[cfg(unix)] open_files: std::io::Result<demi_shared_cli::OpenFileLimit>,
+    #[cfg(unix)] open_files: std::io::Result<jush_shared_cli::OpenFileLimit>,
 ) -> ExitCode {
     let started = std::time::Instant::now();
     // Installed before anything starts, so a stop signal that comes while the
@@ -78,21 +78,21 @@ async fn run(
     let mut stop = match StopSignals::install() {
         Ok(stop) => stop,
         Err(error) => {
-            eprintln!("demi-backend: the stop signals cannot be watched: {error}");
+            eprintln!("jush-backend: the stop signals cannot be watched: {error}");
             return ExitCode::FAILURE;
         }
     };
     let release = match config.release() {
         Ok(release) => release,
         Err(error) => {
-            eprintln!("demi-backend: {error}");
+            eprintln!("jush-backend: {error}");
             return ExitCode::FAILURE;
         }
     };
     let mut settings = match config.backend(&release) {
         Ok(settings) => settings,
         Err(error) => {
-            eprintln!("demi-backend: {error}");
+            eprintln!("jush-backend: {error}");
             return ExitCode::FAILURE;
         }
     };
@@ -104,13 +104,13 @@ async fn run(
     if let Some(record) = &config.update_screen {
         return update_screen(&config, &settings, record, &mut stop).await;
     }
-    // What `DEMI_LOG` selects goes to standard error, which the process
+    // What `JUSH_LOG` selects goes to standard error, which the process
     // supervisor keeps, and to the server log in the data directory.
     // It trims once the control database, which holds its limits, is open.
     let (log, log_layer) = match server_log::open(&settings.data_dir, config.log.clone()) {
         Ok(log) => log,
         Err(error) => {
-            eprintln!("demi-backend: the server log cannot start: {error}");
+            eprintln!("jush-backend: the server log cannot start: {error}");
             return ExitCode::FAILURE;
         }
     };
@@ -151,8 +151,8 @@ async fn update_screen(config: &Config, settings: &BackendConfig, record: &Path,
         .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
         .with(config.log.clone())
         .init();
-    let update = std::sync::Arc::new(demi_backend_database::update::Update::screen(record.to_owned()));
-    let listening = demi_backend_http::Edge::listen(
+    let update = std::sync::Arc::new(jush_backend_database::update::Update::screen(record.to_owned()));
+    let listening = jush_backend_http::Edge::listen(
         settings.address,
         settings.public_url.as_ref(),
         settings.web_directory.clone(),
@@ -204,7 +204,7 @@ async fn serve(
         previous_exit,
         open_files_limit,
         ms_to_ready = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
-        "demi-backend is listening"
+        "jush-backend is listening"
     );
     // Readiness for systemd's Type=notify, which an upgrade waits for;
     // without a notify socket, as in development, this does nothing.

@@ -17,8 +17,8 @@
 
 use std::path::Path;
 
-use demi_shared_openh264::Load;
-use demi_shared_recording_protocol::text::seconds;
+use jush_shared_openh264::Load;
+use jush_shared_recording_protocol::text::seconds;
 use image::{ImageEncoder as _, RgbaImage, codecs::png::PngEncoder, imageops};
 
 use crate::{

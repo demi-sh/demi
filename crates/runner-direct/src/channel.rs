@@ -17,10 +17,10 @@
 //! so the other side learns that everything arrived.
 
 use bytes::Bytes;
-use demi_runner_protocol::direct::QUEUE_BYTES;
+use jush_runner_protocol::direct::QUEUE_BYTES;
 #[cfg(doc)]
-use demi_runner_protocol::direct::VIDEO_QUEUE_BYTES;
-use demi_runner_protocol::pairs::Grant;
+use jush_runner_protocol::direct::VIDEO_QUEUE_BYTES;
+use jush_runner_protocol::pairs::Grant;
 use str0m::Rtc;
 use str0m::channel::ChannelId;
 use tokio::sync::{mpsc, watch};
@@ -43,7 +43,7 @@ pub(crate) enum Kind {
     Watch,
     /// Nothing more.
     Request,
-    /// A pair's channel (`demi_runner_protocol::pairs`): bytes, their end as
+    /// A pair's channel (`jush_runner_protocol::pairs`): bytes, their end as
     /// `{ end: true }`, and the other side's grants.
     Pair,
 }
@@ -391,7 +391,7 @@ impl Channel {
         let windowed = self
             .credit
             .as_ref()
-            .is_none_or(|credit| credit.window >= demi_runner_protocol::direct::MESSAGE_BYTES);
+            .is_none_or(|credit| credit.window >= jush_runner_protocol::direct::MESSAGE_BYTES);
         self.room = self.pending.is_none()
             && self.output.is_some()
             && windowed

@@ -108,7 +108,7 @@ On this Mac (M5 Max), in Chrome 153, with Xcode 27.1's `V68.usdz` (5.9 MB):
 
 - three.js's [`DRACOLoader`](https://github.com/mrdoob/three.js/blob/r186/examples/jsm/loaders/DRACOLoader.js)
   decodes in a pool of workers and transfers typed arrays back; the page
-  builds the `BufferGeometry` from them. Demi does the same for a whole
+  builds the `BufferGeometry` from them. Jush does the same for a whole
   composed model.
 - [loaders.gl](https://github.com/visgl/loaders.gl) parses in workers into
   plain data with transferred arrays, which the application turns into its

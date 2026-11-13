@@ -9,9 +9,9 @@ use axum::extract::{Path, Query, State};
 use axum::http::header::ACCEPT_LANGUAGE;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::Html;
-use demi_plugin_host::{Callback, CallbackError};
-use demi_shared_types::xml_escaped;
-use demi_web_api_protocol::settings::Language;
+use jush_plugin_host::{Callback, CallbackError};
+use jush_shared_types::xml_escaped;
+use jush_web_api_protocol::settings::Language;
 use rust_i18n::t;
 
 use super::AppState;
@@ -97,7 +97,7 @@ pub(super) async fn callback(
 }
 
 /// The language of a page the backend renders: the first of the
-/// languages the request's `Accept-Language` prefers that Demi speaks. A
+/// languages the request's `Accept-Language` prefers that Jush speaks. A
 /// language the header rules out with `q=0` is not one it prefers.
 fn page_language(headers: &HeaderMap) -> Language {
     let accepted = headers
@@ -123,14 +123,14 @@ fn page_language(headers: &HeaderMap) -> Language {
         .unwrap_or(Language::English)
 }
 
-/// The language Demi speaks for the BCP 47 tag `tag`, if any.
+/// The language Jush speaks for the BCP 47 tag `tag`, if any.
 ///
 /// - Traditional Chinese for `zh-Hant` and the Chinese of Taiwan, Hong Kong and
 ///   Macao.
 /// - Simplified for any other `zh`.
 /// - A script the tag names wins over its region.
 /// - Every Spanish is Latin America's and every Portuguese Brazil's, the one
-///   variant Demi speaks of each.
+///   variant Jush speaks of each.
 ///
 /// The page resolves its own language; this reads only a request's
 /// `Accept-Language`.

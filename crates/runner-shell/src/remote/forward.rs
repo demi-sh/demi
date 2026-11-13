@@ -7,12 +7,12 @@
 use std::{future::Future, pin::Pin};
 
 use bytes::Bytes;
-use demi_command_protocol::{Completion, LocalInvocation, MediumFacts};
-use demi_command_sdk::{
+use jush_command_protocol::{Completion, LocalInvocation, MediumFacts};
+use jush_command_sdk::{
     Client, Exchange, ExchangeError, Handler, Input, InputSource, InvocationContext, Output,
     OutputSink, ResidentError,
 };
-use demi_runner_process::{
+use jush_runner_process::{
     command_client::{RAW, Resuming},
     local_socket,
 };

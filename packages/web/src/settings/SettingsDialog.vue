@@ -1,34 +1,34 @@
 <script setup lang="ts">
-import { keptComputed } from '@demicodes/web-ui/infra/keep-same'
-import { APP_ICON } from '@demicodes/web-ui/assets/app-icon'
+import { keptComputed } from '@jush-ai/web-ui/infra/keep-same'
+import { APP_ICON } from '@jush-ai/web-ui/assets/app-icon'
 import { t } from './locales/text'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import SettingsDialog from '@demicodes/web-ui/settings/SettingsDialog.vue'
-import SettingsAccount from '@demicodes/web-ui/settings/SettingsAccount.vue'
-import SettingsArchived from '@demicodes/web-ui/settings/SettingsArchived.vue'
-import SettingsDeveloper from '@demicodes/web-ui/settings/SettingsDeveloper.vue'
-import SettingsGeneral from '@demicodes/web-ui/settings/SettingsGeneral.vue'
-import SettingsKeyboard from '@demicodes/web-ui/settings/SettingsKeyboard.vue'
-import SettingsNotifications from '@demicodes/web-ui/settings/SettingsNotifications.vue'
-import SettingsPlugins from '@demicodes/web-ui/settings/SettingsPlugins.vue'
-import type { ChangeEmailPhase } from '@demicodes/web-ui/settings/ChangeEmailDialog.vue'
-import type { ChangePasswordPhase } from '@demicodes/web-ui/settings/ChangePasswordDialog.vue'
+import SettingsDialog from '@jush-ai/web-ui/settings/SettingsDialog.vue'
+import SettingsAccount from '@jush-ai/web-ui/settings/SettingsAccount.vue'
+import SettingsArchived from '@jush-ai/web-ui/settings/SettingsArchived.vue'
+import SettingsDeveloper from '@jush-ai/web-ui/settings/SettingsDeveloper.vue'
+import SettingsGeneral from '@jush-ai/web-ui/settings/SettingsGeneral.vue'
+import SettingsKeyboard from '@jush-ai/web-ui/settings/SettingsKeyboard.vue'
+import SettingsNotifications from '@jush-ai/web-ui/settings/SettingsNotifications.vue'
+import SettingsPlugins from '@jush-ai/web-ui/settings/SettingsPlugins.vue'
+import type { ChangeEmailPhase } from '@jush-ai/web-ui/settings/ChangeEmailDialog.vue'
+import type { ChangePasswordPhase } from '@jush-ai/web-ui/settings/ChangePasswordDialog.vue'
 import {
   settingsSections,
   withCloudSection,
   withUpdatesSection,
   withUsersSection,
-} from '@demicodes/web-ui/settings/sections'
-import { appShortcuts, isAppShortcut } from '@demicodes/web-ui/settings/shortcuts'
-import { shortcutSet } from '@demicodes/web-ui/ui/shortcut'
-import type { HeadlineText } from '@demicodes/web-ui/ui/ui-text'
-import { PageScope, settingsPage, withPluginSections } from '@demicodes/web-ui/plugins/page'
+} from '@jush-ai/web-ui/settings/sections'
+import { appShortcuts, isAppShortcut } from '@jush-ai/web-ui/settings/shortcuts'
+import { shortcutSet } from '@jush-ai/web-ui/ui/shortcut'
+import type { HeadlineText } from '@jush-ai/web-ui/ui/ui-text'
+import { PageScope, settingsPage, withPluginSections } from '@jush-ai/web-ui/plugins/page'
 import { PLUGIN_PAGES } from '../plugins/generated/pages'
 import { pluginEnabled } from '../plugins/enabled'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { SerialQueue } from '@demicodes/utils'
-import { formError, reportError } from '@demicodes/web-ui/infra/errors'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { SerialQueue } from '@jush-ai/utils'
+import { formError, reportError } from '@jush-ai/web-ui/infra/errors'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   emailChangeStartedSchema,
@@ -63,7 +63,7 @@ import UsersPanel from './UsersPanel.vue'
 import CloudPanel from './CloudPanel.vue'
 import AboutPanel from './AboutPanel.vue'
 import UpdatesPanel from './UpdatesPanel.vue'
-import type { Action } from '@demicodes/web-ui/ui/operations'
+import type { Action } from '@jush-ai/web-ui/ui/operations'
 
 defineProps<{
   /** Signs this browser out; Sign Out works until the page goes to the sign-in page. */
@@ -73,7 +73,7 @@ const resources = useResources()
 const product = useProduct()
 const preferences = usePreferences()
 const notifications = useNotifications()
-/** Demi's Home Screen icon, which the steps to add Demi to the Home Screen show. */
+/** Jush's Home Screen icon, which the steps to add Jush to the Home Screen show. */
 const homeScreenIcon = APP_ICON
 const session = useSession()
 const passkeys = usePasskeys()

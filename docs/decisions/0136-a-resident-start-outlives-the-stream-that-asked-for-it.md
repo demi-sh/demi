@@ -7,7 +7,7 @@ status: proposed
 ## Problem
 
 Alex opens a simulator's panel for the first time on a Mac whose runner has
-not yet downloaded `demi.mobile`, closes the panel within a second, and opens
+not yet downloaded `jush.mobile`, closes the panel within a second, and opens
 it again. The panel shows "Downloading… 0 B of 82 MB" and never moves. Each
 time Alex opens it again it fails, and the runner's log says `native runtime
 was cancelled`, until the runner restarts. The same happens when a server
@@ -103,7 +103,7 @@ next caller each time.
   the stream the backend dropped still waits on the runner, holding its
   resident's lease.
 - **A deadline on the location request.** A panel stays stuck for the
-  deadline, a fixed limit Demi does not need.
+  deadline, a fixed limit Jush does not need.
 - **The runner watches an opening stream's pipes.** Its pipes connect only
   once the stream opened, by design: no bytes move before the answer.
 

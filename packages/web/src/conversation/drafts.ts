@@ -1,13 +1,14 @@
 import { z } from 'zod'
-import { schemaRefusal, workflowChoiceSchema } from '@demicodes/protocol'
-import { waitingCommentSchema } from '@demicodes/web-ui/agent/comments/comments'
+import { schemaRefusal, workflowChoiceSchema } from '@jush-ai/protocol'
+import { waitingCommentSchema } from '@jush-ai/web-ui/agent/comments/comments'
 import { conversationSummarySchema, draftFileSchema } from '../api/generated/web-api'
-import { messageEditStateSchema } from '@demicodes/web-ui/agent/message-editing'
-import { modelSettingsSchema } from '@demicodes/web-ui/agent/model-selection'
-import { copiedStoredFileSchema } from '@demicodes/web-ui/agent/message-input/copied-message'
-import { IndexedDatabase } from '@demicodes/web-ui/infra/indexed-db'
-import { pageLog } from '@demicodes/web-ui/infra/log'
+import { messageEditStateSchema } from '@jush-ai/web-ui/agent/message-editing'
+import { modelSettingsSchema } from '@jush-ai/web-ui/agent/model-selection'
+import { copiedStoredFileSchema } from '@jush-ai/web-ui/agent/message-input/copied-message'
+import { IndexedDatabase } from '@jush-ai/web-ui/infra/indexed-db'
+import { pageLog } from '@jush-ai/web-ui/infra/log'
 import { holds } from '../state/account-owner'
+import { EARLIER_DRAFTS } from '../state/renamed'
 
 /**
  * The upload the backend took: the attachment id a message names the file
@@ -423,7 +424,52 @@ export function onDraftStorageDeleted(listener: () => void): () => void {
   return drafts.onDeleted(listener)
 }
 
-const drafts = new IndexedDatabase('demi-drafts', DRAFTS_VERSION, upgradeDrafts)
+const drafts = new IndexedDatabase('jush-drafts', DRAFTS_VERSION, upgradeDrafts)
+
+/**
+ * Moves the drafts of the database of before the rename
+ * (`packages/web/src/state/renamed.ts`) to this one, each that has no draft
+ * here yet, and deletes that database. One of another version, which this
+ * page cannot read, is deleted with what it holds.
+ */
+export async function moveEarlierDrafts(): Promise<void> {
+  const earlier = await new Promise<IDBDatabase | null>((resolve) => {
+    const request = indexedDB.open(EARLIER_DRAFTS)
+    // No such database: opening it would make an empty one.
+    request.onupgradeneeded = () => request.transaction?.abort()
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => resolve(null)
+  })
+  if (earlier === null)
+    return
+  const records = await new Promise<[IDBValidKey[], unknown[]] | null>((resolve) => {
+    if (earlier.version !== DRAFTS_VERSION || !earlier.objectStoreNames.contains('drafts')) {
+      resolve(null)
+      return
+    }
+    const store = earlier.transaction('drafts').objectStore('drafts')
+    const keys = store.getAllKeys()
+    const values = store.getAll()
+    values.onsuccess = () => resolve([keys.result, values.result])
+    values.onerror = () => resolve(null)
+  })
+  earlier.close()
+  if (records !== null) {
+    const [keys, values] = records
+    await drafts
+      .across(['drafts'], 'readwrite', (transaction) => {
+        const store = transaction.objectStore('drafts')
+        keys.forEach((key, index) => {
+          const added = store.add(values[index], key)
+          // A draft this page wrote already stays.
+          added.onerror = (event) => event.preventDefault()
+        })
+        return () => undefined
+      })
+      .catch(() => {})
+  }
+  indexedDB.deleteDatabase(EARLIER_DRAFTS)
+}
 
 /** Closes the draft database's connection; writes already issued finish, and the next use opens it again. */
 export function closeDraftStorage(): void {
@@ -452,7 +498,7 @@ function dropUnreadable(keys: readonly IDBValidKey[]): Promise<void> {
         request.onsuccess = () => {
           const draft = draftSchema.safeParse(request.result)
           if (request.result !== undefined && !draft.success) {
-            pageLog.warn('storage.dropped', { database: 'demi-drafts', record: String(key), reason: schemaRefusal(draft.error) })
+            pageLog.warn('storage.dropped', { database: 'jush-drafts', record: String(key), reason: schemaRefusal(draft.error) })
             store.delete(key)
           }
         }
@@ -576,7 +622,7 @@ function lastWordsV6ToV7(value: unknown): unknown {
 }
 
 function lastWordsKey(userId: string, conversationId: string): string {
-  return `demi.draft.${userId}.${conversationId}`
+  return `jush.draft.${userId}.${conversationId}`
 }
 
 export function writeLastWords(userId: string, conversationId: string, words: LastWords): void {

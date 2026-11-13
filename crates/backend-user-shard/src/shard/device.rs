@@ -7,28 +7,28 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_agent_store::Placement;
-use demi_backend_blobs::blobs::UserBlobs;
-use demi_backend_cloud::CloudShard;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::conversation_index::ConversationChange;
-use demi_backend_database::conversations::ConversationDb;
-use demi_backend_database::projects::DirectoryNamed;
-use demi_backend_device_access::{conversation_of, root_of};
-use demi_backend_device_access::transition::{ChangeRefusal, Switched};
-use demi_backend_page_sync::Part;
-use demi_backend_device_access::DeviceShard;
-use demi_backend_device_access::access::Conversations;
-use demi_backend_device_access::plugin_files::{DirectorySets, PluginInstalls};
-use demi_runner_client::Pipes;
-use demi_backend_runners::devices::Devices;
-use demi_backend_runners::native::NativeCatalog;
-use demi_backend_runners::claims::PendingClaims;
-use demi_backend_runners::public_url::PublicUrl;
-use demi_backend_runners::router::CommandRouter;
-use demi_shared_types::Clock;
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_agent_store::Placement;
+use jush_backend_blobs::blobs::UserBlobs;
+use jush_backend_cloud::CloudShard;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::conversation_index::ConversationChange;
+use jush_backend_database::conversations::ConversationDb;
+use jush_backend_database::projects::DirectoryNamed;
+use jush_backend_device_access::{conversation_of, root_of};
+use jush_backend_device_access::transition::{ChangeRefusal, Switched};
+use jush_backend_page_sync::Part;
+use jush_backend_device_access::DeviceShard;
+use jush_backend_device_access::access::Conversations;
+use jush_backend_device_access::plugin_files::{DirectorySets, PluginInstalls};
+use jush_runner_client::Pipes;
+use jush_backend_runners::devices::Devices;
+use jush_backend_runners::native::NativeCatalog;
+use jush_backend_runners::claims::PendingClaims;
+use jush_backend_runners::public_url::PublicUrl;
+use jush_backend_runners::router::CommandRouter;
+use jush_shared_types::Clock;
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 use futures_util::future::LocalBoxFuture;
 use tokio_util::task::TaskTracker;
 
@@ -169,18 +169,18 @@ impl DeviceShard for Shard {
         Box::pin(Shard::move_to(self, conversation, to, cancel))
     }
 
-    fn port_forwards(&self) -> LocalBoxFuture<'_, Result<Vec<demi_web_api_protocol::port_forwards::PortForwardDto>, String>> {
+    fn port_forwards(&self) -> LocalBoxFuture<'_, Result<Vec<jush_web_api_protocol::port_forwards::PortForwardDto>, String>> {
         Box::pin(async move { self.port_forward_list().await.map_err(|error| error.to_string()) })
     }
 
     fn add_port_forward(
         &self,
-        patch: demi_web_api_protocol::port_forwards::PortForwardPatch,
-    ) -> LocalBoxFuture<'_, Result<demi_web_api_protocol::port_forwards::PortForwardDto, String>> {
+        patch: jush_web_api_protocol::port_forwards::PortForwardPatch,
+    ) -> LocalBoxFuture<'_, Result<jush_web_api_protocol::port_forwards::PortForwardDto, String>> {
         Box::pin(async move { self.create_port_forward(patch).await.map_err(|error| error.to_string()) })
     }
 
-    fn remove_port_forward(&self, id: demi_web_api_protocol::ids::PortForwardId) -> LocalBoxFuture<'_, Result<(), String>> {
+    fn remove_port_forward(&self, id: jush_web_api_protocol::ids::PortForwardId) -> LocalBoxFuture<'_, Result<(), String>> {
         Box::pin(async move { Shard::remove_port_forward(self, id).await.map_err(|error| error.to_string()) })
     }
 }

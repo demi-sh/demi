@@ -7,13 +7,13 @@
 // - the page's native form controls;
 // - text the page copies.
 //
-// The module calls `globalThis.demiLive` to apply a viewer's choice to a
+// The module calls `globalThis.jushLive` to apply a viewer's choice to a
 // control.
 (() => {
-  if (globalThis.demiLive) return;
+  if (globalThis.jushLive) return;
   const report = message => {
     try {
-      globalThis.demiLiveReport(JSON.stringify(message));
+      globalThis.jushLiveReport(JSON.stringify(message));
     } catch {
       // The binding goes away with the document.
     }
@@ -389,5 +389,5 @@
     point = { x, y };
     dirty = true;
   };
-  globalThis.demiLive = { element, committed, commit, pointer };
+  globalThis.jushLive = { element, committed, commit, pointer };
 })();

@@ -41,7 +41,7 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret, endpoint_url,
     images::InputImage,
     json_body,
@@ -49,7 +49,7 @@ use demi_provider_common::{
     media_catalog::{Catalog, MediaKind},
     videos::{self, Content, Done, DoneVideo, JobRef, JobState, VideoMaker, VideoRequest, content},
 };
-use demi_shared_types::{Clock, VendorTrace, VideoResolution};
+use jush_shared_types::{Clock, VendorTrace, VideoResolution};
 use futures_util::future::BoxFuture;
 use reqwest::{Url, header::HeaderMap};
 use serde::{Deserialize, Serialize};
@@ -101,7 +101,7 @@ impl Hailuo {
     }
 
     /// Sends `ask` and answers the body of MiniMax's success.
-    async fn send(&self, http: &demi_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
+    async fn send(&self, http: &jush_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
         let headers = minimax::headers(&self.key);
         minimax::call(&*self.clock)
             .send(http, ask, Holding::Json, |_| std::future::ready(Ok((headers.clone(), None))))
@@ -110,7 +110,7 @@ impl Hailuo {
     }
 
     /// Sends `ask` to a v1 endpoint, whose refusals are its `base_resp`.
-    async fn send_v1(&self, http: &demi_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
+    async fn send_v1(&self, http: &jush_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
         minimax::send_checked(&*self.clock, http, &self.key, ask).await
     }
 
@@ -118,7 +118,7 @@ impl Hailuo {
         self.url(&format!("/v2/video_generation/{task}"))
     }
 
-    async fn read_state(&self, http: &demi_provider_common::ProviderHttp, api: Api, task: &str) -> MediaAnswer<JobState> {
+    async fn read_state(&self, http: &jush_provider_common::ProviderHttp, api: Api, task: &str) -> MediaAnswer<JobState> {
         match api {
             Api::V2 => {
                 let url = self.url(&format!("/v2/query/video_generation/{task}"));
@@ -160,7 +160,7 @@ impl MediaMaker for Hailuo {
     /// The catalog's models of the key's MiniMax, which lists none.
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(catalog_models(catalog, self.vendor, MediaKind::Video))))
@@ -168,14 +168,14 @@ impl MediaMaker for Hailuo {
 }
 
 impl VideoMaker for Hailuo {
-    fn download<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, url: &'a reqwest::Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
+    fn download<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, url: &'a reqwest::Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
         Box::pin(videos::download(minimax::LABEL, &*self.clock, http, url, &self.origin, HeaderMap::new()))
     }
 
     /// Deletes a v2 task while it is still queued; a running one runs to
     /// its end, and a finished one is left as it is. MiniMax cancels no v1
     /// task.
-    fn cancel<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> Option<BoxFuture<'a, MediaAnswer<()>>> {
+    fn cancel<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> Option<BoxFuture<'a, MediaAnswer<()>>> {
         if self.api(job.catalog, job.model).ok()? != Api::V2 {
             return None;
         }
@@ -189,7 +189,7 @@ impl VideoMaker for Hailuo {
         }))
     }
 
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, catalog: &'a Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, catalog: &'a Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(async move {
             let api = match self.api(catalog, &request.model) {
                 Ok(api) => api,
@@ -208,7 +208,7 @@ impl VideoMaker for Hailuo {
         })
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>> {
         Box::pin(async move {
             match self.api(job.catalog, job.model) {
                 Ok(api) => self.read_state(http, api, job.id).await,

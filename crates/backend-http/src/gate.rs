@@ -42,18 +42,18 @@ use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::CookieJar;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_page_sync::Part;
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::auth::{Role, UserDto};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::sessions::SessionId;
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_page_sync::Part;
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::auth::{Role, UserDto};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::sessions::SessionId;
 use url::Url;
 
 use super::Site;
 use super::cookies::{self, SESSION_COOKIE};
 use super::error::ApiError;
-use demi_backend_user_shard::services::Services;
+use jush_backend_user_shard::services::Services;
 
 /// Fetch Metadata's header that says where a web browser's request comes
 /// from.
@@ -64,7 +64,7 @@ const SEC_FETCH_SITE: HeaderName = HeaderName::from_static("sec-fetch-site");
 /// route sees it.
 ///
 /// The user's browser sends the session cookie from every page of the
-/// product's site, one on another host of it such as `blog.demi.example` among
+/// product's site, one on another host of it such as `blog.jush.example` among
 /// them, and lets such a page send a POST or open a WebSocket without asking
 /// the backend. A request could act when its method is unsafe or it upgrades
 /// the connection, as a WebSocket does.
@@ -222,12 +222,10 @@ pub(super) async fn session(
     next: Next,
 ) -> Response {
     let https = cookies::over_https(request.uri(), request.headers());
-    let Some(token) = jar
-        .get(SESSION_COOKIE)
-        .map(|cookie| cookie.value().to_owned())
-    else {
+    let Some((token, earlier)) = cookies::session_token(&jar) else {
         return ApiError::unauthenticated().into_response();
     };
+    let jar = if earlier { cookies::remove_earlier(jar, https) } else { jar };
     let session = match services.sessions.resolve(&token).await {
         Ok(Some(session)) => session,
         Ok(None) => {
@@ -253,7 +251,7 @@ pub(super) async fn session(
     let response = next.run(request).await;
     // A handler that sets the session cookie itself, as logout removes it,
     // decides the cookie.
-    if !session.renewed || sets_session_cookie(&response) {
+    if sets_session_cookie(&response) || !(session.renewed || earlier) {
         return response;
     }
     let renewed = jar.add(cookies::session(&token, session.expires_at, https));

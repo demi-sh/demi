@@ -7,7 +7,7 @@
 //!
 //! ```text
 //! Backend (Linux)
-//!     | requests over a restricted Unix socket   (demi-machine-manager-protocol)
+//!     | requests over a restricted Unix socket   (jush-machine-manager-protocol)
 //!     v
 //! Machine manager (Linux; root and a private mount namespace for gVisor)
 //!     | OCI bundle and `runsc` commands     | `proot` over a directory tree
@@ -111,6 +111,8 @@ pub mod network;
 pub mod preflight;
 #[cfg(target_os = "linux")]
 pub mod recovery;
+#[cfg(target_os = "linux")]
+pub mod renamed;
 #[cfg(target_os = "linux")]
 pub mod runtime;
 pub mod sandbox;

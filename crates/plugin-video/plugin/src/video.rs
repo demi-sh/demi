@@ -1,4 +1,4 @@
-//! What `demi video` does:
+//! What `jush video` does:
 //!
 //! 1. It reads the call's prompt, its frames and references, and the video
 //!    an edit or an extension changes from the device the command runs on.
@@ -12,15 +12,15 @@
 //!
 //! A failure is told in the design's words.
 
-use demi_device_interface::RpcInvocation;
-use demi_plugin_interface::{
+use jush_device_interface::RpcInvocation;
+use jush_plugin_interface::{
     AskedVideo, ImageAspect, MadeVideo, PluginError, PluginPort, SentSource, VideoAsk, VideoChange, VideoResolution,
     VideoSourceAsk, VideoStep,
 };
-use demi_plugin_media::{
+use jush_plugin_media::{
     decode_args, fits, models, parse_aspect, prompt, read_images, read_video, refused, required_model,
 };
-use demi_shared_types::{MediaKind, mp4};
+use jush_shared_types::{MediaKind, mp4};
 
 use crate::commands::{ChangeArgs, GenerateArgs, ModelsArgs};
 
@@ -117,7 +117,7 @@ async fn change_ask(port: &PluginPort, args: ChangeArgs, change: VideoChange) ->
 /// it to stdout, and says what came back; `source` is the path of the
 /// video an edit or an extension changes.
 async fn generate(invocation: &RpcInvocation, port: &PluginPort, ask: VideoAsk, source: Option<&str>) -> Result<u8, PluginError> {
-    let command = format!("demi {}", invocation.path.join(" "));
+    let command = format!("jush {}", invocation.path.join(" "));
     let wanted = Wanted::of(&ask, source);
     let aspect = ask.aspect;
     let asked = port

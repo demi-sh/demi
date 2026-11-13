@@ -66,8 +66,8 @@
   },
   "page": {
     "cloud": "クラウド",
-    "startSentence": "デバイスで Demi を起動します:",
-    "noAutostart": "このデバイスでは、再起動後に Demi が自動で起動しません。",
+    "startSentence": "デバイスで Jush を起動します:",
+    "noAutostart": "このデバイスでは、再起動後に Jush が自動で起動しません。",
     "connection": "接続",
     "route": "経路",
     "p2p": "P2P",
@@ -133,7 +133,7 @@
     "pair": "デバイスをペアリング",
     "invalidCode": "このコードは使えません。ランナーの最新のコードを貼り付けてください。",
     "rateLimited": "試行回数が多すぎます。1 分待ってからやり直してください。",
-    "unavailable": "Demi に接続できませんでした。接続を確認して、もう一度お試しください。"
+    "unavailable": "Jush に接続できませんでした。接続を確認して、もう一度お試しください。"
   },
   "revoke": {
     "title": "このデバイスのアクセスを取り消しますか？",
@@ -153,7 +153,7 @@
   "autostart": {
     "noSystemd": "このシステムでは systemd が動作していません。",
     "noUserManager": "systemd のユーザマネージャが応答しません：{error}",
-    "notWritten": "Demi は {path} を保存できませんでした：{error}",
+    "notWritten": "Jush は {path} を保存できませんでした：{error}",
     "lingerOff": "{user} がログインしたときにだけ起動します。コンピュータの起動時に起動するには、次を実行してください：",
     "refused": "Windows がスケジュールされたタスクとスタートアップ項目の両方を拒否しました：{error}",
     "unusableName": "インストールフォルダの名前「{name}」は、スタートアップ項目の名前に使用できません。",

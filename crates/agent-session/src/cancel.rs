@@ -31,7 +31,7 @@ use std::{cell::RefCell, future::Future, rc::Rc};
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
-use demi_shared_types::QueuedMessage;
+use jush_shared_types::QueuedMessage;
 
 use super::TurnError;
 

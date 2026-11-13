@@ -1,5 +1,5 @@
 [package]
-name = "demi-file"
+name = "jush-file"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,19 +12,19 @@ doctest = false
 bench = false
 
 [[bin]]
-name = "demi-file"
+name = "jush-file"
 path = "src/main.rs"
 test = false
 
 [dependencies]
 bytes.workspace = true
-demi-shared-artifacts = { path = "../../shared-artifacts" }
-demi-command-protocol = { path = "../../command-protocol" }
-demi-command-sdk = { path = "../../command-sdk" }
-demi-shared-types = { path = "../../shared-types", features = ["whole-image"] }
-demi-command-package-file-protocol = { path = "../protocol" }
-demi-shared-gates = { path = "../../shared-gates" }
-demi-shared-cli = { path = "../../shared-cli", features = ["device-allocator"] }
+jush-shared-artifacts = { path = "../../shared-artifacts" }
+jush-command-protocol = { path = "../../command-protocol" }
+jush-command-sdk = { path = "../../command-sdk" }
+jush-shared-types = { path = "../../shared-types", features = ["whole-image"] }
+jush-command-package-file-protocol = { path = "../protocol" }
+jush-shared-gates = { path = "../../shared-gates" }
+jush-shared-cli = { path = "../../shared-cli", features = ["device-allocator"] }
 # Reads a viewed medium's size from its header: only the codecs of the
 # types a model reads.
 image = { version = "0.25", default-features = false, features = ["gif", "jpeg", "png", "webp"] }

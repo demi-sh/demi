@@ -6,10 +6,10 @@
   },
   "services": {
     "c1a94e7d-30b2-4f86-a5d1-7e82b6c0f4a3": {
-      "name": "Demi",
-      "icon": "https://raw.githubusercontent.com/demi-sh/demi/main/packages/web-ui/src/assets/app-icon.png",
+      "name": "Jush",
+      "icon": "https://raw.githubusercontent.com/jush-ai/jush/main/packages/web-ui/src/assets/app-icon.png",
       "source": {
-        "image": "ghcr.io/demi-sh/demi:latest"
+        "image": "ghcr.io/jush-ai/jush:latest"
       },
       "deploy": {
         "healthcheckPath": "/api/update",
@@ -27,31 +27,31 @@
       },
       "volumeMounts": {
         "9b7e1c44-52ad-4e03-8f6a-1c3d9e7a2b58": {
-          "mountPath": "/opt/demi"
+          "mountPath": "/opt/jush"
         }
       },
       "variables": {
-        "DEMI_BACKEND_PUBLIC_URL": {
-          "description": "The address Demi is reached at.",
+        "JUSH_BACKEND_PUBLIC_URL": {
+          "description": "The address Jush is reached at.",
           "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
           "isOptional": false
         },
-        "DEMI_STORAGE": {
+        "JUSH_STORAGE": {
           "description": "Keeps attachments and media in the Railway Bucket.",
           "defaultValue": "s3",
           "isOptional": false
         },
-        "DEMI_S3_BUCKET": {
+        "JUSH_S3_BUCKET": {
           "description": "The Railway Bucket's name.",
           "defaultValue": "${{Bucket.BUCKET}}",
           "isOptional": false
         },
-        "DEMI_S3_ENDPOINT": {
+        "JUSH_S3_ENDPOINT": {
           "description": "The Railway Bucket's endpoint.",
           "defaultValue": "${{Bucket.ENDPOINT}}",
           "isOptional": false
         },
-        "DEMI_S3_REGION": {
+        "JUSH_S3_REGION": {
           "description": "The Railway Bucket's region.",
           "defaultValue": "${{Bucket.REGION}}",
           "isOptional": false
@@ -67,12 +67,12 @@
           "isOptional": false
         },
         "PORT": {
-          "description": "The port Railway's health check and domain reach Demi on.",
+          "description": "The port Railway's health check and domain reach Jush on.",
           "defaultValue": "3271",
           "isOptional": false
         },
         "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
-          "description": "How long a redeploy waits for Demi to save its Clouds.",
+          "description": "How long a redeploy waits for Jush to save its Clouds.",
           "defaultValue": "120",
           "isOptional": false
         }

@@ -1,4 +1,4 @@
-import type { PendingCall } from '@demicodes/protocol'
+import type { PendingCall } from '@jush-ai/protocol'
 import type { ConversationState } from './types'
 
 /**

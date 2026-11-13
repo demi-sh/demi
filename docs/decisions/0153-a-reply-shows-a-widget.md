@@ -45,12 +45,12 @@ panel takes no change, open the page in a new tab of the web browser.
 
 **What the agent does.** A widget is an HTML page a reply shows in place, a
 thing of its own: an attachment is a file the user receives. The agent writes
-the page into `demi widget create` on its standard input, a file with `<`:
+the page into `jush widget create` on its standard input, a file with `<`:
 
 ```console
-$ demi widget create <<'EOF'
+$ jush widget create <<'EOF'
 <!doctype html>
-<html><head><meta name="demi-frame" content="height: 330px">...</head>
+<html><head><meta name="jush-frame" content="height: 330px">...</head>
 <body>...</body></html>
 EOF
 w1  height 330px
@@ -65,7 +65,7 @@ and places it in the reply on a line of its own:
 The command shows the agent the widget as the reply will draw it: the Host's
 browser draws the page at the reply's width, in the default tone and accent,
 once light and once dark, and the command hands the two screenshots to its
-job, as `demi file view` hands media. A page whose content is taller than the
+job, as `jush file view` hands media. A page whose content is taller than the
 height it declares is named, with both heights, since its screenshot shows
 only a page that ends too soon. A Host without the browser still gets
 the widget, and the command says the screenshots were skipped and why; so
@@ -81,11 +81,11 @@ goes. A widget's name, which a download of it takes, is its page's
 a site the agent built, stays an attachment.
 
 **The frame's size.** A page declares its frame in its head, in CSS's words
-and meaning, and `demi widget create` prints what it read:
+and meaning, and `jush widget create` prints what it read:
 
 ```html
-<meta name="demi-frame" content="height: 360px">
-<meta name="demi-frame" content="aspect-ratio: 16 / 9; min-height: 240px; max-height: 480px">
+<meta name="jush-frame" content="height: 360px">
+<meta name="jush-frame" content="aspect-ratio: 16 / 9; min-height: 240px; max-height: 480px">
 ```
 
 Only `height`, `aspect-ratio`, `min-height` and `max-height` count, lengths in
@@ -114,9 +114,9 @@ grow without end.
 A page overrides any of it with its own `@theme` or CSS, which comes after.
 It loads anything else it needs from a CDN, such as a chart library.
 
-**The guide.** `demi widget guide` prints how to make a widget: the theme's
+**The guide.** `jush widget guide` prints how to make a widget: the theme's
 names, the frame, the style, and that the reply does not describe what its
-widget shows. `demi widget guide <kind>` prints a page to copy for each
+widget shows. `jush widget guide <kind>` prints a page to copy for each
 kind: `line`, `bar` and `scatter` with Chart.js 4, `heatmap`, `share`,
 `table` and `flow` with Tailwind and SVG. The style:
 
@@ -145,7 +145,7 @@ shows the totals again.
 gives every command group:
 
 ```text
-demi widget: Charts, diagrams and interactive pages in your reply: data with a shape, such as a trend, a comparison or a distribution, is shown, not told.
+jush widget: Charts, diagrams and interactive pages in your reply: data with a shape, such as a trend, a comparison or a distribution, is shown, not told.
 ```
 
 Three familiar kinds name what a widget is, each a whole class: data,
@@ -157,13 +157,13 @@ code or a fix have no shape, and stay words.
 **A shared conversation** shows the widgets its replies name, and no other.
 
 **The switch.** Widgets are a plugin, Widgets in Settings › Plugins, on by
-default. Off, the agents have no `demi widget` and its line leaves the
+default. Off, the agents have no `jush widget` and its line leaves the
 prompt, and a widget already in a reply says in its place that widgets are
 off.
 
 **The design.**
 
-* The plugin `widget` declares the group `demi widget`, two `rpc` leaves:
+* The plugin `widget` declares the group `jush widget`, two `rpc` leaves:
   `create`, whose page is its standard input (at most 1 MiB, as every
   command body), and `guide`.
 * `create` keeps the page as a blob of the user's and the widget as the
@@ -199,7 +199,7 @@ off.
 * Mechanisms the plugin needs join the contracts for every plugin:
   * **An `rpc` command hands its job media.** The rpc port gains `medium`, a
     medium the job keeps and shows the model as it keeps what
-    `demi file view` hands it. The relay sends its facts as `rpc_medium` and
+    `jush file view` hands it. The relay sends its facts as `rpc_medium` and
     its bytes in a pipe of their own, since bulk bytes never travel in a
     message; the runner reads them before the call's next message, so the
     medium stays before its exit.
@@ -211,7 +211,7 @@ off.
     operation bulk content, such as a document, as the call's input stream
     (`package_call_reading`), not as an argument: an invocation's arguments
     are metadata, which the command protocol bounds at 256 KiB.
-  * **The browser package draws a document.** `demi.browser` gains `draw`:
+  * **The browser package draws a document.** `jush.browser` gains `draw`:
     an HTML document, which it reads as its input, drawn by a Chrome of its
     own, with a profile of its own and no tab of any conversation's, at a
     width and a height or its own height, as a PNG at twice the CSS pixels in
@@ -341,14 +341,14 @@ off.
   shape made a widget for half of the first three over two rounds, and
   "when it explains better than text" for none. No wording made one for
   the other three.
-* **The whole path.** An agent's `demi widget create` of the guide's line
+* **The whole path.** An agent's `jush widget create` of the guide's line
   chart kept it as `w2`, the Host's Chrome drew it light and dark in 3 s,
   1600×660 each, and the reply drew it in its 330px frame. A share of the
   conversation showed it, and answered not found for a widget of another
   conversation. A fork kept it after its source was deleted, and deleting
   the fork removed it.
 * **Pages that are not tidy.** A page whose comment held `<head>` and a
-  `demi-frame` of 9000px, whose script held another, and whose head had a
+  `jush-frame` of 9000px, whose script held another, and whose head had a
   quoted `>` read as `height: 200px`; a page whose content was all
   positioned out of the flow measured its content, 160px, not 1px.
 
@@ -359,14 +359,14 @@ off.
   `html_preview` with a screenshot from a headless Chrome it downloads, shown
   above the final reply in a sandboxed frame without `allow-same-origin`,
   with theme variables injected. Its frame takes the height the page reports;
-  the server measures nine widths ahead to start from. Demi places a widget
+  the server measures nine widths ahead to start from. Jush places a widget
   anywhere in the reply and takes the size the page declares; its check is
-  the same, inside `demi widget create`.
+  the same, inside `jush widget create`.
 * Claude's `visualize` tool streams an HTML or SVG fragment into a frame
   inside a frame on its own domain as the model writes it, styled by a CSS
   file of its design system's names, with a Chart.js template in the guide
   the model reads first (`read_me`); the frame grows with the content. Its
-  tool's name, `show_widget`, is where Demi takes the word. Demi shows a page
+  tool's name, `show_widget`, is where Jush takes the word. Jush shows a page
   once it is complete, and keeps the guide's reading on demand.
 * Embeds on the web declare their size: CodePen, Observable and StackBlitz
   embeds a height, a YouTube embed an aspect ratio. An embed that takes its
@@ -379,13 +379,13 @@ off.
   meet one name for two things, a file to receive and a page to see.
 * **The word embed** (`<embed id="e1" />`): it is an element of HTML, and a
   model writes `<embed src="...">` by habit, a line the page shows as text.
-  The other words free in Demi either are elements too (`figure`, `frame`,
-  `canvas`), already name something of Demi's (`view`, `panel`, `card`,
+  The other words free in Jush either are elements too (`figure`, `frame`,
+  `canvas`), already name something of Jush's (`view`, `panel`, `card`,
   `page`) or say the wrong thing (`artifact`, a lasting work in Claude).
 * **Showing the page while the model writes it** (Claude): a page half
   written shows half a layout and no script, and the agent cannot check it
   before Alex sees it.
-* **Charts as components or a library Demi serves:** the guide and the
+* **Charts as components or a library Jush serves:** the guide and the
   theme keep charts alike, and an agent already knows the libraries on a CDN.
 * **Floating tooltips:** the frame cuts off one near its edge.
 * **Full screen:** it hides the conversation the widget belongs to and
@@ -402,7 +402,7 @@ off.
   setting of its own, where a plugin's is the one every plugin has.
 * **Drawing the check in the conversation's browser:** its tab would appear
   in the work panel, and the browser would start for a screenshot.
-* **Checking with `demi browser` on a copy of the page:** the copy lacks the
+* **Checking with `jush browser` on a copy of the page:** the copy lacks the
   bootstrap, so the screenshot shows neither the theme nor the base sheet
   the reader sees, and the agent has to remember to take it.
 * **Measuring the content and storing its height:** a height depends on the

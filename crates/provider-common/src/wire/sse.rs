@@ -1,5 +1,5 @@
 //! Server-sent events, framed by the eventsource-stream library, which follows
-//! the specification, with Demi's one addition.
+//! the specification, with Jush's one addition.
 //!
 //! A final event that the vendor ends without its blank line is kept, because
 //! vendors end bodies that way.
@@ -48,6 +48,6 @@ where
         .eventsource()
         .map_err(SseError::from)
         // The library dispatches an empty `data:` as an event with empty
-        // data; Demi's rule is that a frame without data is none.
+        // data; Jush's rule is that a frame without data is none.
         .try_filter_map(|event| future::ready(Ok((!event.data.is_empty()).then_some(event.data))))
 }

@@ -45,7 +45,7 @@ as the open button was. The work panel's widget tab is gone.
   the title's punctuation; a migration turns each name back into a title.
 * **The shared page** is the widget alone, as wide as the window and as
   high as in a reply, at most the window's height, centered in it when
-  lower, with a line at its foot, Shared from Demi; the web browser's tab
+  lower, with a line at its foot, Shared from Jush; the web browser's tab
   bears the widget's title. The reader's page has Copy as Image in the
   same corner and no Share. The page follows the reader's light or dark,
   as a shared conversation's does.
@@ -137,7 +137,7 @@ as the open button was. The work panel's widget tab is gone.
 
 ## Alternatives
 
-* **The Host's browser draws the image**, as `demi widget create` draws its
+* **The Host's browser draws the image**, as `jush widget create` draws its
   screenshots: the most exact pixels, but a copy waits seconds, needs the
   Host online, loses the state the user left the widget in, and a share's
   reader has no Host.

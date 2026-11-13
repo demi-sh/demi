@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useAttrs } from 'vue'
-import { keepComposition } from '@demicodes/utils'
+import { keepComposition } from '@jush-ai/utils'
 import { disabledTooltip } from './disabled'
 import { useFieldScrollbars } from '../composables/useFieldScrollbars'
 import Tooltip from './Tooltip.vue'

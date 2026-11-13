@@ -1,9 +1,9 @@
-//! The `demi video` group, whose leaves the plugin answers itself with
+//! The `jush video` group, whose leaves the plugin answers itself with
 //! the request's whole port.
 
-use demi_device_interface::{GroupBuilder, LeafBuilder};
-use demi_plugin_interface::{CommandPlugin, Placement, PortHandled, VideoResolution};
-use demi_plugin_media::ModelsOutput;
+use jush_device_interface::{GroupBuilder, LeafBuilder};
+use jush_plugin_interface::{CommandPlugin, Placement, PortHandled, VideoResolution};
+use jush_plugin_media::ModelsOutput;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -12,23 +12,23 @@ const SUMMARY: &str = "Make, edit and extend videos through the user's provider 
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "Generates, edits and extends videos through the user's subscriptions or keys; the bytes go to stdout.";
 
-const GENERATE_SUMMARY: &str = "Make one video from the prompt, waiting for the vendor's job, and write its MP4 to stdout; stderr names the job at once, says each change of its state, then the video's length, size, sound, model, entry and cost. An option the model does not take, as `demi video models` shows, fails before anything is sent or paid; one the result does not honour adds a warning and still succeeds.";
+const GENERATE_SUMMARY: &str = "Make one video from the prompt, waiting for the vendor's job, and write its MP4 to stdout; stderr names the job at once, says each change of its state, then the video's length, size, sound, model, entry and cost. An option the model does not take, as `jush video models` shows, fails before anything is sent or paid; one the result does not honour adds a warning and still succeeds.";
 
-const EDIT_SUMMARY: &str = "Make one video of the video given, changed as the prompt says, its length and shape kept, waiting for the vendor's job, and write its MP4 to stdout; stderr says what generate's does. A video a demi video call made goes to the entry that made it, which continues its job without the file where its vendor keeps it.";
+const EDIT_SUMMARY: &str = "Make one video of the video given, changed as the prompt says, its length and shape kept, waiting for the vendor's job, and write its MP4 to stdout; stderr says what generate's does. A video a jush video call made goes to the entry that made it, which continues its job without the file where its vendor keeps it.";
 
-const EXTEND_SUMMARY: &str = "Make one video of the video given followed by its continuation, as the prompt says it goes on, waiting for the vendor's job, and write the whole MP4 to stdout; stderr says what generate's does. A video a demi video call made goes to the entry that made it, which continues its job without the file where its vendor keeps it.";
+const EXTEND_SUMMARY: &str = "Make one video of the video given followed by its continuation, as the prompt says it goes on, waiting for the vendor's job, and write the whole MP4 to stdout; stderr says what generate's does. A video a jush video call made goes to the entry that made it, which continues its job without the file where its vendor keeps it.";
 
 const MODELS_SUMMARY: &str = "List the video models the user's provider entries offer, newest first, with the entry a call takes now, or show one model with everything known of it: durations, aspect ratios, resolutions, frames, reference images, sound, edits and extensions with the longest video they take, prices per unit and currency, aliases, and the entries in the order a call tries them with why each would or would not be used now. PRICE is included for a subscription and listed for an API key, which pays for each second as Prices says. A read.";
 
 const PROMPT: &str = "What the video shows and how it moves; - reads it from stdin.";
-const MODEL: &str = "The video model, required: one `demi video models` lists.";
+const MODEL: &str = "The video model, required: one `jush video models` lists.";
 const PROVIDER: &str = "The entry to make it through, by its name in Settings or its id, when the user asked for one; without it, the first that can make the model now, subscriptions before API keys, each in the order of Settings > Providers.";
 const IMAGE: &str = "The first frame: a PNG, JPEG or WebP file of this device of at most 16 MiB, relative to the current directory or absolute.";
 const LAST_FRAME: &str = "The last frame, which needs --image; a file as --image takes.";
 const REFERENCE: &str = "An image the video keeps to, such as a character or a product; repeat it for several. A file as --image takes.";
 const DURATION: &str = "The length in seconds; the shortest the model takes without it.";
 const ASPECT: &str = "The shape to ask for, as W:H, such as 16:9.";
-const RESOLUTION: &str = "The resolution to ask for: a height such as 720p or 768p, or 2k or 4k, any the vendor names; `demi video models` lists each model's.";
+const RESOLUTION: &str = "The resolution to ask for: a height such as 720p or 768p, or 2k or 4k, any the vendor names; `jush video models` lists each model's.";
 const AUDIO: &str = "Ask for the sound the model makes.";
 const NO_AUDIO: &str = "Ask for a silent video.";
 const SEED: &str = "A seed, for the models that take one.";
@@ -84,9 +84,9 @@ pub(crate) struct ModelsArgs {
     pub(crate) model: Option<String>,
 }
 
-/// The plugin's commands: the `demi video` group.
+/// The plugin's commands: the `jush video` group.
 pub(crate) fn commands() -> CommandPlugin {
-    CommandPlugin::new(Placement::Demi, vec![video_group()]).expect("the video group is a valid declaration")
+    CommandPlugin::new(Placement::Jush, vec![video_group()]).expect("the video group is a valid declaration")
 }
 
 fn video_group() -> GroupBuilder {

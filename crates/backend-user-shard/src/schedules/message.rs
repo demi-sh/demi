@@ -6,10 +6,10 @@
 //! - A change adds the two outputs.
 //! - A URL's calls add each call's time, method, headers and the path of its
 //!   body's file, with the bodies' first 16 KB in all, newest first, inside the
-//!   frame `demi web` puts around a page.
+//!   frame `jush web` puts around a page.
 
-use demi_backend_database::schedules::{RunCause, StoredSchedule};
-use demi_shared_types::Timestamp;
+use jush_backend_database::schedules::{RunCause, StoredSchedule};
+use jush_shared_types::Timestamp;
 
 use super::hooks::Call;
 

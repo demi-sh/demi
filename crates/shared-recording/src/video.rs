@@ -21,9 +21,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_shared_h264::Encoder as _;
-use demi_shared_openh264::Load;
-use demi_shared_recording_protocol::{Input, RecordingId, frame_label, text::seconds};
+use jush_shared_h264::Encoder as _;
+use jush_shared_openh264::Load;
+use jush_shared_recording_protocol::{Input, RecordingId, frame_label, text::seconds};
 use openh264::decoder::{Decoder, DecoderConfig};
 
 use crate::{
@@ -232,17 +232,17 @@ fn write_drawn(
     // The first picture's size.
     let first = &parts[0].contents.frames[0];
     let size = (first.fw + first.fw % 2, first.fh + first.fh % 2);
-    let settings = demi_shared_h264::Settings {
+    let settings = jush_shared_h264::Settings {
         width: size.0,
         height: size.1,
-        rate: demi_shared_h264::Rate::Quality,
+        rate: jush_shared_h264::Rate::Quality,
     };
-    let coding = |error: demi_shared_h264::Error| Error::Failed(format!("the drawn video did not code: {error}"));
+    let coding = |error: jush_shared_h264::Error| Error::Failed(format!("the drawn video did not code: {error}"));
     // OpenH264 codes each picture before it answers, where a hardware coder
     // works behind its calls and may drop one it has no room for: an export
     // keeps every frame.
-    let mut coder = demi_shared_h264::software(settings, load).map_err(coding)?;
-    let mut coded: Vec<demi_shared_h264::Picture> = Vec::new();
+    let mut coder = jush_shared_h264::software(settings, load).map_err(coding)?;
+    let mut coded: Vec<jush_shared_h264::Picture> = Vec::new();
     let mut picture = Vec::new();
     let mut canvas = vec![0u8; (size.0 * size.1 * 4) as usize];
     let mut start = 0;
@@ -285,10 +285,10 @@ fn write_drawn(
             }
             shown = Some(plays);
             centered(&picture, painted, &mut canvas, size);
-            let raw = demi_shared_h264::Raw {
+            let raw = jush_shared_h264::Raw {
                 width: size.0,
                 height: size.1,
-                format: demi_shared_h264::PixelFormat::Rgba,
+                format: jush_shared_h264::PixelFormat::Rgba,
                 pixels: &canvas,
             };
             let key = pictures % crate::KEY_INTERVAL == 0;

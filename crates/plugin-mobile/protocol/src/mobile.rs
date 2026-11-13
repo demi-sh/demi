@@ -11,10 +11,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
 
-pub use demi_shared_recording_protocol::{
+pub use jush_shared_recording_protocol::{
     RecordAction, RecordResult, RecordingDuration, FrameSet, Region, record_input, recording_target,
 };
-pub use demi_shared_recording_protocol::text::about as record_about;
+pub use jush_shared_recording_protocol::text::about as record_about;
 
 /// The prefix of every operation's name, such as `mobile.open`.
 pub const PREFIX: &str = "mobile.";
@@ -34,12 +34,12 @@ pub const MAX_WAIT_SECONDS: u64 = 300;
 /// The longest output path, in characters: the longest path the systems the
 /// device runs on take.
 pub const PATH_LENGTH: usize = 4096;
-/// The most bytes of a device's log Demi keeps, as its entries' JSON: the
+/// The most bytes of a device's log Jush keeps, as its entries' JSON: the
 /// log is followed into memory, never to the disk, for as long as the
 /// device is open; about half an hour of an app that logs heavily.
 pub const LOG_BYTES: usize = 16 * 1024 * 1024;
 /// How many entries `logs` lists when the input names no limit, as
-/// `demi browser logs` does.
+/// `jush browser logs` does.
 pub const LOG_ENTRIES: usize = 100;
 
 numbered!(
@@ -116,7 +116,7 @@ impl Orientation {
 
 closed_set! {
     /// What `rotate` asks for: an orientation, or the window's quarter turn
-    /// from the one `demi-mobile` set.
+    /// from the one `jush-mobile` set.
     pub enum Rotation {
         Portrait = "portrait",
         Landscape = "landscape",
@@ -387,7 +387,7 @@ macro_rules! operations {
             /// Decodes the operation `name`, without its prefix.
             pub fn parse(name: &str, args: serde_json::Value) -> Result<Self, crate::OperationError> {
                 match name {
-                    $($name => Ok(Self::$variant(demi_shared_types::decode_value(args)?)),)*
+                    $($name => Ok(Self::$variant(jush_shared_types::decode_value(args)?)),)*
                     _ => Err(crate::OperationError::Unknown(format!("{PREFIX}{name}"))),
                 }
             }
@@ -522,7 +522,7 @@ pub struct OpenResult {
 }
 
 device_input! {
-    /// `close`: detaches the device, and shuts it down when Demi booted it.
+    /// `close`: detaches the device, and shuts it down when Jush booted it.
     pub struct CloseInput {}
 }
 
@@ -667,7 +667,7 @@ device_input! {
 pub struct TypeResult {
     pub device: DeviceId,
     /// How many characters it typed or set.
-    #[schemars(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[schemars(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub characters: usize,
     pub replaced: bool,
     /// The fields the text went into, in order: one, or each of a row of
@@ -747,7 +747,7 @@ pub struct FoldResult {
     pub posture: Posture,
     /// The hinge's angle; none on a device that only folds or opens.
     #[serde(deserialize_with = "Option::deserialize")]
-    #[schemars(with = "demi_shared_types::Nullable<u16>")]
+    #[schemars(with = "jush_shared_types::Nullable<u16>")]
     pub degrees: Option<u16>,
     /// The display that is lit after the fold, which screenshots show.
     pub display: FoldDisplay,
@@ -806,7 +806,7 @@ pub struct WaitResult {
     #[serde(default, skip_serializing_if = "Option::is_none", with = "unwrap_or_skip")]
     #[schemars(with = "ElementSummary")]
     pub element: Option<ElementSummary>,
-    #[schemars(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[schemars(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub waited_ms: u64,
 }
 
@@ -854,7 +854,7 @@ pub struct LaunchResult {
     /// Whether the app started anew, rather than coming back in front.
     pub started: bool,
     /// Whether `logs` holds what the app prints to its standard output and
-    /// error, which an iOS app shows only when Demi started it.
+    /// error, which an iOS app shows only when Jush started it.
     pub console: bool,
     /// Whether the app's first screen showed before the launch returned.
     pub shown: bool,
@@ -895,7 +895,7 @@ device_input! {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct LogEntry {
-    #[schemars(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[schemars(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub sequence: u64,
     /// Milliseconds since the Unix epoch.
     pub timestamp: f64,
@@ -917,7 +917,7 @@ pub struct LogEntry {
     pub text: String,
 }
 
-impl demi_shared_types::buffer::Entry for LogEntry {
+impl jush_shared_types::buffer::Entry for LogEntry {
     fn sequence(&self) -> u64 {
         self.sequence
     }
@@ -938,7 +938,7 @@ pub struct LogsResult {
     pub has_more: bool,
     /// How many entries after the cursor are gone: the log kept the last
     /// [`LOG_BYTES`] of them.
-    #[schemars(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[schemars(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub dropped: u64,
 }
 

@@ -6,7 +6,7 @@
 //! # The port
 //!
 //! The port offers no device operations. A handler resolves what it acts on from
-//! the invocation's context (the `demi agent` handlers find their
+//! the invocation's context (the `jush agent` handlers find their
 //! conversation's tree and node there). One that must reach a device goes through
 //! the conversation's device access with the conversation that context names.
 //!
@@ -20,7 +20,7 @@
 //! A handler ends with an exit status. Its error is a runtime error, worded as
 //! GNU tools word theirs: the command's path (which the dispatcher writes
 //! once), the object it concerns when there is one, and the reason, with an
-//! operating-system error as `strerror` words it and no prefix of Demi's own.
+//! operating-system error as `strerror` words it and no prefix of Jush's own.
 //!
 //! A command that takes several values handles each in order, writes one such
 //! line for each that fails, goes on with the others, and exits 1 when any
@@ -29,8 +29,8 @@
 use std::{collections::BTreeMap, rc::Rc};
 
 use bytes::Bytes;
-use demi_command_protocol::{CommandContext, MediumFacts};
-use demi_shared_types::B64Bytes;
+use jush_command_protocol::{CommandContext, MediumFacts};
+use jush_shared_types::B64Bytes;
 use futures_util::future::LocalBoxFuture;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -54,7 +54,7 @@ pub struct RpcInvocation {
     /// Whether the caller passed `--json`.
     pub json: bool,
     /// The id of the device whose device the invoking job runs on: the
-    /// conversation's primary device, or an attached device for a job `demi device
+    /// conversation's primary device, or an attached device for a job `jush device
     /// shell` started there. A handler that reads or writes the invoker's
     /// files does so on this device, beside `cwd`.
     pub device: String,
@@ -200,7 +200,7 @@ pub enum PortRequest {
     /// and the job reports no progress.
     AwaitsUser { awaits: bool },
     /// A medium the call hands its job, which keeps it and shows it to the
-    /// model as it does one `demi file view` hands it
+    /// model as it does one `jush file view` hands it
     /// (`crates/runner-jobs/src/job_media.rs`); only a leaf that declares
     /// `media` may.
     Medium {

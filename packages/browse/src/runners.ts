@@ -1,9 +1,9 @@
-// What `demi.runner` does with the slot's runner (browse.md § What `demi`
+// What `jush.runner` does with the slot's runner (browse.md § What `jush`
 // adds), decided from what the slot's state records of it and whether its
 // process runs.
 //
 // The slot has at most one runner, paired once and then stopped and started
-// again as a device that goes away and comes back, until `demi.runner({
+// again as a device that goes away and comes back, until `jush.runner({
 // fresh: true })` pairs a new one in its place.
 import type { RunnerRecord } from './state'
 

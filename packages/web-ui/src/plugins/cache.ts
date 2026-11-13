@@ -23,7 +23,7 @@ const STORE = 'entries'
 /** The entries of one plugin, the least recently used first. */
 const BY_USE = 'byUse'
 
-const database = new IndexedDatabase('demi-plugin-cache', 1, (request) => {
+const database = new IndexedDatabase('jush-plugin-cache', 1, (request) => {
   const entries = request.result.createObjectStore(STORE, { keyPath: ['plugin', 'key'] })
   entries.createIndex(BY_USE, ['plugin', 'used'])
 }, { [STORE]: [BY_USE] })

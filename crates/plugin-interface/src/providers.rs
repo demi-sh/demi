@@ -12,8 +12,8 @@
 //! sign-in, runs the job and records the call in the usage ledger. No token or
 //! key reaches the plugin.
 
-pub use demi_shared_types::VideoResolution;
-use demi_shared_types::{AudioKind, B64Bytes, Cost, Timestamp, VendorTrace};
+pub use jush_shared_types::VideoResolution;
+use jush_shared_types::{AudioKind, B64Bytes, Cost, Timestamp, VendorTrace};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -158,7 +158,7 @@ pub struct AudioFacts {
     /// For speech, its built-in voices by name.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub voices: Option<Vec<String>>,
-    /// For speech, whether the vendor lists its voices, which `demi audio
+    /// For speech, whether the vendor lists its voices, which `jush audio
     /// voices` reads.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub voices_listed: Option<bool>,
@@ -302,7 +302,7 @@ pub struct ImageAsk {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub aspect: Option<ImageAspect>,
     pub transparent: bool,
-    /// An image model `demi image models` lists.
+    /// An image model `jush image models` lists.
     pub model: String,
     /// The entry to make it through, by its name or id, when the agent
     /// names one; else the first that can, by the order of Settings ›
@@ -393,12 +393,12 @@ pub struct VideoAsk {
     pub audio: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub seed: Option<u64>,
-    /// A video model `demi video models` lists.
+    /// A video model `jush video models` lists.
     pub model: String,
     /// The entry to make it through, as [`ImageAsk::provider`] names one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub provider: Option<String>,
-    /// The video `demi video edit` or `extend` changes; none for
+    /// The video `jush video edit` or `extend` changes; none for
     /// `generate`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<VideoSourceAsk>,
@@ -417,9 +417,9 @@ pub struct VideoSourceAsk {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum VideoChange {
-    /// `demi video edit`.
+    /// `jush video edit`.
     Edit,
-    /// `demi video extend`.
+    /// `jush video extend`.
     Extend,
 }
 
@@ -510,7 +510,7 @@ pub struct AudioAsk {
     #[serde(default)]
     pub looped: bool,
     pub format: AudioFileFormat,
-    /// An audio model `demi audio models` lists.
+    /// An audio model `jush audio models` lists.
     pub model: String,
     /// The entry to make it through, as [`ImageAsk::provider`] names one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -540,7 +540,7 @@ impl AudioFileFormat {
     }
 }
 
-/// An option of `demi audio`, as a shape that has no field for it is said
+/// An option of `jush audio`, as a shape that has no field for it is said
 /// not to take it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -607,7 +607,7 @@ pub struct AudioVoices {
     pub voices: Option<Vec<VoiceInfo>>,
 }
 
-/// A voice, as `demi audio voices` lists it.
+/// A voice, as `jush audio voices` lists it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct VoiceInfo {
@@ -682,7 +682,7 @@ pub enum MediaRefusal {
         #[serde(default, skip_serializing_if = "VendorTrace::is_empty")]
         trace: VendorTrace,
     },
-    /// The vendor refused the prompt or an image; `reason` is Demi's, for a
+    /// The vendor refused the prompt or an image; `reason` is Jush's, for a
     /// refusal it read out of an answer.
     #[error("{vendor} refused the request{}", reasoned(reason))]
     Refused {
@@ -723,7 +723,7 @@ pub enum MediaRefusal {
         #[serde(default, skip_serializing_if = "VendorTrace::is_empty")]
         trace: VendorTrace,
     },
-    /// The vendor failed the video's job; `reason` is Demi's, for a failure
+    /// The vendor failed the video's job; `reason` is Jush's, for a failure
     /// it read out of an answer.
     #[error("{vendor} failed the video{}", reasoned(reason))]
     JobFailed {
@@ -774,7 +774,7 @@ pub enum MediaRefusal {
 
 impl MediaRefusal {
     /// What the vendor said of a failure it sent, which its words end
-    /// with; none for a refusal of Demi's own.
+    /// with; none for a refusal of Jush's own.
     pub fn trace(&self) -> Option<&VendorTrace> {
         match self {
             Self::UsedUp { trace, .. }
@@ -789,7 +789,7 @@ impl MediaRefusal {
     }
 }
 
-/// Demi's `reason` as a sentence ends with it, after a colon; nothing
+/// Jush's `reason` as a sentence ends with it, after a colon; nothing
 /// without one.
 fn reasoned(reason: &Option<String>) -> String {
     reason.as_ref().map(|reason| format!(": {reason}")).unwrap_or_default()

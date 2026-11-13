@@ -7,13 +7,13 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::workspaces::{MoveRefusal, WorkspaceChange};
-use demi_backend_page_sync::Part;
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::workspaces::WorkspaceRefusal;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::WorkspaceId;
-use demi_web_api_protocol::workspaces::{
+use jush_backend_database::workspaces::{MoveRefusal, WorkspaceChange};
+use jush_backend_page_sync::Part;
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::workspaces::WorkspaceRefusal;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::WorkspaceId;
+use jush_web_api_protocol::workspaces::{
     ChangeWorkspace, CreateWorkspace, WorkspaceAnswer, WorkspaceMove, WorkspaceOrder, Workspaces,
 };
 

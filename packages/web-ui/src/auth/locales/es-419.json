@@ -23,9 +23,9 @@
     "locked": "Demasiados intentos fallidos. Vuelve a intentarlo en {time}."
   },
   "setup": {
-    "title": "Configurar Demi",
-    "message": "Crea la cuenta principal que administra Demi.",
-    "taken": "Demi ya está configurado. Inicia sesión con su cuenta principal.",
+    "title": "Configurar Jush",
+    "message": "Crea la cuenta principal que administra Jush.",
+    "taken": "Jush ya está configurado. Inicia sesión con su cuenta principal.",
     "name": "Nombre",
     "email": "Correo electrónico",
     "password": "Contraseña",
@@ -53,7 +53,7 @@
     "passwordMessage": "Confirma que eres tú para agregar la llave de acceso.",
     "password": "Contraseña",
     "readyTitle": "Llave de acceso lista",
-    "readyMessage": "Tu administrador de contraseñas ya tiene una llave de acceso para Demi."
+    "readyMessage": "Tu administrador de contraseñas ya tiene una llave de acceso para Jush."
   },
   "unlock": {
     "ios": "Inicia sesión con Face ID o Touch ID en lugar de tu contraseña.",

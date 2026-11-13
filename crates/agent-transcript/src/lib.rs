@@ -35,7 +35,7 @@ pub use replay::{REPLAY_CHARS, Replay, ReplayedBlock, RequestView, bound_text, r
 pub use reply_markdown::{has_scheme, markdown_options, named_pictures, picture_path};
 pub use reports::{duration, labelled_output, report_text, reports_text};
 
-use demi_shared_types::{Block, GoneCause, ModelMediaKind, WakeupPlacement};
+use jush_shared_types::{Block, GoneCause, ModelMediaKind, WakeupPlacement};
 
 /// What the model receives for a tool's medium that is gone: `[<kind> not
 /// stored: <reason>]`.

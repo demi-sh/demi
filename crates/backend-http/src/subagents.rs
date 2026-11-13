@@ -2,18 +2,18 @@
 //! profiles.
 //!
 //! The caller's shard checks a profile's name, texts and model, as it does for
-//! `demi agent profiles`, and writes. The change reaches the caller's pages as
+//! `jush agent profiles`, and writes. The change reaches the caller's pages as
 //! the `subagents` part.
 
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::subagents::ProfileRefusal as Stored;
-use demi_backend_device_access::transition::ChangeRefusal;
-use demi_backend_user_shard::shard::subagents::ProfileRefusal;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::ProfileId;
-use demi_web_api_protocol::subagents::{NewProfile, ProfileAnswer, ProfilePatch, SubagentSettings, SubagentsPatch};
+use jush_backend_database::subagents::ProfileRefusal as Stored;
+use jush_backend_device_access::transition::ChangeRefusal;
+use jush_backend_user_shard::shard::subagents::ProfileRefusal;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::ProfileId;
+use jush_web_api_protocol::subagents::{NewProfile, ProfileAnswer, ProfilePatch, SubagentSettings, SubagentsPatch};
 
 use super::AppState;
 use super::body::JsonBody;

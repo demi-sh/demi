@@ -7,7 +7,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
-use demi_plugin_interface::{Manifest, Page};
+use jush_plugin_interface::{Manifest, Page};
 use schemars::SchemaGenerator;
 use serde_json::{Map, Value};
 
@@ -17,13 +17,13 @@ use super::{Directory, Error, module, read_definitions, received, register, sour
 
 /// The workspace's packages share one scope; a plugin's page package
 /// `plugin-<name>` lives in its plugin's directory, `crates/plugin-<name>/page`.
-pub const SCOPE: &str = "@demicodes/";
+pub const SCOPE: &str = "@jush-ai/";
 
 /// Each plugin the backend registers whose manifest names a page package,
 /// with its page, in registration order.
 pub fn pages() -> Vec<(Manifest, Page)> {
     // The manifests alone are read: no plugin keeps data in the directory.
-    demi_backend::plugins::builtin(&std::env::temp_dir().join("demi-contracts"))
+    jush_backend::plugins::builtin(&std::env::temp_dir().join("jush-contracts"))
         .iter()
         .filter_map(|factory| {
             let manifest = factory.manifest();
@@ -55,7 +55,7 @@ pub fn modules() -> Result<Vec<Directory>, Error> {
 }
 
 /// The module of `page`, the page of `manifest`'s plugin. Definitions
-/// `@demicodes/protocol` declares are imported through the SDK, which
+/// `@jush-ai/protocol` declares are imported through the SDK, which
 /// re-exports them, so a package never declares a protocol type a second
 /// time.
 fn page_module(manifest: &Manifest, page: &Page) -> Result<String, Error> {

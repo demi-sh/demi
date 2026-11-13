@@ -33,10 +33,10 @@
  * block where its last piece came (`endedAt`). The wait for the model between
  * steps is not counted.
  */
-import type { HeldBlock, TextArrival } from '@demicodes/conversation-client'
+import type { HeldBlock, TextArrival } from '@jush-ai/conversation-client'
 import type { MessageListBlock } from './pending-steers'
 import type { ShownBlock } from './whole-blocks'
-import { upperFirst } from '@demicodes/utils'
+import { upperFirst } from '@jush-ai/utils'
 import { formatSpan } from '../ui/dates'
 import { t } from './locales/text'
 import { parseToolCallInput } from './block-helpers'
@@ -450,7 +450,7 @@ export function workRowId(first: WorkStep): string {
 
 /**
  * What a call did, as a group's row counts it: a `shell` call whose script
- * only runs `demi shell status` checks the commands it names; any other
+ * only runs `jush shell status` checks the commands it names; any other
  * `shell` call, or one still being written, runs a command of its own; a call
  * of another tool uses that tool.
  */
@@ -471,7 +471,7 @@ function callKind(step: CallStep): CallKind {
 
 /**
  * What a vendor's step did, as a group's row counts it: a search of the web,
- * a page read, a search of X, or, of a kind Demi does not know, a use of that
+ * a page read, a search of X, or, of a kind Jush does not know, a use of that
  * tool at its vendor.
  */
 function opaqueKind(step: Extract<WorkStep, { type: 'opaque' }>): CallKind {

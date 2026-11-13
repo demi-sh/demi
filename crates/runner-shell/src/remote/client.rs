@@ -15,14 +15,14 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_runner_process::{
+use jush_runner_process::{
     command_client::ENDPOINT_ENV,
     job_shell::{JobShell, JobStart, ShellJob},
     lines,
     local_socket,
     process::{JOB_ID_ENV, OutputChunk, ProcessExit, ProcessInput},
 };
-use demi_runner_protocol::wire::{OutputStream, Signal};
+use jush_runner_protocol::wire::{OutputStream, Signal};
 use futures_util::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 use tokio::{
@@ -699,7 +699,7 @@ async fn start_process(program: &Path, job_id: &str) -> io::Result<String> {
     #[cfg(unix)]
     let mut child = command.spawn()?;
     #[cfg(windows)]
-    let mut child = demi_runner_process::detached::start(|flags| command.creation_flags(flags).spawn())?;
+    let mut child = jush_runner_process::detached::start(|flags| command.creation_flags(flags).spawn())?;
     let stdout = child
         .stdout
         .take()

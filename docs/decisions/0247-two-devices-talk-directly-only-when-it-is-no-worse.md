@@ -82,7 +82,7 @@ on it and no pipe moves to it. A measurement takes about 2 seconds, during
 which the relay carries the pair as it does while the peer connects.
 
 The figures and thresholds are those of a page's measurement, defined once
-in `demi_runner_protocol::direct` and generated for the page, which reads
+in `jush_runner_protocol::direct` and generated for the page, which reads
 them from there instead of its own constants:
 
 ```rust
@@ -171,7 +171,7 @@ client and a Linux box at home, and on a Mac at home.
 - WebRTC's ICE ranks a relayed candidate below the others and never compares
   their quality (RFC 8445).
 
-Each takes a path that answers. Demi departs, as its page already does,
+Each takes a path that answers. Jush departs, as its page already does,
 because its relay is not a fallback of last resort: it runs over the
 backend's own TCP link, which a VPN tunnel carries well while it loses UDP.
 

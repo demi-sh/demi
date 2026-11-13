@@ -6,8 +6,8 @@
 //! failure's last line is the error, because models read the end of a command's
 //! output, often through `| tail -1`.
 
-use demi_command_protocol::{ArtifactProgress, megabytes};
-use demi_shared_types::output::Table;
+use jush_command_protocol::{ArtifactProgress, megabytes};
+use jush_shared_types::output::Table;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
@@ -31,7 +31,7 @@ use crate::driver::{
 pub(crate) fn render(operation: &BrowserOperation, value: Value) -> Result<String> {
     let text = match operation {
         BrowserOperation::TabNew(_) => {
-            // The ID alone, so a script takes it as T=$(demi browser tab new).
+            // The ID alone, so a script takes it as T=$(jush browser tab new).
             let result: TabNewResult = typed(value)?;
             format!("{}\n", result.tab)
         }
@@ -59,14 +59,14 @@ pub(crate) fn render(operation: &BrowserOperation, value: Value) -> Result<Strin
             let result: TabCloseResult = typed(value)?;
             format!("Closed {}.\n", result.closed)
         }
-        // Only Demi prunes tabs, and it reads the JSON.
+        // Only Jush prunes tabs, and it reads the JSON.
         BrowserOperation::TabPrune(_) => "Pruned the agents' tabs.\n".to_owned(),
         BrowserOperation::Inspect(_) => inspect(&typed(value)?),
         BrowserOperation::Find(_) => find(&typed(value)?),
         BrowserOperation::Read(_) => read(&typed(value)?),
         BrowserOperation::Screenshot(_) => screenshot(&typed(value)?),
         BrowserOperation::Record(input) => {
-            demi_shared_recording_protocol::text::record(input.action, "demi browser record", &typed(value)?)
+            jush_shared_recording_protocol::text::record(input.action, "jush browser record", &typed(value)?)
         }
         BrowserOperation::Probe(_) => probe(&typed(value)?),
         BrowserOperation::Click(_)
@@ -792,7 +792,7 @@ pub fn install_progress(browser: &str, progress: ArtifactProgress) -> String {
 /// archive is `size` bytes: that installing it is the next step.
 pub fn not_installed(browser: &str, size: u64) -> String {
     format!(
-        "{} is not installed on this device yet. Install it with `demi browser install` ({} MB), then run this command again.",
+        "{} is not installed on this device yet. Install it with `jush browser install` ({} MB), then run this command again.",
         plain(browser),
         megabytes(size)
     )

@@ -3,7 +3,7 @@ import {
   createWebSocketTransport,
   type ConversationClientOptions,
   type ConversationClientTransport,
-} from '@demicodes/conversation-client'
+} from '@jush-ai/conversation-client'
 import { openLane } from './page-connection'
 
 /**

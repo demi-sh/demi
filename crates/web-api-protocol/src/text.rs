@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 use std::sync::LazyLock;
 
-use demi_shared_types::trim;
+use jush_shared_types::trim;
 use garde::rules::length::chars::HasChars;
 use regex::Regex;
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};

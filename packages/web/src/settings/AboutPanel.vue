@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { t } from './locales/text'
 import { computed, onUnmounted, ref, watch } from 'vue'
-import SettingsAbout from '@demicodes/web-ui/settings/SettingsAbout.vue'
-import type { AcknowledgementsState } from '@demicodes/web-ui/settings/types'
-import { shownError } from '@demicodes/web-ui/infra/errors'
+import SettingsAbout from '@jush-ai/web-ui/settings/SettingsAbout.vue'
+import type { AcknowledgementsState } from '@jush-ai/web-ui/settings/types'
+import { shownError } from '@jush-ai/web-ui/infra/errors'
 import { useSettingsAddress } from './address'
 
 /**
@@ -15,7 +15,7 @@ import { useSettingsAddress } from './address'
  */
 const ACKNOWLEDGEMENTS = 'acknowledgements'
 /** The version this page's build names (`vite.config.ts`). */
-const version = import.meta.env.DEMI_VERSION
+const version = import.meta.env.JUSH_VERSION
 
 const address = useSettingsAddress()
 const open = computed(() => address.section.value === 'about' && address.detail.value === ACKNOWLEDGEMENTS)

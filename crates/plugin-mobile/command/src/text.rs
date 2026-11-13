@@ -4,9 +4,9 @@
 
 use std::fmt::Write;
 
-use demi_shared_types::output::{Cell, Table};
+use jush_shared_types::output::{Cell, Table};
 
-use demi_command_package_mobile_protocol::mobile::{
+use jush_command_package_mobile_protocol::mobile::{
     DeviceId, Element, ElementSummary, FoldDisplay, Frame, InspectResult, LOG_BYTES, LaunchResult, ListResult, LogEntry, LogLevel,
     LogsResult, Orientation, MobilePlatform, Posture, PowerState, Simulator,
 };
@@ -154,7 +154,7 @@ pub fn launched(result: &LaunchResult) -> String {
     }
     if !result.console {
         text.push_str(
-            "What it prints is not in logs, as Demi did not start it; launch --restart starts it again with its console.\n",
+            "What it prints is not in logs, as Jush did not start it; launch --restart starts it again with its console.\n",
         );
     }
     text

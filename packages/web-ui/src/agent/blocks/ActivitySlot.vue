@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import ActivityMark from '@demicodes/web-ui/ui/ActivityMark.vue'
+import ActivityMark from '@jush-ai/web-ui/ui/ActivityMark.vue'
 import type { ActivityKind } from '../activity-slot'
 import { useElapsedTime } from '../../composables/useElapsedTime'
 import { activityLabel } from '../thinking-label'

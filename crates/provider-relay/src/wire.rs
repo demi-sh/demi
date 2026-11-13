@@ -12,11 +12,11 @@ use std::num::NonZeroU32;
 use std::sync::{Arc, LazyLock};
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceItem, InferenceRequest, PromptCache, ProviderEvent, RequestBlock, RequestLimits, RequestPurpose,
     ToolDefinition,
 };
-use demi_shared_types::{ProviderModelList, ThinkingConfig};
+use jush_shared_types::{ProviderModelList, ThinkingConfig};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
@@ -33,11 +33,19 @@ pub const SOCKET_ROUTE: &str = "/api/relay/socket";
 pub const PROVIDER_ROUTE: &str = "/api/relay/provider";
 
 /// The header of every relay request that names the borrower's [`version`].
-pub const VERSION_HEADER: &str = "demi-relay-version";
+pub const VERSION_HEADER: &str = "jush-relay-version";
 
 /// The header of every relay request that names the borrowing server, as the
 /// host of its public URL, which the lender shows beside the key it used.
-pub const SERVER_HEADER: &str = "demi-relay-server";
+pub const SERVER_HEADER: &str = "jush-relay-server";
+
+/// [`VERSION_HEADER`] and [`SERVER_HEADER`] as a server of before the
+/// product took the name Jush names them. A borrower sends both names, which
+/// a lender of then reads, and a lender reads either, so servers on both
+/// sides of the rename lend to each other. They go with the other
+/// migrations when the history starts again at the first formal release.
+pub const EARLIER_VERSION_HEADER: &str = "demi-relay-version";
+pub const EARLIER_SERVER_HEADER: &str = "demi-relay-server";
 
 /// The most bytes of one message: OpenAI's limit of one request's body, the
 /// largest of the vendors', since a request the vendor would refuse need not
@@ -53,8 +61,8 @@ pub fn version() -> &'static str {
             schemars::schema_for!(Lent).to_value(),
             schemars::schema_for!(ClientMessage).to_value(),
             schemars::schema_for!(ServerMessage).to_value(),
-            schemars::schema_for!(demi_provider_common::media::channel::Call).to_value(),
-            schemars::schema_for!(demi_provider_common::media::channel::Reply).to_value(),
+            schemars::schema_for!(jush_provider_common::media::channel::Call).to_value(),
+            schemars::schema_for!(jush_provider_common::media::channel::Reply).to_value(),
         ];
         let mut digest = Sha256::new();
         for schema in &mut schemas {

@@ -2,14 +2,14 @@
 
 use std::collections::BTreeMap;
 
-use demi_shared_types::{LogLevel, MAX_SAFE_INTEGER};
+use jush_shared_types::{LogLevel, MAX_SAFE_INTEGER};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// The header the page names its load in on every request, and the query
 /// parameter on a socket's URL.
-pub const PAGE_HEADER: &str = "x-demi-page";
+pub const PAGE_HEADER: &str = "x-jush-page";
 pub const PAGE_PARAMETER: &str = "page";
 
 /// The level of a line the page wrote.

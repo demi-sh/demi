@@ -4,30 +4,30 @@ status: proposed
 
 # A page in the background opens the update by itself
 
-Supersedes: 0123 (An update ends on Open Demi), for a page that was not in
+Supersedes: 0123 (An update ends on Open Jush), for a page that was not in
 front when the update began.
 
 ## Problem
 
 Alex starts an update from Settings › Updates in one tab, and has two more
-tabs of Demi open behind it, and Demi on his phone, locked. Every page shows
-the update screen, and every page ends on **Open Demi**: after watching the
+tabs of Jush open behind it, and Jush on his phone, locked. Every page shows
+the update screen, and every page ends on **Open Jush**: after watching the
 update in the first tab, Alex finds the same finished screen in each other
-tab and on his phone, and opens Demi in each by hand. Those pages showed the
+tab and on his phone, and opens Jush in each by hand. Those pages showed the
 screen to no one; the button only adds a click for each.
 
 ## Decision
 
-The update screen ends on **Open Demi** only in a page that was in front
+The update screen ends on **Open Jush** only in a page that was in front
 when the update began: a tab the user was looking at, in a window that was
 not minimized. A page that was in the background then loads the new version
-by itself once the update ends, so the user who comes back to it finds Demi
+by itself once the update ends, so the user who comes back to it finds Jush
 updated.
 
 ```text
 the update begins     the page is            when the update ends
 ──────────────────    ────────────────────   ──────────────────────────────
-in front              shows the screen       waits on Open Demi, as 0123
+in front              shows the screen       waits on Open Jush, as 0123
 in the background     shows the screen       loads the new version itself
 ```
 
@@ -45,7 +45,7 @@ in the background     shows the screen       loads the new version itself
 
 The design to build from: the page records whether it was visible when it
 noted the update (`packages/web/src/state/update.ts`), and once the update
-ends, a page that was not loads itself, as **Open Demi** would.
+ends, a page that was not loads itself, as **Open Jush** would.
 
 ## Spike
 
@@ -54,7 +54,7 @@ None.
 ## Prior art
 
 * [Home Assistant](https://github.com/home-assistant/frontend/blob/dev/src/layouts/ha-init-page.ts)
-  reloads its page by itself once its upgrade is done, as 0123 notes; Demi
+  reloads its page by itself once its upgrade is done, as 0123 notes; Jush
   does so only where no one watched the update begin.
 * The [Page Visibility API](https://developer.mozilla.org/docs/Web/API/Page_Visibility_API)
   is the browser's own answer to whether a page is seen: a hidden tab, a

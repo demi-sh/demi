@@ -16,7 +16,7 @@ echo started
 ```
 
 In bash the script prints `started` and exits at once; the loop runs on, its
-output in `out/bench.txt`. In Demi the call does not return: the job counts
+output in `out/bench.txt`. In Jush the call does not return: the job counts
 the loop as its own work and runs until the loop ends, so after 30 seconds
 the call moves to the background. The agent, expecting bash's behavior,
 believes the loop detached and nothing will tell it when it ends, and writes
@@ -34,7 +34,7 @@ which is how every program that captures a script's output runs it:
   pipe sees its end. A background job holds it unless its own redirections
   send both elsewhere: `cmd > log 2>&1 &` does not hold it; `cmd &`,
   `cmd > log &` (stderr still on it), `a | b > log &`, `cd app && cmd > log
-  2>&1 &` and `(a > f; b > f) &` do, in bash as in Demi, because the job's
+  2>&1 &` and `(a > f; b > f) &` do, in bash as in Jush, because the job's
   shell keeps the descriptor. Whether a job holds it is read from its
   redirections as written, opening nothing; the job opens them itself as it
   starts, as bash's forked child does, so opening a FIFO blocks the job
@@ -54,11 +54,11 @@ which is how every program that captures a script's output runs it:
   Today the runner kills a process group when its leader exits.
 - **A detached job keeps what it runs with.** Its environment, working
   directory and the command's context stay until the last of it ends, so a
-  `demi` command it runs still works. Its file writes are not recorded as
+  `jush` command it runs still works. Its file writes are not recorded as
   the command's edits, before the command ends as after: a program of a
   background job writes its redirected files itself, not through the
   runner, so it outlives the runner. The backend keeps
-  the job's origin, which a `demi` command's call is admitted by, after the
+  the job's origin, which a `jush` command's call is admitted by, after the
   job's exit, until the runner says the context is released:
 
   ```rust
@@ -74,7 +74,7 @@ which is how every program that captures a script's output runs it:
   The backend drops the origin on it, and when it loses the device or hears
   from a new instance of its runner; a connection lost and made again to the
   same runner keeps it. A backend restart loses the origins it kept, so a
-  `demi` command in detached work fails after it. The wire version goes up by
+  `jush` command in detached work fails after it. The wire version goes up by
   one.
 - **When the runner stops**, its shell work stops with it. A program a
   detached job started runs on, as a program a closed bash session left
@@ -89,7 +89,7 @@ which is how every program that captures a script's output runs it:
   as a background job writing to a pipe holds the pipe in bash: the command
   runs until the task lets go, moves to the background after 30 seconds,
   and its end wakes the agent, as any command's does.
-- **`nohup`** is one of Demi's own utilities on every Host, Windows
+- **`nohup`** is one of Jush's own utilities on every Host, Windows
   included, as GNU's is, so a script does not depend on a Host having one:
   it runs its command with `SIGHUP` ignored where the system has signals,
   and, the command's output never being a terminal, writes no `nohup.out`.
@@ -152,9 +152,9 @@ pipes:
 - **Codex CLI** ends a command at most 2 seconds after its shell exits, so a
   grandchild that inherited stdout cannot hold it
   ([exec.rs](https://github.com/openai/codex/blob/main/codex-rs/core/src/exec.rs)).
-  Demi keeps bash's rule instead: `cmd &` holds the command until it lets go
+  Jush keeps bash's rule instead: `cmd &` holds the command until it lets go
   of the output, and moves to the background after 30 seconds.
-- Demi departs only where it has no terminal: there is no `SIGHUP` on a
+- Jush departs only where it has no terminal: there is no `SIGHUP` on a
   command's end to survive, since a command's end sends none.
 
 ## Alternatives

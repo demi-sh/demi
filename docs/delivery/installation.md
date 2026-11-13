@@ -1,10 +1,10 @@
 # Installation
 
-One command installs a Demi server on a Linux machine, and a person or an AI
-agent can run it. The command puts `demi-server` on the machine and goes on
+One command installs a Jush server on a Linux machine, and a person or an AI
+agent can run it. The command puts `jush-server` on the machine and goes on
 into its `setup`, which sets the server up. `setup` installs the layout that
 [Upgrades](upgrades.md#one-release-on-a-server) defines, and the server moves
-between releases with `demi-server upgrade` from then on.
+between releases with `jush-server upgrade` from then on.
 
 Every choice is a parameter of `setup`. What happens to a missing parameter
 depends on who runs the command:
@@ -13,14 +13,14 @@ depends on who runs the command:
 - An agent runs commands without a terminal. It gets the guide to the
   parameters, `setup --help`, and runs `setup` again with them.
 
-For example, an agent installs Demi on a fresh Ubuntu server, behind a
-reverse proxy on the same machine that serves `demi.example.com` over HTTPS
+For example, an agent installs Jush on a fresh Ubuntu server, behind a
+reverse proxy on the same machine that serves `jush.example.com` over HTTPS
 and forwards to port 3271:
 
 ```sh
-curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --canary
+curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --canary
 # no terminal: prints the guide; the agent reads it and runs
-sudo demi-server setup --canary --domain demi.example.com --listen 127.0.0.1:3271
+sudo jush-server setup --canary --domain jush.example.com --listen 127.0.0.1:3271
 ```
 
 When a person runs the first command in a terminal, the command asks for the
@@ -31,10 +31,10 @@ The command installs a channel, as Settings › Updates names them
 ([From Settings](upgrades.md#from-settings)), or a version:
 
 - Without a parameter, or with `--beta`, it installs Beta, the newest
-  release Demi publishes, GitHub's latest release. While Demi has published
+  release Jush publishes, GitHub's latest release. While Jush has published
   none, it says so and installs nothing.
 - `--canary` installs Canary, the newest release, including the pre-release
-  that each push to `main` that changes Demi publishes once it passes its
+  that each push to `main` that changes Jush publishes once it passes its
   checks
   ([A development build on a server](upgrades.md#a-development-build-on-a-server)).
 - `--version <version>` installs that release.
@@ -42,16 +42,16 @@ The command installs a channel, as Settings › Updates names them
 The following commands show the three:
 
 ```sh
-curl -fsSL https://demi.sh/install.sh | sudo bash
-curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --canary
-curl -fsSL https://demi.sh/install.sh | sudo bash -s -- --version 0.1.22
+curl -fsSL https://jush.ai/install.sh | sudo bash
+curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --canary
+curl -fsSL https://jush.ai/install.sh | sudo bash -s -- --version 0.1.22
 ```
 
 The server's channel in Settings › Updates starts on the one it was
 installed from: Beta without a parameter or with `--beta`, Canary after
 `--canary`, and for `--version` the channel whose releases include that
 version. `setup` writes
-it into the configuration as `DEMI_UPGRADE_CHANNEL`, and an administrator's
+it into the configuration as `JUSH_UPGRADE_CHANNEL`, and an administrator's
 choice in Settings replaces it.
 
 `setup` takes these steps:
@@ -63,7 +63,7 @@ choice in Settings replaces it.
 5. Starts the backend and the machine manager.
 6. Checks the server from outside.
 
-It ends by printing `https://demi.example.com`, where the first visitor creates
+It ends by printing `https://jush.example.com`, where the first visitor creates
 the master account on the setup page (`packages/web/src/auth/session.ts`).
 Until the account exists, anyone who reaches the domain can create it, so the
 operator opens the page right away.
@@ -78,36 +78,36 @@ gVisor and Simple Isolation ([Set up managed Cloud hosts](../cloud/setup.md)),
 because every deployment has Cloud. There is no uninstall.
 
 Without a Linux machine of their own, an operator runs the same server from
-Demi's container image on Railway, on Render, on Fly, or with Docker Compose
+Jush's container image on Railway, on Render, on Fly, or with Docker Compose
 ([In a container](#in-a-container)).
 
 ## The bootstrap
 
 `install.sh` is one script for every release, `crates/server/install.sh`:
-`https://demi.sh/install.sh` redirects to it on the repository's branch that
+`https://jush.ai/install.sh` redirects to it on the repository's branch that
 releases are published from. It takes the channel or the version as its own
 parameters, and does only what a shell must:
 
 1. Checks that it runs as root on Linux.
 2. Picks the target from the machine's architecture.
 3. Finds the newest release of the channel, unless a version was given, and
-   downloads that release's `demi-server` for the target and its
+   downloads that release's `jush-server` for the target and its
    `SHA256SUMS`, and checks the one against the other.
-4. Installs `demi-server` as `/usr/local/bin/demi-server`.
-5. Runs `demi-server setup` with the channel, or the version, and the other
+4. Installs `jush-server` as `/usr/local/bin/jush-server`.
+5. Runs `jush-server setup` with the channel, or the version, and the other
    parameters it was given (`bash -s -- <parameters>`). Its input is the session's terminal,
    `/dev/tty`, when there is one, because its own input is the script.
 
-On a machine that has a Demi server already, `install.sh` changes nothing and
-points to `demi-server upgrade`.
+On a machine that has a Jush server already, `install.sh` changes nothing and
+points to `jush-server upgrade`.
 
-Everything else is `demi-server`'s, the program that upgrades the server later,
+Everything else is `jush-server`'s, the program that upgrades the server later,
 so setting up and upgrading share the fetch, the layout and the units. A setup
 is the move from nothing to the first release: the release of the
-`demi-server` that runs it, unless `--version` names another.
+`jush-server` that runs it, unless `--version` names another.
 
-After `setup` has started that release, `/usr/local/bin/demi-server` becomes a
-link to `/opt/demi/current/bin/demi-server`, so the server's program on the
+After `setup` has started that release, `/usr/local/bin/jush-server` becomes a
+link to `/opt/jush/current/bin/jush-server`, so the server's program on the
 path is always the current release's.
 
 ## A person or an agent
@@ -126,7 +126,7 @@ that already knows the parameters passes them to the first command, as
 
 ## Parameters
 
-`demi-server setup --help` lists every parameter with its meaning, which
+`jush-server setup --help` lists every parameter with its meaning, which
 parameters each HTTPS choice needs, and complete examples. An agent reads it
 and composes the command.
 
@@ -138,21 +138,21 @@ The following table lists the parameters:
 | `--listen <address:port>` | Required: where the backend listens, which the proxy in front of it reaches ([HTTPS](#https)). |
 | `--storage local\|s3` | Where the object store lives (`crates/backend-blobs/src/store.rs`). Default `local`. |
 | `--s3-bucket`, `--s3-region`, `--s3-endpoint`, `--s3-force-path-style` | The bucket, with `s3`. The credentials come from `setup`'s own `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, never from the command line, which other users of the machine can read. |
-| `--cloud-data <directory>` | The machine manager's state directory, on one filesystem. Default `/opt/demi/data/cloud`. |
+| `--cloud-data <directory>` | The machine manager's state directory, on one filesystem. Default `/opt/jush/data/cloud`. |
 | `--cloud-limits on\|off` | Whether gVisor Clouds run under cgroup limits. Default `on`. On a machine without the cgroup controllers, `on` leaves gVisor unavailable, so Clouds run on Simple Isolation, and `off` runs gVisor without limits. |
-| `--version <version>` | The release to set up. Default the release of the running `demi-server`. |
-| `--beta`, `--canary` | Set up the newest release of the channel instead of the running `demi-server`'s. Not with `--version`. |
+| `--version <version>` | The release to set up. Default the release of the running `jush-server`. |
+| `--beta`, `--canary` | Set up the newest release of the channel instead of the running `jush-server`'s. Not with `--version`. |
 | `--no-packages` | Install no system package: the operator installed e2fsprogs, bsdtar and nftables, on a distribution `setup` does not know ([Distributions](#distributions)). |
 | `--no-input` | Never ask, as without a terminal ([A person or an agent](#a-person-or-an-agent)). |
 
 A setting with no parameter keeps its default, as
 `crates/backend/src/config/mod.rs` and
 [Cloud setup](../cloud/setup.md#configuration) give them. An operator who needs
-another adds it to `/opt/demi/config/demi.env` and restarts the services.
+another adds it to `/opt/jush/config/jush.env` and restarts the services.
 
 ## HTTPS
 
-Demi does not terminate TLS (`crates/backend/src/config/mod.rs`), and `setup`
+Jush does not terminate TLS (`crates/backend/src/config/mod.rs`), and `setup`
 sets up none either. The operator provides what serves the domain over HTTPS
 and forwards to the backend, and tells `setup` where the backend listens. The
 two usual arrangements differ only in that address:
@@ -162,7 +162,7 @@ two usual arrangements differ only in that address:
 - Behind Cloudflare's proxy with the SSL/TLS mode Flexible, which reaches the
   machine from outside over HTTP on port 80: `--listen 0.0.0.0:80`.
   - Another port needs an Origin Rule that sends the domain's requests to it.
-  - The modes Full and Full (strict) reach the machine over HTTPS, which Demi
+  - The modes Full and Full (strict) reach the machine over HTTPS, which Jush
     does not serve.
   - The backend's unit lets it listen on a port below 1024.
 
@@ -193,27 +193,27 @@ than 0.
 
 1. **Check the machine.** `setup` requires root, Linux with systemd as its
    init, a distribution from [Distributions](#distributions), and no
-   installation yet. It refuses a machine whose `/opt/demi/current` exists,
-   and `demi-server upgrade` moves that machine.
+   installation yet. It refuses a machine whose `/opt/jush/current` exists,
+   and `jush-server upgrade` moves that machine.
 2. **Install the system packages.** These are the packages the machine manager
    runs: e2fsprogs, bsdtar and nftables.
 3. **Fetch the release.** `setup` fetches the release into
-   `/opt/demi/releases/<version>`, as an upgrade does
+   `/opt/jush/releases/<version>`, as an upgrade does
    ([Fetch](upgrades.md#fetch)). It doesn't fetch gVisor: the machine manager
-   downloads it into `/opt/demi/gvisor/<version>/` when the master first
+   downloads it into `/opt/jush/gvisor/<version>/` when the master first
    chooses gVisor in Settings › Cloud. Only a machine that can't run Simple
    Isolation has `setup` fetch it at the next step, so that the check passes
    on gVisor.
 4. **Check that the machine can run Cloud.** `setup` runs the release's own
-   manager with `demi-machine-manager --check-host`. That command runs
+   manager with `jush-machine-manager --check-host`. That command runs
    everything the manager's start checks before it serves
    (`crates/machine-manager/src/main.rs`), on the state directory and with the
    limits the parameters give, without starting anything. A machine that runs
    one runtime passes, and the output says why it cannot run the other, such
    as a missing cgroup controller, or SELinux refusing gVisor. `setup` refuses
    a machine that runs neither, with both reasons.
-5. **Write the installation.** `setup` creates the system user `demi` and the
-   group `demi-cloud`, the data directories, and `/opt/demi/config/demi.env`
+5. **Write the installation.** `setup` creates the system user `jush` and the
+   group `jush-cloud`, the data directories, and `/opt/jush/config/jush.env`
    readable by root alone. A configuration file that is already there and says
    something else than the parameters stops the run: `setup` never edits a
    configuration it did not just write.
@@ -234,7 +234,7 @@ than 0.
 distribution's own package manager. It recognizes a family by `ID` or `ID_LIKE`
 and checks no version. The versions in the following table are the ones it is
 meant for, and the Cloud check of step 4 decides whether an older machine can
-run Demi.
+run Jush.
 
 | Distribution | Package manager | bsdtar's package |
 | --- | --- | --- |
@@ -246,7 +246,7 @@ e2fsprogs and nftables have those names everywhere. Four notes apply:
 
 - **Another distribution.** `setup` names the three tools and stops. An
   operator who installed them runs it again with `--no-packages`, and the Cloud
-  check of step 4 decides whether the machine can run Demi.
+  check of step 4 decides whether the machine can run Jush.
 - **SELinux.** In enforcing mode, as the dnf distributions run it, SELinux lets
   gVisor run with no change of policy. `setup` passed its Cloud check this way
   on Fedora 44, Rocky Linux 10.2 and AlmaLinux 10.2, and a Cloud booted and ran
@@ -262,13 +262,13 @@ with `--no-packages`.
 
 ## In a container
 
-Demi publishes a container image with each release,
-`ghcr.io/demi-sh/demi`, for `linux/amd64` and `linux/arm64`. Its tags are
+Jush publishes a container image with each release,
+`ghcr.io/jush-ai/jush`, for `linux/amd64` and `linux/arm64`. Its tags are
 the version, such as `0.2.6017`, `canary` for the newest release, and `beta`
 and `latest` for the newest Beta. The server it sets up follows the tag's
 channel in Settings › Updates.
 
-The image sets up the server on its first start, on a volume at `/opt/demi`,
+The image sets up the server on its first start, on a volume at `/opt/jush`,
 with the layout `install.sh` makes. From then on the server updates itself in
 Settings › Updates, as on any machine, and starting a newer image upgrades it
 to the image's release. The container needs no privileges: its Clouds run on
@@ -276,7 +276,7 @@ Simple Isolation, and Settings › Cloud says why gVisor is unavailable.
 
 | Setup | What the operator does | Attachments and media | Cost a month, about |
 | --- | --- | --- | --- |
-| [Railway](railway.md) | Deploys Demi's template | A Railway Bucket | $5 for the Hobby plan, which includes $5 of usage; a server with a running Cloud uses $2 to $6 |
+| [Railway](railway.md) | Deploys Jush's template | A Railway Bucket | $5 for the Hobby plan, which includes $5 of usage; a server with a running Cloud uses $2 to $6 |
 | [Render](render.md) | Clicks **Deploy on Render** | The disk | $8.25 for a Starter instance with 512 MB and a 5 GB disk |
 | [Fly](fly.md) | Pastes one block of commands | A Tigris bucket | $8 for a `shared-cpu-1x` machine with 1 GB and a 10 GB volume |
 | [Docker Compose](docker-compose.md) | Runs `docker compose up -d` | The volume | What the machine costs; Oracle Cloud's Always Free Arm machines cost nothing |
@@ -285,5 +285,5 @@ Every setup keeps the same data on its volume: the databases, each user's
 Cloud, the releases and the configuration. A server for one user starts near
 1.1 GB, and grows with what its users install in their Clouds. In a
 container, the platform's variables are the configuration: each start writes
-`/opt/demi/config/demi.env` from the container's `DEMI_*` and `AWS_*`
+`/opt/jush/config/jush.env` from the container's `JUSH_*` and `AWS_*`
 variables, so a setting changes in the platform, and the next start takes it.

@@ -1,5 +1,5 @@
 [package]
-name = "demi-provider-codex"
+name = "jush-provider-codex"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,10 +12,10 @@ test = false
 bench = false
 
 [dependencies]
-demi-shared-types = { path = "../shared-types" }
-demi-provider-common = { path = "../provider-common" }
+jush-shared-types = { path = "../shared-types" }
+jush-provider-common = { path = "../provider-common" }
 # The build version the user agent names.
-demi-shared-artifacts = { path = "../shared-artifacts" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
 async-stream = "0.3"
 bytes.workspace = true
 futures-util.workspace = true

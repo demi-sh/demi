@@ -4,10 +4,10 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::media::channel::{Call, Channel, NO_REASON, Reply};
-use demi_provider_common::media::{MediaFailure, transport, unreadable};
-use demi_provider_common::{ErrorCode, ProviderHttp};
-use demi_shared_types::{MediaKind, VendorTrace};
+use jush_provider_common::media::channel::{Call, Channel, NO_REASON, Reply};
+use jush_provider_common::media::{MediaFailure, transport, unreadable};
+use jush_provider_common::{ErrorCode, ProviderHttp};
+use jush_shared_types::{MediaKind, VendorTrace};
 use futures_util::future::BoxFuture;
 use futures_util::stream::StreamExt as _;
 use http::Method;
@@ -16,7 +16,7 @@ use super::{Config, Refusal};
 use crate::wire::decoded;
 use crate::wire::media::{Frames, MAKES_NONE, MEDIA_ROUTE, frame};
 
-pub(super) use demi_provider_common::media::channel::Remote;
+pub(super) use jush_provider_common::media::channel::Remote;
 
 /// The relay as the channel of a borrowed entry's media.
 pub(super) struct Relay(pub(super) Arc<Config>);

@@ -4,9 +4,9 @@
 //! left.
 //!
 //! ```text
-//! backend's check ─► prepare request ─► demi-prepare.service (root):
-//!   installed demi-server prepare --requested   fetch: download, unpack
-//!     └─► the release's own demi-server prepare  gVisor, image, devices
+//! backend's check ─► prepare request ─► jush-prepare.service (root):
+//!   installed jush-server prepare --requested   fetch: download, unpack
+//!     └─► the release's own jush-server prepare  gVisor, image, devices
 //! ```
 //!
 //! - It changes nothing that runs: the release unpacks beside the current
@@ -17,7 +17,7 @@
 //!   new manager's import removes the Cloud base imported before it.
 //! - Its steps reach the backend as notices of their own (`notices`), which
 //!   the administrators' row shows as how far the release is got ready.
-//! - It gives way to every other run of `demi-server`: one that holds the
+//! - It gives way to every other run of `jush-server`: one that holds the
 //!   lock, such as an update, ends it at once, and the next check asks again.
 //!   An update that starts while it runs waits for it, then finds its work
 //!   done.
@@ -26,7 +26,7 @@ use std::io;
 
 use semver::Version;
 
-use demi_runner_protocol::release::{SkipReason, UpgradeStepKind};
+use jush_runner_protocol::release::{SkipReason, UpgradeStepKind};
 
 use crate::{
     fetch, gvisor,
@@ -68,7 +68,7 @@ pub fn requested(layout: &Layout) -> Result<()> {
     Err(crate::hand_over(layout, &version, "prepare").into())
 }
 
-/// Gets this program's own release ready, which the installed `demi-server`
+/// Gets this program's own release ready, which the installed `jush-server`
 /// fetched: its gVisor version and its image, and the devices' runner.
 pub fn own(layout: &Layout) -> Result<()> {
     let to = crate::own_version();
@@ -96,7 +96,7 @@ pub fn own(layout: &Layout) -> Result<()> {
         .manage_socket()
         .unwrap_or_else(|| layout.manage_socket());
     runners::announce(&socket, &layout.release(&to))?;
-    println!("Demi {to} is ready to install");
+    println!("Jush {to} is ready to install");
     Ok(())
 }
 
@@ -106,7 +106,7 @@ fn keep_one(layout: &Layout, current: &Version, version: &Version) -> io::Result
     let mut kept = Vec::new();
     for each in layout.versions()? {
         if &each > current && &each != version {
-            println!("Removing Demi {each}, which {version} replaces");
+            println!("Removing Jush {each}, which {version} replaces");
             std::fs::remove_dir_all(layout.release(&each))?;
         } else {
             kept.push(each);

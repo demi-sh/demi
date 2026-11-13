@@ -1,16 +1,16 @@
-//! `fetch.get`, `demi web fetch`: the page from the cache or the network,
+//! `fetch.get`, `jush web fetch`: the page from the cache or the network,
 //! one part of it printed with the line that reads on, or a file saved and
 //! its path printed.
 
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_command_package_fetch_protocol::{
+use jush_command_package_fetch_protocol::{
     FetchArgs, Fetched, FetchedFile, FetchedPage, MAX_TIMEOUT_MS,
 };
-use demi_command_protocol::{CommandError, Completion, sniff_media_type};
-use demi_shared_types::thousands;
-use demi_command_sdk::{InvocationContext, ResidentError, errors::reason};
+use jush_command_protocol::{CommandError, Completion, sniff_media_type};
+use jush_shared_types::thousands;
+use jush_command_sdk::{InvocationContext, ResidentError, errors::reason};
 use reqwest::{StatusCode, Url};
 
 use crate::{
@@ -243,7 +243,7 @@ async fn file(
         if sniff_media_type(&bytes).is_some() {
             text.push_str(&format!(
                 "Show it with {}\n",
-                quoted(&["demi", "file", "view", &path])
+                quoted(&["jush", "file", "view", &path])
             ));
         }
         text

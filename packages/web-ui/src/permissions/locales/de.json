@@ -49,7 +49,7 @@
   },
   "notificationsCard": {
     "title": "Der Agent kann dich nicht benachrichtigen",
-    "body": "In keinem deiner Browser sind Benachrichtigungen aktiviert. Aktiviere sie, um zu erfahren, wenn der Agent fertig ist oder dich braucht, auch wenn Demi geschlossen ist.",
+    "body": "In keinem deiner Browser sind Benachrichtigungen aktiviert. Aktiviere sie, um zu erfahren, wenn der Agent fertig ist oder dich braucht, auch wenn Jush geschlossen ist.",
     "blocked": "Benachrichtigungen sind in den Website-Einstellungen dieses Browsers blockiert.",
     "unsupported": "Dieser Browser unterstützt keine Benachrichtigungen.",
     "dismiss": "Ausblenden",

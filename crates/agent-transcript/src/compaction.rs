@@ -5,9 +5,9 @@
 //! beside the summary, each as text that names the message it came from. Each
 //! is a pure reading of the blocks: the window weighed by the token estimates
 //! of the request the pass serves, the kept messages by the text the model
-//! reads of them, as `demi_shared_types::choose_kept` chooses them.
+//! reads of them, as `jush_shared_types::choose_kept` chooses them.
 
-use demi_shared_types::{Block, KeptMessage, ModelSelection, choose_kept, comments_content};
+use jush_shared_types::{Block, KeptMessage, ModelSelection, choose_kept, comments_content};
 
 use super::{
     estimate::block_tokens,
@@ -18,7 +18,7 @@ use super::{
 
 /// What the model reads first of a `compaction_boundary`, before the
 /// messages it kept and its summary.
-pub const COMPACTION_NOTE: &str = "The conversation before this point was compacted: the user's messages as they were written, each with its index, then a summary of the rest. `demi conversation history` reads what the summary leaves out.";
+pub const COMPACTION_NOTE: &str = "The conversation before this point was compacted: the user's messages as they were written, each with its index, then a summary of the rest. `jush conversation history` reads what the summary leaves out.";
 
 /// The summary of a `compaction_boundary` as the model reads it: in
 /// `<summary>` tags.

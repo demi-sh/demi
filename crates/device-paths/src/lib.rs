@@ -2,12 +2,12 @@
 //!
 //! The backend builds paths on a device, such as where an attachment is saved,
 //! with the separator of the system the device's runner reports. A Windows device
-//! shows `C:\Users\alex\.demi\attachments\…`, never `C:\Users\alex/.demi/…`.
+//! shows `C:\Users\alex\.jush\attachments\…`, never `C:\Users\alex/.jush/…`.
 //! Every path the backend or the runner joins, splits, walks up or writes from
 //! `~` on a device goes through here.
 //!
 //! The crate reads the text of a path, which may name another machine's file,
-//! and does no IO: it depends on no runtime and no other Demi crate, so both
+//! and does no IO: it depends on no runtime and no other Jush crate, so both
 //! the agent's side (`device-interface`) and the runner's wire
 //! (`runner-protocol`) use it.
 

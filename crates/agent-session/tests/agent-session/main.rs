@@ -6,18 +6,18 @@ use std::{
     sync::Arc,
 };
 
-use demi_agent_session::{
+use jush_agent_session::{
     ActionEnd, AgentSession, CompactionConfig, Continuation, EditContent, EditSubmission, ModelSwitch, NewContext, SeenContext,
     SessionConfig, SessionDeps, SessionEvent, SessionInit, SessionRuntime, StartedCommand, StepOutcomes, SystemPrompt, ToolEffect, ToolFailure, ToolInvocation, ToolOutcome,
 };
-use demi_conversation_lane_protocol::AbortTarget;
-use demi_provider_common::{
+use jush_conversation_lane_protocol::AbortTarget;
+use jush_provider_common::{
     EntriesOf, ErrorCode, InferenceItem, MediaBytes, ProviderEvent, ProviderRuntime,
     RequestLimits, ResultPart, ToolDefinition, UserPart,
     testing::{FixedClock, ScriptedRuntime, Turn, event},
 };
-use demi_shared_gates::{ActivityGate, GateLease, Purpose};
-use demi_shared_types::{
+use jush_shared_gates::{ActivityGate, GateLease, Purpose};
+use jush_shared_types::{
     AgentMessage, AgentMessageEvent, B64Bytes, BlobRef, Block, BlockId, CommandId, CommandReport, FileExtension, ModelSelection, NodeId, OperationId, ReportEvent, Sender,
     SessionPhase, ShellToolView, ShellViewStatus, Timestamp,
     ToolView, TurnId, UserContentBlock,
@@ -26,12 +26,12 @@ use futures_util::future::LocalBoxFuture;
 use serde_json::json;
 use tokio::sync::oneshot;
 
-use demi_agent_store::{
+use jush_agent_store::{
     AgentTreeStore, NodeRecord,
     media::HeldMedia,
     testing::{MemoryTreeStore, model_of, model_reading, sent_text, test_model, text},
 };
-use demi_agent_transcript::testing::SequentialIds;
+use jush_agent_transcript::testing::SequentialIds;
 
 mod compaction;
 mod failure;
@@ -125,7 +125,7 @@ impl SessionRuntime for TestRuntime {
 
     fn reserve_edit(
         &self,
-    ) -> LocalBoxFuture<'_, Result<Option<demi_shared_gates::Reservation>, String>> {
+    ) -> LocalBoxFuture<'_, Result<Option<jush_shared_gates::Reservation>, String>> {
         Box::pin(async { Ok(None) })
     }
 
@@ -242,7 +242,7 @@ impl SessionRuntime for TestRuntime {
     fn report<'a>(
         &'a self,
         command: &'a CommandId,
-        _: &'a demi_shared_types::ModelSelection,
+        _: &'a jush_shared_types::ModelSelection,
         _: RequestLimits,
     ) -> LocalBoxFuture<'a, Option<CommandReport>> {
         let title = self.commands.title(command);
@@ -484,7 +484,7 @@ async fn start_at(
     runtime: TestRuntime,
     store: &Rc<MemoryTreeStore>,
     config: SessionConfig,
-    clock: Arc<dyn demi_shared_types::Clock>,
+    clock: Arc<dyn jush_shared_types::Clock>,
 ) -> AgentSession {
     start_with(Box::new(provider.clone()), runtime, store, config, clock).await
 }
@@ -495,7 +495,7 @@ async fn start_with(
     runtime: TestRuntime,
     store: &Rc<MemoryTreeStore>,
     config: SessionConfig,
-    clock: Arc<dyn demi_shared_types::Clock>,
+    clock: Arc<dyn jush_shared_types::Clock>,
 ) -> AgentSession {
     let deps = SessionDeps {
         runtime: Rc::new(runtime),
@@ -522,11 +522,11 @@ async fn start_with(
 
 /// Restores the node `root` from `checkpoint`, saving into `store`.
 async fn restore_session(
-    checkpoint: demi_agent_store::Checkpoint,
+    checkpoint: jush_agent_store::Checkpoint,
     store: &Rc<MemoryTreeStore>,
     provider: &ScriptedRuntime,
     runtime: TestRuntime,
-    clock: Arc<dyn demi_shared_types::Clock>,
+    clock: Arc<dyn jush_shared_types::Clock>,
 ) -> (AgentSession, Continuation) {
     restore_configured(
         checkpoint,
@@ -542,11 +542,11 @@ async fn restore_session(
 /// Restores the node `root` from `checkpoint` with `config`, saving into
 /// `store`.
 async fn restore_configured(
-    checkpoint: demi_agent_store::Checkpoint,
+    checkpoint: jush_agent_store::Checkpoint,
     store: &Rc<MemoryTreeStore>,
     provider: &ScriptedRuntime,
     runtime: TestRuntime,
-    clock: Arc<dyn demi_shared_types::Clock>,
+    clock: Arc<dyn jush_shared_types::Clock>,
     config: SessionConfig,
 ) -> (AgentSession, Continuation) {
     let deps = SessionDeps {
@@ -669,8 +669,8 @@ fn lost() -> ReportEvent {
 
 
 /// A comment on the first words of the reply `reply`.
-fn comment_on(reply: &str, id: &str, text: &str) -> demi_shared_types::MessageComment {
-    demi_shared_types::MessageComment {
+fn comment_on(reply: &str, id: &str, text: &str) -> jush_shared_types::MessageComment {
+    jush_shared_types::MessageComment {
         id: id.to_owned(),
         block_id: BlockId::try_from(reply).unwrap(),
         start: 0,
@@ -678,12 +678,12 @@ fn comment_on(reply: &str, id: &str, text: &str) -> demi_shared_types::MessageCo
         at: 0,
         quote: "The test".to_owned(),
         picture: None,
-        content: vec![demi_shared_types::UserContentBlock::Text { text: text.to_owned() }],
+        content: vec![jush_shared_types::UserContentBlock::Text { text: text.to_owned() }],
     }
 }
 
 /// The comments of the user block of the turn `turn`.
-async fn comments_of(session: &AgentSession, turn: &str) -> Vec<demi_shared_types::MessageComment> {
+async fn comments_of(session: &AgentSession, turn: &str) -> Vec<jush_shared_types::MessageComment> {
     session
         .history()
         .await
@@ -783,7 +783,7 @@ async fn an_edit_gives_its_version_the_comments_it_carries_and_keeps_them_withou
     let first = comment_on("reply", "c1", "Check the prompt too.");
     let second = comment_on("reply", "c2", "Name the test after it.");
     session
-        .send_message(demi_shared_types::QueuedMessage {
+        .send_message(jush_shared_types::QueuedMessage {
             id: turn("t1"),
             content: Vec::new(),
             comments: vec![first, second.clone()],
@@ -794,13 +794,13 @@ async fn an_edit_gives_its_version_the_comments_it_carries_and_keeps_them_withou
         .unwrap();
 
     // The edit drops the first comment and rewords the second.
-    let reworded = demi_shared_types::MessageComment {
-        content: vec![demi_shared_types::UserContentBlock::Text { text: "Name the test after the request.".to_owned() }],
+    let reworded = jush_shared_types::MessageComment {
+        content: vec![jush_shared_types::UserContentBlock::Text { text: "Name the test after the request.".to_owned() }],
         ..second
     };
     let mut edit = edit_of(&session, "t1", "op1", "Look again.").await;
-    edit.comments = Some(vec![reworded.clone().with_content::<demi_agent_session::Edit>(
-        reworded.content.iter().cloned().map(demi_agent_session::EditContent::Content).collect(),
+    edit.comments = Some(vec![reworded.clone().with_content::<jush_agent_session::Edit>(
+        reworded.content.iter().cloned().map(jush_agent_session::EditContent::Content).collect(),
     )]);
     let edited = session.edit_and_send(edit).await.unwrap().turn_id;
     session.settled().await;

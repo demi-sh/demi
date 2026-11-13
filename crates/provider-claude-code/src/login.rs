@@ -1,29 +1,29 @@
 //! The Claude sign-in (`crates/provider-claude-code/src/account.rs`).
 //!
-//! Demi runs the CLI's own login on the Claude Code machine, in a new
+//! Jush runs the CLI's own login on the Claude Code machine, in a new
 //! configuration directory, shows the user the link the CLI prints, and writes
 //! the code the user pastes to the CLI's input.
 //!
-//! - When the CLI exits with success, Demi reads the account it signed in, its
+//! - When the CLI exits with success, Jush reads the account it signed in, its
 //!   ID and email, and nothing of its tokens, and the directory becomes the
 //!   account's.
 //! - When the login fails or is stopped, the directory goes.
 //! - A code the CLI refuses leaves it waiting, and the user sees its words and
 //!   pastes another.
 //!
-//! Demi never writes Claude's OAuth flow itself, and never logs the code.
+//! Jush never writes Claude's OAuth flow itself, and never logs the code.
 
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_device_interface::{Process, ProcessControl, ProcessEnd};
-use demi_provider_common::Secret;
-use demi_provider_common::credentials::{
+use jush_device_interface::{Process, ProcessControl, ProcessEnd};
+use jush_provider_common::Secret;
+use jush_provider_common::credentials::{
     AccountKit, AccountsCapability, AccountsError, CredentialPool, LoginError, LoginIo, LoginKind,
     NewAccount,
     credential_id_for, decode_secret, find_by_identity,
 };
-use demi_shared_types::{DownloadProgress, LoginPending, LoginStage, RefusedCode, StreamKind};
+use jush_shared_types::{DownloadProgress, LoginPending, LoginStage, RefusedCode, StreamKind};
 use futures_util::future::BoxFuture;
 use futures_util::{FutureExt as _, StreamExt as _};
 use reqwest::Url;
@@ -83,7 +83,7 @@ impl AccountKit for ClaudeKit {
     }
 
     /// The account's directory on the machine goes before its record, so
-    /// no sign-in outlives the account in Demi.
+    /// no sign-in outlives the account in Jush.
     fn forget<'a>(&'a self, id: &'a str) -> BoxFuture<'a, Result<(), AccountsError>> {
         Box::pin(async move {
             let machine = self.machine.clone().ok_or_else(|| {
@@ -267,7 +267,7 @@ async fn sign_in_at(
 /// a newline. A code the CLI calls invalid goes to `shown` in the CLI's words,
 /// while the CLI waits for another. Answers the tail of its standard error.
 async fn relay(
-    mut output: futures_util::stream::LocalBoxStream<'static, demi_device_interface::ProcessOutput>,
+    mut output: futures_util::stream::LocalBoxStream<'static, jush_device_interface::ProcessOutput>,
     control: &dyn ProcessControl,
     shown: mpsc::UnboundedSender<Shown>,
     mut codes: mpsc::UnboundedReceiver<Secret>,

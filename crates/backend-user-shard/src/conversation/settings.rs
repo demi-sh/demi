@@ -11,15 +11,15 @@
 //! A crash between the commit and the switch leaves the change in the record,
 //! which the tree takes when it next opens.
 
-use demi_agent_server::ResolveError;
-use demi_backend_database::conversation_index::{RecordChange, SettingsChange};
-use demi_shared_types::{ModelSelection, ProviderModel};
-use demi_web_api_protocol::conversations::ModelSettings;
-use demi_web_api_protocol::ids::{ConversationId, ProviderId};
+use jush_agent_server::ResolveError;
+use jush_backend_database::conversation_index::{RecordChange, SettingsChange};
+use jush_shared_types::{ModelSelection, ProviderModel};
+use jush_web_api_protocol::conversations::ModelSettings;
+use jush_web_api_protocol::ids::{ConversationId, ProviderId};
 
 use crate::shard::Shard;
-use demi_backend_device_access::root_of;
-use demi_backend_device_access::transition::ChangeRefusal;
+use jush_backend_device_access::root_of;
+use jush_backend_device_access::transition::ChangeRefusal;
 
 impl Shard {
     /// Applies `change` to the model settings of the user's conversation

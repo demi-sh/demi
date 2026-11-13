@@ -91,7 +91,7 @@ backend refuse each other's hello, and every upgrade replaces the runners.
 
 ## Spike
 
-None: the design rests on Demi's own queues and messages, nothing
+None: the design rests on Jush's own queues and messages, nothing
 uncertain.
 
 ## Prior art
@@ -100,7 +100,7 @@ uncertain.
   as Go's HTTP/2 write scheduler does
   ([x/net/http2](https://pkg.go.dev/golang.org/x/net/http2#WriteScheduler);
   [RFC 9113 §6.7](https://www.rfc-editor.org/rfc/rfc9113#section-6.7)).
-- Demi departs from them in having no flow control at all on this link: its
+- Jush departs from them in having no flow control at all on this link: its
   bulk bytes already travel apart, so what remains is small and slow.
 
 ## Alternatives

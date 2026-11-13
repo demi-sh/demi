@@ -2,7 +2,7 @@ import {
   type FileBrowserDevice,
   type FileBrowserPlaceGroup,
   type FileBrowserSource,
-} from '@demicodes/web-ui/files/types'
+} from '@jush-ai/web-ui/files/types'
 import { fileSource } from '../api/files'
 import { deviceWatch } from '../conversation/file-watch'
 import { followDevice } from '../conversation/files'

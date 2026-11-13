@@ -1,5 +1,5 @@
 [package]
-name = "demi-runner-direct"
+name = "jush-runner-direct"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,8 +12,8 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-live-view-protocol = { path = "../live-view-protocol" }
-demi-runner-protocol = { path = "../runner-protocol" }
+jush-live-view-protocol = { path = "../live-view-protocol" }
+jush-runner-protocol = { path = "../runner-protocol" }
 bytes.workspace = true
 futures-util.workspace = true
 garde.workspace = true

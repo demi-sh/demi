@@ -18,11 +18,11 @@
 //!   transaction, so a message is never both saved and in the draft. An edit
 //!   writes a message in its place and never touches the draft.
 
-use demi_shared_types::{Timestamp, TurnId};
-use demi_web_api_protocol::drafts::{DraftWritten, Revisions};
-use demi_web_api_protocol::ids::{AttachmentId, ConversationId, SavedMessageId, UserId, ProjectId};
-use demi_web_api_protocol::projects::SavedScope;
-use demi_web_api_protocol::saved::{
+use jush_shared_types::{Timestamp, TurnId};
+use jush_web_api_protocol::drafts::{DraftWritten, Revisions};
+use jush_web_api_protocol::ids::{AttachmentId, ConversationId, SavedMessageId, UserId, ProjectId};
+use jush_web_api_protocol::projects::SavedScope;
+use jush_web_api_protocol::saved::{
     FromDraftAnswer, ListedSavedMessage, SAVED_MAX, SAVED_OPENING_CHARS, SavedAnswer, SavedListing, SavedMessage,
 };
 use jiff::SignedDuration;

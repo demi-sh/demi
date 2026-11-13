@@ -1,10 +1,10 @@
-import { FileBrowserError } from '@demicodes/web-ui/files/types'
-import type { FileBrowserSource } from '@demicodes/web-ui/files/types'
-import type { UploadItem } from '@demicodes/web-ui/files/file-uploads'
-import { DeviceFiles } from '@demicodes/web-ui/files/file-cache'
-import { keptSource } from '@demicodes/web-ui/files/kept-source'
-import { createMemoryFileSource, dir, file, link, memoryFileReads, textFile, type MemoryDirectory, type MemoryFileSource } from '@demicodes/web-ui/files/memory-source'
-import { baseName } from '@demicodes/utils'
+import { FileBrowserError } from '@jush-ai/web-ui/files/types'
+import type { FileBrowserSource } from '@jush-ai/web-ui/files/types'
+import type { UploadItem } from '@jush-ai/web-ui/files/file-uploads'
+import { DeviceFiles } from '@jush-ai/web-ui/files/file-cache'
+import { keptSource } from '@jush-ai/web-ui/files/kept-source'
+import { createMemoryFileSource, dir, file, link, memoryFileReads, textFile, type MemoryDirectory, type MemoryFileSource } from '@jush-ai/web-ui/files/memory-source'
+import { baseName } from '@jush-ai/utils'
 
 /**
  * Projects for the file tree specimens: one with every kind of row, and
@@ -46,14 +46,14 @@ function rowsTree(): MemoryDirectory {
 }
 
 // A project named as a project is, since its name heads every tree.
-export const TREE_ROOT = '/demi'
+export const TREE_ROOT = '/jush'
 export const TREE_SELECTED = `${TREE_ROOT}/src/auth/providers/oauth/github/client.ts`
 
 function wrap(root: MemoryDirectory, latencyMs = 0, uploadRate?: number): FileBrowserSource {
   return createMemoryFileSource({
     platform: 'macos',
     home: TREE_ROOT,
-    root: dir({ demi: root }),
+    root: dir({ jush: root }),
     latencyMs,
     uploadRate,
   })
@@ -83,7 +83,7 @@ export function screenshotsSource(): FileBrowserSource {
 
 /** The rows project, where listing `slowPath` never finishes. */
 export function stuckSource(slowPath: string): FileBrowserSource {
-  const reads = memoryFileReads({ platform: 'macos', home: TREE_ROOT, root: dir({ demi: rowsTree() }) })
+  const reads = memoryFileReads({ platform: 'macos', home: TREE_ROOT, root: dir({ jush: rowsTree() }) })
   return keptSource({
     ...reads,
     list: (path) => path === slowPath ? new Promise(() => {}) : reads.list(path),
@@ -168,18 +168,18 @@ export function linksSource(): MemoryFileSource {
     platform: 'macos',
     home: TREE_ROOT,
     root: dir({
-      demi: dir({
+      jush: dir({
         src: dir(stubs(['index.ts', 'server.ts'])),
         vendor: link('../shared/vendor', at),
         'config.json': link('/home/alex/.config/app.json', at),
         'old.log': link('/tmp/gone.log', at),
         current: link('current', at),
-        'README.md': textFile('# demi\n', at),
+        'README.md': textFile('# jush\n', at),
       }),
       shared: dir({
         vendor: dir({
           lodash: dir(stubs(['index.js', 'package.json'])),
-          project: link('/demi', at),
+          project: link('/jush', at),
           'README.md': textFile('# Vendored packages\n', at),
         }),
       }),

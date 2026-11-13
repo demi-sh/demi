@@ -16,9 +16,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_shared_h264::bitstream::{BitReader, BitWriter, SPS, annex_b, escape, kind, unescape, units};
-use demi_shared_openh264::Load;
-use demi_shared_recording_protocol::{Area, FrameSet, frame_label};
+use jush_shared_h264::bitstream::{BitReader, BitWriter, SPS, annex_b, escape, kind, unescape, units};
+use jush_shared_openh264::Load;
+use jush_shared_recording_protocol::{Area, FrameSet, frame_label};
 use image::{ImageEncoder as _, codecs::png::PngEncoder};
 use openh264::decoder::{Decoder, DecoderConfig};
 

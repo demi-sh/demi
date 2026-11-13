@@ -36,7 +36,7 @@
 //!
 //! # A cost report
 //!
-//! `demi conversation cost` and `history cost` read a conversation's rows as
+//! `jush conversation cost` and `history cost` read a conversation's rows as
 //! [`LedgerCall`]s and sum them with [`add_call`], the sum that keeps a
 //! conversation's cost, so a report's totals are the card's. The whole
 //! conversation's rows are found by `usage_ledger_conversation`, a page of
@@ -46,12 +46,12 @@
 //! not a bill. Prices tiered by a request's length, as some models charge more
 //! past 200K tokens, are not modelled: a call is priced at the model's base rates.
 
-use demi_conversation_lane_protocol::{AgentCost, CacheChart, CacheMiss, ChartPoint, CostPrice, CostTotals};
-use demi_shared_types::{Cost, Currency, ModelCost, QuotaKind, QuotaScope, QuotaWindow, Timestamp, TokenUsage};
-use demi_web_api_protocol::conversations::{CostWindow, RecentAgent};
-use demi_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
-use demi_web_api_protocol::text::EmailAddress;
-use demi_web_api_protocol::usage::{UsageGroup, UserUsage};
+use jush_conversation_lane_protocol::{AgentCost, CacheChart, CacheMiss, ChartPoint, CostPrice, CostTotals};
+use jush_shared_types::{Cost, Currency, ModelCost, QuotaKind, QuotaScope, QuotaWindow, Timestamp, TokenUsage};
+use jush_web_api_protocol::conversations::{CostWindow, RecentAgent};
+use jush_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
+use jush_web_api_protocol::text::EmailAddress;
+use jush_web_api_protocol::usage::{UsageGroup, UserUsage};
 use std::collections::BTreeMap;
 
 use rusqlite::{Connection, OptionalExtension, Row, params};
@@ -101,7 +101,7 @@ pub struct UsageRow {
     /// The subscription account; none for an API key.
     pub account: Option<CredentialId>,
     pub model: String,
-    /// Demi's id of the request, under which the server log holds its
+    /// Jush's id of the request, under which the server log holds its
     /// course.
     pub request: String,
     pub vendor_id: Option<String>,

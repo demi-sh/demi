@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue'
 import type { LiveDialog } from '../generated/plugin'
-import { Button } from '@demicodes/plugin-sdk'
-import { ScrollArea } from '@demicodes/plugin-sdk'
-import { TextInput } from '@demicodes/plugin-sdk'
-import { useAutofocus } from '@demicodes/plugin-sdk'
+import { Button } from '@jush-ai/plugin-sdk'
+import { ScrollArea } from '@jush-ai/plugin-sdk'
+import { TextInput } from '@jush-ai/plugin-sdk'
+import { useAutofocus } from '@jush-ai/plugin-sdk'
 import { dialogTitle, keyAnswer } from './dialogs'
 import { t } from '../locales/text'
 

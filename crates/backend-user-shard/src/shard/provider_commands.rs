@@ -1,4 +1,4 @@
-//! The product's `demi providers` group.
+//! The product's `jush providers` group.
 //!
 //! The agent lists and shows the user's provider entries with their models,
 //! adds, edits and removes entries, turns them and their models off and on in
@@ -18,29 +18,29 @@
 //! piped there, since a key typed into a conversation would sit in its
 //! transcript and reach the model's vendor.
 
-use demi_backend_page_sync::Part;
-use demi_backend_providers::vault::accounts as vault_accounts;
-use demi_backend_providers::vault::entries::Vault;
+use jush_backend_page_sync::Part;
+use jush_backend_providers::vault::accounts as vault_accounts;
+use jush_backend_providers::vault::entries::Vault;
 use std::rc::Rc;
 
-use demi_backend_device_access::device_commands::conversation_of;
-use demi_backend_device_access::root_of;
-use demi_provider_registry::entry::{EntryCredential, ProviderEntry};
-use demi_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcInvocation, RpcPort, TypedRpc};
-use demi_agent_tools::EFFORT_OFF;
-use demi_shared_types::{
+use jush_backend_device_access::device_commands::conversation_of;
+use jush_backend_device_access::root_of;
+use jush_provider_registry::entry::{EntryCredential, ProviderEntry};
+use jush_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcInvocation, RpcPort, TypedRpc};
+use jush_agent_tools::EFFORT_OFF;
+use jush_shared_types::{
     AccountInfo, ContextChoice, FileExtension, ModelSelection, ThinkingForm, WireApi, applied_context_limit, context_word, model_reads_images,
     output::{Cell, Fields, Table, note, warning},
 };
-use demi_web_api_protocol::ids::CredentialId;
-use demi_web_api_protocol::auth::UserDto;
-use demi_web_api_protocol::settings::{ContextLimitChange, HiddenModel, PreferencesPatch};
-use demi_web_api_protocol::error::problems;
-use demi_web_api_protocol::providers::{
+use jush_web_api_protocol::ids::CredentialId;
+use jush_web_api_protocol::auth::UserDto;
+use jush_web_api_protocol::settings::{ContextLimitChange, HiddenModel, PreferencesPatch};
+use jush_web_api_protocol::error::problems;
+use jush_web_api_protocol::providers::{
     Availability, ConfiguredModel, ConfiguredModels, CreateProvider,
     CredentialKind, ModelKind, ModelMatch, ProviderDto, ProviderPatch, SetupPart,
 };
-use demi_web_api_protocol::text::{EndpointUrl, Trimmed};
+use jush_web_api_protocol::text::{EndpointUrl, Trimmed};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -63,15 +63,15 @@ const SUMMARY: &str = "The user's provider entries and their models: list and sh
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "The user's model providers and their models.";
 
-const LIST_SUMMARY: &str = "List each provider entry: its id, its name in Settings, its kind, its count of models and its status (Ready, or what it still needs); demi providers show lists an entry's models. --all adds the entries and models the user turned off. A read.";
+const LIST_SUMMARY: &str = "List each provider entry: its id, its name in Settings, its kind, its count of models and its status (Ready, or what it still needs); jush providers show lists an entry's models. --all adds the entries and models the user turned off. A read.";
 
 const SHOW_SUMMARY: &str = "Show every setting of one entry, as Settings > Providers has it (never its key): with --json the entry `edit` changes, field by field, beside its status, whether it is hidden, its accounts by label and under catalog each model it offers with every field: context window and output limit in tokens, default effort and efforts (off when thinking can be turned off), service tiers, the files it reads, and whether you run on it. A read.";
 
 const ADD_SUMMARY: &str = "Add a provider entry: --vendor, a models.dev vendor; --family alone, the family's own vendor; or --family with --wire and --base-url, a compatible API. Without --label it is named after its vendor or family, or Compatible API, with (2), (3) when that name is taken. A vendor's entry without a key joins the list incomplete until the user adds the key in Settings > Providers; a compatible API's key is optional. `edit` sets the rest. Needs the user's permission.";
 
-const EDIT_SUMMARY: &str = "Change any setting of an entry that Settings > Providers changes, by a JSON merge patch on stdin of the entry `demi providers show --json` prints: a field given takes its value, a field left out stays, a list is replaced whole, and null removes a setting `show` can print as null, such as cacheTtl or throughDevice, or the key with apiKey. A field that holds the value shown changes nothing, and what `show` prints beside the entry (status, hidden, accounts, modelsFrom, catalog) is left as it is, so the printed entry, edited, may go back whole. --api-key-stdin reads the key alone instead. Needs the user's permission.";
+const EDIT_SUMMARY: &str = "Change any setting of an entry that Settings > Providers changes, by a JSON merge patch on stdin of the entry `jush providers show --json` prints: a field given takes its value, a field left out stays, a list is replaced whole, and null removes a setting `show` can print as null, such as cacheTtl or throughDevice, or the key with apiKey. A field that holds the value shown changes nothing, and what `show` prints beside the entry (status, hidden, accounts, modelsFrom, catalog) is left as it is, so the printed entry, edited, may go back whole. --api-key-stdin reads the key alone instead. Needs the user's permission.";
 
-const CONTEXT_SUMMARY: &str = "Set the context window Demi uses for one of an entry's models, in every conversation, as the model menu's Context row does: a size up to the model's window, such as 350K, 1M or 272000, which Demi compacts the conversation to fit, or full for the model's whole window, as its own size is. Needs the user's permission.";
+const CONTEXT_SUMMARY: &str = "Set the context window Jush uses for one of an entry's models, in every conversation, as the model menu's Context row does: a size up to the model's window, such as 350K, 1M or 272000, which Jush compacts the conversation to fit, or full for the model's whole window, as its own size is. Needs the user's permission.";
 
 const HIDE_SUMMARY: &str = "Turn an entry, or with --model one of its models, off in the user's model menu, as Settings > Providers' Show in Model Menu does. Needs the user's permission.";
 
@@ -91,7 +91,7 @@ const REMOVE_SUMMARY: &str = "Remove an entry with its accounts, as Settings doe
 
 const MODELS_SUMMARY: &str = "The models of an entry's own list: search models.dev, and add, edit and remove models. A subscription entry lists its own models.";
 
-const SEARCH_SUMMARY: &str = "Search models.dev for models whose name or id holds each word, newest first, at most 20: each match's <vendor>/<model id>, name, context window, output limit, efforts and the files it reads. `demi providers models add` takes the <vendor>/<model id>. A read.";
+const SEARCH_SUMMARY: &str = "Search models.dev for models whose name or id holds each word, newest first, at most 20: each match's <vendor>/<model id>, name, context window, output limit, efforts and the files it reads. `jush providers models add` takes the <vendor>/<model id>. A read.";
 
 const MODEL_ADD_SUMMARY: &str = "Add a model to an entry's list, filled from a search match; the options set or override fields, and without a match they are the whole model. An entry that follows its vendor's list starts a list of its own from the vendor's models and this one, and no longer follows models.dev. Needs the user's permission.";
 
@@ -103,7 +103,7 @@ const ALL: &str = "Also list the entries and models the user turned off in Setti
 const VENDOR: &str = "A models.dev vendor's id, such as google, as Settings > Providers offers it.";
 const FAMILY: &str = "The family whose protocol the entry speaks: openai, anthropic or google. With --base-url the entry is a compatible API; without, the family's own vendor's.";
 const WIRE: &str = "The wire of an openai endpoint, responses or chat-completions; responses without it.";
-const ENTRY_ARG: &str = "The entry's name or id, as `demi providers list` shows them.";
+const ENTRY_ARG: &str = "The entry's name or id, as `jush providers list` shows them.";
 const LABEL: &str = "The entry's name, 1 to 80 characters, as Settings shows it.";
 const BASE_URL: &str = "The API's address, an http or https URL such as https://api.example.com/v1.";
 const API_KEY_STDIN: &str = "Read the entry's key from stdin, one line; pipe it in, never type it into a command.";
@@ -164,7 +164,7 @@ struct EditArgs {
 #[serde(deny_unknown_fields)]
 struct AccountArgs {
     entry: String,
-    /// The account's label or id, as `demi providers accounts list` shows them.
+    /// The account's label or id, as `jush providers accounts list` shows them.
     account: String,
 }
 
@@ -198,7 +198,7 @@ struct ContextArgs {
     size: String,
 }
 
-/// `context --json`: the window Demi uses for the model now.
+/// `context --json`: the window Jush uses for the model now.
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct ModelContext {
@@ -727,7 +727,7 @@ async fn edit(shard: Rc<Shard>, call: Call<EditArgs>, port: RpcPort) -> Result<u
         let (patch, left) = entry_patch(&shown, args.patch.as_deref().unwrap_or_default())?;
         if !left.is_empty() {
             let what = format!(
-                "{}: not the entry's, which edit leaves as they are; `demi providers hide`, `unhide` and `accounts` change what is the user's",
+                "{}: not the entry's, which edit leaves as they are; `jush providers hide`, `unhide` and `accounts` change what is the user's",
                 left.join(", ")
             );
             port.stderr(warning(&command, &what)).await?;
@@ -800,7 +800,7 @@ fn entry_patch(shown: &ShownEntry, text: &str) -> Result<(Option<ProviderPatch>,
         return Err(failed(if entry.get(field).is_some() {
             format!("{field}: the entry's own, which no edit changes")
         } else {
-            format!("{field}: no such setting; `demi providers show --json` prints each")
+            format!("{field}: no such setting; `jush providers show --json` prints each")
         }));
     }
     let patch = serde_json::from_value(serde_json::Value::Object(changes)).map_err(|error| failed(format!("stdin: {error}")))?;
@@ -842,7 +842,7 @@ async fn set_context(shard: Rc<Shard>, call: Call<ContextArgs>, port: RpcPort) -
         .and_then(|catalog| catalog.models.iter().find(|offered| offered.model.id == args.model))
     else {
         return Err(failed(format!(
-            "{} offers no model {}; `demi providers show {}` lists its models",
+            "{} offers no model {}; `jush providers show {}` lists its models",
             entry.label,
             args.model,
             entry.id.as_str()
@@ -850,7 +850,7 @@ async fn set_context(shard: Rc<Shard>, call: Call<ContextArgs>, port: RpcPort) -
     };
     let Some(window) = model.model.context_window else {
         return Err(failed(format!(
-            "{}'s window is unknown, so no limit applies to it; `demi providers models edit --context` gives it one",
+            "{}'s window is unknown, so no limit applies to it; `jush providers models edit --context` gives it one",
             args.model
         )));
     };
@@ -874,11 +874,11 @@ async fn set_context(shard: Rc<Shard>, call: Call<ContextArgs>, port: RpcPort) -
         }),
         ..PreferencesPatch::default()
     };
-    let checked = demi_backend_accounts::settings::check(patch).map_err(failed)?;
+    let checked = jush_backend_accounts::settings::check(patch).map_err(failed)?;
     let services = shard.services();
     services
         .control
-        .patch_preferences(user.id.clone(), move |saved| demi_backend_accounts::settings::merge(saved, checked))
+        .patch_preferences(user.id.clone(), move |saved| jush_backend_accounts::settings::merge(saved, checked))
         .await
         .map_err(failed)?;
     services.sync.mark(&user.id, Part::Preferences);
@@ -935,7 +935,7 @@ async fn show_in_menu(
             .is_some_and(|catalog| catalog.models.iter().any(|offered| offered.model.id == *model));
         if !offered {
             return Err(failed(format!(
-                "--model: {} offers no model {model}; `demi providers show {}` lists its models",
+                "--model: {} offers no model {model}; `jush providers show {}` lists its models",
                 entry.label,
                 id.as_str()
             )));
@@ -1052,7 +1052,7 @@ fn account_named(accounts: &[AccountInfo], named: &str) -> Result<CredentialId, 
                 [account] => *account,
                 [] => {
                     return Err(failed(format!(
-                        "no account is labeled or has the id \"{named}\"; `demi providers accounts list` lists them"
+                        "no account is labeled or has the id \"{named}\"; `jush providers accounts list` lists them"
                     )));
                 }
                 several => {
@@ -1208,7 +1208,7 @@ async fn add_model(
                 .map_err(failed)?
                 .ok_or_else(|| {
                     failed(format!(
-                        "models.dev lists no model \"{reference}\"; `demi providers models search` finds one"
+                        "models.dev lists no model \"{reference}\"; `jush providers models search` finds one"
                     ))
                 })?,
         ),
@@ -1368,7 +1368,7 @@ pub(crate) fn named<'a>(
     match matching.as_slice() {
         [entry] => Ok(entry),
         [] => Err(format!(
-            "no provider entry is named or has the id \"{named}\"; `demi providers list` lists them"
+            "no provider entry is named or has the id \"{named}\"; `jush providers list` lists them"
         )),
         several => {
             let ids: Vec<&str> = several.iter().map(|entry| entry.id.as_str()).collect();
@@ -1438,7 +1438,7 @@ fn wire_fields_for(entry: &ProviderEntry, fields: &ModelFields) -> Result<(), Rp
 fn owned_list(entry: &ProviderEntry) -> Result<Vec<ConfiguredModel>, RpcError> {
     list_of(entry)?.ok_or_else(|| {
         failed(format!(
-            "{} has no model list of its own: its models come from its vendor or its provider; `demi providers models add` starts one",
+            "{} has no model list of its own: its models come from its vendor or its provider; `jush providers models add` starts one",
             entry.label
         ))
     })
@@ -1451,7 +1451,7 @@ fn listed(entry: &ProviderEntry, models: &[ConfiguredModel], id: &str) -> Result
         .position(|model| model.id.as_str() == id)
         .ok_or_else(|| {
             failed(format!(
-                "{} has no model \"{id}\" in its list; `demi providers show {}` shows it",
+                "{} has no model \"{id}\" in its list; `jush providers show {}` shows it",
                 entry.label, entry.id
             ))
         })
@@ -1678,7 +1678,7 @@ async fn answer(port: &RpcPort, json_output: bool, shown: ShownEntry) -> Result<
     out(port, shown.render()).await
 }
 
-fn tiers(tiers: &[demi_shared_types::ServiceTier]) -> Vec<String> {
+fn tiers(tiers: &[jush_shared_types::ServiceTier]) -> Vec<String> {
     tiers.iter().map(|tier| tier.id.clone()).collect()
 }
 

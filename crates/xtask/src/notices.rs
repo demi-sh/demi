@@ -80,9 +80,9 @@ struct Library {
 /// The libraries a program carries that are neither Rust crates nor npm
 /// packages:
 ///
-/// - idb's libraries and guest bridge, in demi-mobile's iOS helper
+/// - idb's libraries and guest bridge, in jush-mobile's iOS helper
 ///   (`crates/plugin-mobile/command/build.rs`).
-/// - openatx's UI automation server, demi-mobile's Android helper.
+/// - openatx's UI automation server, jush-mobile's Android helper.
 /// - Cisco's OpenH264 binary, which the device's programs download to encode
 ///   where the device has no hardware encoder and to decode a recording's
 ///   frames, and whose binary license asks the product to credit it
@@ -474,7 +474,7 @@ fn crates(repository: &Path) -> Result<Vec<Notice>, Error> {
 /// The notices as the file holds them.
 fn render(crates: &[Notice], packages: &[Notice], libraries: &[Notice]) -> String {
     let mut out = "Third-party notices\n\n\
-         Demi includes the third-party software below. Each notice names the\n\
+         Jush includes the third-party software below. Each notice names the\n\
          packages under one license text, then gives the text.\n"
         .to_owned();
     for (title, notices) in [("Rust crates", crates), ("npm packages", packages), ("Other libraries", libraries)] {

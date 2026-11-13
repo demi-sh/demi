@@ -8,7 +8,7 @@
 
 use std::io::Write;
 
-use demi_shared_h264::bitstream::units;
+use jush_shared_h264::bitstream::units;
 
 use crate::Error;
 

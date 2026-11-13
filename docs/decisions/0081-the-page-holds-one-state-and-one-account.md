@@ -82,18 +82,18 @@ signed-in account and is the only one that names it:
 
 | Kept | Where |
 | --- | --- |
-| The copy, the conversations, their nodes and blocks | IndexedDB `demi-offline` |
-| The drafts | IndexedDB `demi-drafts`, by account |
-| The plugins' cache of a Host's files | IndexedDB `demi-plugin-cache` |
-| The folded projects, a draft's last words | `localStorage`, `demi.preferences.<account>`, `demi.draft.<account>.*` |
-| The devices' measured paths | `localStorage`, `demi.deviceMeasured.*` |
-| Which account the data is | `localStorage`, `demi.account` |
+| The copy, the conversations, their nodes and blocks | IndexedDB `jush-offline` |
+| The drafts | IndexedDB `jush-drafts`, by account |
+| The plugins' cache of a Host's files | IndexedDB `jush-plugin-cache` |
+| The folded projects, a draft's last words | `localStorage`, `jush.preferences.<account>`, `jush.draft.<account>.*` |
+| The devices' measured paths | `localStorage`, `jush.deviceMeasured.*` |
+| Which account the data is | `localStorage`, `jush.account` |
 
 * The browser holds one account's data at a time. A sign-in of another
-  account than `demi.account` names forgets the one before first.
+  account than `jush.account` names forgets the one before first.
 * A sign-out forgets the account: the user's Sign Out, and a session that
   ended, which an answer of 401 or the channel's `session_ended` says.
-  Every store above is emptied, then `demi.account` goes.
+  Every store above is emptied, then `jush.account` goes.
 * A draft not yet saved to the backend, one written while offline, goes
   with the account.
 * What belongs to the browser stays: the theme, the language, the
@@ -122,7 +122,7 @@ read nothing before.
 
 ## Prior art
 
-None followed. Demi's own lists of Settings already hold the rule this
+None followed. Jush's own lists of Settings already hold the rule this
 record gives every part: missing until read, loading meanwhile.
 
 ## Alternatives

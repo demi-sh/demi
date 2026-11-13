@@ -135,7 +135,7 @@ pub struct Group<B = Binding> {
     /// - when to use it, as the situations a user would describe;
     /// - when not to, where a common alternative is better;
     /// - where the product needs the model to use it one way, as every change
-    ///   the user is to see goes through `demi file edit`: that rule, its
+    ///   the user is to see goes through `jush file edit`: that rule, its
     ///   reason, what one call can do, and a call to copy, at the margin. A
     ///   model takes up a command by the example it has seen, and holds to a
     ///   rule only with its reason beside it.
@@ -163,13 +163,13 @@ pub struct Group<B = Binding> {
     pub subcommands: Vec<Node<B>>,
 }
 
-/// One power over Demi itself that a user allows for a conversation.
+/// One power over Jush itself that a user allows for a conversation.
 ///
 /// It is what the user decides on, so it never changes meaning while a grant of
 /// it may exist: a group that needs a broader power declares a new category.
 ///
 /// A leaf of a `native` command names none. It runs on the device, where it can
-/// act only on the device and never on Demi itself, and its dispatch on the
+/// act only on the device and never on Jush itself, and its dispatch on the
 /// runner has no grants to check.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

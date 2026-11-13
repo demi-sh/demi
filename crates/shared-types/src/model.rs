@@ -92,7 +92,7 @@ pub const VIDEO_FILE_EXTENSIONS: [FileExtension; 4] = [
 
 /// Whether a model whose catalog lists `accepted` reads `extension`
 /// natively: yes, no, or unknown (`None`) when the catalog does not say.
-/// Where Demi decides whether to give a file natively, only a yes counts.
+/// Where Jush decides whether to give a file natively, only a yes counts.
 pub fn file_extension_support(
     accepted: Option<&[FileExtension]>,
     extension: FileExtension,
@@ -207,7 +207,7 @@ serde_plain::derive_fromstr_from_deserialize!(ThinkingSummary);
 /// How a model takes a reasoning level on the Messages API: `effort`, as
 /// Anthropic's adaptive thinking at the level, or `budget`, as the level's
 /// number of tokens. The variants carry no doc comments of their own, which
-/// would make the schema a union that `demi providers models` cannot take as
+/// would make the schema a union that `jush providers models` cannot take as
 /// an option.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]

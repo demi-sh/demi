@@ -1,6 +1,6 @@
 ---
 name: Idea
-about: Something Demi could do
+about: Something Jush could do
 labels: idea
 ---
 
@@ -8,4 +8,4 @@ labels: idea
 
 **What gets in the way today**
 
-**What you would like Demi to do**
+**What you would like Jush to do**

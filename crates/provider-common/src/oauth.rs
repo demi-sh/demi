@@ -204,7 +204,7 @@ const BASE64_URL: GeneralPurpose = GeneralPurpose::new(
 
 /// The claims of a JWT, read without verifying its signature.
 ///
-/// The vendor that receives the token decides whether it is good, and Demi
+/// The vendor that receives the token decides whether it is good, and Jush
 /// reads only the account's identity and the token's expiry. `None` when the
 /// token is not three segments, its payload is not base64url JSON, or the
 /// claims are not a `C`. `C` reads a claim of the wrong type as absent where a

@@ -1,11 +1,11 @@
-//! The limits a user may set on the context window Demi uses for a model:
+//! The limits a user may set on the context window Jush uses for a model:
 //! any size below the model's window, of which the model menu offers a few
 //! steps to pick.
 //!
-//! The steps and their lookups are generated into `@demicodes/protocol`, so the
+//! The steps and their lookups are generated into `@jush-ai/protocol`, so the
 //! model menu shows what a session applies.
 //!
-//! A limit replaces the model's window wherever Demi uses the window for
+//! A limit replaces the model's window wherever Jush uses the window for
 //! itself, the compaction thresholds and the usage indicator. It changes
 //! nothing a vendor receives or enforces: the request limits and the check that
 //! a reported usage can belong to one request still follow the model's own
@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 
 /// One limit the model menu offers, and the smallest context window it
 /// offers it on. Its schema types the table the page receives in
-/// `@demicodes/protocol`.
+/// `@jush-ai/protocol`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ContextLimitStep {
@@ -61,7 +61,7 @@ pub fn applied_context_limit(window: u32, limit: Option<u32>) -> Option<u32> {
     limit.filter(|limit| *limit < window)
 }
 
-/// The window Demi uses for a model whose context window is `window` when
+/// The window Jush uses for a model whose context window is `window` when
 /// the user stored `limit` on it.
 pub fn effective_context_window(window: u32, limit: Option<u32>) -> u32 {
     applied_context_limit(window, limit).unwrap_or(window)
@@ -74,7 +74,7 @@ pub fn offers_context(window: u32, tokens: u32) -> bool {
     tokens >= 1 && tokens <= window
 }
 
-/// The window Demi uses for a session on a model whose context window is
+/// The window Jush uses for a session on a model whose context window is
 /// `window`: the profile's own Context `own` when its subagent's profile set
 /// one, else the user's `limit`. Either holds while the window offers it, else
 /// the full window.
@@ -85,8 +85,8 @@ pub fn session_context_window(window: u32, own: Option<u32>, limit: Option<u32>)
     effective_context_window(window, own.or(limit))
 }
 
-/// A subagent profile's Context as `demi agent profiles --context` and a
-/// workflow's `context:` name it, and a model's limit as `demi providers
+/// A subagent profile's Context as `jush agent profiles --context` and a
+/// workflow's `context:` name it, and a model's limit as `jush providers
 /// context` does (`crates/agent-server/src/server/tree/profiles.rs`): `default`, the user's limit;
 /// `full`, the model's whole window; or a size, such as `350K`, `1M` or
 /// `272000`.

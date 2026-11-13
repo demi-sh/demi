@@ -61,8 +61,8 @@ use tokio_tungstenite::{
 };
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_command_package_browser_protocol::capture::{self as extension, CaptureCommand};
-use demi_shared_types::DecodeError;
+use jush_command_package_browser_protocol::capture::{self as extension, CaptureCommand};
+use jush_shared_types::DecodeError;
 
 use crate::driver::operation::{BrowserError, Result};
 use crate::traced::SpawnTraced as _;
@@ -128,8 +128,8 @@ fn opening_failed(name: Option<&str>, message: &str) -> String {
 }
 
 /// One encoded picture of a capture, and what a capture reports: the live
-/// view's (`demi_live_view::stream`), which every source of pictures shares.
-pub use demi_live_view::stream::{CaptureEvent, EncodedFrame as Frame};
+/// view's (`jush_live_view::stream`), which every source of pictures shares.
+pub use jush_live_view::stream::{CaptureEvent, EncodedFrame as Frame};
 
 /// What a recording's capture reports.
 #[derive(Debug)]
@@ -779,7 +779,7 @@ impl Owner {
             target,
             width,
             height,
-            key_interval: demi_shared_recording::KEY_INTERVAL,
+            key_interval: jush_shared_recording::KEY_INTERVAL,
         };
         if connection.commands.try_send(command).is_err() {
             self.recreate("it is not keeping up");

@@ -5,13 +5,13 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret, endpoint_url,
     media::{Ask, Holding, MediaAnswer, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor},
     media_catalog::Catalog,
     videos::{self, JobRef, JobState, VideoMaker, VideoRequest, xai},
 };
-use demi_shared_types::Clock;
+use jush_shared_types::Clock;
 use futures_util::future::BoxFuture;
 use reqwest::{
     Url,
@@ -44,7 +44,7 @@ impl KeyVideos {
     }
 
     /// Sends `ask` with the key's headers and answers the vendor's success.
-    async fn send(&self, http: &demi_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
+    async fn send(&self, http: &jush_provider_common::ProviderHttp, ask: Ask) -> MediaAnswer<Bytes> {
         let headers = self.headers();
         key_call(true, &*self.clock)
             .send(http, ask, Holding::Json, |_| std::future::ready(Ok((headers.clone(), None))))
@@ -65,7 +65,7 @@ impl MediaMaker for KeyVideos {
     /// xAI's listing of the key's video models, read when asked.
     fn models<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(async move {
@@ -78,18 +78,18 @@ impl MediaMaker for KeyVideos {
 
 impl VideoMaker for KeyVideos {
     /// xAI's address is temporary and takes no header.
-    fn download<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, url: &'a Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
+    fn download<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, url: &'a Url) -> BoxFuture<'a, MediaAnswer<Bytes>> {
         Box::pin(videos::download("xAI", &*self.clock, http, url, &self.base, HeaderMap::new()))
     }
 
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a Catalog, request: VideoRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(async move {
             let url = self.url("/videos/generations");
             self.send(http, Ask::post_json(&url, xai::encode(&request))).await.and_then(|body| xai::read_asked(&body))
         })
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState>> {
         Box::pin(async move {
             let url = self.url(&format!("/videos/{}", job.id));
             self.send(http, Ask::get(&url)).await.and_then(|body| xai::read_state(&body))

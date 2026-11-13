@@ -1,7 +1,7 @@
 //! Uploads: a file's bytes go to the caller's blobs with one attachment record,
 //! and a send, steer or edit frame names the upload by its id.
 
-use demi_shared_types::{BlobRef, MAX_SAFE_INTEGER, Nullable, Timestamp};
+use jush_shared_types::{BlobRef, MAX_SAFE_INTEGER, Nullable, Timestamp};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -77,4 +77,4 @@ pub struct AttachmentDto {
 
 /// An attachment as a reply shows it, which a share's
 /// `GET /shares/:token/attachments/:attachment` answers.
-pub use demi_conversation_lane_protocol::{AttachmentSourceDto, ConversationAttachment};
+pub use jush_conversation_lane_protocol::{AttachmentSourceDto, ConversationAttachment};

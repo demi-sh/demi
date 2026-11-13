@@ -17,7 +17,7 @@
 //! every piece.
 //!
 //! Doubao Speech makes Seed speech as a long-text job too, which outlives a
-//! restart of the server, and Demi asks it so: `POST /api/v3/tts/submit`
+//! restart of the server, and Jush asks it so: `POST /api/v3/tts/submit`
 //! takes the same request and headers, with an `X-Api-Request-Id` of the
 //! request's own, and answers `data.task_id`; `POST /api/v3/tts/query` with
 //! the `task_id` reads `data.task_status`, 1 while it runs, 2 done with the
@@ -54,7 +54,7 @@
 use std::sync::Arc;
 
 use bytes::{Bytes, BytesMut};
-use demi_provider_common::{
+use jush_provider_common::{
     Secret,
     audio::{AudioFormatAsk, AudioMaker, AudioOption, AudioRequest, MadeAudio, Voice, searched, unsent_of},
     endpoint_url, json_body,
@@ -66,8 +66,8 @@ use demi_provider_common::{
     media_catalog::{AudioOutput, Catalog, MediaKind, Voices},
     read_http_failure, videos,
 };
-use demi_shared_types::audio::Pcm;
-use demi_shared_types::{AudioKind, B64Bytes, Clock, VendorTrace};
+use jush_shared_types::audio::Pcm;
+use jush_shared_types::{AudioKind, B64Bytes, Clock, VendorTrace};
 use futures_util::future::BoxFuture;
 use reqwest::{
     StatusCode, Url,
@@ -155,10 +155,10 @@ impl SeedAudio {
     /// Posts `body` to `path`, answering the body of the service's success
     /// and the `X-Tt-Logid` that names the request, which a failure its
     /// body states is traced by.
-    async fn post(&self, http: &demi_provider_common::ProviderHttp, path: &str, body: Vec<u8>, headers: HeaderMap) -> MediaAnswer<Answered> {
+    async fn post(&self, http: &jush_provider_common::ProviderHttp, path: &str, body: Vec<u8>, headers: HeaderMap) -> MediaAnswer<Answered> {
         let url = endpoint_url(&self.base, path);
         self.call()
-            .send(http, demi_provider_common::media::Ask::post_json(&url, Bytes::from(body)), Holding::Json, |_| {
+            .send(http, jush_provider_common::media::Ask::post_json(&url, Bytes::from(body)), Holding::Json, |_| {
                 std::future::ready(Ok((headers.clone(), None)))
             })
             .await
@@ -203,7 +203,7 @@ impl SeedAudio {
 
     /// Doubao's long-text job of Seed speech `request`, its request id one
     /// of its own.
-    async fn submit(&self, http: &demi_provider_common::ProviderHttp, request: AudioRequest) -> MediaAnswer<String> {
+    async fn submit(&self, http: &jush_provider_common::ProviderHttp, request: AudioRequest) -> MediaAnswer<String> {
         let format = match request.format {
             AudioFormatAsk::Mp3 | AudioFormatAsk::Flac => "mp3",
             AudioFormatAsk::Opus => "ogg_opus",
@@ -230,7 +230,7 @@ impl SeedAudio {
         headers
     }
 
-    async fn speak(&self, http: &demi_provider_common::ProviderHttp, request: AudioRequest) -> MediaAnswer<MadeAudio> {
+    async fn speak(&self, http: &jush_provider_common::ProviderHttp, request: AudioRequest) -> MediaAnswer<MadeAudio> {
         let (format, pcm) = match request.format {
             AudioFormatAsk::Mp3 | AudioFormatAsk::Flac => ("mp3", None),
             AudioFormatAsk::Opus => ("ogg_opus", None),
@@ -256,7 +256,7 @@ impl SeedAudio {
 
     /// Seed Audio's speech or effect: the text to speak, or the effect to
     /// make, after the instructions, with the speaker for speech.
-    async fn create(&self, http: &demi_provider_common::ProviderHttp, request: AudioRequest) -> MediaAnswer<MadeAudio> {
+    async fn create(&self, http: &jush_provider_common::ProviderHttp, request: AudioRequest) -> MediaAnswer<MadeAudio> {
         let format = match request.format {
             AudioFormatAsk::Mp3 | AudioFormatAsk::Flac => "mp3",
             AudioFormatAsk::Opus => "ogg_opus",
@@ -409,7 +409,7 @@ impl MediaMaker for SeedAudio {
 
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(self.listed(catalog))))
@@ -417,7 +417,7 @@ impl MediaMaker for SeedAudio {
 
     fn check_key<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(async move {
@@ -440,7 +440,7 @@ impl AudioMaker for SeedAudio {
 
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         request: AudioRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeAudio>> {
@@ -488,7 +488,7 @@ impl AudioMaker for SeedAudio {
     /// speech 2.0's.
     fn voices<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         model: &'a str,
         search: Option<&'a str>,
@@ -507,11 +507,11 @@ impl AudioMaker for SeedAudio {
 }
 
 impl Jobs<AudioRequest, MadeAudio> for SeedAudio {
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a Catalog, request: AudioRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a Catalog, request: AudioRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(self.submit(http, request))
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeAudio>>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeAudio>>> {
         Box::pin(async move {
             let body = json_body(&Query { task_id: job.id });
             let read = self.post(http, "/api/v3/tts/query", body, self.job_headers(job.model)).await;

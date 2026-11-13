@@ -159,8 +159,8 @@ check-cfg = [
     "cfg(wasi_runner)",
 ]
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "Files, streams, the environment, printing and exit go through uucore::context, so a run embedded in a shell job uses the job's working directory, environment, standard streams and cancellation, and exit ends only the utility",
     "No run starts a thread of its own that outlives it, changes the process's signals or locale, or reads the process's descriptors: the progress timer reads the clock when asked, SIGUSR1 does not ask for a report, conv=lcase and conv=ucase use the C locale, and standard input, standard output and its seekability are the job's own",

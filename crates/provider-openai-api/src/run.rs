@@ -3,11 +3,11 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceRequest, PromptCache, ProviderEvent, ProviderFailure, encode_body, http_failure, read_http_failure,
     wire::{Vendor, chat_completions, responses::{self, RecordOwner}},
 };
-use demi_shared_types::{CacheTtl, WireApi};
+use jush_shared_types::{CacheTtl, WireApi};
 use futures_util::{Stream, StreamExt};
 use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 
@@ -21,7 +21,7 @@ const LABEL: &str = "OpenAI";
 /// event, and dropping the stream drops the connection.
 pub(crate) fn run(
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     request: InferenceRequest,
 ) -> impl Stream<Item = ProviderEvent> {
     async_stream::stream! {

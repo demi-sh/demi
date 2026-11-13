@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { TitleText } from '@demicodes/web-ui/ui/ui-text'
+import type { TitleText } from '@jush-ai/web-ui/ui/ui-text'
 import { t } from './locales/text'
 
 export type GalleryViewOption = {

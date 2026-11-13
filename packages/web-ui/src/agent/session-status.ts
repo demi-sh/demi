@@ -3,7 +3,7 @@ import type { ShownError } from '../infra/errors'
 import { isCompactionDivider } from './visible-blocks'
 import type { MenuDevice } from '../targets/types'
 import { t } from './locales/text'
-import type { SessionPhase } from '@demicodes/protocol'
+import type { SessionPhase } from '@jush-ai/protocol'
 
 /** Sidebar conversation list, or a session that is not reconnecting. */
 export type ListLoad = 'ready' | 'loading' | 'failed'

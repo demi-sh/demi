@@ -5,7 +5,7 @@
 use std::borrow::Cow;
 use std::time::Duration;
 
-use demi_shared_types::TokenUsage;
+use jush_shared_types::TokenUsage;
 use serde::Deserialize;
 
 use crate::{CallOutcome, VendorCall};

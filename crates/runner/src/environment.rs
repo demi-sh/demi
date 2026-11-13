@@ -12,20 +12,20 @@
 //!
 //! # What is removed and added
 //!
-//! `DEMI_*` names and, on Windows, the `=C:`-style per-drive entries are taken
+//! `JUSH_*` names and, on Windows, the `=C:`-style per-drive entries are taken
 //! away:
 //!
-//! - The `DEMI_*` names configure the runner or belong to whatever started it,
+//! - The `JUSH_*` names configure the runner or belong to whatever started it,
 //!   and none is meant for the programs it starts. A job that reads
-//!   `DEMI_RELEASE_ID` to choose a release would otherwise read the runner's.
+//!   `JUSH_RELEASE_ID` to choose a release would otherwise read the runner's.
 //! - cmd keeps the per-drive entries, and no program may be given them back.
 //!
 //! The same environment reaches jobs, raw processes and residents.
-//! Runner-owned variables (the endpoint, the context handle, `DEMI_HOME`,
-//! `DEMI_SCRATCH_ROOT`, the alias directory on `PATH`) override caller
+//! Runner-owned variables (the endpoint, the context handle, `JUSH_HOME`,
+//! `JUSH_SCRATCH_ROOT`, the alias directory on `PATH`) override caller
 //! values.
 //!
-//! On Windows the `usr\bin` of Git for Windows, where the utilities Demi does
+//! On Windows the `usr\bin` of Git for Windows, where the utilities Jush does
 //! not run itself are, is in `PATH`, at its end where the device's has none
 //! (`git.rs`).
 //!
@@ -42,9 +42,9 @@ pub const PRINT: &str = "environment";
 
 /// Set while the login shell runs, so that a user's shell file can tell
 /// this start from a person's, as `VSCODE_RESOLVING_ENVIRONMENT` does; a
-/// `DEMI_` name, so the device environment never carries it.
+/// `JUSH_` name, so the device environment never carries it.
 #[cfg(unix)]
-const RESOLVING: &str = "DEMI_RESOLVING_ENVIRONMENT";
+const RESOLVING: &str = "JUSH_RESOLVING_ENVIRONMENT";
 
 /// How long the login shell may take.
 #[cfg(unix)]
@@ -56,7 +56,7 @@ pub fn print(mark: &str) -> std::io::Result<()> {
     use std::io::Write as _;
     // As a job's shell reads it, a value that is no UTF-8 included, where
     // `std::env::vars` fails at one.
-    let env: BTreeMap<String, String> = demi_runner_shell::device_environment().collect();
+    let env: BTreeMap<String, String> = jush_runner_shell::device_environment().collect();
     let json = serde_json::to_string(&env).map_err(std::io::Error::other)?;
     let mut stdout = std::io::stdout().lock();
     write!(stdout, "{mark}{json}{mark}")?;
@@ -107,7 +107,7 @@ pub async fn login_environment(
             .args(arguments)
             .arg(script)
             .env_clear()
-            .envs(own.iter().map(|(name, value)| (name, demi_runner_shell::bytes::to_os(value))))
+            .envs(own.iter().map(|(name, value)| (name, jush_runner_shell::bytes::to_os(value))))
             .env(RESOLVING, "1")
             .stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::piped())

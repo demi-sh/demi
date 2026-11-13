@@ -11,7 +11,7 @@
 //! the host reaches this namespace the same way.
 //!
 //! ```text
-//! /run/demi-machine-manager/netns/demi-3   a bind of the slot's namespace file
+//! /run/jush-machine-manager/netns/jush-3   a bind of the slot's namespace file
 //! ```
 
 use std::{

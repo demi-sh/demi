@@ -1,6 +1,6 @@
 //! The Claude Code provider: a `claude-code` subscription entry's account,
 //! signed in by the CLI's own login on the Claude Code machine, inferring
-//! through Demi's own copy of the vendor's CLI.
+//! through Jush's own copy of the vendor's CLI.
 //!
 //! - A session's runtime keeps one CLI process and exchanges stream-json with
 //!   it over the `shell` process a [`Placement`] starts.
@@ -8,12 +8,12 @@
 //!   whose entries the CLI mirrors back onto them.
 //! - Every process of an account runs in the account's one directory, where the
 //!   CLI keeps and renews the sign-in itself.
-//! - The model's tools reach Demi over the SDK MCP channel, an rmcp server
+//! - The model's tools reach Jush over the SDK MCP channel, an rmcp server
 //!   inside the run, with the model's parallel tool batches kept whole.
 //! - The catalog is models.dev's Claude models, and the account's quota comes
 //!   from the CLI's own usage answer and from the rate limits its lines report.
 //!
-//! The CLI is Demi's own verified copy, never a `claude` found on `PATH`, and
+//! The CLI is Jush's own verified copy, never a `claude` found on `PATH`, and
 //! is started with no tools of its own and no device configuration, so it is a
 //! channel to the vendor and nothing else. It does not touch the project,
 //! which is why where it runs is a choice and not a consequence of where the
@@ -66,14 +66,14 @@ mod timing;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_command_package_claude_code_protocol::PACKAGE;
-use demi_provider_common::credentials::{Accounts, CredentialPool, SubscriptionAccounts};
-use demi_provider_common::models_dev::ModelsDevClient;
-use demi_provider_common::quota::{ProviderQuota, QuotaSnapshotStore};
-use demi_provider_common::{
+use jush_command_package_claude_code_protocol::PACKAGE;
+use jush_provider_common::credentials::{Accounts, CredentialPool, SubscriptionAccounts};
+use jush_provider_common::models_dev::ModelsDevClient;
+use jush_provider_common::quota::{ProviderQuota, QuotaSnapshotStore};
+use jush_provider_common::{
     Capabilities, CatalogError, Provider, ProviderRuntime, RuntimeEnv, RuntimeError, Searches,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     AuthState, Clock, ProviderErrorDiagnostics, ProviderFailureFacts, ProviderModelList,
     RuntimeState, Timestamp,
 };
@@ -317,7 +317,7 @@ impl Provider for ClaudeCodeProvider {
 /// a request, for the compaction tests.
 #[cfg(feature = "testing")]
 pub mod testing {
-    use demi_provider_common::InferenceRequest;
+    use jush_provider_common::InferenceRequest;
 
     /// The entries of the session a new CLI process resumes for `request`, one
     /// JSON line each, after the `environment` entry, written at `timestamp`.

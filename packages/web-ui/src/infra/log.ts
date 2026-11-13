@@ -10,7 +10,7 @@
  * ```
  *
  * - The page names its load with an ID, `PAGE_ID`, which every request carries
- *   in `X-Demi-Page` and the page connection in its URL, so the backend's lines of a
+ *   in `X-Jush-Page` and the page connection in its URL, so the backend's lines of a
  *   request this page made are found beside these lines.
  * - A line names things by ID and counts their sizes: scalars only. Text the
  *   user typed and page content never go into one. Nothing is cut: a field is
@@ -85,7 +85,7 @@ function makePageId(): string {
 export const PAGE_ID = makePageId()
 
 /** The header every request of the page carries `PAGE_ID` in, and the parameter of the page connection's URL. */
-export const PAGE_HEADER = 'X-Demi-Page'
+export const PAGE_HEADER = 'X-Jush-Page'
 export const PAGE_PARAMETER = 'page'
 
 /** How long lines wait for company before they are sent. */
@@ -106,7 +106,7 @@ const HIDDEN_BYTES = 16 * 1024
 /** The event of a failure the page found itself (`logPageError`). */
 const ERROR_EVENT = 'error.reported'
 const EVENT = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/
-const DROPPED_KEY = 'demi.page-log.dropped'
+const DROPPED_KEY = 'jush.page-log.dropped'
 /**
  * The most lines the page holds while it cannot send: signed out, or without a
  * network, or a page, such as the gallery, that sends none. The oldest go, and the

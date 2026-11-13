@@ -8,17 +8,17 @@
 //!   `StreamWatched`), which decides whether the stream is activity.
 
 use axum::http::StatusCode;
-use demi_backend_user_shard::shard::lane::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::UserId;
+use jush_backend_user_shard::shard::lane::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::UserId;
 use tokio_util::sync::CancellationToken;
 
 use super::AppState;
 use super::connection::Opened;
 use super::conversations::owned;
 use super::error::ApiError;
-use demi_backend_device_access::stream::UserStream;
-use demi_runner_protocol::direct::StreamWatched;
+use jush_backend_device_access::stream::UserStream;
+use jush_runner_protocol::direct::StreamWatched;
 
 /// The stream `name` of the caller's conversation `id`: everything that can
 /// refuse it refuses the open, the device's opening of it included.

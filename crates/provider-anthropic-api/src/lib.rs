@@ -8,11 +8,11 @@ mod stream;
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     Capabilities, InferenceRequest, OfferedModel, Provider, ProviderHttp, ProviderRun, ProviderRuntime,
     ModelWires, RequestLimits, ToolResultKinds, RuntimeEnv, RuntimeError, Secret, endpoint_url, read_http_failure,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     AuthState, CacheTtl, Clock, Model, ProviderErrorDiagnostics, ProviderFailureFacts,
     RuntimeState, Timestamp,
 };
@@ -144,7 +144,7 @@ impl Provider for AnthropicProvider {
 /// A session's runtime: it holds nothing between runs.
 struct AnthropicRuntime {
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
 }
 
 impl ProviderRuntime for AnthropicRuntime {

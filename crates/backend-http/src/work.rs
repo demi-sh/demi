@@ -16,9 +16,9 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_plugin_host::WorkError;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::work::{WORK_BYTES_MAX, WorkAnswer, WorkChanges};
+use jush_plugin_host::WorkError;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::work::{WORK_BYTES_MAX, WorkAnswer, WorkChanges};
 
 use super::AppState;
 use super::body::JsonBody;

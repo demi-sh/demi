@@ -87,7 +87,7 @@ model.
 
 - [Langfuse](https://langfuse.com/docs/prompt-management/features/link-to-traces)
   links each generation to the prompt version that made it and sums latency,
-  cost and scores per version, the comparison this table allows. Demi keeps the
+  cost and scores per version, the comparison this table allows. Jush keeps the
   few columns it needs in its own database, and takes the version from a hash.
 - [Open WebUI](https://docs.openwebui.com/features/chat-conversations/chat-features/follow-up-prompts)
   shows follow-up prompts on the latest answer and, with a setting, keeps them

@@ -40,11 +40,11 @@ use std::{
 };
 
 use comrak::{Arena, nodes::NodeValue, parse_document};
-use demi_agent_session::{AgentSession, SessionEvent, Subscription};
-use demi_agent_tools::DeviceResolver;
-use demi_agent_transcript::{has_scheme, markdown_options, picture_path};
-use demi_conversation_lane_protocol::TranscriptPatch;
-use demi_shared_types::{Block, BlockId, CodeFile, NodeId, PictureCopy, PictureFailure, TextBlock};
+use jush_agent_session::{AgentSession, SessionEvent, Subscription};
+use jush_agent_tools::DeviceResolver;
+use jush_agent_transcript::{has_scheme, markdown_options, picture_path};
+use jush_conversation_lane_protocol::TranscriptPatch;
+use jush_shared_types::{Block, BlockId, CodeFile, NodeId, PictureCopy, PictureFailure, TextBlock};
 use futures_util::future::LocalBoxFuture;
 use regex::Regex;
 use tokio::task::JoinSet;
@@ -281,7 +281,7 @@ pub(crate) struct Following {
 /// revision.
 async fn ask<H: DeviceResolver>(
     text: TextBlock,
-    session: demi_agent_session::WeakSession,
+    session: jush_agent_session::WeakSession,
     runtime: Weak<NodeRuntime<H>>,
     files: Rc<dyn ReplyFiles>,
 ) {
@@ -328,7 +328,7 @@ async fn ask<H: DeviceResolver>(
     keep(&session, &text.id, kept);
 }
 
-fn keep(session: &demi_agent_session::WeakSession, id: &BlockId, files: Vec<CodeFile>) {
+fn keep(session: &jush_agent_session::WeakSession, id: &BlockId, files: Vec<CodeFile>) {
     if let Some(session) = session.upgrade() {
         session.keep_code_files(id, files);
     }
@@ -343,7 +343,7 @@ fn keep(session: &demi_agent_session::WeakSession, id: &BlockId, files: Vec<Code
 /// when the copying starts, read against its working directory then.
 async fn copy<H: DeviceResolver>(
     text: TextBlock,
-    session: demi_agent_session::WeakSession,
+    session: jush_agent_session::WeakSession,
     runtime: Weak<NodeRuntime<H>>,
     files: Rc<dyn ReplyFiles>,
 ) {

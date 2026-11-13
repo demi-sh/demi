@@ -1,10 +1,10 @@
 //! The user's port forwards (`crates/backend-user-shard/src/shard/port_forwards.rs`): what Settings › Port
-//! Forwarding and `demi device forward` read and send, and the rules an
+//! Forwarding and `jush device forward` read and send, and the rules an
 //! address follows wherever it arrives. A forward is its route, where it
 //! listens and where it connects; nothing names it.
 
-use demi_runner_protocol::forward::{ADDRESS_CHARS, ForwardRunState};
-use demi_shared_types::{Nullable, Timestamp};
+use jush_runner_protocol::forward::{ADDRESS_CHARS, ForwardRunState};
+use jush_shared_types::{Nullable, Timestamp};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -92,7 +92,7 @@ impl JsonSchema for ForwardAddress {
     }
 }
 
-/// A forward as the page and `demi device forward list` see it: its fields,
+/// A forward as the page and `jush device forward list` see it: its fields,
 /// and what its Listen On runner last announced of it, null while that
 /// runner has said nothing, as when it is offline or the forward does not
 /// listen (`crates/runner-protocol/src/forward.rs`).

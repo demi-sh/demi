@@ -13,7 +13,7 @@ use std::fmt;
 
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use bytes::Bytes;
-use demi_shared_types::{B64Bytes, Cost, TokenUsage};
+use jush_shared_types::{B64Bytes, Cost, TokenUsage};
 use futures_util::future::BoxFuture;
 use serde::Deserialize;
 

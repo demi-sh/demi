@@ -5,7 +5,7 @@
 //!   length limit, so the reader never waits for work that does not read, and
 //!   nothing is cancelled or dropped for a count. Only a message that breaks
 //!   the protocol closes the connection (the limits and why:
-//!   `demi_runner_protocol::wire`).
+//!   `jush_runner_protocol::wire`).
 //! - A message the runner cannot decode ends the connection with a close frame
 //!   naming its type and the decoding error.
 //! - A connection the runner ends on purpose, as a drain or a stop does, ends
@@ -22,9 +22,9 @@
 
 use std::{io, sync::Arc, time::Duration};
 
-use demi_command_protocol::host_target;
-use demi_runner_process::backend::Backend;
-use demi_runner_protocol::{
+use jush_command_protocol::host_target;
+use jush_runner_process::backend::Backend;
+use jush_runner_protocol::{
     release::{RELEASE_HEADER, RunnerUpdate, TARGET_HEADER, TOKEN_HEADER},
     values::DeviceToken,
     wire::{self, Frame, Inbound, Read},

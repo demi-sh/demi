@@ -4,7 +4,7 @@
 
 use std::num::NonZeroU32;
 
-use demi_shared_types::Nullable;
+use jush_shared_types::Nullable;
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

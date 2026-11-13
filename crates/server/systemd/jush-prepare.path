@@ -1,0 +1,10 @@
+# Starts jush-prepare.service when the backend's check found a newer release
+# and asks the server to get it ready (crates/server/src/preparing.rs).
+[Unit]
+Description=Jush requests to get the newest release ready
+
+[Path]
+PathExists=/run/jush-upgrade/prepare
+
+[Install]
+WantedBy=multi-user.target

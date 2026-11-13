@@ -1,10 +1,10 @@
 //! Conversations as the web app creates, lists and follows them.
 
-use demi_conversation_lane_protocol::{
+use jush_conversation_lane_protocol::{
     AgentCost, AgentEntry, BlockVersions, CacheChart, ConversationAttachment, Failures, Refusal, ReplyBlockFacts,
     RequestOutput, SendMessage, ShellStatus, TurnSpeed, Version,
 };
-use demi_shared_types::{Block, BlockId, CommandId, InstructionEntry, MAX_SAFE_INTEGER, NodeId, Nullable, Timestamp, WorkflowChoice};
+use jush_shared_types::{Block, BlockId, CommandId, InstructionEntry, MAX_SAFE_INTEGER, NodeId, Nullable, Timestamp, WorkflowChoice};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::{double_option, unwrap_or_skip};
@@ -355,7 +355,7 @@ pub struct EndedCommand {
     #[schemars(with = "Nullable<Timestamp>")]
     pub started_at: Option<Timestamp>,
     pub ended_at: Timestamp,
-    pub end: demi_shared_types::CommandEnd,
+    pub end: jush_shared_types::CommandEnd,
 }
 
 /// `GET /conversations/:id/commands/:commandId/output`: an ended command's
@@ -581,7 +581,7 @@ pub enum UnreadEnd {
 
 /// Where a conversation stands: running or compacting while a model of its
 /// live tree works, awaiting commands while it runs only for a command it
-/// awaits, resuming while Demi takes up by itself a turn a restart of the
+/// awaits, resuming while Jush takes up by itself a turn a restart of the
 /// backend interrupted, interrupted when its last checkpoint was saved in a
 /// turn and no session is live, otherwise what its latest terminal block
 /// says, or idle.
@@ -662,7 +662,7 @@ pub struct TranscriptPage {
     pub start: u32,
     /// How many blocks the transcript holds.
     pub length: u32,
-    #[serde(with = "demi_shared_types::client_blocks")]
+    #[serde(with = "jush_shared_types::client_blocks")]
     #[schemars(with = "Vec<Block>")]
     pub blocks: Vec<Block>,
     /// The facts of the page's error blocks, by block id; absent when none
@@ -728,7 +728,7 @@ pub struct CompactionSummary {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct WholeBlock {
-    #[serde(with = "demi_shared_types::client_block")]
+    #[serde(with = "jush_shared_types::client_block")]
     #[schemars(with = "Block")]
     pub block: Block,
     #[serde(

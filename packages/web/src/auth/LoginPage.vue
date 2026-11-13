@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { t } from './locales/text'
-import { formError, shownError } from '@demicodes/web-ui/infra/errors'
+import { formError, shownError } from '@jush-ai/web-ui/infra/errors'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import EmailLoginPage, {
   type EmailLoginPhase,
-} from '@demicodes/web-ui/auth/EmailLoginPage.vue'
+} from '@jush-ai/web-ui/auth/EmailLoginPage.vue'
 import { setupStatus, useSession } from './session'
 import { returnAddress } from './return'
 import { autofillOffersPasskeys, browserHasPasskeys } from './webauthn'
@@ -16,8 +16,8 @@ const router = useRouter()
 // A development build fills in the local test account so a local backend is one click away.
 const devAccount = import.meta.env.DEV
   ? {
-      email: import.meta.env.DEMI_DEV_EMAIL ?? '',
-      password: import.meta.env.DEMI_DEV_PASSWORD ?? '',
+      email: import.meta.env.JUSH_DEV_EMAIL ?? '',
+      password: import.meta.env.JUSH_DEV_PASSWORD ?? '',
     }
   : null
 const email = ref(devAccount?.email ?? '')

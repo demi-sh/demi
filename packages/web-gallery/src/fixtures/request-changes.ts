@@ -1,5 +1,5 @@
-import type { Block, ChangedFile, EditedFile, PathChange } from '@demicodes/protocol'
-import type { ToolCallBlock } from '@demicodes/web-ui/agent/block-types'
+import type { Block, ChangedFile, EditedFile, PathChange } from '@jush-ai/protocol'
+import type { ToolCallBlock } from '@jush-ai/web-ui/agent/block-types'
 import { binaryFile, demoModel, inRequests, inRun, listedFile, listedFiles, ownLists, shellView, uncopiedFile, withEnd, withLists } from './blocks'
 import { editCopies } from './blobs'
 import { ago } from './time'
@@ -19,8 +19,8 @@ const LOGIN = [
 ]
 const FORM = '.form {\n  display: grid;\n  gap: 8px;\n}\n\n.form input {\n  width: 100%;\n}\n'
 const README = [
-  '# Demi\n\nThe logo is a circle.\n',
-  '# Demi\n\nThe logo is a circle on a square, since 2.0.\n',
+  '# Jush\n\nThe logo is a circle.\n',
+  '# Jush\n\nThe logo is a circle on a square, since 2.0.\n',
 ]
 const COOKIE = [
   'export const COOKIE = \'sid\'\n',
@@ -106,11 +106,11 @@ function listedMove(file: EditedFile): ChangedFile {
  * login.ts a third time and replies. One request, two files, login.ts edited three times.
  */
 export function signInRequestBlocks(prefix: string): Block[] {
-  const fix = shell(`${prefix}-fix`, 590_000, 'demi file patch < fix.patch', 'Fix the sign-in check and add the form styles', [
+  const fix = shell(`${prefix}-fix`, 590_000, 'jush file patch < fix.patch', 'Fix the sign-in check and add the form styles', [
     file('src/auth/login.ts', 'modified', LOGIN.slice(0, 3), { added: 2, removed: 2 }),
     file('src/auth/form.css', 'added', ['', FORM], { added: 8, removed: 0 }),
   ])
-  const error = shell(`${prefix}-error`, 500_000, 'demi file edit src/auth/login.ts', 'Throw the old error text', [
+  const error = shell(`${prefix}-error`, 500_000, 'jush file edit src/auth/login.ts', 'Throw the old error text', [
     file('src/auth/login.ts', 'modified', LOGIN.slice(2), { added: 1, removed: 1 }),
   ])
   const [login, form] = listedFiles(fix)
@@ -139,7 +139,7 @@ export function uncopiedRequestBlocks(): Block[] {
     binaryFile({ path: `${PROJECT_ROOT}/assets/logo.png`, kind: 'modified', added: 0, removed: 0 }),
     uncopiedFile({ path: `${PROJECT_ROOT}/README.md`, kind: 'modified', added: 1, removed: 1 }),
   ])
-  const readme = shell('uncopied-readme', 380_000, 'demi file edit README.md', 'Say when the logo changed', [
+  const readme = shell('uncopied-readme', 380_000, 'jush file edit README.md', 'Say when the logo changed', [
     file('README.md', 'modified', README, { added: 1, removed: 1 }),
   ])
   // The readme's first original was not kept, so it has no lines to show.
@@ -207,7 +207,7 @@ export function movedRequestBlocks(): Block[] {
  * (`crates/agent-store/src/changes.rs`).
  */
 export function cleanupRequestBlocks(): Block[] {
-  const draft = shell('cleanup-draft', 180_000, 'printf … > docs/draft.md && demi file edit README.md', 'Draft the notes and link them', [
+  const draft = shell('cleanup-draft', 180_000, 'printf … > docs/draft.md && jush file edit README.md', 'Draft the notes and link them', [
     file('docs/draft.md', 'added', ['', NOTES], { added: 2, removed: 0 }),
     file('README.md', 'modified', README, { added: 1, removed: 1 }),
   ])
@@ -238,7 +238,7 @@ export const SUBAGENT = 'gallery-subagent'
 export function subagentBlocks(): Block[] {
   return inRequests([
     user('subagent-user', 300_000, 'Rename the sid cookie to session in src/auth/cookie.ts.', 'You are a subagent of the conversation’s agent.'),
-    ...inRun(ownLists(shell('subagent-rename', 290_000, 'demi file edit src/auth/cookie.ts', 'Rename the cookie', [
+    ...inRun(ownLists(shell('subagent-rename', 290_000, 'jush file edit src/auth/cookie.ts', 'Rename the cookie', [
       file('src/auth/cookie.ts', 'modified', COOKIE, { added: 1, removed: 1 }),
     ]))),
     text('subagent-reply', 280_000, 'Renamed the cookie to session.'),
@@ -249,7 +249,7 @@ export function subagentBlocks(): Block[] {
 export function subagentParentBlocks(): Block[] {
   return inRequests([
     user('parent-user', 310_000, 'Have a subagent rename the session cookie.'),
-    ...inRun(shell('parent-spawn', 305_000, 'demi agent spawn --description "Rename the cookie"', 'Start a subagent'), {
+    ...inRun(shell('parent-spawn', 305_000, 'jush agent spawn --description "Rename the cookie"', 'Start a subagent'), {
       type: 'agent_message',
       id: 'parent-receipt',
       turnId: 'parent-receipt-turn',
@@ -289,7 +289,7 @@ function workingDirectory(id: string, offsetMs: number, cwd: string): Block {
  * child wrote it in.
  */
 export function slotBlocks(): Block[] {
-  const edit = shell('slot-edit', 290_000, 'demi file edit src/auth/cookie.ts', 'Rename the cookie in this checkout', [
+  const edit = shell('slot-edit', 290_000, 'jush file edit src/auth/cookie.ts', 'Rename the cookie in this checkout', [
     file(`${SLOT_ROOT}/src/auth/cookie.ts`, 'modified', COOKIE, { added: 1, removed: 1 }),
   ])
   return inRequests([
@@ -297,7 +297,7 @@ export function slotBlocks(): Block[] {
     user('slot-user', 300_000, 'Rename the sid cookie to session in this checkout, and tell me where.', 'You are a subagent of the conversation’s agent.'),
     ...inRun(ownLists(edit)),
     text('slot-edited', 280_000, 'Renamed the cookie in [src/auth/cookie.ts](src/auth/cookie.ts) of this checkout.'),
-    ...inRun(shell('slot-cwd', 270_000, 'demi agent cwd src/auth', 'Move into the auth folder')),
+    ...inRun(shell('slot-cwd', 270_000, 'jush agent cwd src/auth', 'Move into the auth folder')),
     workingDirectory('slot-dir-auth', 269_000, `${SLOT_ROOT}/src/auth`),
     text('slot-reply', 260_000, 'From here [cookie.ts](cookie.ts) is the same file: the cookie is `session` now.'),
   ])

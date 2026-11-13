@@ -23,8 +23,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use bytes::Bytes;
-use demi_command_protocol::{EDIT_FILE_BYTES, is_binary};
-use demi_runner_protocol::search::{FoundLine, LINE_UNITS, MAX_FILES, SearchLine, SearchQuery, TextRange};
+use jush_command_protocol::{EDIT_FILE_BYTES, is_binary};
+use jush_runner_protocol::search::{FoundLine, LINE_UNITS, MAX_FILES, SearchLine, SearchQuery, TextRange};
 use futures_util::Stream;
 use grep_matcher::{LineTerminator, Matcher as _};
 use grep_regex::{RegexMatcher, RegexMatcherBuilder};

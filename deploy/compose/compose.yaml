@@ -1,16 +1,16 @@
-# Demi and Caddy, which obtains the certificate for DEMI_DOMAIN and serves
-# Demi over HTTPS (docs/delivery/docker-compose.md):
+# Jush and Caddy, which obtains the certificate for JUSH_DOMAIN and serves
+# Jush over HTTPS (docs/delivery/docker-compose.md):
 #
-#   DEMI_DOMAIN=demi.example.com docker compose up -d
+#   JUSH_DOMAIN=jush.example.com docker compose up -d
 #
 # The domain's DNS names this machine, whose ports 80 and 443 are free. With
-# a proxy of your own, drop the caddy service, publish port 3271 of demi, and
+# a proxy of your own, drop the caddy service, publish port 3271 of jush, and
 # have the proxy pass Host and Origin unchanged and allow WebSocket upgrades.
-name: demi
+name: jush
 
 services:
-  demi:
-    image: ghcr.io/demi-sh/demi:${DEMI_TAG:-latest}
+  jush:
+    image: ghcr.io/jush-ai/jush:${JUSH_TAG:-latest}
     restart: unless-stopped
     # Clouds run on Simple Isolation in a container. To let the master choose
     # gVisor in Settings › Cloud, which keeps each Cloud's network apart,
@@ -19,17 +19,17 @@ services:
     # Docker's own, 127.0.0.11, answers only inside the container.
     # privileged: true  # gVisor
     environment:
-      DEMI_BACKEND_PUBLIC_URL: https://${DEMI_DOMAIN:?set DEMI_DOMAIN to the domain Demi is reached at}
-      # DEMI_MANAGED_DNS: 1.1.1.1  # gVisor
+      JUSH_BACKEND_PUBLIC_URL: https://${JUSH_DOMAIN:?set JUSH_DOMAIN to the domain Jush is reached at}
+      # JUSH_MANAGED_DNS: 1.1.1.1  # gVisor
     volumes:
-      - demi:/opt/demi
+      - jush:/opt/jush
     # A stop saves each running Cloud first.
     stop_grace_period: 5m
 
   caddy:
     image: caddy:2
     restart: unless-stopped
-    command: caddy reverse-proxy --from ${DEMI_DOMAIN} --to demi:3271
+    command: caddy reverse-proxy --from ${JUSH_DOMAIN} --to jush:3271
     ports:
       - "80:80"
       - "443:443"
@@ -38,5 +38,5 @@ services:
       - caddy:/data
 
 volumes:
-  demi:
+  jush:
   caddy:

@@ -1,4 +1,4 @@
-import type { PageLogAnswer, PageLogBody } from '@demicodes/web-ui/infra/log'
+import type { PageLogAnswer, PageLogBody } from '@jush-ai/web-ui/infra/log'
 import type { PageLog } from './generated/web-api'
 import { ApiError, REQUEST_ID_HEADER, apiRequest, jsonBody } from './client'
 

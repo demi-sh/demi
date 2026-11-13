@@ -1,5 +1,5 @@
 //! Suggested replies of the user's conversations
-//! (`demi_agent_server::suggested_replies`): as a root rests after work that
+//! (`jush_agent_server::suggested_replies`): as a root rests after work that
 //! ended a turn with an answer written while it ran, one small request on
 //! the user's small model asks for the replies the user is likely to send
 //! next.
@@ -8,7 +8,7 @@
 //! opened, as a page opening an old conversation opens it; a version of an
 //! answer brought back; a compaction; a turn that ended without text. What a
 //! request answered is stored with the answer it follows
-//! (`demi_backend_database::suggested_replies`), and stays; the conversation's
+//! (`jush_backend_database::suggested_replies`), and stays; the conversation's
 //! metadata offers the newest, so a page the backend's restart reconnects
 //! shows what it showed; the page shows it only under that answer. Work that
 //! starts while a request runs cancels it, as does an
@@ -19,15 +19,15 @@ use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use demi_agent_server::small_request::SmallRequest;
-use demi_agent_server::suggested_replies::{answer_of, suggestion_request, suggestions_from_response};
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::suggested_replies::AnsweredReplies;
-use demi_backend_device_access::root_of;
-use demi_backend_page_sync::{Part, UserMarks};
-use demi_shared_types::{BlockId, ModelSelection, Timestamp};
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_agent_server::small_request::SmallRequest;
+use jush_agent_server::suggested_replies::{answer_of, suggestion_request, suggestions_from_response};
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::suggested_replies::AnsweredReplies;
+use jush_backend_device_access::root_of;
+use jush_backend_page_sync::{Part, UserMarks};
+use jush_shared_types::{BlockId, ModelSelection, Timestamp};
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 use sha2::{Digest as _, Sha256};
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;

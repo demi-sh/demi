@@ -1,8 +1,14 @@
 //! The session cookie.
 //!
-//! It is named `demi_session` and is `HttpOnly`, `SameSite=Lax` and `Path=/`.
+//! It is named `jush_session` and is `HttpOnly`, `SameSite=Lax` and `Path=/`.
 //! It is `Secure` for a request that came over HTTPS, directly or through a
 //! proxy.
+//!
+//! A browser signed in before the product took the name Jush sends the token
+//! as `demi_session`. The backend reads it as the session cookie, and the
+//! session's gate replaces it with `jush_session`, so nobody signs in again.
+//! The earlier name goes with the other migrations when the history starts
+//! again at the first formal release.
 
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
@@ -11,9 +17,34 @@ use axum::http::{HeaderMap, Uri};
 use axum_extra::extract::CookieJar;
 use axum_extra::extract::cookie::{Cookie, Expiration, SameSite};
 use cookie::time::OffsetDateTime;
-use demi_shared_types::Timestamp;
+use jush_shared_types::Timestamp;
 
-pub(super) const SESSION_COOKIE: &str = "demi_session";
+pub(super) const SESSION_COOKIE: &str = "jush_session";
+
+const EARLIER_SESSION_COOKIE: &str = "demi_session";
+
+/// The session token the request's cookies carry, and whether under the name
+/// of before the rename.
+pub(super) fn session_token(jar: &CookieJar) -> Option<(String, bool)> {
+    match jar.get(SESSION_COOKIE) {
+        Some(cookie) => Some((cookie.value().to_owned(), false)),
+        None => jar
+            .get(EARLIER_SESSION_COOKIE)
+            .map(|cookie| (cookie.value().to_owned(), true)),
+    }
+}
+
+/// The jar with the cookie of before the rename removed.
+pub(super) fn remove_earlier(jar: CookieJar, https: bool) -> CookieJar {
+    jar.remove(
+        Cookie::build((EARLIER_SESSION_COOKIE, String::new()))
+            .http_only(true)
+            .same_site(SameSite::Lax)
+            .path("/")
+            .secure(https)
+            .build(),
+    )
+}
 
 /// The cookie that carries a session's token until the session expires.
 pub(super) fn session(token: &str, expires_at: Timestamp, https: bool) -> Cookie<'static> {

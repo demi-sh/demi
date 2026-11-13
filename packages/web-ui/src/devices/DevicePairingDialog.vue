@@ -2,7 +2,7 @@
 import { t as uiText } from '../locales/text'
 import { t } from './locales/text'
 import { computed, ref, watch } from 'vue'
-import { clientPlatform } from '@demicodes/utils'
+import { clientPlatform } from '@jush-ai/utils'
 import { Check } from '@lucide/vue'
 import type { OverlayStore } from '../overlay/overlayStore'
 import type { PairingPhase } from './pairing'

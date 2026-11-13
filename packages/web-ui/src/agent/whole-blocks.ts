@@ -1,5 +1,5 @@
 import { computed, inject, provide, ref, watch, type InjectionKey, type Ref } from 'vue'
-import type { HeldBlock, TextArrival } from '@demicodes/conversation-client'
+import type { HeldBlock, TextArrival } from '@jush-ai/conversation-client'
 import { useTranscript } from './edit-selection'
 
 /**

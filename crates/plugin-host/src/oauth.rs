@@ -1,7 +1,7 @@
 //! The plugins' OAuth sign-ins: for a plugin whose manifest names its vendor's
 //! authorization server, the host:
 //!
-//! - Registers Demi as a public client once per instance and issuer (RFC 7591).
+//! - Registers Jush as a public client once per instance and issuer (RFC 7591).
 //! - Starts a user's sign-in with PKCE (RFC 7636, S256) and a `state` kept with
 //!   the user for 10 minutes.
 //! - Exchanges the code the callback brings.
@@ -23,14 +23,14 @@ use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use crate::store::StoreError;
 use crate::store::OAuthClient;
-use demi_device_interface::PortError;
-use demi_plugin_interface::{
+use jush_device_interface::PortError;
+use jush_plugin_interface::{
     OAuth, PortFailure, PortRefusal, StoredSecret, WebFailure, WebMethod, WebRequest, WebResponse,
 };
-use demi_provider_common::Secret;
-use demi_provider_common::credentials::decode_secret;
-use demi_provider_common::oauth::{Lifetime, TokenRefusal};
-use demi_shared_types::Timestamp;
+use jush_provider_common::Secret;
+use jush_provider_common::credentials::decode_secret;
+use jush_provider_common::oauth::{Lifetime, TokenRefusal};
+use jush_shared_types::Timestamp;
 use jiff::SignedDuration;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -271,7 +271,7 @@ impl Shared {
             ));
         };
         let registration = serde_json::json!({
-            "client_name": "Demi",
+            "client_name": "Jush",
             "redirect_uris": [redirect_uri],
             "grant_types": ["authorization_code", "refresh_token"],
             "response_types": ["code"],

@@ -10,7 +10,7 @@ use std::{
     path::Path,
 };
 
-use demi_machine_manager_protocol::runtime::RuntimeRelease;
+use jush_machine_manager_protocol::runtime::RuntimeRelease;
 
 use crate::{
     blocking::{self, OffLoop},
@@ -35,7 +35,7 @@ pub enum PreflightError {
     #[error("Cloud requires runsc {0}")]
     Runsc(String),
     #[error(
-        "DEMI_MACHINE_MANAGER_DATA must be one filesystem: {0} and {1} are on different filesystems"
+        "JUSH_MACHINE_MANAGER_DATA must be one filesystem: {0} and {1} are on different filesystems"
     )]
     Filesystems(String, String),
     #[error("Cloud's gVisor sandbox does not run on this machine: {0}")]

@@ -21,12 +21,12 @@ rather than as the folder it is:
 * A project's name is stored apart from its folder. The second project of
   a folder named `app` on one Host is called `app (2)`, a name no folder
   has; a Cloud project's folder is `~/projects/<id>`, and its name lives
-  only in Demi.
+  only in Jush.
 
 ## Decision
 
 A project is a folder on a Host. What it is called is the folder's name,
-and what Demi keeps for it, its settings and now its saved messages, stays
+and what Jush keeps for it, its settings and now its saved messages, stays
 with it until the folder's project comes back.
 
 A project keeps its saved messages in one of two ways, which the user picks
@@ -110,7 +110,7 @@ for the project are gone, and so would be its saved messages.
 
 Delete Project now marks the project deleted instead:
 
-* It leaves the sidebar, the directory picker and `demi conversation
+* It leaves the sidebar, the directory picker and `jush conversation
   projects`, and its conversations are archived, as today. Nothing else of
   it changes: its name, its settings, its Saved Messages choice and its
   saved messages stay.
@@ -199,7 +199,7 @@ ChatGPT's and Claude's projects share instructions and files among a
 project's chats, which is the precedent for a project-wide list; neither
 has saved messages. VS Code's settings choose a scope, user or workspace,
 for each setting. None of them moves data when the scope changes, since
-their scopes are layered; Demi's list is one place, so the switch moves the
+their scopes are layered; Jush's list is one place, so the switch moves the
 messages instead of hiding them.
 
 ## Alternatives

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import WorkGroupBlock from '@demicodes/web-ui/agent/blocks/WorkGroupBlock.vue'
-import type { WorkGroupBlock as Group, WorkStep } from '@demicodes/web-ui/agent/work-groups'
+import WorkGroupBlock from '@jush-ai/web-ui/agent/blocks/WorkGroupBlock.vue'
+import type { WorkGroupBlock as Group, WorkStep } from '@jush-ai/web-ui/agent/work-groups'
 
 /**
  * One step in each place the transcript shows it: alone, as the row of a

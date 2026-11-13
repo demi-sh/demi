@@ -1,4 +1,4 @@
-import type { Block, ShellViewStatus } from '@demicodes/protocol'
+import type { Block, ShellViewStatus } from '@jush-ai/protocol'
 import type { ClientSessionEvent } from '../transport/protocol'
 import type { ConversationStatus } from './conversation-status'
 import type { ToolCallBlock } from './block-types'
@@ -6,7 +6,7 @@ import type { CommandEnd } from './command-end'
 import { storedShellView } from './block-helpers'
 import { latestBlocks } from './history'
 import { computed, toRaw, type ComputedRef } from 'vue'
-import type { HeldTranscript } from '@demicodes/conversation-client'
+import type { HeldTranscript } from '@jush-ai/conversation-client'
 import { t } from './locales/text'
 
 /**

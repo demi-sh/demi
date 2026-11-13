@@ -13,13 +13,13 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::credentials::CredentialRefusal;
-use demi_backend_user_shard::shard::credentials::CredentialError;
-use demi_web_api_protocol::credentials::{
+use jush_backend_database::credentials::CredentialRefusal;
+use jush_backend_user_shard::shard::credentials::CredentialError;
+use jush_web_api_protocol::credentials::{
     CredentialAnswer, CredentialList, CredentialPatch, NewCredential, RevealedValue, refusal,
 };
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::UserCredentialId;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::UserCredentialId;
 
 use super::AppState;
 use super::body::{Worded, WordedBody};

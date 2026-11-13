@@ -1,5 +1,5 @@
 [package]
-name = "demi-command-package-claude-code-protocol"
+name = "jush-command-package-claude-code-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

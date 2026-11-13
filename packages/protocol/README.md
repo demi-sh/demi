@@ -1,6 +1,6 @@
-# @demicodes/protocol
+# @jush-ai/protocol
 
-The TypeScript form of Demi's Rust contracts. It holds:
+The TypeScript form of Jush's Rust contracts. It holds:
 
 - The Zod schemas and types of the conversation lane's frames, the
   transcript, the content and the browser's live view
@@ -15,15 +15,15 @@ Parse a value from the network with its schema, and take its type from the
 schema:
 
 ```ts
-import { serverFrameSchema, type ServerFrame } from '@demicodes/protocol'
+import { serverFrameSchema, type ServerFrame } from '@jush-ai/protocol'
 
 const frame: ServerFrame = serverFrameSchema.parse(JSON.parse(message))
 ```
 
-Demi has no TypeScript SDK. This package and
-[`@demicodes/conversation-client`](../conversation-client/README.md) are the
-web app's client of the conversation lane, not a way to run Demi's agent in
+Jush has no TypeScript SDK. This package and
+[`@jush-ai/conversation-client`](../conversation-client/README.md) are the
+web app's client of the conversation lane, not a way to run Jush's agent in
 another program ([ARCHITECTURE.md](../../ARCHITECTURE.md)).
 
-Part of [Demi](../../README.md). The package is under the Apache License 2.0.
+Part of [Jush](../../README.md). The package is under the Apache License 2.0.
 For the text, see [LICENSE](../../LICENSE).

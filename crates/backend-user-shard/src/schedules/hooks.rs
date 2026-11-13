@@ -31,12 +31,12 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_backend_database::StorageError;
-use demi_backend_database::schedules::{NewCall, PendingCall, RunCause};
-use demi_device_interface::{FileContents, Device, WhenExists, WriteOptions};
-use demi_shared_types::{ScheduleId, ScheduleRunId, Timestamp};
-use demi_web_api_protocol::schedules::{RunState, Trigger};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_database::StorageError;
+use jush_backend_database::schedules::{NewCall, PendingCall, RunCause};
+use jush_device_interface::{FileContents, Device, WhenExists, WriteOptions};
+use jush_shared_types::{ScheduleId, ScheduleRunId, Timestamp};
+use jush_web_api_protocol::schedules::{RunState, Trigger};
+use jush_web_api_protocol::ids::ConversationId;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use subtle::ConstantTimeEq;
@@ -56,8 +56,8 @@ pub(crate) const BURST_MAX: Duration = Duration::from_secs(120);
 pub(crate) const DELIVERY_MEMORY: Duration = Duration::from_secs(3600);
 
 /// The headers a run's message leaves out: the secret and what proves it, and
-/// those Demi's own server and the proxies and CDNs in front of it add, which
-/// describe Demi, not the call.
+/// those Jush's own server and the proxies and CDNs in front of it add, which
+/// describe Jush, not the call.
 const STRIPPED: [&str; 13] = [
     "authorization",
     "cookie",
@@ -187,7 +187,7 @@ impl Shard {
             .or_else(|| header(&call, "idempotency-key"))
             .map(str::to_owned);
         // A paused schedule, or one of an archived conversation, starts nothing, as
-        // `demi schedule run` alone would; one at its daily limit counts the call in
+        // `jush schedule run` alone would; one at its daily limit counts the call in
         // the day's skipped run.
         let limited = schedule.on() && self.limit_reached(&schedule, now).await?.is_some();
         let held = !schedule.on() || limited;
@@ -224,7 +224,7 @@ impl Shard {
         Ok(self
             .services()
             .control
-            .schedule_runs(id.clone(), demi_web_api_protocol::schedules::RUNS_SHOWN)
+            .schedule_runs(id.clone(), jush_web_api_protocol::schedules::RUNS_SHOWN)
             .await?
             .iter()
             .any(|run| run.state == RunState::Running))
@@ -299,7 +299,7 @@ impl Shard {
                 if identity.scratch_root.is_empty() {
                     return Err("the device has not named its scratch directory".to_owned());
                 }
-                let scratch = identity.paths.join(&identity.scratch_root, &demi_command_protocol::scratch_name(conversation.as_str()));
+                let scratch = identity.paths.join(&identity.scratch_root, &jush_command_protocol::scratch_name(conversation.as_str()));
                 let mut written = Vec::with_capacity(calls.len());
                 let short: String = run.as_str().chars().take(8).collect();
                 for (index, call) in calls.iter().enumerate() {

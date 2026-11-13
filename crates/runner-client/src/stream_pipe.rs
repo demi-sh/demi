@@ -13,7 +13,7 @@
 use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade, close_code};
 use axum::response::Response;
 use bytes::Bytes;
-use demi_runner_protocol::wire::{self, PIPE_IDLE, PIPE_SESSION_MESSAGE_BYTES, PipeMove, Read, close_reason};
+use jush_runner_protocol::wire::{self, PIPE_IDLE, PIPE_SESSION_MESSAGE_BYTES, PipeMove, Read, close_reason};
 use futures_util::{SinkExt as _, Stream, StreamExt as _};
 use std::{sync::Arc, time::Duration};
 

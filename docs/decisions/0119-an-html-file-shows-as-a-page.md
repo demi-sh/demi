@@ -13,14 +13,14 @@ download. To see the page, Alex has to find the file on the Host and open it
 in a web browser there, which a remote Host does not even have a screen for.
 
 Showing it in an `iframe` straight from the file route would be worse. The
-page would run on Demi's own origin with Alex's session cookie, so a script
-in any HTML file, one in a cloned repository included, could call Demi's API
+page would run on Jush's own origin with Alex's session cookie, so a script
+in any HTML file, one in a cloned repository included, could call Jush's API
 as Alex: send an agent a message, run a command on a Host, read any file.
 
 ## Decision
 
 The File view shows an HTML file as the page it describes, in a sandbox that
-gives the page no way into Demi. The same design serves every Host, the one
+gives the page no way into Jush. The same design serves every Host, the one
 the web browser runs on included.
 
 ### What the user sees
@@ -39,7 +39,7 @@ the web browser runs on included.
 - An `.html` or `.htm` file opens in Preview, as Markdown and SVG do, and
   Source shows its text in the editor. A link to a line of it opens Source.
 - The page draws on white, as a web browser draws a page without a
-  background, whatever Demi's theme.
+  background, whatever Jush's theme.
 - Its stylesheets, scripts, images and fonts load from beside it, by relative
   paths, `../assets/app.css` included, as long as they stay in the workspace.
   A link to a folder loads its `index.html`, as a web server's does.
@@ -61,7 +61,7 @@ What a page cannot do, as in any sandboxed frame:
   page that needs them fails as it would in a private window that refuses
   them.
 - Load a path that starts at the root, such as `/assets/app.css`: it names
-  Demi's own server, not the workspace, and fails.
+  Jush's own server, not the workspace, and fails.
 - Read a hidden file or folder, such as `.env` or `.git`, or a file outside
   the workspace, through a link or not.
 
@@ -104,13 +104,13 @@ What a page cannot do, as in any sandboxed frame:
     ```
 
     The sandbox gives the document an opaque origin even when opened on its
-    own, so it holds no cookie of Demi's and reads nothing of the page
+    own, so it holds no cookie of Jush's and reads nothing of the page
     around it. A request from it carries no cookie either, which is why the
     token is in the path. Module scripts and `fetch` from an opaque origin
     are cross-origin requests, which the `Access-Control-Allow-Origin`
     admits. The referrer policy keeps the token from the sites the page
     links to. No `allow-same-origin` and no `allow-top-navigation`: the page
-    never reaches Demi's origin, nor replaces Demi's page.
+    never reaches Jush's origin, nor replaces Jush's page.
   - A file is served as the media type of its extension among the web's own
     types (HTML, CSS, JavaScript, JSON, WebAssembly, SVG, images, fonts,
     audio and video, text), anything else as `application/octet-stream`.
@@ -162,23 +162,23 @@ document was opened on its own and in an `iframe` of a page on the server.
   serves `/files/<path>` with `Content-Security-Policy: sandbox
   allow-scripts`, "to confine any Javascript to a unique origin so it can't
   interact with the notebook server", and refuses hidden files unless told
-  otherwise. Demi takes both.
+  otherwise. Jush takes both.
 - [JupyterLab's HTML viewer](https://github.com/jupyterlab/jupyterlab/blob/main/packages/htmlviewer/src/widget.tsx)
   renders the file from a `blob:` URL with a `<base href>` pointing at its
   `/files/` URL, in a frame sandboxed with `allow-same-origin`. Scripts run
   only after "Trust HTML", which adds `allow-scripts` and so gives the page
-  the server's origin. Demi runs scripts always, on an opaque origin, and
+  the server's origin. Jush runs scripts always, on an opaque origin, and
   resolves relative paths through a URL that is a path.
 - [VS Code Live Preview](https://github.com/microsoft/vscode-livepreview/blob/main/src/server/httpServer.ts)
   serves the workspace from a local HTTP server, by default on port 3000,
   and shows it in a webview's `iframe`: a separate origin, where storage and
-  root paths work. Demi has one origin for every Host.
+  root paths work. Jush has one origin for every Host.
 - GitHub's `raw.githubusercontent.com` serves an HTML file as `text/plain`
   under `default-src 'none'; sandbox`, and shows no page.
 
 ## Alternatives
 
-- **The file route with an `iframe`.** The page runs on Demi's origin with
+- **The file route with an `iframe`.** The page runs on Jush's origin with
   the session: any HTML file could act as the user.
 - **`srcdoc` or a `blob:` URL with an injected `<base href>`, as
   JupyterLab.** The subresources go to the cookie route from an opaque

@@ -1,4 +1,4 @@
-// The page each of the site's demos shows in a frame: Demi's own app frame,
+// The page each of the site's demos shows in a frame: Jush's own app frame,
 // from `web-ui`, over a scripted conversation (`scenes.ts`). What a device
 // would answer, the browser, the files and the changes its windows show, comes from the
 // gallery's simulated device (`web-gallery/src/fixtures`), as the gallery's
@@ -7,11 +7,11 @@
 // size as it does in the product.
 
 import { createApp } from 'vue'
-import { createPageI18n, setPageLanguage } from '@demicodes/web-ui/i18n/text'
-import { applyProductAppearance, applyTranscriptTextSize, DEFAULT_TRANSCRIPT_TEXT_SIZE } from '@demicodes/web-ui/theme/productAppearance'
-import { setTheme, applyThemeToDocument } from '@demicodes/web-ui/theme/appTheme'
-import { installPhonePage } from '@demicodes/web-ui/ui/phone-page'
-import { loadRegionRenderers } from '@demicodes/web-ui/infra/region-load'
+import { createPageI18n, setPageLanguage } from '@jush-ai/web-ui/i18n/text'
+import { applyProductAppearance, applyTranscriptTextSize, DEFAULT_TRANSCRIPT_TEXT_SIZE } from '@jush-ai/web-ui/theme/productAppearance'
+import { setTheme, applyThemeToDocument } from '@jush-ai/web-ui/theme/appTheme'
+import { installPhonePage } from '@jush-ai/web-ui/ui/phone-page'
+import { loadRegionRenderers } from '@jush-ai/web-ui/infra/region-load'
 import DemoApp from './DemoApp.vue'
 import './style.css'
 

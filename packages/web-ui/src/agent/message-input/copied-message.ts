@@ -1,6 +1,6 @@
 import type { JSONContent } from '@tiptap/core'
 import { z } from 'zod'
-import { jsonOrNull } from '@demicodes/utils'
+import { jsonOrNull } from '@jush-ai/utils'
 import { pageLanguage } from '../../i18n/text'
 import { t } from '../locales/text'
 import { ATTACHMENT_FILE_ATTRIBUTE } from '../../markdown/render'
@@ -9,16 +9,16 @@ import type { MessageEditContent } from '../message-editing'
 import { contentMessage, type MessageCapsule } from '../message-editor/capsules'
 
 // A sent message on the clipboard: its Markdown with each file by name for
-// plain text, its formatting for HTML, and Demi's own form, which a composer
+// plain text, its formatting for HTML, and Jush's own form, which a composer
 // reads to bring the files back as capsules without sending their bytes again.
-// Demi's own form travels as a JSON attribute of the HTML's outermost element,
+// Jush's own form travels as a JSON attribute of the HTML's outermost element,
 // since browsers keep HTML on the clipboard and no format of a page's own.
 
 /**
- * The attribute of the copied HTML's outermost element that holds Demi's own
+ * The attribute of the copied HTML's outermost element that holds Jush's own
  * form.
  */
-export const COPIED_MESSAGE_ATTRIBUTE = 'data-demi-message'
+export const COPIED_MESSAGE_ATTRIBUTE = 'data-jush-message'
 
 /**
  * A file the message holds as a blob of the user's: the upload a paste makes of
@@ -53,7 +53,7 @@ export type CopiedStoredFile = z.infer<typeof copiedStoredFileSchema>
 export type CopiedDeviceFile = z.infer<typeof copiedDeviceFileSchema>
 
 /**
- * Demi's own form of a copied message: its Markdown with an attachment mark
+ * Jush's own form of a copied message: its Markdown with an attachment mark
  * where each file stands, and each file as the message holds it, in the order
  * of the marks.
  */
@@ -98,7 +98,7 @@ export function trimBlankLines(blocks: readonly JSONContent[]): { blocks: JSONCo
 }
 
 /**
- * The forms of a copy that need no page: Demi's own and plain text, with the
+ * The forms of a copy that need no page: Jush's own and plain text, with the
  * lone picture a copy carries as itself.
  */
 export interface MessageClipboard {
@@ -147,7 +147,7 @@ export function messageClipboard(doc: JSONContent): MessageClipboard {
 }
 
 /**
- * A message the session holds, from its content, as Demi's own form of a
+ * A message the session holds, from its content, as Jush's own form of a
  * copy of it: what Recall pastes back into the composer, each file a
  * capsule again without its bytes.
  */
@@ -157,7 +157,7 @@ export function contentCopy(content: readonly MessageEditContent[]): CopiedMessa
 }
 
 /**
- * A capsule's file as Demi's own form holds it; null when the message does not
+ * A capsule's file as Jush's own form holds it; null when the message does not
  * hold it yet.
  */
 function copiedFile(capsule: MessageCapsule): CopiedFile | null {
@@ -172,7 +172,7 @@ function copiedFile(capsule: MessageCapsule): CopiedFile | null {
 }
 
 /**
- * Demi's own form from the attribute's value; null when it is not one, such as
+ * Jush's own form from the attribute's value; null when it is not one, such as
  * HTML from elsewhere.
  */
 export function readCopiedMessage(value: string | null): CopiedMessage | null {
@@ -185,7 +185,7 @@ export function readCopiedMessage(value: string | null): CopiedMessage | null {
 
 /**
  * A copy's HTML: `content`, the copy as other apps read it, inside an
- * element whose attribute holds Demi's own form.
+ * element whose attribute holds Jush's own form.
  */
 export function copiedMessageHtml(message: CopiedMessage, content: Node): string {
   const wrapper = document.createElement('div')
@@ -196,7 +196,7 @@ export function copiedMessageHtml(message: CopiedMessage, content: Node): string
 
 /**
  * A drag of an attachment's link or picture in an agent's message carries
- * the file in Demi's own form, as a copy of a message holding it alone
+ * the file in Jush's own form, as a copy of a message holding it alone
  * would, so a composer it is dropped on makes a capsule of the same file and
  * uploads nothing. The browser's own forms, the address and the picture, stay
  * for any other place.
@@ -216,7 +216,7 @@ export function attachmentDrag(event: DragEvent): void {
 }
 
 /**
- * Demi's own form of the message a paste or a drop carries in its HTML; null
+ * Jush's own form of the message a paste or a drop carries in its HTML; null
  * for HTML from elsewhere.
  */
 export function transferCopiedMessage(transfer: DataTransfer): CopiedMessage | null {

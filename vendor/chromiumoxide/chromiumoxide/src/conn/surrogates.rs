@@ -1,4 +1,4 @@
-//! Chrome's JSON with every lone surrogate made U+FFFD (Demi patch).
+//! Chrome's JSON with every lone surrogate made U+FFFD (Jush patch).
 //!
 //! Chrome passes a page's strings on as they are, so a string the page cut
 //! between the two halves of an emoji reaches the protocol as an escape such

@@ -9,16 +9,16 @@
 //!   its models wants thinking sent and sent back, as models.dev states it per
 //!   model.
 
-use demi_provider_anthropic_api::AnthropicConfig;
-use demi_provider_common::ModelWires;
-use demi_provider_common::models_dev::{
+use jush_provider_anthropic_api::AnthropicConfig;
+use jush_provider_common::ModelWires;
+use jush_provider_common::models_dev::{
     ModelsDevClient, ModelsDevError, ModelsDevMatch, ModelsDevVendor,
 };
-use demi_provider_openai_api::OpenAiConfig;
+use jush_provider_openai_api::OpenAiConfig;
 
 use crate::shutdowns::ModelShutdowns;
-use demi_shared_types::{ProviderModelList, Timestamp, WireApi};
-use demi_web_api_protocol::providers::{ModelMatch, Vendor};
+use jush_shared_types::{ProviderModelList, Timestamp, WireApi};
+use jush_web_api_protocol::providers::{ModelMatch, Vendor};
 use icu_collator::options::CollatorOptions;
 use icu_collator::{Collator, CollatorBorrowed};
 

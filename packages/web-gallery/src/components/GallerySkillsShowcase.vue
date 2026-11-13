@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import SkillsSettings from '@demicodes/plugin-skills/SkillsSettings.vue'
-import { skillsPage } from '@demicodes/plugin-skills'
-import { PageScope, providePageHost } from '@demicodes/web-ui/plugins/page'
+import SkillsSettings from '@jush-ai/plugin-skills/SkillsSettings.vue'
+import { skillsPage } from '@jush-ai/plugin-skills'
+import { PageScope, providePageHost } from '@jush-ai/web-ui/plugins/page'
 import { galleryPageHost, skillsPlugin } from '../fixtures/plugins'
 import { SKILLS_SHOWCASE_OPEN, skillsShowcase } from '../fixtures/settings'
 

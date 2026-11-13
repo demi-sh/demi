@@ -1,11 +1,11 @@
 import { t } from './locales/text'
 import { computed } from 'vue'
-import { shownError, type ShownError } from '@demicodes/web-ui/infra/errors'
+import { shownError, type ShownError } from '@jush-ai/web-ui/infra/errors'
 import { defineStore } from 'pinia'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import type { HandoffHost, HandoffStart, HandoffVerifyOutcome } from '@demicodes/web-ui/auth/handoff'
-import type { VerificationHost } from '@demicodes/web-ui/auth/verification'
-import type { SettingsSession } from '@demicodes/web-ui/settings/types'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import type { HandoffHost, HandoffStart, HandoffVerifyOutcome } from '@jush-ai/web-ui/auth/handoff'
+import type { VerificationHost } from '@jush-ai/web-ui/auth/verification'
+import type { SettingsSession } from '@jush-ai/web-ui/settings/types'
 import { apiRequest, ApiError, jsonBody, readResponse } from '../api/client'
 import {
   handoffAnswerSchema,

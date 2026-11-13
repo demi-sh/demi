@@ -66,8 +66,8 @@
   },
   "page": {
     "cloud": "Cloud",
-    "startSentence": "Démarrez Demi sur l’appareil :",
-    "noAutostart": "Cet appareil ne démarrera pas Demi de lui-même après un redémarrage.",
+    "startSentence": "Démarrez Jush sur l’appareil :",
+    "noAutostart": "Cet appareil ne démarrera pas Jush de lui-même après un redémarrage.",
     "connection": "Connexion",
     "route": "Itinéraire",
     "p2p": "P2P",
@@ -133,7 +133,7 @@
     "pair": "Jumeler l’appareil",
     "invalidCode": "Ce code n’est pas disponible. Collez le dernier code du runner.",
     "rateLimited": "Trop de tentatives. Attendez une minute avant de réessayer.",
-    "unavailable": "Impossible de joindre Demi. Vérifiez votre connexion et réessayez."
+    "unavailable": "Impossible de joindre Jush. Vérifiez votre connexion et réessayez."
   },
   "revoke": {
     "title": "Révoquer cet appareil ?",
@@ -153,7 +153,7 @@
   "autostart": {
     "noSystemd": "Ce système n’exécute pas systemd.",
     "noUserManager": "Le gestionnaire utilisateur de systemd ne répond pas : {error}",
-    "notWritten": "Demi n’a pas pu enregistrer {path} : {error}",
+    "notWritten": "Jush n’a pas pu enregistrer {path} : {error}",
     "lingerOff": "Il ne démarre qu’une fois que {user} s’est connecté. Pour le démarrer au démarrage de l’ordinateur, exécutez :",
     "refused": "Windows a refusé la tâche planifiée et l’élément de démarrage : {error}",
     "unusableName": "Le nom du dossier d’installation, {name}, ne peut pas nommer un élément de démarrage.",

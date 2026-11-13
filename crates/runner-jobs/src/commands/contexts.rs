@@ -4,13 +4,13 @@
 //! looks them up in the snapshot it publishes.
 
 use crate::{connection::ConnectionHandle, job_media::JobMedia};
-use demi_command_protocol::{CommandContext, EditContext, Viewable, host_target};
-use demi_runner_command_packages::{ResidentHandle, ResidentLease};
-use demi_runner_process::{
+use jush_command_protocol::{CommandContext, EditContext, Viewable, host_target};
+use jush_runner_command_packages::{ResidentHandle, ResidentLease};
+use jush_runner_process::{
     command_client::{CONTEXT_ENV, ENDPOINT_ENV},
     private_files::{chmod, write_private},
 };
-use demi_runner_protocol::manifest::Manifest;
+use jush_runner_protocol::manifest::Manifest;
 use futures_util::{StreamExt, stream::FuturesUnordered};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { AgentMessage } from '@demicodes/protocol'
+import type { AgentMessage } from '@jush-ai/protocol'
 import NoticeLabel from './NoticeLabel.vue'
 import ReceiptTag from './ReceiptTag.vue'
 import { receiptOrigin, receiptRow, useOriginRevealer } from '../agent-receipts'

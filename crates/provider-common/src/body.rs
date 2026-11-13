@@ -10,7 +10,7 @@ use crate::ProviderFailure;
 ///
 /// Building a body cannot fail: a request carries its media's bytes, never a
 /// reference. A body whose work panicked fails the run without a code, as a
-/// request Demi could not build. Dropping the future while it runs leaves the
+/// request Jush could not build. Dropping the future while it runs leaves the
 /// work to finish there; it has no effect beyond its result, which is then
 /// discarded.
 pub async fn encode_body<T, F>(label: &str, encode: F) -> Result<T, ProviderFailure>
@@ -44,7 +44,7 @@ pub struct FormBody {
 impl FormBody {
     pub fn new() -> Self {
         Self {
-            boundary: format!("demi-{}", uuid::Uuid::new_v4().simple()),
+            boundary: format!("jush-{}", uuid::Uuid::new_v4().simple()),
             bytes: Vec::new(),
         }
     }

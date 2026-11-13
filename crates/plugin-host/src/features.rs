@@ -11,8 +11,8 @@
 
 use std::collections::BTreeSet;
 
-use demi_command_declarations::{Group, NativeOperation, Node};
-use demi_plugin_interface::{Commands, Feature};
+use jush_command_declarations::{Group, NativeOperation, Node};
+use jush_plugin_interface::{Commands, Feature};
 
 /// Why a manifest's features are refused.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]

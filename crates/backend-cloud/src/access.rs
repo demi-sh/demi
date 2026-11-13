@@ -5,10 +5,10 @@
 //! It takes the Cloud's admission, which wakes a stopped Cloud or waits for a
 //! running reset, and no conversation's file gate.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::devices::{DeviceRecord, ManagedMachine};
-use demi_backend_page_sync::Part;
-use demi_runner_client::RemoteDevice;
+use jush_backend_database::StorageError;
+use jush_backend_database::devices::{DeviceRecord, ManagedMachine};
+use jush_backend_page_sync::Part;
+use jush_runner_client::RemoteDevice;
 
 use crate::CloudShard;
 use crate::machine::{CloudAdmission, CloudError};

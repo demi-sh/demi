@@ -1,43 +1,43 @@
 <script setup lang="ts">
 import { GALLERY_MARKS, shownAmong } from '../fixtures/device-marks'
 import { correction, requestFailure } from '../fixtures/request-failures'
-import type { ShownError } from '@demicodes/web-ui/infra/errors'
+import type { ShownError } from '@jush-ai/web-ui/infra/errors'
 import { ref } from 'vue'
-import { countOf } from '@demicodes/utils'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import ChangeEmailDialog, { type ChangeEmailPhase } from '@demicodes/web-ui/settings/ChangeEmailDialog.vue'
-import ChangePasswordDialog, { type ChangePasswordPhase } from '@demicodes/web-ui/settings/ChangePasswordDialog.vue'
-import HandoffDialog from '@demicodes/web-ui/auth/HandoffDialog.vue'
-import ChoosePasswordWizard from '@demicodes/web-ui/auth/ChoosePasswordWizard.vue'
-import PasskeyOffer from '@demicodes/web-ui/auth/PasskeyOffer.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import { countOf } from '@jush-ai/utils'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import ChangeEmailDialog, { type ChangeEmailPhase } from '@jush-ai/web-ui/settings/ChangeEmailDialog.vue'
+import ChangePasswordDialog, { type ChangePasswordPhase } from '@jush-ai/web-ui/settings/ChangePasswordDialog.vue'
+import HandoffDialog from '@jush-ai/web-ui/auth/HandoffDialog.vue'
+import ChoosePasswordWizard from '@jush-ai/web-ui/auth/ChoosePasswordWizard.vue'
+import PasskeyOffer from '@jush-ai/web-ui/auth/PasskeyOffer.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { galleryHandoff, type HandoffSpecimenStart } from '../fixtures/handoff'
 import { slow } from '../fixtures/slow'
 import { galleryPasskeyOffer, type PasskeyOfferScript } from '../fixtures/passkey-offer'
 import { DEVICE_REPORTS } from '../fixtures/device-reports'
-import type { DeviceReport } from '@demicodes/web-ui/auth/device-unlock'
+import type { DeviceReport } from '@jush-ai/web-ui/auth/device-unlock'
 import GalleryDeviceReport from '../components/GalleryDeviceReport.vue'
 import { galleryPasswordChoice, type PasswordChoiceScript } from '../fixtures/password-choice'
-import ProviderLoginDialog, { type ProviderLoginPhase } from '@demicodes/web-ui/settings/ProviderLoginDialog.vue'
-import AddModelDialog from '@demicodes/web-ui/settings/AddModelDialog.vue'
-import AddProviderDialog from '@demicodes/web-ui/settings/AddProviderDialog.vue'
-import ModelDialog from '@demicodes/web-ui/settings/ModelDialog.vue'
-import AddSkillSourceDialog from '@demicodes/plugin-skills/AddSkillSourceDialog.vue'
+import ProviderLoginDialog, { type ProviderLoginPhase } from '@jush-ai/web-ui/settings/ProviderLoginDialog.vue'
+import AddModelDialog from '@jush-ai/web-ui/settings/AddModelDialog.vue'
+import AddProviderDialog from '@jush-ai/web-ui/settings/AddProviderDialog.vue'
+import ModelDialog from '@jush-ai/web-ui/settings/ModelDialog.vue'
+import AddSkillSourceDialog from '@jush-ai/plugin-skills/AddSkillSourceDialog.vue'
 import { galleryDevices } from '../fixtures/devices'
-import type { AddSourceAnswer, SettingsSkillDevice } from '@demicodes/plugin-skills/types'
-import type { SettingsModelDraft, SettingsVendor } from '@demicodes/web-ui/settings/types'
-import DevicePairingDialog from '@demicodes/web-ui/devices/DevicePairingDialog.vue'
-import DeviceRenameDialog from '@demicodes/web-ui/devices/DeviceRenameDialog.vue'
-import DeviceRevokeDialog from '@demicodes/web-ui/devices/DeviceRevokeDialog.vue'
-import ConfirmDialog from '@demicodes/web-ui/ui/ConfirmDialog.vue'
-import ConversationDeleteDialog from '@demicodes/web-ui/sidebar/ConversationDeleteDialog.vue'
-import type { PairingPhase } from '@demicodes/web-ui/devices/pairing'
-import type { DeviceInstallCommands } from '@demicodes/web-ui/devices/installation'
-import ProjectDialog from '@demicodes/web-ui/targets/ProjectDialog.vue'
-import type { ProjectDevice, ProjectDraft, ProjectDeviceChoice } from '@demicodes/web-ui/targets/project'
-import FileBrowserDialog from '@demicodes/web-ui/files/FileBrowserDialog.vue'
-import CloudResetDialog from '@demicodes/web-ui/cloud/CloudResetDialog.vue'
-import type { CloudState } from '@demicodes/web-ui/cloud/types'
+import type { AddSourceAnswer, SettingsSkillDevice } from '@jush-ai/plugin-skills/types'
+import type { SettingsModelDraft, SettingsVendor } from '@jush-ai/web-ui/settings/types'
+import DevicePairingDialog from '@jush-ai/web-ui/devices/DevicePairingDialog.vue'
+import DeviceRenameDialog from '@jush-ai/web-ui/devices/DeviceRenameDialog.vue'
+import DeviceRevokeDialog from '@jush-ai/web-ui/devices/DeviceRevokeDialog.vue'
+import ConfirmDialog from '@jush-ai/web-ui/ui/ConfirmDialog.vue'
+import ConversationDeleteDialog from '@jush-ai/web-ui/sidebar/ConversationDeleteDialog.vue'
+import type { PairingPhase } from '@jush-ai/web-ui/devices/pairing'
+import type { DeviceInstallCommands } from '@jush-ai/web-ui/devices/installation'
+import ProjectDialog from '@jush-ai/web-ui/targets/ProjectDialog.vue'
+import type { ProjectDevice, ProjectDraft, ProjectDeviceChoice } from '@jush-ai/web-ui/targets/project'
+import FileBrowserDialog from '@jush-ai/web-ui/files/FileBrowserDialog.vue'
+import CloudResetDialog from '@jush-ai/web-ui/cloud/CloudResetDialog.vue'
+import type { CloudState } from '@jush-ai/web-ui/cloud/types'
 import GalleryDialogFrame from '../components/GalleryDialogFrame.vue'
 import GalleryShareDialog from '../components/GalleryShareDialog.vue'
 import GalleryProviderShareDialog from '../components/GalleryProviderShareDialog.vue'
@@ -48,9 +48,9 @@ import { demoInstallCommands, developmentInstallCommands } from '../fixtures/dev
 import { createGalleryFileDevices } from '../fixtures/files'
 import { useGalleryView } from '../gallery-views'
 import { productWould } from '../product-would'
-import type { HeadlineText } from '@demicodes/web-ui/ui/ui-text'
-import SearchDialog from '@demicodes/web-ui/search/SearchDialog.vue'
-import type { SearchRow, SearchSource } from '@demicodes/web-ui/search/search'
+import type { HeadlineText } from '@jush-ai/web-ui/ui/ui-text'
+import SearchDialog from '@jush-ai/web-ui/search/SearchDialog.vue'
+import type { SearchRow, SearchSource } from '@jush-ai/web-ui/search/search'
 import { fixtureMessageSearch, fixtureSearch, retryingConversationMessages, searchableConversation, searchConversations, shownConversationMessages } from '../fixtures/search'
 
 /**
@@ -191,9 +191,9 @@ const passwordChoices: { variant: string; choose: ReturnType<typeof galleryPassw
 const emailPhases: { variant: string; phase: ChangeEmailPhase }[] = [
   { variant: 'form', phase: { kind: 'form', currentEmail: 'alex@example.com' } },
   { variant: 'form · busy', phase: { kind: 'form', currentEmail: 'alex@example.com', busy: true } },
-  { variant: 'verify', phase: { kind: 'verify', email: 'alex@demi.codes' } },
-  { variant: 'verify · code resent', phase: { kind: 'verify', email: 'alex@demi.codes', resent: true } },
-  { variant: 'done', phase: { kind: 'done', email: 'alex@demi.codes' } },
+  { variant: 'verify', phase: { kind: 'verify', email: 'alex@jush.codes' } },
+  { variant: 'verify · code resent', phase: { kind: 'verify', email: 'alex@jush.codes', resent: true } },
+  { variant: 'done', phase: { kind: 'done', email: 'alex@jush.codes' } },
 ]
 const revokeConfirmations: { variant: string; device: string; home: string; projects: string[] }[] = [
   {
@@ -590,7 +590,7 @@ const resetPhases: {
           </GallerySpecimen>
         </div>
       </GallerySection>
-      <GallerySection title="Add Provider" note="A vendor from the catalog, whose endpoint and models are its own, or a compatible API: a proxy or a server speaking one of the protocols Demi implements, which lists the models you add. Choosing either creates the entry at once, with nothing asked first; its page sets the rest.">
+      <GallerySection title="Add Provider" note="A vendor from the catalog, whose endpoint and models are its own, or a compatible API: a proxy or a server speaking one of the protocols Jush implements, which lists the models you add. Choosing either creates the entry at once, with nothing asked first; its page sets the rest.">
         <div class="grid items-start gap-6 lg:grid-cols-2">
           <GallerySpecimen
             v-for="catalog in providerCatalogs"
@@ -671,7 +671,7 @@ const resetPhases: {
       </GallerySection>
       <GallerySection
         title="Share Provider"
-        note="Share beside a provider’s name in Settings › Providers opens this dialog. A share key lets another Demi server use the provider: that server’s user adds Another Demi and pastes the key, and only model requests come here. A provider without keys gets its first at once, as Share Conversation makes its link: the field shows Creating key… with a spinner until the key stands there, already copied, with Copy Key turned to Copied. The key’s text is shown only by the dialog that made it, so a dialog opened again shows an empty field and the list. New Key makes another. The list, with room for three keys whatever it holds, shows each key newest first: a used one names the server that used it last and when, an unused one when it expires, a week after it was made. Revoke removes an unused key at once; Revoke… on a used one asks first, since that server loses the provider. A failure to make a key says why under the field, and Try Again takes Copy Key’s place. The new-key specimens start at Open, which stands for Share, since only a click may write the clipboard."
+        note="Share beside a provider’s name in Settings › Providers opens this dialog. A share key lets another Jush server use the provider: that server’s user adds Another Jush and pastes the key, and only model requests come here. A provider without keys gets its first at once, as Share Conversation makes its link: the field shows Creating key… with a spinner until the key stands there, already copied, with Copy Key turned to Copied. The key’s text is shown only by the dialog that made it, so a dialog opened again shows an empty field and the list. New Key makes another. The list, with room for three keys whatever it holds, shows each key newest first: a used one names the server that used it last and when, an unused one when it expires, a week after it was made. Revoke removes an unused key at once; Revoke… on a used one asks first, since that server loses the provider. A failure to make a key says why under the field, and Try Again takes Copy Key’s place. The new-key specimens start at Open, which stands for Share, since only a click may write the clipboard."
       >
         <div class="grid items-start gap-6 lg:grid-cols-2">
           <GallerySpecimen variant="a provider with keys" wide>
@@ -792,7 +792,7 @@ const resetPhases: {
           </GallerySpecimen>
         </div>
       </GallerySection>
-      <GallerySection title="New Project" note="A project on the Cloud or a device. The first time it opens on the Cloud; after that on the kind and the device chosen last, which each specimen remembers across Close and Open as the product’s preference does. Moving a conversation between existing projects is the header’s menus, not a dialog. The directory completes from the device’s folders as it is typed: the folder before the caret lists under the field, filtered fuzzily by what follows its last slash; the menu opens with its first row selected, and again whenever its rows change; ↓ and ↑ and the moving pointer move the selection, which is the one lit row, Tab completes it and the menu goes on into it, and Return creates the project with what the field holds; Escape or a click anywhere outside it puts the menu away and leaves the focus where the click put it, and with no menu Tab moves the focus as anywhere. The button says Add Project for a directory that exists and Create Project for one Demi will make, as the device’s folders tell; Projects/demi exists, Projects/weather-app does not. A folder that is a project already, Projects/shop here, opens that project rather than making a second.">
+      <GallerySection title="New Project" note="A project on the Cloud or a device. The first time it opens on the Cloud; after that on the kind and the device chosen last, which each specimen remembers across Close and Open as the product’s preference does. Moving a conversation between existing projects is the header’s menus, not a dialog. The directory completes from the device’s folders as it is typed: the folder before the caret lists under the field, filtered fuzzily by what follows its last slash; the menu opens with its first row selected, and again whenever its rows change; ↓ and ↑ and the moving pointer move the selection, which is the one lit row, Tab completes it and the menu goes on into it, and Return creates the project with what the field holds; Escape or a click anywhere outside it puts the menu away and leaves the focus where the click put it, and with no menu Tab moves the focus as anywhere. The button says Add Project for a directory that exists and Create Project for one Jush will make, as the device’s folders tell; Projects/jush exists, Projects/weather-app does not. A folder that is a project already, Projects/shop here, opens that project rather than making a second.">
         <div class="grid items-start gap-6 lg:grid-cols-2">
           <GallerySpecimen v-for="(form, index) in projectForms" :key="form.variant" wide :variant="form.variant">
             <GalleryDialogFrame v-slot="{ open, close }">

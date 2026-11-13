@@ -1,6 +1,6 @@
 import type { WorkGroupBlock } from './work-groups'
-import type { HeldBlock } from '@demicodes/conversation-client'
-import type { MessageComment, PendingCall, QueuedMessage, UserContentBlock } from '@demicodes/protocol'
+import type { HeldBlock } from '@jush-ai/conversation-client'
+import type { MessageComment, PendingCall, QueuedMessage, UserContentBlock } from '@jush-ai/protocol'
 import type { CompactionProgressBlock } from './list-tail'
 import type { QueueDividerBlock, QueuedRenderBlock } from './queued-messages'
 import type { PendingSteerMessage, PendingSubmissionState } from './types'

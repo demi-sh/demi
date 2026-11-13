@@ -6,9 +6,9 @@
 
 use std::collections::HashSet;
 
-use demi_agent_store::media::{ModelView, references};
-use demi_agent_transcript::estimate::{block_tokens, prompt_tokens, text_tokens};
-use demi_shared_types::{Block, ContextRow, ContextRowKind, INSTRUCTIONS_SOURCE, SKILLS_SOURCE};
+use jush_agent_store::media::{ModelView, references};
+use jush_agent_transcript::estimate::{block_tokens, prompt_tokens, text_tokens};
+use jush_shared_types::{Block, ContextRow, ContextRowKind, INSTRUCTIONS_SOURCE, SKILLS_SOURCE};
 
 use super::{
     compaction::token_threshold,

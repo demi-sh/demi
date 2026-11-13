@@ -88,7 +88,7 @@ export const FEATURES: readonly Feature[] = [
 
 /**
  * What a demo frame plays: a feature of the tour, or the first screen's own,
- * which keeps Demi in view on both screens the whole time.
+ * which keeps Jush in view on both screens the whole time.
  */
 export type DemoId = FeatureId | 'hero'
 

@@ -1,6 +1,6 @@
 import { computed, defineComponent, h, onBeforeUnmount, type PropType } from 'vue'
 import { Globe, RotateCw } from '@lucide/vue'
-import { ICON_PX, usePage, type KindTab, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
+import { ICON_PX, usePage, type KindTab, type TabKind, type WindowKind } from '@jush-ai/plugin-sdk'
 import BrowserOpening from './BrowserOpening.vue'
 import BrowserTabContent from './BrowserTabContent.vue'
 import { t } from '../locales/text'

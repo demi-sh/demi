@@ -1,7 +1,7 @@
 import { GALLERY_MARKS } from '../fixtures/device-marks'
-import type { SavedScope, SidebarAccount, SidebarConversation, SidebarProject } from '@demicodes/web-ui/sidebar/types'
+import type { SavedScope, SidebarAccount, SidebarConversation, SidebarProject } from '@jush-ai/web-ui/sidebar/types'
 import { productWould } from '../product-would'
-import { conversationRun } from '@demicodes/web-ui/agent/conversation-status'
+import { conversationRun } from '@jush-ai/web-ui/agent/conversation-status'
 import { ago } from '../fixtures/time'
 
 const HOUR = 60 * 60 * 1000
@@ -30,22 +30,22 @@ export const longEmailAccount: SidebarAccount = {
 export function demoProjects(): SidebarProject[] {
   return [
     {
-      id: 'p-demi',
+      id: 'p-jush',
       // The same name runs on another device below: both rows name their device before the mark.
-      name: 'demi',
+      name: 'jush',
       targetKind: 'device',
       device: { kind: 'paired', name: 'alex-mbp', state: 'online', mark: GALLERY_MARKS.mac },
-      path: '/Users/alex/Projects/demi',
+      path: '/Users/alex/Projects/jush',
       // Its conversations share one list of saved messages, of three.
       savedScope: 'project',
       savedCount: 3,
     },
     {
-      id: 'p-demi-mini',
-      name: 'demi',
+      id: 'p-jush-mini',
+      name: 'jush',
       targetKind: 'device',
       device: { kind: 'paired', name: 'mac-mini', state: 'online', mark: GALLERY_MARKS.macMini },
-      path: '/Users/alex/Projects/demi',
+      path: '/Users/alex/Projects/jush',
       savedScope: 'conversation',
       savedCount: 0,
     },
@@ -123,7 +123,7 @@ export function demoProjects(): SidebarProject[] {
       id: 'p-notebooks',
       name: 'notebooks',
       targetKind: 'cloud',
-      path: '/home/demi/notebooks',
+      path: '/home/jush/notebooks',
       savedScope: 'conversation',
       savedCount: 0,
     },
@@ -218,13 +218,13 @@ export function demoConversations(): SidebarConversation[] {
       // Its device was removed since: the mark has no dot.
       device: { kind: 'removed' },
     },
-    // demi
+    // jush
     {
       id: 'c-login',
       title: 'Login test after the session cookie rename',
       updatedAt: ago(4 * 60 * 1000),
       status: 'active',
-      projectId: 'p-demi',
+      projectId: 'p-jush',
       pinned: true,
       unread: null,
       // Running, open, and a subagent asks: the yellow mark wins over the breathing one.
@@ -237,7 +237,7 @@ export function demoConversations(): SidebarConversation[] {
       title: 'Cookie helper refactor',
       updatedAt: ago(40 * 60 * 1000),
       status: 'done',
-      projectId: 'p-demi',
+      projectId: 'p-jush',
       pinned: false,
       unread: 'answered',
       // In a linked worktree of the project, by git's name: its mark alone ends the row.
@@ -248,7 +248,7 @@ export function demoConversations(): SidebarConversation[] {
       title: 'Compare three laptop models',
       updatedAt: ago(3 * HOUR),
       status: 'idle',
-      projectId: 'p-demi',
+      projectId: 'p-jush',
       pinned: false,
       unread: null
     },
@@ -257,7 +257,7 @@ export function demoConversations(): SidebarConversation[] {
       title: 'Rate limit retry policy',
       updatedAt: ago(6 * HOUR),
       status: 'error',
-      projectId: 'p-demi',
+      projectId: 'p-jush',
       pinned: false,
       unread: 'failed'
     },
@@ -266,7 +266,7 @@ export function demoConversations(): SidebarConversation[] {
       title: 'Fix the flaky login test',
       updatedAt: ago(DAY + 2 * HOUR),
       status: 'idle',
-      projectId: 'p-demi',
+      projectId: 'p-jush',
       pinned: false,
       unread: null
     },
@@ -275,7 +275,7 @@ export function demoConversations(): SidebarConversation[] {
       title: 'Summarize the customer interviews',
       updatedAt: ago(3 * DAY),
       status: 'idle',
-      projectId: 'p-demi',
+      projectId: 'p-jush',
       pinned: false,
       unread: null
     },
@@ -315,7 +315,7 @@ export function demoConversations(): SidebarConversation[] {
       title: 'Build the release on the mini',
       updatedAt: ago(5 * DAY),
       status: 'idle',
-      projectId: 'p-demi-mini',
+      projectId: 'p-jush-mini',
       pinned: false,
       unread: null
     },

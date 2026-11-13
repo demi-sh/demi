@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use tokio::time::Instant;
 
-use demi_command_package_mobile_protocol::mobile::{ElementRef, ElementSummary};
+use jush_command_package_mobile_protocol::mobile::{ElementRef, ElementSummary};
 
 use crate::{
     devices::OpenDevice,

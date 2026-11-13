@@ -11,7 +11,7 @@ import {
  * shows while the pointer is over its scroller, while it scrolls and while its thumb
  * is dragged, then hides.
  *
- * Its look is the `os-theme-demi` theme in base.css.
+ * Its look is the `os-theme-jush` theme in base.css.
  */
 
 // A click on the track scrolls a page towards it, as a native bar does.
@@ -28,7 +28,7 @@ export function scrollbarsOptions(axis: ScrollAxis): PartialOptions {
       y: axis === 'x' ? 'hidden' : 'scroll',
     },
     scrollbars: {
-      theme: 'os-theme-demi',
+      theme: 'os-theme-jush',
       autoHide: 'leave',
       autoHideDelay: 700,
       clickScroll: true,

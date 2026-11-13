@@ -37,7 +37,7 @@
 //!   nothing was written, so the agent knows what to fix and that no file
 //!   changed.
 //! - A text with a line that is exactly a marker, or seven dots, cannot be
-//!   written as a block. `--old` and `--new`, or `demi file patch`, write it.
+//!   written as a block. `--old` and `--new`, or `jush file patch`, write it.
 
 use std::{
     borrow::Cow,
@@ -46,8 +46,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_command_package_file_protocol::{Block, BlockLine, Choice, Edit};
-use demi_command_sdk::{edits::Recording, paths};
+use jush_command_package_file_protocol::{Block, BlockLine, Choice, Edit};
+use jush_command_sdk::{edits::Recording, paths};
 use similar::{DiffTag, TextDiff};
 use tokio_util::sync::CancellationToken;
 
@@ -201,7 +201,7 @@ fn plan_blocks(
 }
 
 /// The text of the file at `path`; a file that cannot be read fails naming
-/// it, as `demi file edit: <path>: No such file or directory`.
+/// it, as `jush file edit: <path>: No such file or directory`.
 fn read(path: &Path) -> Result<String, FileError> {
     fs::read_to_string(path).map_err(|error| FileError::Unreadable {
         path: path.to_owned(),

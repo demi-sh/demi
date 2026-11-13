@@ -1,7 +1,7 @@
 //! The models OpenAI lists for a key: `GET …/models` with the key as a
 //! bearer token ([List models](https://platform.openai.com/docs/api-reference/models/list)).
 
-use demi_provider_common::{ProviderHttp, refusal_words};
+use jush_provider_common::{ProviderHttp, refusal_words};
 use reqwest::Url;
 use reqwest::header::{AUTHORIZATION, HeaderValue};
 use serde::Deserialize;

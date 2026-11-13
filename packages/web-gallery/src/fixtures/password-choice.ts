@@ -1,4 +1,4 @@
-import type { PasswordChoiceOutcome } from '@demicodes/web-ui/settings/types'
+import type { PasswordChoiceOutcome } from '@jush-ai/web-ui/settings/types'
 
 /** How the host answers Choose Password in a specimen: the choice is saved, or the backend refuses it. */
 export type PasswordChoiceScript = 'saves' | 'fails'

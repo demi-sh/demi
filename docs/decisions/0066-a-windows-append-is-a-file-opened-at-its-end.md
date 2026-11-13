@@ -82,7 +82,7 @@ with write access and appends by writing each block with `NtWriteFile`'s
 ([`fhandler_base::open` and `raw_write`](https://github.com/cygwin/cygwin/blob/main/winsup/cygwin/fhandler/base.cc));
 the `O_APPEND` flag passes only to the Cygwin processes it starts, and a
 native program it starts gets the handle with write access. Git Bash
-therefore gives a native program's `>>` the same file Demi now gives. It
+therefore gives a native program's `>>` the same file Jush now gives. It
 departs for an MSYS2 program: Git Bash hands it `O_APPEND`, so its writes
 land at the end, which a native parent such as the runner cannot do. The
 runtime takes a standard handle as writable only by its write access

@@ -12,7 +12,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-use demi_web_api_protocol::ids::{LoginId, ProviderId, UserId};
+use jush_web_api_protocol::ids::{LoginId, ProviderId, UserId};
 
 /// What a change holds.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

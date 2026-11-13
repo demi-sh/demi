@@ -16,7 +16,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError, Weak};
 use std::time::Duration;
 
-use demi_shared_types::{Clock, ProviderModelList};
+use jush_shared_types::{Clock, ProviderModelList};
 use jiff::civil::Date;
 use jiff::tz::TimeZone;
 use serde::Deserialize;

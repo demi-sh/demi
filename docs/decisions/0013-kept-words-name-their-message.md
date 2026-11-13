@@ -27,7 +27,7 @@ words stay exact, as Codex keeps them, and the model can read anything
 the placeholders stand for from the conversation's history.
 
 * Each kept message starts with the index of the message it came from,
-  the index that `demi conversation history read` and `open` take.
+  the index that `jush conversation history read` and `open` take.
 * An image is kept as `[Image]` and an attachment as `[Attachment]`, where
   each stood in the message. Their bytes, names and ids stay in the
   history, where the message's index finds them.
@@ -38,7 +38,7 @@ the placeholders stand for from the conversation's history.
 
 ```text
 The earlier part of this conversation was compacted. … Each kept message
-starts with its index, which `demi conversation history read` and `open`
+starts with its index, which `jush conversation history read` and `open`
 take.
 
 [#30276]

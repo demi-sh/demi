@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { errorBodySchema, errorCodeSchema, schemaRefusal, type ErrorBody, type ErrorCode } from '@demicodes/protocol'
-import { httpStatusLine, isAbortError } from '@demicodes/utils'
-import { coded, environmental, errorFields } from '@demicodes/web-ui/infra/errors'
-import { pageLog } from '@demicodes/web-ui/infra/log'
+import { errorBodySchema, errorCodeSchema, schemaRefusal, type ErrorBody, type ErrorCode } from '@jush-ai/protocol'
+import { httpStatusLine, isAbortError } from '@jush-ai/utils'
+import { coded, environmental, errorFields } from '@jush-ai/web-ui/infra/errors'
+import { pageLog } from '@jush-ai/web-ui/infra/log'
 import { noteUpdating } from '../state/update'
 
 // Every control operation is an ordinary HTTP request: one answer, a status and an
@@ -39,7 +39,7 @@ export class ApiError extends Error {
   /** How many seconds the answer's `Retry-After` asks to wait, as a locked sign-in's does. */
   readonly retryAfterSeconds: number | null
   /**
-   * The answer's headers, such as the ETag and `X-Demi-Read-At` a refusal
+   * The answer's headers, such as the ETag and `X-Jush-Read-At` a refusal
    * that is a file's answer carries; empty for an error no answer gave.
    */
   readonly headers: Headers

@@ -1,4 +1,4 @@
-import type { ShareService } from '@demicodes/web-ui/agent/sharing'
+import type { ShareService } from '@jush-ai/web-ui/agent/sharing'
 import { createShare, listShares, removeShare, updateShare } from '../api/shares'
 
 /**

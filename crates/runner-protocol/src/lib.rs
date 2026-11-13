@@ -28,6 +28,7 @@ pub mod installation;
 pub mod manifest;
 pub mod pairs;
 pub mod release;
+pub mod renamed;
 pub mod search;
 pub mod values;
 pub mod wire;
@@ -35,4 +36,4 @@ pub mod wire;
 /// The variable the service manager's registration sets for the runner it
 /// starts, which therefore never hands the installation over to the
 /// manager (`crates/runner/src/autostart.rs`).
-pub const SUPERVISED: &str = "DEMI_SUPERVISED";
+pub const SUPERVISED: &str = "JUSH_SUPERVISED";

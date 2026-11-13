@@ -339,8 +339,8 @@ fn unit_of(build: &Path, file: &Path) -> Option<PathBuf> {
 /// The unit directories whose `out/` holds the file Cargo copied to `file`
 /// in the profile directory: on macOS a clone, on Linux a hard link, either
 /// way with the same length and modification time. The copy is named after
-/// the target (`demi-backend`), the original after its crate
-/// (`demi_backend`). The second list is every unit directory with a file of
+/// the target (`jush-backend`), the original after its crate
+/// (`jush_backend`). The second list is every unit directory with a file of
 /// that name, for when none matches exactly.
 fn copied_from(
     units: &BTreeMap<PathBuf, Vec<PathBuf>>,

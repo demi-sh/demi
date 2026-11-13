@@ -1,4 +1,4 @@
-//! The installation's configuration, `/opt/demi/config/demi.env`, as the two
+//! The installation's configuration, `/opt/jush/config/jush.env`, as the two
 //! services read it: an upgrade runs the next release's programs with it and
 //! finds the data directories in it. Reading it never changes it.
 
@@ -8,7 +8,7 @@ use std::{
     process::Command,
 };
 
-use demi_web_api_protocol::server_upgrade::UpgradeChannel;
+use jush_web_api_protocol::server_upgrade::UpgradeChannel;
 
 pub struct Settings {
     variables: Vec<(String, String)>,
@@ -41,7 +41,7 @@ impl Settings {
     /// The URL the server is reached at, when the configuration says.
     #[cfg(target_os = "linux")]
     pub fn public_url(&self) -> Option<&str> {
-        self.value("DEMI_BACKEND_PUBLIC_URL")
+        self.value("JUSH_BACKEND_PUBLIC_URL")
     }
 
     fn value(&self, name: &str) -> Option<&str> {
@@ -61,37 +61,37 @@ impl Settings {
         Ok(PathBuf::from(value))
     }
 
-    /// The channel the installation came from, `DEMI_UPGRADE_CHANNEL`, which
+    /// The channel the installation came from, `JUSH_UPGRADE_CHANNEL`, which
     /// Settings › Updates shows until an administrator chooses another:
     /// Beta when the configuration names none, as the backend reads it.
     pub fn upgrade_channel(&self) -> io::Result<UpgradeChannel> {
-        match self.value("DEMI_UPGRADE_CHANNEL") {
+        match self.value("JUSH_UPGRADE_CHANNEL") {
             None => Ok(UpgradeChannel::Beta),
             Some(value) => value
                 .parse()
-                .map_err(|_| io::Error::other(format!("DEMI_UPGRADE_CHANNEL names no channel: {value}"))),
+                .map_err(|_| io::Error::other(format!("JUSH_UPGRADE_CHANNEL names no channel: {value}"))),
         }
     }
 
     /// The backend's data directory.
     pub fn backend_data(&self) -> io::Result<PathBuf> {
-        self.directory("DEMI_BACKEND_DATA")
+        self.directory("JUSH_BACKEND_DATA")
     }
 
     /// The machine manager's state directory.
     pub fn manager_data(&self) -> io::Result<PathBuf> {
-        self.directory("DEMI_MANAGED_DATA")
+        self.directory("JUSH_MANAGED_DATA")
     }
 
     /// The backend's management socket, when the configuration names one.
     pub fn manage_socket(&self) -> Option<PathBuf> {
-        self.value(demi_runner_protocol::release::MANAGE_SOCKET_ENV)
+        self.value(jush_runner_protocol::release::MANAGE_SOCKET_ENV)
             .map(PathBuf::from)
     }
 
     /// Where the backend listens, when the configuration says.
     pub fn backend_listen(&self) -> Option<std::net::SocketAddr> {
-        self.value("DEMI_BACKEND_LISTEN")?.parse().ok()
+        self.value("JUSH_BACKEND_LISTEN")?.parse().ok()
     }
 
     /// The configuration file's text: one `NAME="value"` per line, which

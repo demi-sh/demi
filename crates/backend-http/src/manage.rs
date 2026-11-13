@@ -1,12 +1,12 @@
 //! The backend's management socket (`crates/server/src/main.rs`).
 //!
 //! It is a Unix socket only root may open, on which the next release's
-//! `demi-server` names the runner release that comes next. The backend has its
+//! `jush-server` names the runner release that comes next. The backend has its
 //! connected paired devices' runners download it ahead and answers how far they
 //! are, a line of JSON each time one moves on, until none is downloading or the
 //! asker stops waiting.
 //!
-//! `demi-server` also tells it how far an update of the server is, a line on
+//! `jush-server` also tells it how far an update of the server is, a line on
 //! a connection of its own each time, which the backend shows the
 //! administrators and answers with a line once it acted on it
 //! (`crates/backend-user-shard/src/upgrades.rs`).
@@ -21,8 +21,8 @@ use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
 use std::sync::Arc;
 
-use demi_backend_runners::prefetch::{NextRelease, progress};
-use demi_runner_protocol::release::{PrefetchAnswer, PrefetchRequest, UpgradeNotice};
+use jush_backend_runners::prefetch::{NextRelease, progress};
+use jush_runner_protocol::release::{PrefetchAnswer, PrefetchRequest, UpgradeNotice};
 use tokio::io::{AsyncBufReadExt as _, AsyncReadExt as _, AsyncWriteExt as _, BufReader};
 use tokio::net::{UnixListener, UnixStream};
 use tokio_util::sync::CancellationToken;

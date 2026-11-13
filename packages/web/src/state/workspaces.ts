@@ -1,9 +1,9 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { SerialQueue } from '@demicodes/utils'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import { newWorkspaceName, type WorkspaceView } from '@demicodes/web-ui/workspaces/workspaces'
-import { groupDot, type DotSource } from '@demicodes/web-ui/sidebar/conversation-dot'
+import { SerialQueue } from '@jush-ai/utils'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import { newWorkspaceName, type WorkspaceView } from '@jush-ai/web-ui/workspaces/workspaces'
+import { groupDot, type DotSource } from '@jush-ai/web-ui/sidebar/conversation-dot'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   workspaceAnswerSchema,

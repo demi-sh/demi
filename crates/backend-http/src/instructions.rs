@@ -5,9 +5,9 @@
 
 use axum::extract::State;
 use axum::http::StatusCode;
-use demi_backend_accounts::instructions::personal_instructions;
+use jush_backend_accounts::instructions::personal_instructions;
 use axum::Json;
-use demi_web_api_protocol::instructions::{InstructionsAnswer, InstructionsBody};
+use jush_web_api_protocol::instructions::{InstructionsAnswer, InstructionsBody};
 
 use super::AppState;
 use super::body::JsonBody;

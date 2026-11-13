@@ -6,7 +6,7 @@ use serde_json::Value;
 use crate::{Group, Leaf, Node, StdinRead, parse::placeholder};
 
 /// The line the capability index opens with, before one section a group.
-pub const INDEX_OPENER: &str = "Demi commands, run in the shell; `demi <group> --help` for details:";
+pub const INDEX_OPENER: &str = "Jush commands, run in the shell; `jush <group> --help` for details:";
 
 /// The model's capability index: the opener, then one section a group,
 /// sorted by the group's path.
@@ -19,7 +19,7 @@ pub struct CapabilityIndex {
 /// One command group's section of the capability index.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndexGroup {
-    /// The group's command line, such as `demi browser`.
+    /// The group's command line, such as `jush browser`.
     pub path: String,
     /// Its section: its path and its entry, which may run over several lines.
     pub section: String,

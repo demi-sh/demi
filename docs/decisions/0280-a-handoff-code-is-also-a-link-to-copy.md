@@ -75,7 +75,7 @@ The design to build from:
 Chromium's QR code bubble shows a page's link as a QR code with Copy and
 Download beside it. Element signs in a new device by a QR code alone
 (MSC4108), and Signal links a desktop the same way: both bind the code to a
-camera so it cannot travel. Demi accepts the link because the code is
+camera so it cannot travel. Jush accepts the link because the code is
 spent once and lasts ten minutes, and because its servers are run by the
 people who use them.
 

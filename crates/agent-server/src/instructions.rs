@@ -3,7 +3,7 @@
 //! block.
 //!
 //! The project's files are the `AGENTS.md` or `CLAUDE.md` file and
-//! `.demi/instructions.md` of each directory from the repository's root down
+//! `.jush/instructions.md` of each directory from the repository's root down
 //! to the node's working directory ([`search`]). A product reads them through
 //! the reader it passes, keeps them, and renders the block for its context
 //! source ([`render`]).
@@ -27,18 +27,18 @@
 
 use std::future::Future;
 
-use demi_agent_tools::ContextAnswer;
-use demi_device_interface::project;
-use demi_device_interface::{DeviceFile, DeviceRead};
-use demi_device_paths::DevicePaths;
-use demi_shared_types::InstructionEntry;
+use jush_agent_tools::ContextAnswer;
+use jush_device_interface::project;
+use jush_device_interface::{DeviceFile, DeviceRead};
+use jush_device_paths::DevicePaths;
+use jush_shared_types::InstructionEntry;
 
 /// The names read in each directory, the first that is a file taken.
 const NAMES: [&str; 2] = ["AGENTS.md", "CLAUDE.md"];
 
-/// Demi's own instructions of each directory, read after the one of
+/// Jush's own instructions of each directory, read after the one of
 /// [`NAMES`] it has: the directory and the file's name.
-const DEMI_FILE: [&str; 2] = [".demi", "instructions.md"];
+const JUSH_FILE: [&str; 2] = [".jush", "instructions.md"];
 
 const PREAMBLE: &str = "These are the user's personal instructions and the project's instruction files. Follow them in this conversation together with your other instructions; this block replaces any earlier one. Where they conflict, the user's messages come first, then a file nearer the working directory over one further up, then the personal instructions.";
 
@@ -100,14 +100,14 @@ where
 {
     let join = |directory: &str, name: &str| paths.join(directory, name);
     let ancestors = paths.ancestors(cwd);
-    let [demi, demi_name] = DEMI_FILE;
-    let demi_file = |directory: &str| join(&join(directory, demi), demi_name);
+    let [jush, jush_name] = JUSH_FILE;
+    let jush_file = |directory: &str| join(&join(directory, jush), jush_name);
     let mut reads = project::root_reads(paths, &ancestors);
     for directory in &ancestors {
         for name in NAMES {
             reads.push(DeviceRead::new(join(directory, name), 0));
         }
-        reads.push(DeviceRead::new(demi_file(directory), 0));
+        reads.push(DeviceRead::new(jush_file(directory), 0));
     }
     let found = read(reads).await?;
     let (git, named) = found.split_at(ancestors.len());
@@ -115,7 +115,7 @@ where
     let mut watch = project::root_watch(paths, &ancestors, git);
     for directory in &ancestors[..searched] {
         watch.extend(NAMES.iter().map(|name| join(directory, name)));
-        watch.push(demi_file(directory));
+        watch.push(jush_file(directory));
     }
     let mut unreadable = Vec::new();
     let mut taken_file = |path: String, answer: &DeviceFile| match answer {
@@ -134,8 +134,8 @@ where
             .iter()
             .zip(shared)
             .find_map(|(name, answer)| taken_file(join(directory, name), answer));
-        let demi = taken_file(demi_file(directory), &own[0]);
-        by_directory.push(file.into_iter().chain(demi).collect());
+        let jush = taken_file(jush_file(directory), &own[0]);
+        by_directory.push(file.into_iter().chain(jush).collect());
     }
     let mut taken: Vec<DeviceRead> = by_directory.into_iter().rev().flatten().collect();
     let mut texts: Vec<Option<String>> = vec![None; taken.len()];

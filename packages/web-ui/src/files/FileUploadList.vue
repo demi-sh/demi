@@ -15,7 +15,7 @@ import { formatBytes } from './format'
 import { t as shared } from '../locales/text'
 import { t } from './locales/text'
 import { formatCount } from '../ui/numbers'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 
 /**
  * A source's uploads, and nothing while there are none; its host sets its

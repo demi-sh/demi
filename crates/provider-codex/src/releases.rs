@@ -9,11 +9,11 @@
 
 use std::{fmt, sync::Arc};
 
-use demi_provider_common::{
+use jush_provider_common::{
     release::{KeptRelease, ReleaseSource},
     wire::decode_untagged,
 };
-use demi_shared_types::Clock;
+use jush_shared_types::Clock;
 use reqwest::Url;
 use semver::Version;
 use serde::Deserialize;
@@ -69,7 +69,7 @@ fn latest(text: &str) -> Result<Version, String> {
 }
 
 /// The registry's record of a package's `latest` version; only the field
-/// Demi reads.
+/// Jush reads.
 #[derive(Deserialize)]
 struct LatestRelease {
     version: Version,

@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-blobs"
+name = "jush-backend-blobs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,9 +12,9 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-agent-store = { path = "../agent-store" }
-demi-shared-types = { path = "../shared-types" }
-demi-web-api-protocol = { path = "../web-api-protocol" }
+jush-agent-store = { path = "../agent-store" }
+jush-shared-types = { path = "../shared-types" }
+jush-web-api-protocol = { path = "../web-api-protocol" }
 # Implements `object_store`'s trait for the local store, which keeps its
 # objects' attributes beside them.
 async-trait = "0.1"

@@ -1,4 +1,4 @@
-import { FileBrowserError, type FileSearchEvent } from '@demicodes/web-ui/files/types'
+import { FileBrowserError, type FileSearchEvent } from '@jush-ai/web-ui/files/types'
 import { invalidResponse } from './client'
 import { searchLineSchema } from './generated/web-api'
 import { t } from './locales/text'

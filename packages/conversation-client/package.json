@@ -1,6 +1,6 @@
 {
-  "name": "@demicodes/conversation-client",
-  "description": "The browser's client of Demi's conversation lane: ConversationClient, its WebSocket transport and the transcript patch applier.",
+  "name": "@jush-ai/conversation-client",
+  "description": "The browser's client of Jush's conversation lane: ConversationClient, its WebSocket transport and the transcript patch applier.",
   "version": "0.24.0",
   "private": false,
   "type": "module",
@@ -12,8 +12,8 @@
     }
   },
   "dependencies": {
-    "@demicodes/protocol": "workspace:^",
-    "@demicodes/utils": "workspace:^"
+    "@jush-ai/protocol": "workspace:^",
+    "@jush-ai/utils": "workspace:^"
   },
   "license": "Apache-2.0",
   "main": "./dist/index.mjs",
@@ -31,9 +31,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/demi-sh/demi.git",
+    "url": "git+https://github.com/jush-ai/jush.git",
     "directory": "packages/conversation-client"
   },
-  "homepage": "https://github.com/demi-sh/demi/tree/main/packages/conversation-client#readme",
-  "bugs": "https://github.com/demi-sh/demi/issues"
+  "homepage": "https://github.com/jush-ai/jush/tree/main/packages/conversation-client#readme",
+  "bugs": "https://github.com/jush-ai/jush/issues"
 }

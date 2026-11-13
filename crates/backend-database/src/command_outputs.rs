@@ -12,8 +12,8 @@
 //! A row is written once when its command ends, or copied into a Fork's
 //! destination, and never changes.
 
-use demi_device_interface::{CommandMedium, Missing};
-use demi_shared_types::{BlobRef, Block, CommandEnd, CommandId, Timestamp, ToolView};
+use jush_device_interface::{CommandMedium, Missing};
+use jush_shared_types::{BlobRef, Block, CommandEnd, CommandId, Timestamp, ToolView};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 
@@ -236,7 +236,7 @@ pub fn commands_of(blocks: &[Block]) -> Vec<CommandId> {
 /// chain of rows from its leaf back to its node's first.
 pub fn commands_of_prefix(
     connection: &Connection,
-    prefix: &demi_agent_store::StoredPrefix,
+    prefix: &jush_agent_store::StoredPrefix,
 ) -> Result<Vec<CommandId>, StorageError> {
     let mut statement = connection.prepare_cached(
         "WITH RECURSIVE chain (idx, follows) AS (

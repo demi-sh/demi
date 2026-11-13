@@ -13,8 +13,8 @@ use std::{
     collections::{BTreeSet, HashMap},
 };
 
-use demi_runner_protocol::files::Subject;
-use demi_runner_protocol::wire::Inbound;
+use jush_runner_protocol::files::Subject;
+use jush_runner_protocol::wire::Inbound;
 use tokio::sync::mpsc;
 
 use crate::link::Link;

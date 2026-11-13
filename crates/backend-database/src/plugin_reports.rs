@@ -6,8 +6,8 @@
 //! after a restart of the backend while the device is away, and never asks the
 //! device (`crates/plugin-interface/src/request.rs`).
 
-use demi_plugin_host::store::PluginReport;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_plugin_host::store::PluginReport;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use rusqlite::{OptionalExtension, params};
 use serde_json::Value;
 

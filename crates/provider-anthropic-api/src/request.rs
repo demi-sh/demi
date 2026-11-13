@@ -6,11 +6,11 @@
 
 use std::borrow::Cow;
 
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceItem, InferenceRequest, MediaBytes, Medium, PromptCache, ResultPart, ToolDefinition,
     UserPart, json_body, thinking::effort_budget, wire::messages,
 };
-use demi_shared_types::{B64Bytes, ThinkingConfig, ThinkingForm, ThinkingSummary, is_blank};
+use jush_shared_types::{B64Bytes, ThinkingConfig, ThinkingForm, ThinkingSummary, is_blank};
 use serde::Serialize;
 
 /// The prefix this provider puts on the signatures and redacted data it
@@ -138,7 +138,7 @@ enum Block<'a> {
         thinking: &'a str,
         signature: &'a str,
     },
-    /// A block the vendor sent that Demi keeps whole, such as redacted
+    /// A block the vendor sent that Jush keeps whole, such as redacted
     /// reasoning, sent back as it came.
     #[serde(untagged)]
     Recorded(&'a serde_json::value::RawValue),

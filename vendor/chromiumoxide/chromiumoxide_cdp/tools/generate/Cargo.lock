@@ -39,7 +39,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "demi-cdp-generator"
+name = "jush-cdp-generator"
 version = "0.1.0"
 dependencies = [
  "chromiumoxide_pdl",

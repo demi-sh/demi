@@ -1,5 +1,5 @@
 [package]
-name = "demi-provider-claude-code"
+name = "jush-provider-claude-code"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -17,13 +17,13 @@ bench = false
 testing = []
 
 [dependencies]
-demi-shared-types = { path = "../shared-types" }
-demi-provider-common = { path = "../provider-common" }
+jush-shared-types = { path = "../shared-types" }
+jush-provider-common = { path = "../provider-common" }
 # The releases it reads and the package that installs them.
-demi-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
-demi-device-interface = { path = "../device-interface" }
+jush-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
+jush-device-interface = { path = "../device-interface" }
 # The build version the SDK MCP server names.
-demi-shared-artifacts = { path = "../shared-artifacts" }
+jush-shared-artifacts = { path = "../shared-artifacts" }
 async-stream = "0.3"
 base64.workspace = true
 bytes.workspace = true

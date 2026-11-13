@@ -1,4 +1,4 @@
-//! A channel of a pair's peer (`demi_runner_protocol::pairs`), as the runner
+//! A channel of a pair's peer (`jush_runner_protocol::pairs`), as the runner
 //! uses it: a forwarded connection's (`crate::forward`) or a pipe's bytes
 //! between two moves (`crates/runner-process/src/pipes/moves.rs`).
 //!
@@ -7,7 +7,7 @@
 //! (`crate::channel`), which the sending side can watch.
 
 use bytes::Bytes;
-use demi_runner_protocol::direct::{MESSAGE_BYTES, WriteEnd};
+use jush_runner_protocol::direct::{MESSAGE_BYTES, WriteEnd};
 use str0m::channel::ChannelId;
 use tokio::sync::{mpsc, watch};
 use tokio_util::sync::CancellationToken;

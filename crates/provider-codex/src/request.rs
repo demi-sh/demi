@@ -5,7 +5,7 @@
 use std::borrow::Cow;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceRequest, Searches, json_body,
     openai_request::{
         AssistantReplay, InputItem, Reasoning, ReasoningReplay, ResponsesDialect, ResponsesTool,
@@ -36,7 +36,7 @@ pub(crate) struct Encoded {
 
 /// The body of `request`, and its WebSocket message when `websocket`.
 /// OpenAI's web search goes with every request while the entry turns it on,
-/// beside Demi's tools, live, as the Codex CLI's `--search` sends it, and with
+/// beside Jush's tools, live, as the Codex CLI's `--search` sends it, and with
 /// the sources of each search (`crates/provider-common/src/wire/responses.rs`).
 pub(crate) fn encode(request: &InferenceRequest, websocket: bool, searches: Searches) -> Encoded {
     let dialect = ResponsesDialect {
@@ -114,7 +114,7 @@ struct Body<'a> {
 const INCLUDE: [&str; 1] = ["reasoning.encrypted_content"];
 const INCLUDE_SEARCH: [&str; 2] = ["reasoning.encrypted_content", "web_search_call.action.sources"];
 
-/// A tool of a request: one of Demi's, or a search OpenAI runs.
+/// A tool of a request: one of Jush's, or a search OpenAI runs.
 #[derive(Serialize)]
 #[serde(untagged)]
 enum Tool<'a> {

@@ -71,7 +71,7 @@ async fn connect_inner(endpoint: &str) -> io::Result<Stream> {
                 "local socket path must be absolute",
             ));
         }
-        let mut backoff = demi_command_sdk::descriptors::Backoff::default();
+        let mut backoff = jush_command_sdk::descriptors::Backoff::default();
         loop {
             match tokio::net::UnixStream::connect(endpoint).await {
                 Ok(socket) => return Ok(Box::new(socket)),
@@ -83,7 +83,7 @@ async fn connect_inner(endpoint: &str) -> io::Result<Stream> {
                     if (matches!(
                         error.kind(),
                         io::ErrorKind::ConnectionRefused | io::ErrorKind::WouldBlock
-                    ) || demi_command_sdk::descriptors::exhausted(&error))
+                    ) || jush_command_sdk::descriptors::exhausted(&error))
                         && liveness(endpoint) != Liveness::Gone =>
                 {
                     backoff.wait().await;
@@ -94,7 +94,7 @@ async fn connect_inner(endpoint: &str) -> io::Result<Stream> {
     }
     #[cfg(windows)]
     {
-        if !endpoint.starts_with(r"\\.\pipe\demi-") {
+        if !endpoint.starts_with(r"\\.\pipe\jush-") {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "invalid local named pipe endpoint",
@@ -147,7 +147,7 @@ fn liveness(endpoint: &str) -> Liveness {
             // runner's leftover.
             Ok(()) | Err(std::fs::TryLockError::Error(_)) => Liveness::Gone,
         },
-        Err(error) if demi_command_sdk::descriptors::exhausted(&error) => Liveness::Unknown,
+        Err(error) if jush_command_sdk::descriptors::exhausted(&error) => Liveness::Unknown,
         Err(_) => Liveness::Gone,
     }
 }
@@ -186,16 +186,16 @@ impl Listener {
     /// program a job started before the runner started again reaches the
     /// new one (`crates/runner-shell/src/remote/mod.rs`).
     ///
-    /// On Unix a named address is a socket in `/tmp/demi-<uid>/<name>/`, as
+    /// On Unix a named address is a socket in `/tmp/jush-<uid>/<name>/`, as
     /// tmux keeps its sockets in `/tmp/tmux-<uid>/`: a directory that its
     /// user alone can enter, which the listener refuses when another user
-    /// owns it or may enter it. On Windows it is the pipe `demi-<name>`.
+    /// owns it or may enter it. On Windows it is the pipe `jush-<name>`.
     pub async fn bind(name: Option<&str>) -> io::Result<Self> {
         #[cfg(unix)]
         {
             let directory = match name {
                 None => {
-                    let directory = tempfile::Builder::new().prefix("demi-").tempdir()?;
+                    let directory = tempfile::Builder::new().prefix("jush-").tempdir()?;
                     chmod(directory.path(), 0o700).await?;
                     Directory::Own(directory)
                 }
@@ -235,8 +235,8 @@ impl Listener {
         #[cfg(windows)]
         {
             let endpoint = match name {
-                None => format!(r"\\.\pipe\demi-{}", uuid::Uuid::new_v4().simple()),
-                Some(name) => format!(r"\\.\pipe\demi-{name}"),
+                None => format!(r"\\.\pipe\jush-{}", uuid::Uuid::new_v4().simple()),
+                Some(name) => format!(r"\\.\pipe\jush-{name}"),
             };
             // Only the account the runner runs as may connect, from any of its
             // sessions: an elevated one, such as an SSH logon of an
@@ -305,7 +305,7 @@ impl Listener {
     }
 }
 
-/// The directory of the named address `name`: `/tmp/demi-<uid>/<name>`, each
+/// The directory of the named address `name`: `/tmp/jush-<uid>/<name>`, each
 /// level made for its user alone, and refused when another user owns it or
 /// may enter it.
 #[cfg(unix)]
@@ -315,7 +315,7 @@ fn named_directory(name: &str) -> io::Result<std::path::PathBuf> {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "an address name of letters, digits and dashes"));
     }
     let user = rustix::process::getuid().as_raw();
-    let base = std::path::Path::new("/tmp").join(format!("demi-{user}"));
+    let base = std::path::Path::new("/tmp").join(format!("jush-{user}"));
     let mut path = base.clone();
     for level in [None, Some(name)] {
         if let Some(level) = level {

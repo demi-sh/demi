@@ -10,14 +10,14 @@ step 1, which leaves out an account that is used up.
 ## Problem
 
 Alex's subscription refuses an image on Monday: its weekly window is used
-up until Thursday. Demi keeps what it learned in two records, and both say
+up until Thursday. Jush keeps what it learned in two records, and both say
 "used up until Thursday":
 
 - the account's **quota snapshot**, which the refusal's usage headers
   updated and which is stored with the account;
 - a **mark**, held in memory, which the refusal set.
 
-On Tuesday Alex buys more usage on the vendor's site. Every image Demi is
+On Tuesday Alex buys more usage on the vendor's site. Every image Jush is
 asked for still fails at once with "the usage limit is reached, resetting
 at Thursday", and no request leaves the server, because:
 
@@ -111,7 +111,7 @@ in memory.
   only to show them, and ends the turn with the vendor's error; the next
   turn asks the vendor again
   ([`session/turn.rs`](https://github.com/openai/codex/blob/67f0994b532b8740f14b5b738af7b7b2a915b1d6/codex-rs/core/src/session/turn.rs#L1899)).
-  Demi does the same for its one account per request, and departs only in
+  Jush does the same for its one account per request, and departs only in
   ordering several accounts by what it last read.
 
 ## Alternatives
@@ -120,7 +120,7 @@ in memory.
   first and refuse only if the probe agrees. The probe and the request
   answer the same question, so this asks the vendor twice where sending asks
   once, and a family whose probe would spend an inference request, which
-  Demi never runs as a probe, would still be refused by its records.
+  Jush never runs as a probe, would still be refused by its records.
 - **Shorter marks.** Expire every mark after a few minutes. A snapshot still
   refuses until its own reset, and any length is a guess.
 - **Drop the marks.** The snapshot alone would carry what a refusal said. A

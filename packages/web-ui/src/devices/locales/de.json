@@ -66,8 +66,8 @@
   },
   "page": {
     "cloud": "Cloud",
-    "startSentence": "Starte Demi auf dem Gerät:",
-    "noAutostart": "Dieses Gerät startet Demi nach einem Neustart nicht von selbst.",
+    "startSentence": "Starte Jush auf dem Gerät:",
+    "noAutostart": "Dieses Gerät startet Jush nach einem Neustart nicht von selbst.",
     "connection": "Verbindung",
     "route": "Route",
     "p2p": "P2P",
@@ -133,7 +133,7 @@
     "pair": "Gerät koppeln",
     "invalidCode": "Dieser Code ist nicht verfügbar. Setze den neuesten Code des Runners ein.",
     "rateLimited": "Zu viele Versuche. Warte eine Minute, bevor du es erneut versuchst.",
-    "unavailable": "Demi ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut."
+    "unavailable": "Jush ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut."
   },
   "revoke": {
     "title": "Dieses Gerät entkoppeln?",
@@ -153,7 +153,7 @@
   "autostart": {
     "noSystemd": "Dieses System verwendet kein systemd.",
     "noUserManager": "Der Benutzermanager von systemd antwortet nicht: {error}",
-    "notWritten": "Demi konnte {path} nicht speichern: {error}",
+    "notWritten": "Jush konnte {path} nicht speichern: {error}",
     "lingerOff": "Er startet erst, wenn sich {user} anmeldet. Um ihn beim Starten des Computers zu starten, führe Folgendes aus:",
     "refused": "Windows hat sowohl die geplante Aufgabe als auch den Autostart-Eintrag abgelehnt: {error}",
     "unusableName": "Der Name des Installationsordners, {name}, kann keinen Autostart-Eintrag benennen.",

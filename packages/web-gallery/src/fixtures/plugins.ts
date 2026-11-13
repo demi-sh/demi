@@ -1,11 +1,11 @@
 import { reactive } from 'vue'
 import { createPinia } from 'pinia'
-import { httpStatusLine } from '@demicodes/utils'
-import { BrowserTabsError } from '@demicodes/plugin-browser/live/tabs'
-import type { OpenUserStream } from '@demicodes/web-ui/plugins/streams'
-import type { DeviceArtifact, DeviceDownload } from '@demicodes/web-ui/devices/installed'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { workspaceName } from '@demicodes/web-ui/workspaces/workspaces'
+import { httpStatusLine } from '@jush-ai/utils'
+import { BrowserTabsError } from '@jush-ai/plugin-browser/live/tabs'
+import type { OpenUserStream } from '@jush-ai/web-ui/plugins/streams'
+import type { DeviceArtifact, DeviceDownload } from '@jush-ai/web-ui/devices/installed'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { workspaceName } from '@jush-ai/web-ui/workspaces/workspaces'
 import {
   PluginCallError,
   type AnyPluginPage,
@@ -14,8 +14,8 @@ import {
   type PageHost,
   type StateFeed,
   type PageDevice,
-} from '@demicodes/web-ui/plugins/page'
-import { navigateTabSchema, openTabSchema, stopTabSchema, tabHistorySchema } from '@demicodes/plugin-browser'
+} from '@jush-ai/web-ui/plugins/page'
+import { navigateTabSchema, openTabSchema, stopTabSchema, tabHistorySchema } from '@jush-ai/plugin-browser'
 import {
   addSourceSchema,
   setEnabledSchema,
@@ -24,7 +24,7 @@ import {
   sourceCallSchema,
   type SkillsState,
   type SourceState,
-} from '@demicodes/plugin-skills'
+} from '@jush-ai/plugin-skills'
 import {
   FEATURES as WEB_FEATURES,
   removeKeySchema,
@@ -32,7 +32,7 @@ import {
   signInSchema,
   signOutSchema,
   type WebState,
-} from '@demicodes/plugin-web'
+} from '@jush-ai/plugin-web'
 import { productWould } from '../product-would'
 import { galleryWorkspaces } from './workspaces'
 import { galleryDevices } from './devices'
@@ -350,7 +350,7 @@ export function webPlugin(state: WebState): GalleryPlugin {
             state.account = { email: 'alex@example.com' }
             inUse()
           })
-          return { url: 'https://auth.exa.ai/authorize?client_id=demi&state=gallery' }
+          return { url: 'https://auth.exa.ai/authorize?client_id=jush&state=gallery' }
         case 'sign_out':
           signOutSchema.parse(params)
           await beat(400)

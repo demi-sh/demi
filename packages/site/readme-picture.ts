@@ -87,7 +87,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
     <div class="chrome">
       <span class="lights"><i></i><i></i><i></i></span>
       <span class="tools">${icon('back', 20)}${icon('forward', 20)}${icon('sidebar', 18)}</span>
-      <span class="address">${icon('lock', 13)}demi.example.com</span>
+      <span class="address">${icon('lock', 13)}jush.example.com</span>
       <span class="tools">${icon('share', 18)}${icon('add', 20)}${icon('tabs', 18)}</span>
     </div>
     <img id="computer" alt="">
@@ -146,14 +146,14 @@ try {
   await settle(desk, phone)
   const pointer = await hinge(desk)
   const card = await layout()
-  await Promise.all(screens.map((page) => page.evaluate(() => window.demiReadme!.cue!())))
+  await Promise.all(screens.map((page) => page.evaluate(() => window.jushReadme!.cue!())))
   const start = await desk.evaluate(() => performance.now())
   const names: string[] = []
   for (let frame = 0; ; frame++) {
     const at = frame * STEP_MS
     if (errors.length)
       throw new Error(`The scene failed:\n${errors.join('\n')}`)
-    const [marks, phoneMarks] = await Promise.all(screens.map((page) => page.evaluate(() => window.demiReadme!.marks)))
+    const [marks, phoneMarks] = await Promise.all(screens.map((page) => page.evaluate(() => window.jushReadme!.marks)))
     const since = (name: string) => (marks![name] === undefined ? null : at - (marks![name]! - start))
     const done = since('done')
     if (done !== null && done > REST_MS && phoneMarks!.done !== undefined)
@@ -197,7 +197,7 @@ async function open(form: 'desktop' | 'phone', options: typeof DESKTOP): Promise
  * in a worker, whose time the page's clock does not hold.
  */
 async function settle(desk: Page, phone: Page): Promise<void> {
-  const cued = (page: Page) => page.evaluate(() => !!window.demiReadme?.cue)
+  const cued = (page: Page) => page.evaluate(() => !!window.jushReadme?.cue)
   const body = () => desk.evaluate(() => document.querySelector('[data-work-window] canvas')?.getAttribute('data-body') ?? null)
   for (let i = 0; ; i++) {
     if (errors.length)

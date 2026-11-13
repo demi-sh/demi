@@ -6,10 +6,10 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::Provider;
-use demi_provider_common::quota::ProbeCost;
-use demi_shared_types::{AuthState, Rotation, RuntimeState};
-use demi_web_api_protocol::providers::{
+use jush_provider_common::Provider;
+use jush_provider_common::quota::ProbeCost;
+use jush_shared_types::{AuthState, Rotation, RuntimeState};
+use jush_web_api_protocol::providers::{
     AccountDto, Availability, ProbeCost as ProbeCostDto, ProviderDetails, QuotaCapability,
     SetupPart, UnavailableReason,
 };

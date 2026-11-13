@@ -7,7 +7,7 @@ export const requestSchema = z.object({
   /** The file the caller named the script by, which a failure names; null for standard input. */
   file: z.string().nullable(),
   headed: z.boolean(),
-  /** The caller's `DEMI_*` variables, which the processes the tool starts get. */
+  /** The caller's `JUSH_*` variables, which the processes the tool starts get. */
   env: z.record(z.string(), z.string()),
   /** How long the call may run. */
   limitMs: z.number().int().positive(),

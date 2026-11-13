@@ -8,13 +8,13 @@
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::conversation_index::{ConversationChange, RecordChange};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_backend_database::conversation_index::{ConversationChange, RecordChange};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 
 use super::AppState;
 use super::error::ApiError;
 use super::gate::AuthUser;
-use demi_backend_device_access::transition::ChangeRefusal;
+use jush_backend_device_access::transition::ChangeRefusal;
 
 /// Detaches a device: answers once it has left the conversation and the
 /// conversation's commands there were asked to stop, waiting for no device; the

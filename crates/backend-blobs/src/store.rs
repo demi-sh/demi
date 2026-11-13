@@ -1,5 +1,5 @@
 //! The deployment's one object store: the data directory, or the S3 bucket the
-//! `DEMI_S3_*` settings name, reached through `object_store` either way.
+//! `JUSH_S3_*` settings name, reached through `object_store` either way.
 //!
 //! It holds the users' blobs and the published command packages under the same
 //! keys whichever it is. S3's credentials come from the standard AWS
@@ -36,7 +36,7 @@ use url::Url;
 use crate::ObjectError;
 use crate::local::LocalObjects;
 
-/// Where the deployment's object store lives (`DEMI_STORAGE`).
+/// Where the deployment's object store lives (`JUSH_STORAGE`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Storage {
     /// The data directory.
@@ -67,7 +67,7 @@ impl S3Config {
     pub fn check(&self) -> Result<(), S3ConfigError> {
         if self.bucket.is_empty() || self.region.is_empty() {
             return Err(S3ConfigError(
-                "DEMI_S3_BUCKET and DEMI_S3_REGION must not be empty".into(),
+                "JUSH_S3_BUCKET and JUSH_S3_REGION must not be empty".into(),
             ));
         }
         if self
@@ -76,7 +76,7 @@ impl S3Config {
             .is_some_and(|endpoint| endpoint.scheme() != "https")
         {
             return Err(S3ConfigError(
-                "DEMI_S3_ENDPOINT must be an HTTPS URL".into(),
+                "JUSH_S3_ENDPOINT must be an HTTPS URL".into(),
             ));
         }
         Ok(())
@@ -113,7 +113,7 @@ impl S3Config {
 }
 
 /// The client as AWS's own variables configure it, as
-/// `AmazonS3Builder::from_env` reads them, but for what Demi's settings
+/// `AmazonS3Builder::from_env` reads them, but for what Jush's settings
 /// decide: the bucket, its region and its endpoint. `AWS_ENDPOINT_URL_S3`
 /// would otherwise win over the endpoint the settings give, such as the one
 /// Fly's `fly storage create` sets beside its credentials, which names no

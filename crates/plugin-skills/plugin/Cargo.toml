@@ -1,5 +1,5 @@
 [package]
-name = "demi-plugin-skills"
+name = "jush-plugin-skills"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,11 +12,11 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-device-interface = { path = "../../device-interface" }
-demi-device-paths = { path = "../../device-paths" }
-demi-plugin-interface = { path = "../../plugin-interface" }
-demi-shared-types = { path = "../../shared-types" }
-demi-web-api-protocol = { path = "../../web-api-protocol" }
+jush-device-interface = { path = "../../device-interface" }
+jush-device-paths = { path = "../../device-paths" }
+jush-plugin-interface = { path = "../../plugin-interface" }
+jush-shared-types = { path = "../../shared-types" }
+jush-web-api-protocol = { path = "../../web-api-protocol" }
 futures-util.workspace = true
 # The sources' shallow fetch over HTTPS, through the workspace's reqwest.
 gix = { version = "0.87", default-features = false, features = ["blocking-http-transport-reqwest-rust-tls", "sha1"] }

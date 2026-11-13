@@ -1,9 +1,9 @@
 //! What the plugin does for its commands and its page.
 
-use demi_command_package_browser_protocol::browser::DrawResult;
-use demi_command_protocol::{MAX_MEDIUM_BYTES, MediumFacts};
-use demi_device_interface::{DeviceFile, DeviceRead, RpcInvocation, RpcPort};
-use demi_plugin_interface::{CallKind, PluginError, PluginPort, Scope};
+use jush_command_package_browser_protocol::browser::DrawResult;
+use jush_command_protocol::{MAX_MEDIUM_BYTES, MediumFacts};
+use jush_device_interface::{DeviceFile, DeviceRead, RpcInvocation, RpcPort};
+use jush_plugin_interface::{CallKind, PluginError, PluginPort, Scope};
 use schemars::JsonSchema;
 use serde::Serialize;
 use serde_json::{Map, Value, json};
@@ -13,7 +13,7 @@ use crate::frame::{self, FrameSize};
 use crate::page::{self, DEFAULT_LOOK, Tailwind};
 use crate::store;
 
-const CREATE: &str = "demi widget create";
+const CREATE: &str = "jush widget create";
 
 /// The width a widget's page has in a reply, which its screenshots are drawn
 /// at: the reply's text, 800px (`packages/web-ui/src/agent/blocks/AssistantBlock.vue`),
@@ -24,7 +24,7 @@ const PAGE_WIDTH: u32 = 798;
 /// How long a screenshot may take, a browser that starts for it included.
 const DRAW_TIMEOUT_MS: u64 = 60_000;
 
-/// The guide `demi widget guide` prints.
+/// The guide `jush widget guide` prints.
 const GUIDE: &str = include_str!("../guide/guide.md");
 
 /// Runs `create`: keeps the page, prints the widget's ID and frame, and

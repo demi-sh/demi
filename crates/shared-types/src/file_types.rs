@@ -2,7 +2,7 @@
 //!
 //! The backend serves a file under the media type this table gives it and shows
 //! in place only the types marked so. The page picks its viewer from the same
-//! table, generated into `@demicodes/protocol`, so the two always agree. An HTML
+//! table, generated into `@jush-ai/protocol`, so the two always agree. An HTML
 //! file shown from a device's files loads them as these types and the web's
 //! others.
 //!
@@ -21,7 +21,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 /// One media type the product knows files by. Its schema types the table
-/// the page receives in `@demicodes/protocol`.
+/// the page receives in `@jush-ai/protocol`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PreviewType {

@@ -1,5 +1,5 @@
 //! The conversation browser's tab list and tab methods: each runs the operation
-//! the agent's `demi browser` command runs, as a package call for the
+//! the agent's `jush browser` command runs, as a package call for the
 //! conversation's user, and holds no browser logic.
 //!
 //! The tab list is the plugin's conversation state: what the browser package
@@ -14,7 +14,7 @@
 //!   started, and the navigations name the number of the last tab list before
 //!   the request. The page ends its loading only on a list numbered after it.
 //! - `stop` runs `browser.stop`, which only a `user` caller reaches: the agent
-//!   waits for its commands rather than stopping a load, so `demi browser` has
+//!   waits for its commands rather than stopping a load, so `jush browser` has
 //!   no `stop`.
 //! - A method that does not wake a stopped Cloud is admitted as a user stream
 //!   is and ends as one does (`conversation_busy` when streams end).
@@ -22,19 +22,19 @@
 //!   set ([`ControlReason`]) that the page must cover whole, so a reason without
 //!   a sentence is a build error, never a fallback.
 
-use demi_command_declarations::NativeOperation;
-use demi_command_package_browser_protocol::PACKAGE;
-use demi_command_package_browser_protocol::browser::{
+use jush_command_declarations::NativeOperation;
+use jush_command_package_browser_protocol::PACKAGE;
+use jush_command_package_browser_protocol::browser::{
     BackInput, BrowserCreatedBy, BrowserErrorCode, BrowserOperation, BrowserTab,
     FailureDocument, ForwardInput, NavigationResult, OpenInput, PREFIX, ReloadInput, StopInput,
     TabCloseInput, TabId, TabListInput, TabMoved, TabNewInput, TabNewResult, TabPruneInput,
     TabPruneResult,
 };
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     CallKind, Method, Page, PluginError, PluginPort, PortFailure, PortRefusal, Scope, State,
 };
-use demi_shared_types::MAX_SAFE_INTEGER;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_shared_types::MAX_SAFE_INTEGER;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -127,7 +127,7 @@ fn operation(name: &str) -> NativeOperation {
 /// it calls, and its tab kind, whose tabs the plugin brings up to date
 /// whenever the browser package says the conversation's tabs changed.
 pub(crate) fn page() -> Page {
-    Page::new("@demicodes/plugin-browser")
+    Page::new("@jush-ai/plugin-browser")
         .conversation_state(State::new::<BrowserTabs>().calls(operation("tab.list")).held())
         .tab_kind(KIND)
         .method(

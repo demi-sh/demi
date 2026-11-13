@@ -7,19 +7,19 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::credentials::CredentialSeal;
-use demi_backend_database::permissions::{AskingAgent, Undelivered};
-use demi_backend_device_access::root_of;
-use demi_backend_page_sync::UserMarks;
-use demi_backend_page_sync::Revisions;
-use demi_backend_permissions::{PermissionShard, Waits, deliver};
-use demi_command_declarations::{Category, Node};
-use demi_shared_types::{AgentMessage, NodeId};
-use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::permissions::{PermissionRequestId, RequestingAgent};
-use demi_web_api_protocol::push::PushAsk;
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::credentials::CredentialSeal;
+use jush_backend_database::permissions::{AskingAgent, Undelivered};
+use jush_backend_device_access::root_of;
+use jush_backend_page_sync::UserMarks;
+use jush_backend_page_sync::Revisions;
+use jush_backend_permissions::{PermissionShard, Waits, deliver};
+use jush_command_declarations::{Category, Node};
+use jush_shared_types::{AgentMessage, NodeId};
+use jush_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::permissions::{PermissionRequestId, RequestingAgent};
+use jush_web_api_protocol::push::PushAsk;
 use futures_util::future::LocalBoxFuture;
 
 use super::{Shard, Shards};

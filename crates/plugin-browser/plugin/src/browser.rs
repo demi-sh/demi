@@ -1,15 +1,15 @@
-//! The `demi browser` group: one native leaf per operation of the
-//! `demi.browser` package, its arguments and `--json` result declared from the
+//! The `jush browser` group: one native leaf per operation of the
+//! `jush.browser` package, its arguments and `--json` result declared from the
 //! `command-package-browser-protocol` types, so the command line, the runner's
 //! check and the operation read one definition.
 
-use demi_command_declarations::NativeOperation;
-use demi_command_package_browser_protocol::PACKAGE;
-use demi_command_package_browser_protocol::browser::*;
-use demi_device_interface::{GroupBuilder, LeafBuilder};
+use jush_command_declarations::NativeOperation;
+use jush_command_package_browser_protocol::PACKAGE;
+use jush_command_package_browser_protocol::browser::*;
+use jush_device_interface::{GroupBuilder, LeafBuilder};
 
 /// The group's summary.
-const SUMMARY: &str = "Operate the conversation’s persistent browser tabs on the device running this shell. A new device needs demi browser install once before its first browser command. Node references come from inspect. Run a sequence of steps as one script: chain the commands in one shell call and read each result with --json to decide the next.";
+const SUMMARY: &str = "Operate the conversation’s persistent browser tabs on the device running this shell. A new device needs jush browser install once before its first browser command. Node references come from inspect. Run a sequence of steps as one script: chain the commands in one shell call and read each result with --json to decide the next.";
 /// The group's entry in the model's capability index.
 const ENTRY: &str = "A real browser on the device: pages, tabs, sign-ins, clicks, forms, uploads, downloads, screenshots, read-only scripts, CDP.";
 
@@ -47,7 +47,7 @@ operations! {
     "inspect" => InspectInput, InspectResult, "Read accessibility names, roles, values, states and references.";
     "find" => FindInput, FindResult, "Find nodes by reference, role/name, associated label, visible text, test ID or CSS.";
     "read" => ReadInput, ReadResult, "Read a matched element’s text, HTML, value, attribute or visible/enabled/checked state.";
-    "screenshot" => ScreenshotInput, ScreenshotResult, "Capture a tab: its PNG's bytes on stdout, so demi browser screenshot t1 | demi file view shows it to you and > shot.png saves it; or save a new PNG file with --output. Several tabs: a loop in one shell call.";
+    "screenshot" => ScreenshotInput, ScreenshotResult, "Capture a tab: its PNG's bytes on stdout, so jush browser screenshot t1 | jush file view shows it to you and > shot.png saves it; or save a new PNG file with --output. Several tabs: a loop in one shell call.";
     "record" => RecordInput, RecordResult, record_about("tab", "t1");
     "probe" => ProbeInput, ProbeResult, "Find elements at viewport coordinates and optionally save an annotated screenshot.";
     "click" => ClickInput, ActionResult, "Click one actionable element or an explicit viewport coordinate. Waits for a navigation the click starts, not for one the page starts later, which wait --url or --wait-url waits for.";
@@ -145,7 +145,7 @@ fn leaf<I: BrowserInput + schemars::JsonSchema, R: schemars::JsonSchema>(
         .json_output::<R>()
         .success_output(match name {
             "screenshot" => {
-                "the PNG's bytes on stdout and what it captured on stderr, so pipe it into demi file view to see it or redirect it to save it; with --output, the file saved and what it captured on stdout; --json requires --output"
+                "the PNG's bytes on stdout and what it captured on stderr, so pipe it into jush file view to see it or redirect it to save it; with --output, the file saved and what it captured on stdout; --json requires --output"
             }
             "record" => {
                 "start and stop: the recording's ID and state; frames: the changed frames as a table; note: the time it shows from; export: one image path per line, or with --sheet the sheet's path, or with --mp4 the video's bytes on stdout, or with --output the file saved; --json requires --output with --mp4"
@@ -177,7 +177,7 @@ fn targeted<I: schemars::JsonSchema>() -> bool {
 }
 
 fn positionals<I: schemars::JsonSchema>(name: &str) -> Vec<&'static str> {
-    demi_command_package_browser_protocol::browser::positionals(name, targeted::<I>())
+    jush_command_package_browser_protocol::browser::positionals(name, targeted::<I>())
 }
 
 /// The operand an operation reads from finite standard input.

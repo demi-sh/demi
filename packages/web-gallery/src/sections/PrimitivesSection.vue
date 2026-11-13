@@ -1,42 +1,42 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ChevronDown, CircleArrowUp, RefreshCw, Plus, Search, Send, Settings2, Trash2 } from '@lucide/vue'
-import CopyButton from '@demicodes/web-ui/ui/CopyButton.vue'
-import CopyCode from '@demicodes/web-ui/ui/CopyCode.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import Checkbox from '@demicodes/web-ui/ui/Checkbox.vue'
-import ExternalLink from '@demicodes/web-ui/ui/ExternalLink.vue'
-import IconButton from '@demicodes/web-ui/ui/IconButton.vue'
-import IndeterminateSpinner from '@demicodes/web-ui/ui/IndeterminateSpinner.vue'
-import Switch from '@demicodes/web-ui/ui/Switch.vue'
-import TextInput from '@demicodes/web-ui/ui/TextInput.vue'
-import ScrollArea from '@demicodes/web-ui/ui/ScrollArea.vue'
-import ShortcutRecorder from '@demicodes/web-ui/ui/ShortcutRecorder.vue'
-import StatusDot, { type StatusDotTone } from '@demicodes/web-ui/ui/StatusDot.vue'
-import SwatchPicker from '@demicodes/web-ui/ui/SwatchPicker.vue'
-import ResizeHandle from '@demicodes/web-ui/ui/ResizeHandle.vue'
-import ChoiceCards, { type ChoiceCardOption } from '@demicodes/web-ui/ui/ChoiceCards.vue'
+import CopyButton from '@jush-ai/web-ui/ui/CopyButton.vue'
+import CopyCode from '@jush-ai/web-ui/ui/CopyCode.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import Checkbox from '@jush-ai/web-ui/ui/Checkbox.vue'
+import ExternalLink from '@jush-ai/web-ui/ui/ExternalLink.vue'
+import IconButton from '@jush-ai/web-ui/ui/IconButton.vue'
+import IndeterminateSpinner from '@jush-ai/web-ui/ui/IndeterminateSpinner.vue'
+import Switch from '@jush-ai/web-ui/ui/Switch.vue'
+import TextInput from '@jush-ai/web-ui/ui/TextInput.vue'
+import ScrollArea from '@jush-ai/web-ui/ui/ScrollArea.vue'
+import ShortcutRecorder from '@jush-ai/web-ui/ui/ShortcutRecorder.vue'
+import StatusDot, { type StatusDotTone } from '@jush-ai/web-ui/ui/StatusDot.vue'
+import SwatchPicker from '@jush-ai/web-ui/ui/SwatchPicker.vue'
+import ResizeHandle from '@jush-ai/web-ui/ui/ResizeHandle.vue'
+import ChoiceCards, { type ChoiceCardOption } from '@jush-ai/web-ui/ui/ChoiceCards.vue'
 import { Cloud, Monitor } from '@lucide/vue'
-import { productAccentOptions } from '@demicodes/web-ui/theme/productAppearance'
-import TokenInput from '@demicodes/web-ui/ui/TokenInput.vue'
-import HighlightText from '@demicodes/web-ui/ui/HighlightText.vue'
-import ThemeToggle from '@demicodes/web-ui/ui/ThemeToggle.vue'
-import ConversationStatusDot from '@demicodes/web-ui/agent/ConversationStatusDot.vue'
-import SessionDockChip from '@demicodes/web-ui/agent/SessionDockChip.vue'
-import DeviceIcon from '@demicodes/web-ui/devices/DeviceIcon.vue'
-import type { DeviceLogo, DeviceMark } from '@demicodes/web-ui/devices/mark'
-import type { DeviceState } from '@demicodes/web-ui/devices/state'
-import ContextUsageIndicator from '@demicodes/web-ui/agent/ContextUsageIndicator.vue'
-import VendorMark from '@demicodes/web-ui/ui/VendorMark.vue'
-import Avatar from '@demicodes/web-ui/ui/Avatar.vue'
-import SettingsGroup from '@demicodes/web-ui/settings/SettingsGroup.vue'
-import SettingsRow from '@demicodes/web-ui/settings/SettingsRow.vue'
-import { HUE_TONES, hueToneOf } from '@demicodes/web-ui/ui/avatar-tone'
-import { accountDisplayName } from '@demicodes/web-ui/auth/account-display'
-import { providerLogo, vendorLogo } from '@demicodes/web-ui/settings/vendor-logos'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
-import { inDevelopment } from '@demicodes/web-ui/ui/disabled'
-import { focusedByKeyboard } from '@demicodes/web-ui/ui/active-row'
+import { productAccentOptions } from '@jush-ai/web-ui/theme/productAppearance'
+import TokenInput from '@jush-ai/web-ui/ui/TokenInput.vue'
+import HighlightText from '@jush-ai/web-ui/ui/HighlightText.vue'
+import ThemeToggle from '@jush-ai/web-ui/ui/ThemeToggle.vue'
+import ConversationStatusDot from '@jush-ai/web-ui/agent/ConversationStatusDot.vue'
+import SessionDockChip from '@jush-ai/web-ui/agent/SessionDockChip.vue'
+import DeviceIcon from '@jush-ai/web-ui/devices/DeviceIcon.vue'
+import type { DeviceLogo, DeviceMark } from '@jush-ai/web-ui/devices/mark'
+import type { DeviceState } from '@jush-ai/web-ui/devices/state'
+import ContextUsageIndicator from '@jush-ai/web-ui/agent/ContextUsageIndicator.vue'
+import VendorMark from '@jush-ai/web-ui/ui/VendorMark.vue'
+import Avatar from '@jush-ai/web-ui/ui/Avatar.vue'
+import SettingsGroup from '@jush-ai/web-ui/settings/SettingsGroup.vue'
+import SettingsRow from '@jush-ai/web-ui/settings/SettingsRow.vue'
+import { HUE_TONES, hueToneOf } from '@jush-ai/web-ui/ui/avatar-tone'
+import { accountDisplayName } from '@jush-ai/web-ui/auth/account-display'
+import { providerLogo, vendorLogo } from '@jush-ai/web-ui/settings/vendor-logos'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
+import { inDevelopment } from '@jush-ai/web-ui/ui/disabled'
+import { focusedByKeyboard } from '@jush-ai/web-ui/ui/active-row'
 import { usageAt, usageOf } from '../fixtures/catalog'
 import { useCardLimits } from '../fixtures/usage-limits'
 import { MANY_PROFILES, OFFERED_PROFILES, SHAPES, useCardCost } from '../fixtures/cost'
@@ -47,7 +47,7 @@ import { productWould } from '../product-would'
 import { demoInstructions, demoOpenInstruction } from '../fixtures/instructions'
 import GallerySpecimen from '../components/GallerySpecimen.vue'
 import { useGalleryView } from '../gallery-views'
-import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
+import { appShortcuts } from '@jush-ai/web-ui/settings/shortcuts'
 
 const { view } = useGalleryView()
 /**
@@ -345,7 +345,7 @@ const DEVICE_STATES: { variant: string; state: DeviceState | null; mark: DeviceM
 
       <GallerySection
         title="Focus Ring"
-        note="What the keyboard’s focus shows on any control, and only that: a click leaves none. A 2 px ring 1 px off its control, so it reaches 3 px past it; press Tab to see it. A box that clips (overflow other than visible, contain: paint) cuts what reaches past its edge, so inside one the ring is drawn inside its control: every overflow utility sets that for what it holds, and a box that clips by its own CSS carries focus-ring-inset. Where the page moves the focus (a closed window giving it back, a field focused on opening), none shows, and a link in running text takes its hover look instead of a ring. A list that holds the focus and names its active row (aria-activedescendant) draws the ring on that row with focus-ring-shown; a selection is shown by its own selected look, never by the ring. bun browse finds a ring a box cuts or an element covers (demi.focusRings)."
+        note="What the keyboard’s focus shows on any control, and only that: a click leaves none. A 2 px ring 1 px off its control, so it reaches 3 px past it; press Tab to see it. A box that clips (overflow other than visible, contain: paint) cuts what reaches past its edge, so inside one the ring is drawn inside its control: every overflow utility sets that for what it holds, and a box that clips by its own CSS carries focus-ring-inset. Where the page moves the focus (a closed window giving it back, a field focused on opening), none shows, and a link in running text takes its hover look instead of a ring. A list that holds the focus and names its active row (aria-activedescendant) draws the ring on that row with focus-ring-shown; a selection is shown by its own selected look, never by the ring. bun browse finds a ring a box cuts or an element covers (jush.focusRings)."
       >
         <div class="specimen-row">
           <GallerySpecimen variant="in the open">
@@ -417,7 +417,7 @@ const DEVICE_STATES: { variant: string; state: DeviceState | null; mark: DeviceM
         title="CopyCode"
         note="Shared command surface, wrapping and copy feedback."
       >
-        <CopyCode code="demi-runner run --backend https://demi.example.com" />
+        <CopyCode code="jush-runner run --backend https://jush.example.com" />
       </GallerySection>
       <GallerySection
         title="CopyButton"
@@ -425,7 +425,7 @@ const DEVICE_STATES: { variant: string; state: DeviceState | null; mark: DeviceM
       >
         <div class="specimen-row">
           <GallerySpecimen variant="ghost · sm">
-            <CopyButton source="demi-runner --version" />
+            <CopyButton source="jush-runner --version" />
           </GallerySpecimen>
           <GallerySpecimen variant="default · md · a longer tip">
             <CopyButton
@@ -484,7 +484,7 @@ const DEVICE_STATES: { variant: string; state: DeviceState | null; mark: DeviceM
             <IconButton :icon="Trash2" variant="danger" />
           </GallerySpecimen>
           <GallerySpecimen variant="success">
-            <IconButton :icon="CircleArrowUp" variant="success" aria-label="Demi 0.1.5500 is available" @click="productWould('Open Updates Settings')" />
+            <IconButton :icon="CircleArrowUp" variant="success" aria-label="Jush 0.1.5500 is available" @click="productWould('Open Updates Settings')" />
           </GallerySpecimen>
           <GallerySpecimen variant="circle">
             <div class="flex items-center gap-1">

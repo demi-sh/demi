@@ -38,7 +38,7 @@ import { onBeforeUnmount, watch, type WatchSource } from 'vue'
  */
 
 /** The key of the layer's token in its entry's history state. */
-const LAYER_KEY = 'demiLayer'
+const LAYER_KEY = 'jushLayer'
 
 /**
  * How many of the `pushed` layers (oldest first) stay open when Back lands on

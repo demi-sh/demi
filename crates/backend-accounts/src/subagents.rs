@@ -10,8 +10,8 @@
 
 use std::fmt;
 
-use demi_shared_types::{context_word, is_blank, offers_context};
-use demi_web_api_protocol::subagents::{NewProfile, ProfilePatch, SubagentProfile};
+use jush_shared_types::{context_word, is_blank, offers_context};
+use jush_web_api_protocol::subagents::{NewProfile, ProfilePatch, SubagentProfile};
 
 /// The name no profile takes: omitting `--profile` selects the inherit
 /// profile, and naming it would read as that one.

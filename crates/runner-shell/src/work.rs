@@ -38,7 +38,7 @@ use std::{
 };
 
 #[cfg(unix)]
-use demi_runner_process::process::Stray;
+use jush_runner_process::process::Stray;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
@@ -490,9 +490,9 @@ impl Work {
             // then ends with it, as any group does.
             group.signalled |= ends && !leaders;
             let sent = if leaders {
-                demi_runner_process::process::signal_process(id, signal)
+                jush_runner_process::process::signal_process(id, signal)
             } else {
-                demi_runner_process::process::signal_group(id, signal)
+                jush_runner_process::process::signal_group(id, signal)
             };
             if let Err(error) = sent {
                 failure.get_or_insert(error);
@@ -520,7 +520,7 @@ impl Work {
             .keys()
             .copied()
             .collect();
-        demi_runner_process::process::job_strays(job, &grouped, known)
+        jush_runner_process::process::job_strays(job, &grouped, known)
     }
 
     /// Windows has no signals: any but 0 ends the part's shell work and

@@ -22,16 +22,16 @@ use tokio_util::{sync::CancellationToken, task::AbortOnDropHandle};
 
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Result as BrowserResult};
 use crate::tabs::{environment::BrowserEnvironment, tab::BrowserTab};
-use demi_command_package_browser_protocol::live::{
+use jush_command_package_browser_protocol::live::{
     CursorRegion, EndReason, LiveControl, LiveDialog, LiveDownload, LiveMenu, LiveModuleMessage,
     LiveTab, LiveViewerMessage, ViewerMode,
 };
-use demi_live_view::{delivery::Delivery, input::Item};
-use demi_live_view_protocol::{
+use jush_live_view::{delivery::Delivery, input::Item};
+use jush_live_view_protocol::{
     ChunkAck, LiveHello, LiveKeyframe, LiveRelease, Platform, PointerAction, SourceId, ViewerInput,
 };
-use demi_command_protocol::{CommandError, Completion};
-use demi_command_sdk::{Input as ResidentInput, InvocationContext, ResidentError};
+use jush_command_protocol::{CommandError, Completion};
+use jush_command_sdk::{Input as ResidentInput, InvocationContext, ResidentError};
 
 use crate::live::protocol::{TabId, ViewportMode};
 use crate::live::{
@@ -772,7 +772,7 @@ impl Session<'_> {
             Update::Picture(Event::Unavailable(reason)) => {
                 self.writer
                     .notice(
-                        demi_command_package_browser_protocol::live::CAPTURE_UNAVAILABLE,
+                        jush_command_package_browser_protocol::live::CAPTURE_UNAVAILABLE,
                         &reason,
                     )
                     .await;
@@ -780,7 +780,7 @@ impl Session<'_> {
             Update::Picture(Event::Failed(reason)) => {
                 self.writer
                     .notice(
-                        demi_command_package_browser_protocol::live::CAPTURE_FAILED,
+                        jush_command_package_browser_protocol::live::CAPTURE_FAILED,
                         &reason,
                     )
                     .await;
@@ -788,7 +788,7 @@ impl Session<'_> {
             Update::Picture(Event::Stopped(reason)) => {
                 self.writer
                     .notice(
-                        demi_command_package_browser_protocol::live::CAPTURE_STOPPED,
+                        jush_command_package_browser_protocol::live::CAPTURE_STOPPED,
                         &reason,
                     )
                     .await;

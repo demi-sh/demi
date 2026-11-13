@@ -1,7 +1,7 @@
 //! A conversation's attached devices as the web app lists them; the user detaches
 //! one, and the conversation's agents attach them.
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
+use jush_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

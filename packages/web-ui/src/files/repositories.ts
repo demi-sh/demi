@@ -1,4 +1,4 @@
-import type { Block } from '@demicodes/protocol'
+import type { Block } from '@jush-ai/protocol'
 import { storedShellView } from '../agent/block-helpers'
 import { isAbsoluteDevicePath, relativePath } from './paths'
 import type { ConversationTranscripts } from './request-changes'

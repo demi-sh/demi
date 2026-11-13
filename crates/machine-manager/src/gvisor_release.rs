@@ -3,7 +3,7 @@
 //! the programs the manager runs.
 //!
 //! The manager fetches it when the master first chooses gVisor, and
-//! `demi-server runtime`, which a setup and an upgrade run, has a release's
+//! `jush-server runtime`, which a setup and an upgrade run, has a release's
 //! manager fetch it (`--fetch-gvisor`), so both use this one implementation.
 //!
 //! The archive is upstream's release of the pinned version for the server's
@@ -18,7 +18,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_machine_manager_protocol::runtime::{PROGRAMS, RuntimeRelease};
+use jush_machine_manager_protocol::runtime::{PROGRAMS, RuntimeRelease};
 use sha2::{Digest as _, Sha512};
 use tokio_util::sync::CancellationToken;
 
@@ -87,13 +87,13 @@ async fn fetch_into(
 ) -> io::Result<()> {
     let archive = stage.join("gvisor.tar.bz2");
     let url = pinned.archive_url();
-    let client = demi_shared_artifacts::download_client().map_err(io::Error::other)?;
-    let request = demi_shared_artifacts::Download {
+    let client = jush_shared_artifacts::download_client().map_err(io::Error::other)?;
+    let request = jush_shared_artifacts::Download {
         limit: LARGEST,
         redirects: 10,
-        ..demi_shared_artifacts::Download::new(&url)
+        ..jush_shared_artifacts::Download::new(&url)
     };
-    demi_shared_artifacts::download(&client, request, &archive, cancel, progress)
+    jush_shared_artifacts::download(&client, request, &archive, cancel, progress)
         .await
         .and_then(|received| received.plain())
         .map_err(|error| io::Error::other(format!("{url}: {error}")))?;

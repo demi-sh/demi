@@ -1,8 +1,8 @@
-# Demi im Vergleich
+# Jush im Vergleich
 
 [English](comparison.md) · **Deutsch** · [Español](comparison.es.md) · [Français](comparison.fr.md) · [Português](comparison.pt-BR.md) · [简体中文](comparison.zh-CN.md) · [繁體中文](comparison.zh-TW.md) · [日本語](comparison.ja.md) · [한국어](comparison.ko.md)
 
-Wie sich Demi von Agenten-Apps seiner Art unterscheidet, Stand Oktober 2026, nach der Dokumentation und dem Quellcode jedes Produkts. Die Tabelle führt eine Zeile nur dort auf, wo sich die Produkte unterscheiden, und eine Fähigkeit, die noch keines von ihnen hat. Ihre Spalten reichen vom Produkt, das Demi am nächsten ist, bis zum entferntesten.
+Wie sich Jush von Agenten-Apps seiner Art unterscheidet, Stand Oktober 2026, nach der Dokumentation und dem Quellcode jedes Produkts. Die Tabelle führt eine Zeile nur dort auf, wo sich die Produkte unterscheiden, und eine Fähigkeit, die noch keines von ihnen hat. Ihre Spalten reichen vom Produkt, das Jush am nächsten ist, bis zum entferntesten.
 
 Die Tabelle verwendet diese Symbole und Bezeichnungen:
 
@@ -14,7 +14,7 @@ Die Tabelle verwendet diese Symbole und Bezeichnungen:
 
 Die folgende Tabelle vergleicht die Produkte Funktion für Funktion:
 
-| | Demi | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
+| | Jush | [OpenHands][openhands] | [Orca][orca] | [T3 Code][t3-code] | [DeepSeek Harness][deepseek-harness] | [opencode][opencode] | [Pi][pi] | [herdr][herdr] |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Modelle und Abos** | | | | | | | | |
 | Claude-Abo | ✓ | ✓ | ✓ | ✓ | ◐¹ | | ✓ | ✓ |
@@ -134,7 +134,7 @@ Die Zeilen der Tabelle bedeuten Folgendes:
 - **Zeilenkommentare in Diffs**: Ein Kommentar zu einer Zeile einer Änderung, der an den Agenten geht.
 - **Eigener Agent**: Der eigene Agent des Produkts steuert das Modell, statt Claude Code, Codex oder andere Agenten auszuführen.
 - **Nur eine Shell als Werkzeug**: Das Modell bekommt ein einziges Werkzeug, eine Shell, und jede Fähigkeit ist ein Befehl darin.
-- **Plug-ins von Drittanbietern**: Code von jemand anderem, den der Benutzer installiert, um dem Produkt Werkzeuge oder Ansichten hinzuzufügen, über Skills und MCP-Server hinaus. Demis eigene Funktionen sind Plug-ins, aber es lädt keine fremden.
+- **Plug-ins von Drittanbietern**: Code von jemand anderem, den der Benutzer installiert, um dem Produkt Werkzeuge oder Ansichten hinzuzufügen, über Skills und MCP-Server hinaus. Jushs eigene Funktionen sind Plug-ins, aber es lädt keine fremden.
 - **Zugangsdaten für den Agenten**: Geheimnisse, die der Benutzer unter einem Namen speichert und die der Agent in seinen Befehlen verwendet.
 - **Browser live ansehen und steuern**: Der Benutzer sieht dem Browser des Agenten bei der Arbeit zu und kann ihn bedienen.
 - **Computersteuerung**: Der Agent bedient den Desktop mit Screenshots, Maus und Tastatur, über einen Browser hinaus.

@@ -1,6 +1,6 @@
 //! The `changes` plugin: its identity and its page package, and nothing else.
 //!
-//! Its page, `@demicodes/plugin-changes`, shows the Changes window's Change view
+//! Its page, `@jush-ai/plugin-changes`, shows the Changes window's Change view
 //! over the product's edit tracking and file routes
 //! (`crates/xtask/src/contracts/registry.rs`).
 //!
@@ -18,7 +18,7 @@
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{Manifest, NoRequests, Page, Plugin, PluginFactory, PluginId};
+use jush_plugin_interface::{Manifest, NoRequests, Page, Plugin, PluginFactory, PluginId};
 
 /// The plugin's factory.
 pub struct Changes {
@@ -32,7 +32,7 @@ impl Changes {
             "Changes",
             "Shows the uncommitted changes in the conversation's working directory, and what each of the agent's commands changed, as diffs in the Changes window.",
         );
-        manifest.page = Some(Page::new("@demicodes/plugin-changes"));
+        manifest.page = Some(Page::new("@jush-ai/plugin-changes"));
         Self { manifest }
     }
 }

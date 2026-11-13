@@ -30,22 +30,22 @@ use std::sync::Arc;
 use crate::store::StoreError;
 use crate::store::{MirrorOutcome, WorkOutcome};
 use crate::store::{PluginChanges, PluginStore, ValueWrite, Written};
-use demi_command_declarations::NativeOperation;
-use demi_device_interface::{CommandSet, GroupBuilder, JobCaller, PortError, RpcPort};
-use demi_plugin_interface::{
+use jush_command_declarations::NativeOperation;
+use jush_device_interface::{CommandSet, GroupBuilder, JobCaller, PortError, RpcPort};
+use jush_plugin_interface::{
     AskedVideo, AudioAsk, AudioVoices, Feature, ImageAsk, MadeAudio, MadeImage, MediaListing, MediaRefusal, VideoAsk,
     VideoStep, CallKind, DirectoryPath, DeviceDirectory, Plugin, PluginError, PluginId, PluginPort,
     PluginTransport, PortAnswer, PortFailure, PortMessage, PortRefusal, Reply, Request, Scope, StoredReport,
     StoredValue, Workspaces, DeviceName, GitTree,
 };
-use demi_device_interface::{DeviceFile, DeviceRead};
-use demi_shared_types::{B64Bytes, BlobRef, MediaKind, NodeId, Timestamp, TurnId};
-use demi_web_api_protocol::conversations::PluginRevision;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
-use demi_web_api_protocol::work::{CreateWorkTab, HeldState, WorkChange, WorkEffect, Work};
-use demi_web_api_protocol::plugins::{PluginEntry, PluginStateAnswer};
-use demi_web_api_protocol::workflows::WatchSubject;
+use jush_device_interface::{DeviceFile, DeviceRead};
+use jush_shared_types::{B64Bytes, BlobRef, MediaKind, NodeId, Timestamp, TurnId};
+use jush_web_api_protocol::conversations::PluginRevision;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_web_api_protocol::work::{CreateWorkTab, HeldState, WorkChange, WorkEffect, Work};
+use jush_web_api_protocol::plugins::{PluginEntry, PluginStateAnswer};
+use jush_web_api_protocol::workflows::WatchSubject;
 use futures_util::StreamExt as _;
 use futures_util::future::LocalBoxFuture;
 use futures_util::stream::LocalBoxStream;
@@ -986,7 +986,7 @@ impl UserPlugins {
     }
 
     /// The toolset of the plugins the user has on: their commands, with the
-    /// product's `product` groups under `demi`.
+    /// product's `product` groups under `jush`.
     pub async fn toolset(&self, product: Vec<GroupBuilder>) -> Result<PluginToolset, StoreError> {
         let enabled = self.enabled().await?;
         let features = self.0.features().await?;
@@ -1092,7 +1092,7 @@ impl UserPlugins {
         conversation: &ConversationId,
         device: &DeviceId,
         directory: String,
-        paths: demi_device_paths::DevicePaths,
+        paths: jush_device_paths::DevicePaths,
         cancel: CancellationToken,
     ) -> Result<Option<(Value, Vec<WatchSubject>)>, PluginError> {
         let Some((index, _)) = self.0.registry.plugin(plugin.as_str()) else {
@@ -1621,7 +1621,7 @@ pub struct ContextAsk {
     /// The node's working directory.
     pub cwd: String,
     /// How the node's device writes its paths.
-    pub paths: demi_device_paths::DevicePaths,
+    pub paths: jush_device_paths::DevicePaths,
     /// The node's current input turn.
     pub turn: TurnId,
     /// The text of the source's own blocks the model receives, oldest

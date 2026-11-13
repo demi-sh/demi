@@ -63,7 +63,7 @@ mod linux {
         rc::Rc,
     };
 
-    use demi_machine_manager_protocol::{NetworkRules, SandboxMachine};
+    use jush_machine_manager_protocol::{NetworkRules, SandboxMachine};
     use ipnet::Ipv4Net;
 
     use super::{
@@ -79,7 +79,7 @@ mod linux {
     };
 
     /// The prefix of every host interface of a Cloud slot.
-    const HOST_INTERFACES: &str = "demih";
+    const HOST_INTERFACES: &str = "jushh";
 
     /// The kernel's IPv6 settings, absent when it runs without IPv6, such as
     /// when booted with `ipv6.disable=1`.
@@ -93,7 +93,7 @@ mod linux {
         Netlink(#[from] NetlinkError),
         #[error("Cannot apply the Cloud firewall: {0}")]
         Firewall(String),
-        #[error("DEMI_MANAGED_SUBNET overlaps host route {0}")]
+        #[error("JUSH_MANAGED_SUBNET overlaps host route {0}")]
         Overlap(Ipv4Net),
     }
 
@@ -337,6 +337,29 @@ mod linux {
             if machine == SandboxMachine::Cloud {
                 self.resolver.listen(slot).await?;
             }
+            Ok(())
+        }
+
+        /// Removes what a manager of before the rename left on the host
+        /// (`crate::renamed`): its slots' interfaces, whose peers end with
+        /// them, and its firewall table.
+        pub async fn clear_earlier(&self) -> Result<(), NetworkError> {
+            let names = netlink::session(|handle| async move {
+                netlink::links_named(&handle, crate::renamed::HOST_INTERFACES).await
+            })
+            .await?;
+            for name in names {
+                netlink::session(|handle| async move { netlink::delete(&handle, &name).await }).await?;
+            }
+            let nft = self.nft.clone();
+            // A host without the table answers with an error, which is no
+            // failure here.
+            let _ = blocking::run(move |_| {
+                std::process::Command::new(nft)
+                    .args(["delete", "table", "inet", crate::renamed::TABLE])
+                    .output()
+            })
+            .await;
             Ok(())
         }
 

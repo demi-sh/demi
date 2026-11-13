@@ -29,9 +29,9 @@
 
 use std::collections::HashMap;
 
-use demi_shared_types::{AgentMessage, BlockId, CommandReport, PendingSteer, Timestamp};
+use jush_shared_types::{AgentMessage, BlockId, CommandReport, PendingSteer, Timestamp};
 
-use demi_agent_store::PendingAgentInput;
+use jush_agent_store::PendingAgentInput;
 
 /// One input waiting for a boundary.
 #[derive(Debug, Clone, PartialEq)]

@@ -25,18 +25,18 @@ use std::sync::Mutex;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_backend_database::StorageError;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_database::providers::ShareKeyRow;
-use demi_backend_providers::vault::entries::Vault;
-use demi_provider_registry::entry::ProviderEntry;
-use demi_provider_relay::borrow::FAMILY as BORROWED;
-use demi_provider_relay::key::ShareKey as KeyText;
-use demi_provider_relay::lend::Lends;
-use demi_provider_relay::wire::{ClientMessage, Lent, ModelLimits, ServerMessage};
-use demi_shared_types::{ProviderModelList, Timestamp};
-use demi_web_api_protocol::ids::{ProviderId, UserId};
-use demi_web_api_protocol::providers::{NewShareKey, ShareKey, ShareKeyUse, ShareKeys};
+use jush_backend_database::StorageError;
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_database::providers::ShareKeyRow;
+use jush_backend_providers::vault::entries::Vault;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_provider_relay::borrow::FAMILY as BORROWED;
+use jush_provider_relay::key::ShareKey as KeyText;
+use jush_provider_relay::lend::Lends;
+use jush_provider_relay::wire::{ClientMessage, Lent, ModelLimits, ServerMessage};
+use jush_shared_types::{ProviderModelList, Timestamp};
+use jush_web_api_protocol::ids::{ProviderId, UserId};
+use jush_web_api_protocol::providers::{NewShareKey, ShareKey, ShareKeyUse, ShareKeys};
 use futures_util::{Sink, Stream};
 use tokio_util::sync::CancellationToken;
 
@@ -315,7 +315,7 @@ impl Shard {
         );
         let lends = async |model: &str| services.lends_model(&borrowing, Some(model)).await.map_err(|error| error.to_string());
         tokio::select! {
-            () = demi_provider_relay::lend::serve(runtime, incoming, outgoing, &key, lends) => {}
+            () = jush_provider_relay::lend::serve(runtime, incoming, outgoing, &key, lends) => {}
             () = revoked.cancelled() => {}
         }
         services.lent.ended(&key, &revoked);

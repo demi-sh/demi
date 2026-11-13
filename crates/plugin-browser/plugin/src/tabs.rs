@@ -37,10 +37,10 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use demi_command_package_browser_protocol::browser::{BrowserCreatedBy, BrowserTab};
-use demi_plugin_interface::{PluginError, PluginPort};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
-use demi_web_api_protocol::work::{CreateWorkTab, WorkTab};
+use jush_command_package_browser_protocol::browser::{BrowserCreatedBy, BrowserTab};
+use jush_plugin_interface::{PluginError, PluginPort};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::work::{CreateWorkTab, WorkTab};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tokio::sync::{Mutex, watch};

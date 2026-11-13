@@ -1,7 +1,7 @@
 //! A conversation's permission requests: what a page reads to show the card
 //! above the composer, and the decision it sends.
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
+use jush_shared_types::{MAX_SAFE_INTEGER, Nullable, Timestamp};
 use serde_with::rust::unwrap_or_skip;
 
 use crate::credentials::{CredentialField, Keep, RequestedValues};
@@ -9,7 +9,7 @@ use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-demi_shared_types::id!(
+jush_shared_types::id!(
     /// A permission request's id, which the backend assigns when a command
     /// is refused.
     PermissionRequestId

@@ -11,8 +11,8 @@ Forwarding adds it as *Forward*, the next as *Forward (2)*, and the table
 gives its first column to that name. The name says nothing the route doesn't:
 a forward is where it listens and where it connects, `Cloud:11434 →
 MacBook Pro:localhost:11434`. Yet the name must be unique, a second forward
-named like the first is refused, `demi host forward add` takes `--name`, and
-`demi host forward remove` takes the name, so an agent names a forward only
+named like the first is refused, `jush host forward add` takes `--name`, and
+`jush host forward remove` takes the name, so an agent names a forward only
 to remove it later.
 
 ## Decision
@@ -37,7 +37,7 @@ A forward is its route. Nothing names it.
   (*Port of Cloud · 11434 → MacBook Pro · localhost:11434*), the Delete
   dialog's list and the Remove dialog's title, it is said by its whole
   route, as the page already wrote it.
-- **`demi host forward`**:
+- **`jush host forward`**:
   - `add` takes no `--name`.
   - `list` prints id, listen, connect and state.
   - `remove <forward>` takes the forward's id from `list`, or where it

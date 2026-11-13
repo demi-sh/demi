@@ -37,14 +37,14 @@
 
 use std::sync::Arc;
 
-use demi_runner_jobs::{
+use jush_runner_jobs::{
     commands::contexts::ContextTable,
     connection::{ConnectionHandle, Ended, Live, Reach, Relay, Request},
     job_directories::JobDirectories,
     tasks::{Commands, JobConfig, JobTable, WorkId},
 };
-use demi_runner_device::worktrees::Worktrees;
-use demi_runner_protocol::wire;
+use jush_runner_device::worktrees::Worktrees;
+use jush_runner_protocol::wire;
 use tokio::{
     sync::{mpsc, watch},
     task::JoinSet,

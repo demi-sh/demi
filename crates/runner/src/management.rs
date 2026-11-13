@@ -1,10 +1,10 @@
 //! Installation status, coordinated upgrade drain and removal, which the
 //! runner's local endpoint answers beside the declared commands.
 
-use demi_command_protocol::{Completion, LocalInvocation};
-use demi_command_sdk::{Handler, InvocationContext, ResidentError};
-use demi_runner_jobs::commands::dispatch::{Dispatcher, RUNNER, completed, reported};
-use demi_runner_protocol::console::{NO_AUTOSTART, PAIRED, PAIRING_CODE, REMOVAL};
+use jush_command_protocol::{Completion, LocalInvocation};
+use jush_command_sdk::{Handler, InvocationContext, ResidentError};
+use jush_runner_jobs::commands::dispatch::{Dispatcher, RUNNER, completed, reported};
+use jush_runner_protocol::console::{NO_AUTOSTART, PAIRED, PAIRING_CODE, REMOVAL};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,

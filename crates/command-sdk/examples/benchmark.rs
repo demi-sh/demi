@@ -1,9 +1,9 @@
 //! Reproducible synthetic transport benchmark; no model or product backend.
 use bytes::Bytes;
-use demi_command_protocol::{
+use jush_command_protocol::{
     CommandCaller, CommandContext, CommandLocale, Completion, Invocation, Record,
 };
-use demi_command_sdk::{Client, Handler, InvocationContext, ResidentError, serve_stdio};
+use jush_command_sdk::{Client, Handler, InvocationContext, ResidentError, serve_stdio};
 use std::{
     collections::BTreeMap,
     future::Future,
@@ -56,7 +56,7 @@ fn request(operation: &str) -> Invocation {
         edits: None,
         operation: operation.into(),
         invocation_id: "benchmark".into(),
-        command: "demi test".into(),
+        command: "jush test".into(),
         args: serde_json::json!({}),
         cwd: std::env::current_dir()
             .unwrap()
@@ -233,7 +233,7 @@ async fn main() -> Result<(), Error> {
 
 fn context() -> CommandContext {
     CommandContext {
-        color_scheme: demi_command_protocol::ColorScheme::Light,
+        color_scheme: jush_command_protocol::ColorScheme::Light,
         conversation: "conversation".into(),
         caller: CommandCaller::agent(1),
         locale: CommandLocale {

@@ -1,12 +1,12 @@
 //! Settings › Updates: which release the server runs, the newest of
 //! its channel, and an update a master or an administrator runs
-//! (`crates/server/src/main.rs`). Only a server that `demi-server` installed
+//! (`crates/server/src/main.rs`). Only a server that `jush-server` installed
 //! offers it.
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Timestamp};
+use jush_shared_types::{MAX_SAFE_INTEGER, Timestamp};
 use garde::Validate;
 use schemars::JsonSchema;
-use demi_runner_protocol::release::UpgradeStep;
+use jush_runner_protocol::release::UpgradeStep;
 use serde::{Deserialize, Serialize};
 
 /// `GET /server-upgrade`, and what its changes answer; the state channel
@@ -39,7 +39,7 @@ pub struct WorkingAgents {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum UpgradeChannel {
-    /// The releases Demi publishes, which GitHub marks *latest* in turn.
+    /// The releases Jush publishes, which GitHub marks *latest* in turn.
     Beta,
     /// Every release, the pre-releases a deploy publishes included.
     Canary,

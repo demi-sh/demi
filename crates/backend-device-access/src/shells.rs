@@ -18,31 +18,31 @@ use std::rc::{Rc, Weak};
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_agent_tools::{EnvironmentScope, ShellEnvironmentFactory};
-use demi_backend_blobs::blobs::UserBlobs;
-use demi_backend_database::command_outputs::{CommandOutput, OutputRow};
-use demi_backend_database::control::ControlService;
-use demi_backend_database::conversations::ConversationDb;
-use demi_backend_database::running::{self, RunningCommand};
-use demi_runner_client::{
+use jush_agent_tools::{EnvironmentScope, ShellEnvironmentFactory};
+use jush_backend_blobs::blobs::UserBlobs;
+use jush_backend_database::command_outputs::{CommandOutput, OutputRow};
+use jush_backend_database::control::ControlService;
+use jush_backend_database::conversations::ConversationDb;
+use jush_backend_database::running::{self, RunningCommand};
+use jush_runner_client::{
     CommandCatalog, CommandKeeper, ContextSource, EnvironmentOptions, DeviceAccess, JobWaiting, KeptStart, RemoteDevice,
     RemoteShellEnvironment, Withdrawal, edited_file, encode_output,
 };
-use demi_backend_runners::command_context::command_context;
-use demi_backend_runners::files::text_of;
-use demi_backend_runners::device_key::device_of;
-use demi_backend_runners::router::CommandRegistration;
-use demi_command_protocol::{CommandCaller, EDIT_FILE_BYTES};
-use demi_device_interface::{
+use jush_backend_runners::command_context::command_context;
+use jush_backend_runners::files::text_of;
+use jush_backend_runners::device_key::device_of;
+use jush_backend_runners::router::CommandRegistration;
+use jush_command_protocol::{CommandCaller, EDIT_FILE_BYTES};
+use jush_device_interface::{
     CommandSet,
     CommandMedium, CommandStatus, Ending, ExecRequest, Device, DeviceError, DeviceErrorKind, DeviceKey,
     PageView, Seen, ShellEnvironment, ShellError, TakenUp, Unreachable, UnsentStart, WholeOutput,
 };
-use demi_runner_protocol::wire::JobFileChange;
-use demi_shared_types::{
+use jush_runner_protocol::wire::JobFileChange;
+use jush_shared_types::{
     BlobRef, Clock, CommandEnd, CommandId, EditCopies, EditedFile, NodeId, PixelSize, model_media_type_for,
 };
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::LocalBoxFuture;
 use tokio_util::sync::CancellationToken;
 
@@ -117,16 +117,16 @@ impl dyn DeviceShard + '_ {
             .await
             .map_err(|error| DeviceError::failed(None, error.to_string()))?;
         let admission = match device_record {
-            Some(record) if record.kind == demi_web_api_protocol::devices::DeviceKind::Managed => self
+            Some(record) if record.kind == jush_web_api_protocol::devices::DeviceKind::Managed => self
                 .cloud_shard()
                 .operation_admission(&record)
                 .await
                 .map_err(|error| DeviceError::failed(None, error.to_string()))?,
-            Some(_) => demi_runner_client::Admission::Free,
+            Some(_) => jush_runner_client::Admission::Free,
             // A revoked device: the commands taken up on it are lost.
             None => {
                 self.devices().removed(&device);
-                demi_runner_client::Admission::Free
+                jush_runner_client::Admission::Free
             }
         };
         Ok(Rc::new(self.devices().adopting_device(&device, id, path, admission)))
@@ -468,7 +468,7 @@ impl Keeper {
     }
 
     /// Stores `output` as a blob, in the kept output's records.
-    async fn put(&self, output: &WholeOutput) -> Result<demi_shared_types::BlobRef, String> {
+    async fn put(&self, output: &WholeOutput) -> Result<jush_shared_types::BlobRef, String> {
         let output = output.clone();
         // Encoding 16 MiB would hold the shard's thread.
         let encoded = tokio::task::spawn_blocking(move || encode_output(&output))
@@ -730,7 +730,7 @@ impl CommandKeeper for Keeper {
                     }
                 }
                 Ok(None) => {}
-                // The command ends all the same; `demi shell output` then
+                // The command ends all the same; `jush shell output` then
                 // finds no record of it.
                 Err(error) => {
                     tracing::warn!(event = "command_output.record_failed", conversation = %self.conversation, %command, error = &error as &dyn std::error::Error, "a command's output was not recorded");

@@ -7,9 +7,9 @@
 
 use std::collections::HashMap;
 
-use demi_plugin_host::store::{MirrorOutcome, WorkOutcome};
-use demi_web_api_protocol::ids::{ConversationId, UserId};
-use demi_web_api_protocol::work::{CreateWorkTab, WorkChange, WorkDocument, Refused, Work};
+use jush_plugin_host::store::{MirrorOutcome, WorkOutcome};
+use jush_web_api_protocol::ids::{ConversationId, UserId};
+use jush_web_api_protocol::work::{CreateWorkTab, WorkChange, WorkDocument, Refused, Work};
 use rusqlite::{Connection, OptionalExtension, params};
 
 use super::StorageError;

@@ -33,24 +33,24 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_database::devices::{DeviceRecord, ManagedMachine};
-use demi_backend_database::managed::ManagedOperation;
-use demi_backend_page_sync::{Part, UserMarks};
-use demi_runner_client::Admission;
-use demi_backend_runners::codes::new_device_token;
-use demi_device_interface::{DeviceError, DeviceErrorKind};
-use demi_backend_database::control::ControlService;
-use demi_machine_manager_protocol::{
+use jush_backend_database::StorageError;
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_database::devices::{DeviceRecord, ManagedMachine};
+use jush_backend_database::managed::ManagedOperation;
+use jush_backend_page_sync::{Part, UserMarks};
+use jush_runner_client::Admission;
+use jush_backend_runners::codes::new_device_token;
+use jush_device_interface::{DeviceError, DeviceErrorKind};
+use jush_backend_database::control::ControlService;
+use jush_machine_manager_protocol::{
     Capacity, HibernateParams, RuntimeState, RuntimeStateParams, SandboxMachine, WakeParams,
 };
-use demi_runner_protocol::boot::ManagedBoot;
-use demi_shared_gates::{ActivityGate, GateLease, Purpose};
-use demi_web_api_protocol::cloud::CloudState;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{DeviceId, OperationId};
-use demi_web_api_protocol::users::CloudStorage;
+use jush_runner_protocol::boot::ManagedBoot;
+use jush_shared_gates::{ActivityGate, GateLease, Purpose};
+use jush_web_api_protocol::cloud::CloudState;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{DeviceId, OperationId};
+use jush_web_api_protocol::users::CloudStorage;
 use futures_util::FutureExt as _;
 use futures_util::future::{LocalBoxFuture, Shared};
 use tokio::time::Instant;

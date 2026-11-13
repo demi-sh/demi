@@ -3,9 +3,9 @@
 //! what the user did with it, which stays to measure the replies by. A
 //! conversation offers its newest, so a restart of the backend offers it still.
 
-use demi_shared_types::BlockId;
-use demi_web_api_protocol::conversations::{SuggestedReplies, SuggestedReplyUse, SuggestedReplyUsed};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_shared_types::BlockId;
+use jush_web_api_protocol::conversations::{SuggestedReplies, SuggestedReplyUse, SuggestedReplyUsed};
+use jush_web_api_protocol::ids::ConversationId;
 use rusqlite::{OptionalExtension as _, params};
 use serde::Deserialize;
 

@@ -10,7 +10,7 @@
 
 use std::collections::VecDeque;
 
-use demi_shared_recording_protocol::Area;
+use jush_shared_recording_protocol::Area;
 
 /// What the encoder's answer settles about a picture, in the order they were
 /// drawn.

@@ -1,6 +1,6 @@
 //! One boot of a device's sandbox.
 //!
-//! The OCI process is a shipped minimal init (`tini`) running as `demi`, UID
+//! The OCI process is a shipped minimal init (`tini`) running as `jush`, UID
 //! and GID 1000, which starts the runner and reaps orphaned descendants. A
 //! runner exit ends the sandbox, and init does not hide repeated crashes by
 //! restarting it.
@@ -16,15 +16,15 @@
 //! directory never repeats it. An existing home's ownership is never changed
 //! recursively at a wake or a reset.
 //!
-//! Demi's own programs follow the server's release, though a Cloud's system
+//! Jush's own programs follow the server's release, though a Cloud's system
 //! stays on the base it is pinned to: at every boot the manager bind-mounts the
-//! configured base's `/opt/demi`, which holds the runner, its `demi` alias and
+//! configured base's `/opt/jush`, which holds the runner, its `jush` alias and
 //! the embedded command programs, read-only over the pinned base's own.
 //!
 //! For example, a Cloud made on 0.1.0's base has packages its user installed.
 //! The server moves to 0.2.0 and the manager imports its image. At the Cloud's
 //! next wake its root is still 0.1.0's base under the user's system layer, with
-//! the user's packages, while `/opt/demi`, and so the runner that connects to
+//! the user's packages, while `/opt/jush`, and so the runner that connects to
 //! the 0.2.0 backend, is 0.2.0's.
 //!
 //! A newer base cannot go under the system layer, which holds the user's

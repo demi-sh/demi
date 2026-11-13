@@ -1,4 +1,4 @@
-import type { Block, SessionPhase } from '@demicodes/protocol'
+import type { Block, SessionPhase } from '@jush-ai/protocol'
 
 function isTailBlockOfType(
   blocks: readonly Block[],

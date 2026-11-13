@@ -42,8 +42,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use demi_backend_database::accounts::TokenHash;
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_backend_database::accounts::TokenHash;
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 use tokio::sync::Notify;
 
 /// A part of the product state that a page shows. A channel sends the parts
@@ -409,7 +409,7 @@ impl UserMarks {
 
 /// The user's pages as the plugin host tells them of its changes
 /// (`crates/plugin-host/src/store.rs`).
-impl demi_plugin_host::store::PluginChanges for UserMarks {
+impl jush_plugin_host::store::PluginChanges for UserMarks {
     fn plugins_changed(&self) {
         self.mark(Part::Plugins);
     }

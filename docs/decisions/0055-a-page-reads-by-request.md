@@ -335,14 +335,14 @@ server the hash of the value's current body, as its GET does.
   it; its watch cache keeps a bounded window of recent events, and a watch
   older than the window answers 410 Gone and the client lists again, with
   backoff. The watch registers in the same lock that takes the events since
-  the version, so none is lost. Demi's follow is this watch.
+  the version, so none is lost. Jush's follow is this watch.
 * Zulip's `register` creates the event queue and answers the initial state
   in one call, then the client applies the events that came meanwhile; a lost queue makes the client
   start again as it does at startup, after a random delay.
 * React Query and SWR read again what a view shows when the network
   returns or the window regains focus.
 * HTTP's conditional GET answers "not modified" for the version a client
-  holds; a follow does the same on the socket. Demi departs from Linear and
+  holds; a follow does the same on the socket. Jush departs from Linear and
   Telegram, which resume from a log: it compares the version held with the
   current one, so the server keeps nothing for a page that left. It departs
   from Zulip, whose first read registers the event queue: a read here never

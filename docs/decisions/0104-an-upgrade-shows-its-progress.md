@@ -2,7 +2,7 @@
 status: proposed
 ---
 
-# An upgrade shows its progress, and Demi opens once its data is ready
+# An upgrade shows its progress, and Jush opens once its data is ready
 
 Supersedes: 0084 (A conversation keeps each content once), the part of
 What an older server meets that converts each conversation in the
@@ -34,17 +34,17 @@ A server is upgraded to a release that converts its conversations, as
 ### What the user sees
 
 From the backend's first answer that says it updates until it serves, every
-page of Demi shows one screen in place of the app, as Home Assistant's does
+page of Jush shows one screen in place of the app, as Home Assistant's does
 while its database upgrades:
 
 ```text
-                         Updating Demi
+                         Updating Jush
 
            ███████████████████░░░░░░░░░░░░░░░░░░░░░░
               Updating conversations: 41 of 73
           2.7 GB of 6.6 GB · About 3 minutes remaining
 
-          Demi opens by itself when the update is done.
+          Jush opens by itself when the update is done.
 ```
 
 * The bar shows the bytes done of the databases to update. The first line
@@ -70,14 +70,14 @@ while its database upgrades:
   server holds and how large they are. A shared server's users see one
   screen.
 
-`demi-server upgrade` prints the same progress while it waits for the
+`jush-server upgrade` prints the same progress while it waits for the
 backend, `Updating conversations: 41 of 73 (2.7 GB of 6.6 GB), about 3
 minutes left`.
 
 ### How it works
 
 ```text
-demi-server   stop ─► switch ─► start backend ─────────────────► ready
+jush-server   stop ─► switch ─► start backend ─────────────────► ready
 new backend         listen ─► control ─► conversations ─► every route
 page          spinner ─► Updating screen ───────────────────────► reload
 ```
@@ -196,9 +196,9 @@ today.
   the upgrade is completed*, retrying until the server answers
   ([`ha-init-page.ts`](https://github.com/home-assistant/frontend/blob/dev/src/layouts/ha-init-page.ts),
   [`recorder/core.py`](https://github.com/home-assistant/core/blob/dev/homeassistant/components/recorder/core.py)).
-  A migration it can run live runs behind a notification instead. Demi
+  A migration it can run live runs behind a notification instead. Jush
   takes the first: a conversion cannot serve a conversation it has not
-  reached, and the second is the hang this record removes. Demi adds the
+  reached, and the second is the hang this record removes. Jush adds the
   share done and the time left.
 * **Nextcloud** answers every page with *This instance is currently in
   maintenance mode … This page will refresh itself when the instance is
@@ -206,7 +206,7 @@ today.
   step, `[3 / 12]: …`
   ([`update.user.php`](https://github.com/nextcloud/server/blob/master/core/templates/update.user.php),
   [`Updater.php`](https://github.com/nextcloud/server/blob/master/lib/private/Updater.php)).
-  Demi's screen refreshes itself the same way and shows one bar, not the
+  Jush's screen refreshes itself the same way and shows one bar, not the
   steps.
 
 ## Alternatives
@@ -214,11 +214,11 @@ today.
 * **Open at once, convert behind it.** The app opens as soon as the backend
   starts; a conversation not converted yet shows its own progress in place
   of its transcript and moves to the front of the queue when opened, and
-  the sidebar lists it without its status until then. Demi is usable
+  the sidebar lists it without its status until then. Jush is usable
   sooner, but the sidebar and every other reader of conversations need a
   state for "not converted yet", and a running agent's conversation still
   waits; the upgrade is rare and, once faster, short.
-* **Convert ahead, before the switch.** `demi-server` converts each
+* **Convert ahead, before the switch.** `jush-server` converts each
   conversation while the old release still serves, and the switch
   converts again only those written since. The pause shrinks to the few
   conversations in use, but conversion code would run in two programs and

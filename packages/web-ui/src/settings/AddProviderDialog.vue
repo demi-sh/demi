@@ -6,11 +6,11 @@ import { Server, Terminal } from '@lucide/vue'
 import { vendorsInListOrder } from './provider-defaults'
 import type { OverlayStore } from '../overlay/overlayStore'
 import AsyncRegion from '../ui/AsyncRegion.vue'
-import FilterDialog from '@demicodes/web-ui/ui/FilterDialog.vue'
-import HighlightText from '@demicodes/web-ui/ui/HighlightText.vue'
-import Tag from '@demicodes/web-ui/ui/Tag.vue'
-import VendorMark from '@demicodes/web-ui/ui/VendorMark.vue'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
+import FilterDialog from '@jush-ai/web-ui/ui/FilterDialog.vue'
+import HighlightText from '@jush-ai/web-ui/ui/HighlightText.vue'
+import Tag from '@jush-ai/web-ui/ui/Tag.vue'
+import VendorMark from '@jush-ai/web-ui/ui/VendorMark.vue'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
 import { WIRE_API_LABELS, type SettingsVendor } from './types'
 
 /**
@@ -21,7 +21,7 @@ import { WIRE_API_LABELS, type SettingsVendor } from './types'
  *
  * - A compatible API, for any proxy or server that speaks one of the protocols,
  *   comes first. Its protocol, endpoint and key are set on its page.
- * - Another Demi, a provider another Demi server shares, comes beside it. Its
+ * - Another Jush, a provider another Jush server shares, comes beside it. Its
  *   page asks for the share key.
  * - A vendor, Anthropic, OpenAI, Google or one models.dev lists, brings its
  *   endpoint and catalog, and its page asks for the key.
@@ -41,7 +41,7 @@ const emit = defineEmits<{
   add: [vendor: SettingsVendor]
   /** A compatible API, created at once as Anthropic Messages. */
   addCompatible: []
-  /** Another Demi's provider, created at once without its share key. */
+  /** Another Jush's provider, created at once without its share key. */
   addBorrowed: []
 }>()
 
@@ -57,7 +57,7 @@ const COMPATIBLE_WORDS = computed(() => [
   ...Object.values(WIRE_API_LABELS).map((label) => label.toLowerCase()),
 ])
 const compatibleShown = computed(() => !q.value || COMPATIBLE_WORDS.value.some((words) => words.includes(q.value)))
-const BORROWED_WORDS = computed(() => ['another demi', 'share key', t('addProvider.borrowed').toLowerCase(), t('providers.connection.shareKey').toLowerCase()])
+const BORROWED_WORDS = computed(() => ['another jush', 'share key', t('addProvider.borrowed').toLowerCase(), t('providers.connection.shareKey').toLowerCase()])
 const borrowedShown = computed(() => !q.value || BORROWED_WORDS.value.some((words) => words.includes(q.value)))
 /** The rows above the vendors, each a kind of entry rather than a vendor. */
 const kinds = computed(() => [

@@ -192,7 +192,7 @@
     "selectFile": "选择已更改的文件",
     "previousNotKept": "未保留之前的内容。",
     "changeNotKept": "未保留此更改的内容。",
-    "binaryNotKept": "Demi 会保留对话中更改的文本，但不保留图片或其他二进制文件。",
+    "binaryNotKept": "Jush 会保留对话中更改的文本，但不保留图片或其他二进制文件。",
     "onNoBranch": "不在任何分支上",
     "committed": "已提交",
     "workingTree": "工作树",

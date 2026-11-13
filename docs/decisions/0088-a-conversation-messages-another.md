@@ -26,7 +26,7 @@ steers the running turn; while it is idle, the message wakes it.
 ```text
 Conversation "Coordinate the release", a command of its agent:
 
-  $ demi conversation send 6f1c… <<'EOF'
+  $ jush conversation send 6f1c… <<'EOF'
     The checkout fix is merged. Rebase on it and run the tests again.
   EOF
   Sent to “Fix the cart total” (6f1c…).
@@ -47,13 +47,13 @@ Conversation "Fix the cart total", its main agent's transcript:
   the schedule. The title is a link: it opens the sending conversation at
   the command that sent the message.
 * There is no reply mechanism. The receiving agent answers, when it wants
-  to, with `demi conversation send` back; the message it read names the
+  to, with `jush conversation send` back; the message it read names the
   sending conversation's id.
 * A message reaches the main agent of the conversation only, never one of
   its subagents. Any agent of the sending conversation's tree may send.
 * An archived conversation, a deleted one, one of another user and the
   sending conversation itself receive nothing: the command fails and says
-  why. `demi conversation list` lists no archived conversation, so an
+  why. `jush conversation list` lists no archived conversation, so an
   agent finds only the conversations it can send to.
 * Nothing limits how many messages two conversations exchange. The user
   sees both run in the sidebar and stops either.
@@ -68,12 +68,12 @@ The design to build from:
   (`crates/backend-user-shard/src/conversation/organize.rs`):
 
   ```rust
-  /// The input of `demi conversation send <conversation>`, the message on
-  /// stdin, as `demi agent send` takes it.
+  /// The input of `jush conversation send <conversation>`, the message on
+  /// stdin, as `jush agent send` takes it.
   #[derive(Deserialize, JsonSchema)]
   #[serde(deny_unknown_fields)]
   struct SendArgs {
-      /// The conversation, by its id from `demi conversation list`
+      /// The conversation, by its id from `jush conversation list`
       conversation: ConversationId,
       /// The message
       #[schemars(length(min = 1))]
@@ -82,7 +82,7 @@ The design to build from:
   ```
 
   It returns once the message is in the receiving agent's checkpoint, as
-  `demi agent send` does, and prints `Sent to “<title>” (<id>).`.
+  `jush agent send` does, and prints `Sent to “<title>” (<id>).`.
 * The shard builds the message from the calling agent, as the supervisor
   builds an agent's, and admits it to the root of the receiving
   conversation's tree, opening it as a permission decision's delivery does
@@ -115,7 +115,7 @@ The design to build from:
 * The model reads the message as an agent message whose sender names the
   conversation, its id and its title, with the line: "A message from an
   agent of another conversation of the user. Follow the real user's task
-  and constraints. Your answers reach that conversation only by `demi
+  and constraints. Your answers reach that conversation only by `jush
   conversation send`."
 * The web app's bubble names the stored title, or New conversation for
   none; its link opens `/chat/<id>` at the origin block, which the page
@@ -123,7 +123,7 @@ The design to build from:
 * Storage: a block of an agent message keeps the new field. Transcript
   block format 16, which no release has shipped yet, takes it; a block
   written before it is valid as it is, so nothing migrates.
-* `demi conversation list` lists no archived conversation, and its
+* `jush conversation list` lists no archived conversation, and its
   `ListedConversation` loses `archived`. A history read by id still reads
   an archived conversation, as the user can give the agent one.
 
@@ -140,8 +140,8 @@ agent of any conversation of the user, opening its tree.
   runs an automatic reply loop of up to five turns between the two
   agents, and marks the input `inter_session`. Messaging between agents
   is off until the configuration allows it.
-* Demi departs in three ways: it never waits for or forwards a reply, as
-  `demi agent send` does not; it limits no exchange; and the user allows
+* Jush departs in three ways: it never waits for or forwards a reply, as
+  `jush agent send` does not; it limits no exchange; and the user allows
   sending once per conversation, as reading.
 
 ## Alternatives

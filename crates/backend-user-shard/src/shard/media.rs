@@ -46,34 +46,34 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_backend_database::media_jobs::{Follow, JobOfCall, Made, MediaJob, MediaJobStatus};
-use demi_backend_database::usage::{MadeVideoCall, UsageRow, merge_windows};
-use demi_backend_providers::vault::entries::Vault;
-use demi_plugin_host::{MediaCall, VideoJob};
-use demi_provider_registry::store::StoreError;
-use demi_provider_registry::registry::{RegistryError, MakerOf};
-use demi_provider_registry::rotation::{Choice, USED_UP_FOR_MS};
-use demi_provider_registry::entry::{EntryCredential, ProviderEntry};
-use demi_backend_device_access::root_of;
-use demi_device_interface::{JobCaller, PortError};
-use demi_plugin_interface::{
+use jush_backend_database::media_jobs::{Follow, JobOfCall, Made, MediaJob, MediaJobStatus};
+use jush_backend_database::usage::{MadeVideoCall, UsageRow, merge_windows};
+use jush_backend_providers::vault::entries::Vault;
+use jush_plugin_host::{MediaCall, VideoJob};
+use jush_provider_registry::store::StoreError;
+use jush_provider_registry::registry::{RegistryError, MakerOf};
+use jush_provider_registry::rotation::{Choice, USED_UP_FOR_MS};
+use jush_provider_registry::entry::{EntryCredential, ProviderEntry};
+use jush_backend_device_access::root_of;
+use jush_device_interface::{JobCaller, PortError};
+use jush_plugin_interface::{
     AskedVideo, AudioAsk, AudioFacts, AudioFileFormat, AudioOption, AudioVoices, MadeAudio, PcmShape, VoiceInfo,
     CustomSizeRule, EntryStatus, ImageAsk, ImageFacts, MadeImage, MadeVideo, MediaListing, MediaModel,
     MediaPrice, MediaRefusal, MediaUnlisted, ModelEntry, PortFailure, PortRefusal, PriceRate, SentSource, Unable,
     VideoAsk, VideoChange, VideoFacts,
 };
-use demi_provider_common::ErrorCode;
-use demi_provider_common::credentials::AuthReason;
-use demi_provider_common::audio::{self, AudioFormatAsk, AudioRequest};
-use demi_provider_common::images::{Aspect, ImageRequest, InputImage};
-use demi_provider_common::media::{MediaFailure, MediaModelInfo, MediaVendor};
-use demi_provider_common::media_catalog::{
+use jush_provider_common::ErrorCode;
+use jush_provider_common::credentials::AuthReason;
+use jush_provider_common::audio::{self, AudioFormatAsk, AudioRequest};
+use jush_provider_common::images::{Aspect, ImageRequest, InputImage};
+use jush_provider_common::media::{MediaFailure, MediaModelInfo, MediaVendor};
+use jush_provider_common::media_catalog::{
     self, AudioOutput, Catalog, Currency, Modality, PriceUnit, VideoCapabilities, Voices,
 };
-use demi_provider_common::videos::{self, Change, SourceVideo, VideoMaker, VideoRequest, VideoSource};
-use demi_shared_types::{AudioKind, MediaKind, Model, QuotaWindow, Rotation, Timestamp, TurnId, VendorTrace};
-use demi_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId};
-use demi_web_api_protocol::providers::EntryMediaModel;
+use jush_provider_common::videos::{self, Change, SourceVideo, VideoMaker, VideoRequest, VideoSource};
+use jush_shared_types::{AudioKind, MediaKind, Model, QuotaWindow, Rotation, Timestamp, TurnId, VendorTrace};
+use jush_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId};
+use jush_web_api_protocol::providers::EntryMediaModel;
 use sha2::{Digest as _, Sha256};
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument as _;
@@ -94,13 +94,13 @@ pub(super) struct Route {
 }
 
 impl Route {
-    fn media(&self) -> &dyn demi_provider_common::media::MediaMaker {
+    fn media(&self) -> &dyn jush_provider_common::media::MediaMaker {
         self.maker.media()
     }
 
     /// The client the entry's calls go through on `client`, the shard's or
     /// the shared services'.
-    pub(super) fn http(&self, services: &Services, client: &reqwest::Client) -> demi_provider_common::ProviderHttp {
+    pub(super) fn http(&self, services: &Services, client: &reqwest::Client) -> jush_provider_common::ProviderHttp {
         services.provider_registry.http_for(&self.entry, client.clone())
     }
 
@@ -146,7 +146,7 @@ fn failed(error: impl ToString) -> PortFailure {
 /// a key, offers nothing yet and is left out.
 async fn routes(
     services: &Services,
-    user: &demi_web_api_protocol::ids::UserId,
+    user: &jush_web_api_protocol::ids::UserId,
     kind: MediaKind,
 ) -> Result<Vec<Route>, RegistryError> {
     let preferences = services.control.preferences(user.clone()).await.map_err(StoreError::new)?;
@@ -169,7 +169,7 @@ async fn routes(
 pub(super) async fn route(
     services: &Services,
     entry: ProviderEntry,
-    preferences: &demi_web_api_protocol::settings::Preferences,
+    preferences: &jush_web_api_protocol::settings::Preferences,
     kind: MediaKind,
 ) -> Result<Option<Route>, RegistryError> {
     let provider = match services.provider_registry.provider_for(&entry).await {
@@ -201,7 +201,7 @@ pub(super) async fn route(
 /// changed while an earlier entry's request was under way.
 async fn current(
     services: &Services,
-    user: &demi_web_api_protocol::ids::UserId,
+    user: &jush_web_api_protocol::ids::UserId,
     route: &Route,
 ) -> Result<Option<Route>, RegistryError> {
     let Some(entry) = services.vault.entry(route.entry.id.clone()).await.map_err(StoreError::new)? else {
@@ -272,7 +272,7 @@ async fn standing(services: &Services, route: &Route, model: &str) -> Result<Sta
 /// listed has none here; the agent's listing says why.
 pub async fn entry_media_models(
     services: &Services,
-    user: &demi_web_api_protocol::ids::UserId,
+    user: &jush_web_api_protocol::ids::UserId,
     kind: MediaKind,
 ) -> Result<std::collections::HashMap<String, Vec<EntryMediaModel>>, RegistryError> {
     let routes = routes(services, user, kind).await?;
@@ -938,7 +938,7 @@ pub(crate) async fn audio_voices(
     }
 }
 
-fn input_image(image: demi_plugin_interface::ImageInput) -> InputImage {
+fn input_image(image: jush_plugin_interface::ImageInput) -> InputImage {
     InputImage {
         media_type: image.kind.media_type(),
         bytes: image.bytes.into_bytes(),
@@ -1300,7 +1300,7 @@ impl Asking for AudioCall {
                 // row keeps no seconds.
                 row.media_seconds = match made.pcm {
                     Some(pcm) => Some(pcm.seconds(made.bytes.len())),
-                    None => demi_shared_types::audio::read(&made.bytes).ok().map(|facts| facts.seconds),
+                    None => jush_shared_types::audio::read(&made.bytes).ok().map(|facts| facts.seconds),
                 };
             }
             Err(failure) => row.row().outcome = failure.outcome(),
@@ -1570,7 +1570,7 @@ struct Making<'a> {
 impl Making<'_> {
     /// The client the call's requests go through: the shard's, reaching
     /// the entry owner's devices.
-    fn http(&self) -> demi_provider_common::ProviderHttp {
+    fn http(&self) -> jush_provider_common::ProviderHttp {
         self.route.http(self.shard.services(), self.shard.http())
     }
 
@@ -1644,7 +1644,7 @@ impl Making<'_> {
 
 /// Why a call on an entry ended without what it made.
 pub(super) enum Unmade {
-    /// Demi's, told before a request is sent or instead of the vendor's
+    /// Jush's, told before a request is sent or instead of the vendor's
     /// answer, such as every account used up.
     Refusal(MediaRefusal),
     /// The vendor's, on the account `label` names to whoever manages the

@@ -1,8 +1,8 @@
 //! The words of a media refusal, for the plugin's kind.
 
-use demi_device_interface::RpcInvocation;
-use demi_plugin_interface::{ImageAspect, MediaRefusal, PluginError, PortFailure, PortRefusal, Unable, VideoChange};
-use demi_shared_types::{MediaKind, Timestamp};
+use jush_device_interface::RpcInvocation;
+use jush_plugin_interface::{ImageAspect, MediaRefusal, PluginError, PortFailure, PortRefusal, Unable, VideoChange};
+use jush_shared_types::{MediaKind, Timestamp};
 use jiff::tz::TimeZone;
 
 /// `failure` as the call fails with it: a refusal of the Providers
@@ -39,7 +39,7 @@ pub fn refusal_words(kind: MediaKind, refusal: &MediaRefusal, aspect: Option<Ima
             format!("no provider makes {}; {}, in Settings › Providers", kind.plural(), sign_in(kind))
         }
         MediaRefusal::UnknownModel { model } => {
-            format!("no provider makes \"{model}\"; demi {kind} models lists them")
+            format!("no provider makes \"{model}\"; jush {kind} models lists them")
         }
         MediaRefusal::AllOff { providers } => {
             format!("{generation} is off for {}; turn it on in Settings › Providers", listed(providers))
@@ -72,7 +72,7 @@ pub fn refusal_words(kind: MediaKind, refusal: &MediaRefusal, aspect: Option<Ima
             format!("the {vendor} sign-in has expired; ask your administrator to sign in again")
         }
         MediaRefusal::NeedsVoice { vendor, model } => {
-            format!("{vendor} needs --voice; demi audio voices --model {model} lists them")
+            format!("{vendor} needs --voice; jush audio voices --model {model} lists them")
         }
         MediaRefusal::Kind { model, asked, makes } => {
             let made: Vec<String> = makes.iter().map(|kind| kind.words().to_owned()).collect();
@@ -87,10 +87,10 @@ pub fn refusal_words(kind: MediaKind, refusal: &MediaRefusal, aspect: Option<Ima
                 VideoChange::Edit => "edits",
                 VideoChange::Extend => "extends",
             };
-            format!("{model} {verb} no video; demi video models shows the models that do")
+            format!("{model} {verb} no video; jush video models shows the models that do")
         }
         MediaRefusal::Untaken { model, takes } => {
-            format!("{model} {takes}; nothing was sent, and demi video models {model} shows what it takes")
+            format!("{model} {takes}; nothing was sent, and jush video models {model} shows what it takes")
         }
         MediaRefusal::StillRunning { vendor, job, seconds } => {
             let minutes = seconds.div_ceil(60);

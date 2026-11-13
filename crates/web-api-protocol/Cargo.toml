@@ -1,5 +1,5 @@
 [package]
-name = "demi-web-api-protocol"
+name = "jush-web-api-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,10 +12,10 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-shared-types = { path = "../shared-types" }
-demi-runner-protocol = { path = "../runner-protocol" }
+jush-conversation-lane-protocol = { path = "../conversation-lane-protocol" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-shared-types = { path = "../shared-types" }
+jush-runner-protocol = { path = "../runner-protocol" }
 base64.workspace = true
 garde.workspace = true
 jiff.workspace = true

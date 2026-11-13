@@ -1,5 +1,5 @@
 {
-  "name": "@demicodes/plugin-changes",
+  "name": "@jush-ai/plugin-changes",
   "description": "The changes plugin's page: the Change view, a pinned tab kind.",
   "version": "0.0.0",
   "private": true,
@@ -10,7 +10,7 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@demicodes/plugin-sdk": "workspace:^",
+    "@jush-ai/plugin-sdk": "workspace:^",
     "@lucide/vue": "^1.40.0",
     "@vueuse/core": "^14.3.0",
     "vue": "^3.5.38",

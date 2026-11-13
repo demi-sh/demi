@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The first screen, as tall as the window: what Demi is and how to install
+// The first screen, as tall as the window: what Jush is and how to install
 // it, beside the product itself, a desktop browser and a phone playing the
 // same conversation. A pale shore along the bottom, the otter afloat in it,
 // is decoration only: it stays low and washed out, under the product.
@@ -35,7 +35,7 @@ const SRCSET = `${shore1x} 2172w, ${shore2x} 4344w, ${shore3x} 6516w`
       <div class="copy">
         <h1>{{ SITE.headline }}</h1>
         <p class="lede">
-          Demi is a web-based AI agent you host on your own server. Open it in any browser. It works
+          Jush is a web-based AI agent you host on your own server. Open it in any browser. It works
           across all your computers and keeps going after you close the tab.
         </p>
         <CommandBox class="command" />
@@ -44,7 +44,7 @@ const SRCSET = `${shore1x} 2172w, ${shore2x} 4344w, ${shore3x} 6516w`
           <RequirementsNote class="requirements" />
         </div>
       </div>
-      <DemoStage class="stage" demo="hero" lifts label="From a browser, Demi fixes a bug on a Mac and tests it on a Windows PC; from a phone, it ships the release to a VPS and copies the VPS's data to a home lab." />
+      <DemoStage class="stage" demo="hero" lifts label="From a browser, Jush fixes a bug on a Mac and tests it on a Windows PC; from a phone, it ships the release to a VPS and copies the VPS's data to a home lab." />
     </div>
   </section>
 </template>

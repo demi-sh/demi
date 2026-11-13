@@ -12,7 +12,7 @@
 //! The control database stores a secret only sealed; the plugin host seals and
 //! opens it.
 
-use demi_plugin_host::store::{OAuthClient, SealedSecret, SecretRow, Written};
+use jush_plugin_host::store::{OAuthClient, SealedSecret, SecretRow, Written};
 use rusqlite::{OptionalExtension, params};
 
 use super::StorageError;

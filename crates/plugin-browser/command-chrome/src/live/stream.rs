@@ -1,5 +1,5 @@
 //! A watched tab as a source of pictures: the live view's stream
-//! (`demi_live_view::stream`) shares one capture of it among its viewers.
+//! (`jush_live_view::stream`) shares one capture of it among its viewers.
 //!
 //! The capture follows the tab's viewport. A resize of the tab ends its capture
 //! before the page changes, and the next starts once the resize is published
@@ -11,7 +11,7 @@ use std::time::Duration;
 use tokio::sync::watch;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use demi_live_view::stream::{self, Change, StartError};
+use jush_live_view::stream::{self, Change, StartError};
 
 use crate::driver::capture::{Capture, CaptureChannel, CaptureEvent, Gated};
 use crate::driver::operation::BrowserError;

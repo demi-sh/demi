@@ -24,7 +24,7 @@ mod linux {
         rc::{Rc, Weak},
     };
 
-    use demi_machine_manager_protocol::{
+    use jush_machine_manager_protocol::{
         BaseVersion, Capacity, CheckpointParams, CurrentBaseVersionParams, DiskUsageParams, DRAIN_RECORD, DeviceId, Download, DrainRecord, HibernateParams, ImageStateParams, Isolation, LeftRecord, MachineCall, ManagerEvent, NetworkRules, Offer, Operation,
         ReconcileParams, Reconciled, ResetParams, RuntimeOffer, RuntimeState, RuntimeStateParams, SandboxMachine, SetIsolationParams, SetNetworkRulesParams, Unavailable, WakeParams,
     };

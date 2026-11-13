@@ -1,11 +1,11 @@
-//! The OpenAI Responses stream as Demi reads it, shared by every provider that
+//! The OpenAI Responses stream as Jush reads it, shared by every provider that
 //! speaks it (the OpenAI Responses API and the Codex backend, over server-sent
 //! events or a WebSocket).
 //!
-//! The module holds the events Demi maps, decoded in two steps by their `type`,
+//! The module holds the events Jush maps, decoded in two steps by their `type`,
 //! and their mapping onto a run's events.
 //!
-//! The types describe only the fields Demi reads. A reasoning item keeps every
+//! The types describe only the fields Jush reads. A reasoning item keeps every
 //! other field, because it is sent back to the vendor with the transcript.
 
 use std::{
@@ -14,12 +14,12 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_shared_types::{FailureSource, ProviderErrorDiagnostics, TokenUsage};
+use jush_shared_types::{FailureSource, ProviderErrorDiagnostics, TokenUsage};
 use futures_util::{Stream, StreamExt, future};
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 
-use demi_shared_types::{Entry, OpaqueStatus, OpaqueView, SearchAction, SearchSource};
+use jush_shared_types::{Entry, OpaqueStatus, OpaqueView, SearchAction, SearchSource};
 
 use crate::{
     EarlyEnd, ErrorCode, OpaqueStep, ProviderEvent, ProviderFailure, ToolCall, VendorCall, tagged_wire,
@@ -30,7 +30,7 @@ use crate::{
 };
 
 tagged_wire! {
-    /// The stream events Demi maps; any other type, such as
+    /// The stream events Jush maps; any other type, such as
     /// `response.created` or one the vendor adds, is skipped.
     #[derive(Debug, Clone, PartialEq)]
     pub enum ResponsesEvent {
@@ -57,7 +57,7 @@ pub struct Received {
 }
 
 /// Decodes one frame's data: `None` for the `[DONE]` sentinel, which is not
-/// JSON, and for an event type Demi does not map; an error for a mapped type
+/// JSON, and for an event type Jush does not map; an error for a mapped type
 /// whose payload is malformed.
 pub fn decode_frame(data: &str) -> Result<Option<Received>, WireError> {
     if data.trim() == "[DONE]" {
@@ -221,7 +221,7 @@ pub struct VendorError {
 }
 
 tagged_wire! {
-    /// The output items Demi maps; any other, such as a web search call, is
+    /// The output items Jush maps; any other, such as a web search call, is
     /// `None` inside [`Tagged`], and a step the vendor ran on its side
     /// ([`unknown_item`]).
     #[derive(Debug, Clone, PartialEq)]
@@ -233,7 +233,7 @@ tagged_wire! {
 }
 
 /// A reasoning item. It travels back to the vendor with the transcript, so
-/// it keeps the fields Demi does not read, and its `type` is part of it.
+/// it keeps the fields Jush does not read, and its `type` is part of it.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReasoningItem {
     #[serde(rename = "type")]
@@ -307,7 +307,7 @@ impl MessageItem {
 }
 
 tagged_wire! {
-    /// The message content parts Demi maps.
+    /// The message content parts Jush maps.
     #[derive(Debug, Clone, PartialEq)]
     pub enum MessagePart {
         "output_text" => OutputText(OutputText),
@@ -338,7 +338,7 @@ pub struct FunctionCallItem {
 }
 
 /// The tool-use id of a function call: the vendor identifies a call by its
-/// call id and its item id and needs both back, so Demi's one id carries the
+/// call id and its item id and needs both back, so Jush's one id carries the
 /// pair as `<call_id>|<item_id>`.
 pub fn tool_use_id(call_id: &str, item_id: &str) -> String {
     format!("{call_id}|{item_id}")
@@ -464,7 +464,7 @@ fn search_view(item: &serde_json::Value) -> Option<OpaqueView> {
     })
 }
 
-/// The item an `output_item` event carries, as the vendor sent it: Demi keeps
+/// The item an `output_item` event carries, as the vendor sent it: Jush keeps
 /// an item it does not map whole and sends it back as it came.
 fn unknown_item(event: &str) -> Option<serde_json::Value> {
     let mut event: serde_json::Value = serde_json::from_str(event).ok()?;
@@ -728,7 +728,7 @@ impl Mapper {
         }
     }
 
-    /// The step of an item Demi does not map, under its owner's name and the
+    /// The step of an item Jush does not map, under its owner's name and the
     /// item's: a call's name, else its type. Its id names the step, else its
     /// place in the response's output, which its start and its end share.
     fn opaque(

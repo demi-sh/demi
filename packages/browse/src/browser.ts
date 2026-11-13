@@ -11,7 +11,7 @@
 // - A browser that crashed or was closed starts again on the next call, and so
 //   does one that hung: its process does not answer, or a page of it does not
 //   let the server attach.
-// - `demi.stop`, `demi.down` and the idle timeout stop it.
+// - `jush.stop`, `jush.down` and the idle timeout stop it.
 //
 // The server attaches without Playwright's defaults. Playwright's session with each
 // page would otherwise emulate focus, which also keeps the page visible whatever is
@@ -22,8 +22,8 @@ import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { chromium, type BrowserContext, type CDPSession, type Browser as PlaywrightBrowser, type Page } from 'playwright'
-import { routeToEmulate } from './demi/emulate'
-import { routeToShot } from './demi/shot'
+import { routeToEmulate } from './jush/emulate'
+import { routeToShot } from './jush/shot'
 import { Failure } from './tool'
 import { applyEmulation } from './emulation'
 import { Logs } from './logs'
@@ -64,7 +64,7 @@ const VISIBILITY_MS = 5_000
  * - No first-run or update prompt appears.
  * - Colors are those of a screenshot.
  * - A sandboxed frame of the page's site stays in the page's process
- *   (`IsolateSandboxedIframes`), so `demi.emulate`'s pixel ratio, which the
+ *   (`IsolateSandboxedIframes`), so `jush.emulate`'s pixel ratio, which the
  *   DevTools protocol sets only on a top-level target's process, reaches it: in
  *   a process of its own it drew at 1x, blurred. A frame of another site keeps
  *   its own process, and a check of a frame's process isolation needs another
@@ -240,7 +240,7 @@ export class Browser {
       await stopGroup(recorded, STOP_MS)
     }
     if (!browser) {
-      // A close that began meanwhile, such as `demi.stop`'s, wants no browser.
+      // A close that began meanwhile, such as `jush.stop`'s, wants no browser.
       if (this.closings !== closings) {
         throw new Failure('The browser was closed while the tool attached to it')
       }
@@ -284,7 +284,7 @@ export class Browser {
         }
       })
     })
-    // The page's own view of the network follows `demi.net`, which the slot's state keeps until the browser stops.
+    // The page's own view of the network follows `jush.net`, which the slot's state keeps until the browser stops.
     if (state.net?.reach === 'offline') {
       await context.setOffline(true)
     }
@@ -413,7 +413,7 @@ export class Browser {
   async hide(page: Page): Promise<void> {
     const connection = await this.connection()
     if (page.context() !== connection.context) {
-      throw new Failure('demi.hide hides a page of the slot\'s browser, not one of demi.webkit()')
+      throw new Failure('jush.hide hides a page of the slot\'s browser, not one of jush.webkit()')
     }
     if (this.covers.has(page)) {
       return

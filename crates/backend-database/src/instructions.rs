@@ -1,7 +1,7 @@
 //! The users' personal instructions: one text per user who has any. A
 //! write takes a text its caller checked.
 
-use demi_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::ids::UserId;
 use rusqlite::{OptionalExtension, params};
 
 use super::StorageError;

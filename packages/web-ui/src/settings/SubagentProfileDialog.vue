@@ -9,7 +9,7 @@ import type { OverlayStore } from '../overlay/overlayStore'
 import type { ModelInfo, ProviderInfo } from '../transport/protocol'
 import ModelMenu from '../agent/ModelMenu.vue'
 import ContextMenu from '../agent/ContextMenu.vue'
-import { offersContext } from '@demicodes/protocol'
+import { offersContext } from '@jush-ai/protocol'
 import { profileContextChoice, profileContextOptions } from '../agent/context-limit'
 import {
   applyModelChange,
@@ -39,7 +39,7 @@ import type { SettingsSubagentDraft } from './types'
  * - its model, chosen with the composer's own model menu with Parent’s Model at
  *   its top,
  * - its Context, while the model is its own and offers a choice,
- * - the instructions it adds to Demi's own, and
+ * - the instructions it adds to Jush's own, and
  * - whether its children may spawn.
  *
  * The host saves; a refusal shows under the fields, and the draft stays.

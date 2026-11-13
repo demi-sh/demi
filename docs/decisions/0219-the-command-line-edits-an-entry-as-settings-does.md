@@ -8,7 +8,7 @@ status: proposed
 
 Alex asks an agent to give the entry *Team gateway* a prompt cache lifetime
 of one hour and to switch its protocol to Chat Completions. Settings ›
-Providers changes both, but `demi providers edit` takes neither: its options
+Providers changes both, but `jush providers edit` takes neither: its options
 are a list of its own (`--name`, `--base-url`, `--through`, `--api-key-stdin`,
 `--image`, `--video`, `--audio`), written beside the settings the page sends.
 The agent can only say it cannot. Each setting an entry gains is defined
@@ -27,20 +27,20 @@ and `through` in `show --json`.
 The entry the API answers is the one definition of a provider entry's
 settings, and the command line reads and changes it as the page does.
 
-- `demi providers show <entry> --json` prints the entry as `GET /providers`
+- `jush providers show <entry> --json` prints the entry as `GET /providers`
   answers it (`ProviderDto`), its fields at the top, and beside them what
   is not the entry's own: `status`, `hidden` (turned off in the user's model
   menu), `accounts` (a subscription's, by label), `modelsFrom` and
   `catalog`, each model the entry offers with every field. `catalog` is not
   `models`, the entry's own list that the patch replaces, which a vendor's
   entry that follows models.dev leaves empty.
-- `demi providers edit <entry>` reads a JSON merge patch (RFC 7396) from
+- `jush providers edit <entry>` reads a JSON merge patch (RFC 7396) from
   stdin and sends it as `PATCH /providers/{id}`: a field it names takes the
   new value, `null` removes it, and a field it leaves out stays. The checks,
   the refusals and their words are the API's.
 
   ```sh
-  demi providers edit 'Team gateway' <<'EOF'
+  jush providers edit 'Team gateway' <<'EOF'
   {"cacheTtl": "1h", "wireApi": "chat-completions"}
   EOF
   ```
@@ -68,10 +68,10 @@ settings, and the command line reads and changes it as the page does.
   patch.
 - What is not the entry's has commands of its own, as it has routes of its
   own:
-  - `demi providers accounts list <entry>` lists a subscription's accounts;
+  - `jush providers accounts list <entry>` lists a subscription's accounts;
     `accounts activate` and `accounts order` change which one is in use and
     In Order's order. Signing in stays in Settings, which needs a browser.
-  - `demi providers hide <entry> [--model <id>]` and `unhide` turn an entry
+  - `jush providers hide <entry> [--model <id>]` and `unhide` turn an entry
     or one of its models off and on in the user's model menu, which Settings
     does with Show in Model Menu: a preference of the user's
     (`hiddenProviders`, `hiddenModels`), not a setting of a shared entry.
@@ -104,7 +104,7 @@ struct EditArgs {
   fields of `ProviderDto` that no patch changes and that hold their shown
   values, and refuses any other unknown field by its name. It applies the
   patch through the shard's provider settings, the code the route runs.
-- `demi providers` keeps its permission, `providers.manage`, for `edit`,
+- `jush providers` keeps its permission, `providers.manage`, for `edit`,
   `accounts activate`, `accounts order`, `hide` and `unhide`.
 - A field the API gains is a field `edit` changes and `show --json` prints,
   with nothing to add to the command.
@@ -129,7 +129,7 @@ handler decodes.
   and an array is replaced whole
   ([RFC 7396](https://www.rfc-editor.org/rfc/rfc7396)).
 
-Where Demi departs: the key has an option of its own, so that it is piped
+Where Jush departs: the key has an option of its own, so that it is piped
 rather than written into the patch.
 
 ## Alternatives

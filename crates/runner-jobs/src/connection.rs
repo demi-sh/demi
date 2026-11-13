@@ -21,9 +21,9 @@
 
 use std::{collections::{HashMap, HashSet}, io, sync::Arc, time::Duration};
 
-use demi_command_protocol::{ArtifactLocation, ResidentSequence, host_target};
-use demi_runner_command_packages::{ResidentBackend, RuntimeError};
-use demi_runner_protocol::wire::{self, Inbound};
+use jush_command_protocol::{ArtifactLocation, ResidentSequence, host_target};
+use jush_runner_command_packages::{ResidentBackend, RuntimeError};
+use jush_runner_protocol::wire::{self, Inbound};
 use futures_util::future::BoxFuture;
 use tokio::{
     sync::{mpsc, oneshot, watch},

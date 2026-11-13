@@ -19,7 +19,7 @@ pub struct EmptyId;
 /// schema object.
 ///
 /// ```ignore
-/// demi_shared_types::id!(
+/// jush_shared_types::id!(
 ///     /// A user account.
 ///     UserId
 /// );
@@ -164,7 +164,7 @@ crate::id!(
     DeviceId
 );
 crate::id!(
-    /// A command a `shell` call started; its handle for the `demi shell`
+    /// A command a `shell` call started; its handle for the `jush shell`
     /// commands.
     CommandId
 );
@@ -209,15 +209,15 @@ pub enum Sequence {
     Command,
     /// Subagents, from 1; the root is agent 0.
     Agent,
-    /// Conversation browser tabs, from 1: `t7`. The `demi.browser` resident
+    /// Conversation browser tabs, from 1: `t7`. The `jush.browser` resident
     /// reserves them a few at a time (`crates/command-protocol/src/numbers.rs`).
     Tab,
-    /// Simulators `demi mobile` opens, from 1: `m2`. The `demi.mobile`
+    /// Simulators `jush mobile` opens, from 1: `m2`. The `jush.mobile`
     /// service reserves them as it opens devices
     /// (`crates/plugin-mobile/command/src/operations.rs`).
     Device,
     /// The conversation's attachments, from 1: `a3`. Each file a message
-    /// sends and each one `demi attachment upload` stores takes one
+    /// sends and each one `jush attachment upload` stores takes one
     /// (`crates/backend-device-access/src/attachment_commands.rs`).
     Attachment,
 }

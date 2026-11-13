@@ -226,7 +226,7 @@ export function usePathCompletion(options: PathCompletionOptions) {
  * shows with the caret at the text's end tells, so the field and what reads this
  * share one listing: `/Users/alex/Projects/shop/` exists when its own listing
  * reads, and `/Users/alex/Projects/shop` when `/Users/alex/Projects` lists a
- * folder `demi`.
+ * folder `jush`.
  *
  * A listing that finds its directory gone says no. Null while it is not known:
  * the listing is on its way or failed for another reason, or the text is not a

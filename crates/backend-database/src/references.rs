@@ -21,10 +21,10 @@
 
 use std::collections::BTreeSet;
 
-use demi_agent_store::CheckpointState;
-use demi_agent_store::media::{comment_references, content_references};
-use demi_shared_types::{BlobRef, Timestamp};
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_agent_store::CheckpointState;
+use jush_agent_store::media::{comment_references, content_references};
+use jush_shared_types::{BlobRef, Timestamp};
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 use rusqlite::{Connection, params};
 
 use super::StorageError;

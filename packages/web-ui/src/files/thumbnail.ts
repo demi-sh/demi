@@ -1,4 +1,4 @@
-import { clamp } from '@demicodes/utils'
+import { clamp } from '@jush-ai/utils'
 import { fitScale } from './image-zoom'
 
 /** A picture's size in pixels. */

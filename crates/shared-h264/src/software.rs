@@ -6,7 +6,7 @@ use openh264::{
     formats::{BgraSliceU8, RgbSliceU8, RgbaSliceU8, YUVBuffer},
 };
 
-use demi_shared_openh264::Load;
+use jush_shared_openh264::Load;
 
 use crate::{Error, Picture, PixelFormat, Raw, Rate, Result, Settings};
 

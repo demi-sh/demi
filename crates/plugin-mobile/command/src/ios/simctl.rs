@@ -6,12 +6,12 @@
 //! Every process this starts ends as the future or the task that owns it
 //! is dropped. A `log stream` is asked to end, since `simctl spawn` hands
 //! the request on to it inside the simulator, where one killed with its
-//! simctl stays until it next writes. The console of an app Demi launched
+//! simctl stays until it next writes. The console of an app Jush launched
 //! is killed, which leaves the app running.
 
 use std::{collections::HashMap, path::Path, process::Stdio, sync::Arc, time::Duration};
 
-use demi_command_package_mobile_protocol::mobile::{LogEntry, LogLevel};
+use jush_command_package_mobile_protocol::mobile::{LogEntry, LogLevel};
 use serde::Deserialize;
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -298,7 +298,7 @@ pub async fn follow(udid: String, log: Arc<Log>, stop: CancellationToken) {
     }
 }
 
-/// The apps of a simulator Demi launched, each followed until it ends, is
+/// The apps of a simulator Jush launched, each followed until it ends, is
 /// launched again or its device closes, across the device's connections.
 #[derive(Default)]
 pub struct Launches {
@@ -306,7 +306,7 @@ pub struct Launches {
 }
 
 impl Launches {
-    /// Whether Demi follows `id`'s console, as it does from its launch
+    /// Whether Jush follows `id`'s console, as it does from its launch
     /// until it ends.
     pub fn following(&self, id: &str) -> bool {
         self.apps.lock().expect("the launches are intact").get(id).is_some_and(|ended| !ended.is_cancelled())

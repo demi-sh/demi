@@ -6,7 +6,7 @@
 
 use std::fmt::Display;
 
-use demi_shared_types::{Timestamp, WorkflowChoice};
+use jush_shared_types::{Timestamp, WorkflowChoice};
 use garde::Validate;
 use rusqlite::Row;
 use serde::Serialize;
@@ -41,7 +41,7 @@ pub fn json<T>(table: &'static str, column: &'static str, text: &str) -> Result<
 where
     T: DeserializeOwned + Validate<Context = ()>,
 {
-    decode(table, column, demi_shared_types::decode(text))
+    decode(table, column, jush_shared_types::decode(text))
 }
 
 /// The text a JSON column holds for `value`.

@@ -11,7 +11,7 @@ Alex works on a checkout that holds several repositories, such as one
 a repository, and `src/engine` inside that is another. Alex's
 conversation runs in `~/Projects/atlas`, because its build scripts expect
 that directory. The agent edits files in `src/engine`, but the Change
-view's Commits mode shows only "Not a Git repository": Demi reads Git
+view's Commits mode shows only "Not a Git repository": Jush reads Git
 only at the working directory, and that directory is no repository. Alex
 cannot see the uncommitted changes or the history of either repository,
 and moving the conversation into `src/engine` would break the agent's
@@ -151,7 +151,7 @@ already finds the innermost repository holding a path.
   skipping `git.repositoryScanIgnoredFolders` (`node_modules` by
   default), and with `git.autoRepositoryDetection` also the repository
   of each open editor at any depth, and submodules up to
-  `git.detectSubmodulesLimit` (10). Demi scans two levels, because a
+  `git.detectSubmodulesLimit` (10). Jush scans two levels, because a
   checkout such as `gclient`'s nests its repositories one level deeper
   than the folder the build runs in; the files the agent changed stand
   in for open editors.
@@ -160,7 +160,7 @@ already finds the innermost repository holding a path.
   [`workspace.rs`](https://github.com/zed-industries/zed/blob/main/crates/workspace/src/workspace.rs))
   keeps one active repository, which follows the focused editor's file,
   the innermost repository winning; its picker names a repository by its
-  folder's name and sorts by it. Demi follows the agent's latest edit
+  folder's name and sorts by it. Jush follows the agent's latest edit
   the same way, and departs from Zed in one point: a repository the user
   picks is not replaced by the next edit, since the agent's edits come
   without the user's focus moving.

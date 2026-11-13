@@ -21,9 +21,9 @@ import {
   type SessionPhase,
   type Version,
   schemaRefusal,
-} from '@demicodes/protocol'
-import { MAX_PAGE_MESSAGE_BYTES } from '@demicodes/protocol'
-import { asError, createId } from '@demicodes/utils'
+} from '@jush-ai/protocol'
+import { MAX_PAGE_MESSAGE_BYTES } from '@jush-ai/protocol'
+import { asError, createId } from '@jush-ai/utils'
 import type { ConversationClientListener, ClientSessionEvent, ServerFrameOf } from './events'
 import type { HeldEdge, TranscriptRead } from './transcript'
 import { FrameTooLargeError, type ConversationClientTransport } from './transport'

@@ -14,18 +14,18 @@
 //!   context limit, a command left running and a subagent working through
 //!   several passes.
 
-use demi_agent_session::{
+use jush_agent_session::{
     TranscriptSnapshot, compaction_refusal, testing::COMPACTION_SUMMARY_INSTRUCTION,
 };
-use demi_agent_store::{
+use jush_agent_store::{
     media::{BlobStore, ModelView},
     testing::{MemoryBlobs, png},
 };
-use demi_agent_transcript::{
+use jush_agent_transcript::{
     COMPACTION_NOTE, RequestView, estimate::block_tokens, testing::RESUME_TEXT,
 };
-use demi_provider_common::{PromptCache, ProviderFailure, RequestLimits, testing::TokioClock};
-use demi_shared_types::{
+use jush_provider_common::{PromptCache, ProviderFailure, RequestLimits, testing::TokioClock};
+use jush_shared_types::{
     BlockId, EditCopies, EditKind, EditSegment, EditedFile, Entry, MediaSource, PathChange, QueuedMessage, TokenUsage,
 };
 
@@ -112,13 +112,13 @@ fn too_long() -> Turn {
 }
 
 /// A 750-token message.
-fn long_message() -> Vec<demi_shared_types::UserContentBlock> {
+fn long_message() -> Vec<jush_shared_types::UserContentBlock> {
     text(&"x".repeat(3_000))
 }
 
 /// Whether `request` is a summary request: its last user message ends with
 /// the summary instruction, which no request of the session carries.
-fn is_copy(request: &demi_provider_common::InferenceRequest) -> bool {
+fn is_copy(request: &jush_provider_common::InferenceRequest) -> bool {
     request.items.iter().any(|item| match item {
         InferenceItem::UserMessage { content } | InferenceItem::UserSteer { content } => {
             content.last() == Some(&UserPart::Text(COMPACTION_SUMMARY_INSTRUCTION.to_owned()))
@@ -2605,7 +2605,7 @@ fn taking(images: Option<u32>, body_bytes: Option<u64>) -> RequestLimits {
     RequestLimits {
         body_bytes,
         images,
-        tool_results: demi_provider_common::ToolResultKinds::ALL,
+        tool_results: jush_provider_common::ToolResultKinds::ALL,
     }
 }
 
@@ -2825,7 +2825,7 @@ async fn a_summary_request_gives_the_claude_code_cli_its_instruction_inside_the_
     let requests = provider.requests();
     let summary = &requests[2];
     assert!(is_copy(summary));
-    let file = demi_provider_claude_code::testing::session(summary, "2026-10-14T12:00:00.000Z");
+    let file = jush_provider_claude_code::testing::session(summary, "2026-10-14T12:00:00.000Z");
     let entries: Vec<serde_json::Value> = String::from_utf8(file)
         .unwrap()
         .lines()
@@ -2987,7 +2987,7 @@ async fn each_models_token_threshold_leaves_room_for_its_answer_and_the_summary_
 /// A turn of five calls in a 1,000-token window, each returning `output`;
 /// the fifth round's usage reaches the threshold, so a pass follows its
 /// call. Returns the session's requests.
-async fn five_calls(output_text: String) -> Vec<demi_provider_common::InferenceRequest> {
+async fn five_calls(output_text: String) -> Vec<jush_provider_common::InferenceRequest> {
     let provider = ScriptedRuntime::new([
         work_round("c1", 0),
         work_round("c2", 0),
@@ -3288,7 +3288,7 @@ async fn a_session_of_many_compactions_holds_only_its_last_window_and_reads_the_
     // The earlier history is read from the store whole; the latest page is
     // the window's, and a page reads the rest when it shows it.
     assert_eq!(session.history().await.unwrap().blocks, path);
-    let latest = session.latest_page(demi_conversation_lane_protocol::PAGE_BLOCKS);
+    let latest = session.latest_page(jush_conversation_lane_protocol::PAGE_BLOCKS);
     assert_eq!((latest.start, latest.length), (next, path.len()));
 
     // An edit of the first message, before every boundary, replaces the
@@ -3312,7 +3312,7 @@ async fn a_session_of_many_compactions_holds_only_its_last_window_and_reads_the_
 // One session, four scripted requests: a few milliseconds.
 #[tokio::test(flavor = "local")]
 async fn a_request_that_a_compaction_cut_lists_its_calls_from_its_own_message() {
-    use demi_shared_types::EditKind;
+    use jush_shared_types::EditKind;
     let provider = ScriptedRuntime::new([
         Turn::Events(vec![
             event::tool_call(

@@ -1,4 +1,4 @@
-// What `demi.up`, `demi.down` and `demi.runner` share about the slot's processes: the
+// What `jush.up`, `jush.down` and `jush.runner` share about the slot's processes: the
 // environment they start with, the log each writes, and how the tool waits
 // until one is ready or has failed.
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
@@ -12,14 +12,14 @@ import { readState, type ServerName } from './state'
 
 /**
  * The environment of a process the tool starts: the daemon's, without its
- * `DEMI_*` settings, which may be stale, and with the caller's and
- * `extra`. A runner refuses a `DEMI_*` variable it does not know, and the
+ * `JUSH_*` settings, which may be stale, and with the caller's and
+ * `extra`. A runner refuses a `JUSH_*` variable it does not know, and the
  * servers read the slot's `.env` themselves.
  */
 export function childEnv(tool: Tool, extra: Record<string, string>): Record<string, string | undefined> {
   const env: Record<string, string | undefined> = {}
   for (const [name, value] of Object.entries(process.env)) {
-    if (!name.startsWith('DEMI_')) {
+    if (!name.startsWith('JUSH_')) {
       env[name] = value
     }
   }

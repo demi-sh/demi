@@ -111,7 +111,7 @@ its next request to the second, with no failed request.
 
 - [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI/blob/main/sdk/cliproxy/auth/conductor.go)
   puts a credential aside for 30 minutes on 401, 402 and 403 and tries the
-  next. Demi marks a 401 until the user signs in, since its sign-ins renew
+  next. Jush marks a 401 until the user signs in, since its sign-ins renew
   themselves before a 401 can stand.
 - [LiteLLM](https://github.com/BerriAI/litellm/blob/main/litellm/router_utils/cooldown_handlers.py)
   cools a deployment down on 401 and not on 403, which often concerns the
@@ -119,7 +119,7 @@ its next request to the second, with no failed request.
 - [sub2api](https://github.com/Wei-Shaw/sub2api/blob/main/backend/internal/service/ratelimit_service.go)
   disables an OAuth account whose 401 no refresh can cure, and warns that an
   HTML 403 from a CDN must not disable a whole group of accounts one by one,
-  which is why Demi's 403 marks nothing.
+  which is why Jush's 403 marks nothing.
 
 ## Alternatives
 

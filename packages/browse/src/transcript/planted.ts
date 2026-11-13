@@ -1,9 +1,9 @@
-// The defects `demi.transcript.planted` plants (browse.md § The transcript's
+// The defects `jush.transcript.planted` plants (browse.md § The transcript's
 // ruler): each is a scene in which the script itself moves the list as a
 // defect of the list would, and the rule that must report it. A ruler that
 // reports nothing proves nothing until it is seen to report these.
 import type { Page } from 'playwright'
-import type { Lab, Scene } from '../demi/transcript'
+import type { Lab, Scene } from '../jush/transcript'
 import { WATCH, type Watching } from './probe'
 import type { Rule } from './rules'
 import { answered, wheel } from './scenes'
@@ -73,11 +73,11 @@ export const PLANTED: Planted[] = [
     play: async (lab) => {
       await seeded(lab)
       const seen = await lab.watch()
-      await lab.demi.model.answers([[{ say: lab.text.prose(30), ms: 6000 }]])
-      await lab.demi.message(lab.text.sentence(), { wait: false })
+      await lab.jush.model.answers([[{ say: lab.text.prose(30), ms: 6000 }]])
+      await lab.jush.message(lab.text.sentence(), { wait: false })
       await seen.grown(400)
       await push(lab.page, -40)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -117,12 +117,12 @@ export const PLANTED: Planted[] = [
     play: async (lab) => {
       await seeded(lab)
       const seen = await lab.watch()
-      await lab.demi.model.answers([[{ say: lab.text.prose(30), ms: 6000 }]])
-      await lab.demi.message(lab.text.sentence(), { wait: false })
+      await lab.jush.model.answers([[{ say: lab.text.prose(30), ms: 6000 }]])
+      await lab.jush.message(lab.text.sentence(), { wait: false })
       await seen.grown(400)
       // Thirty frames, half a second: longer than a glide takes to reach an end that far.
       await keepBehind(lab.page, 500, 30)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -146,8 +146,8 @@ export const PLANTED: Planted[] = [
     expects: 'control-moved',
     play: async (lab) => {
       await seeded(lab)
-      await lab.demi.model.answers([[{ run: 'seq 1 30' }], [{ say: lab.text.prose(3) }]])
-      await lab.demi.message(lab.text.sentence())
+      await lab.jush.model.answers([[{ run: 'seq 1 30' }], [{ say: lab.text.prose(3) }]])
+      await lab.jush.message(lab.text.sentence())
       const seen = await lab.watch()
       await wheel(lab, -200)
       await seen.still(400)

@@ -30,21 +30,21 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
-use demi_backend_page_sync::{Part, SyncRegistry};
-use demi_provider_common::Secret;
-use demi_provider_common::credentials::{LoginError, LoginIo, LoginKind, MemoryCredentialPool};
-use demi_shared_types::{Clock, DownloadProgress, LoginPending, LoginStage, RequestId, Timestamp};
-use demi_web_api_protocol::ids::{CredentialId, LoginId, ProviderId, UserId};
-use demi_web_api_protocol::providers::{CredentialKind, ListedLogin, LoginState};
+use jush_backend_page_sync::{Part, SyncRegistry};
+use jush_provider_common::Secret;
+use jush_provider_common::credentials::{LoginError, LoginIo, LoginKind, MemoryCredentialPool};
+use jush_shared_types::{Clock, DownloadProgress, LoginPending, LoginStage, RequestId, Timestamp};
+use jush_web_api_protocol::ids::{CredentialId, LoginId, ProviderId, UserId};
+use jush_web_api_protocol::providers::{CredentialKind, ListedLogin, LoginState};
 use tokio::sync::{mpsc, watch};
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 use tracing::Instrument as _;
 
-use demi_provider_registry::entry::ProviderEntry;
-use demi_provider_registry::registry::{LoginAccounts, ProviderRegistry, RegistryError};
-use demi_provider_registry::store::StoreError;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_provider_registry::registry::{LoginAccounts, ProviderRegistry, RegistryError};
+use jush_provider_registry::store::StoreError;
 
 use super::entries::Vault;
 use super::operations::{Held, HeldBy, OperationGuard, ProviderOperations};
@@ -87,7 +87,7 @@ pub enum LoginRefusal {
     #[error("{0} has no login")]
     NoLoginFlow(String),
     /// The starter infers with the master's subscriptions, which a shared
-    /// instance gives every user when `DEMI_SHARED_SUBSCRIPTIONS` says so.
+    /// instance gives every user when `JUSH_SHARED_SUBSCRIPTIONS` says so.
     #[error("Subscriptions are shared by the instance owner")]
     NotOffered,
     /// The owner already holds the family's subscription entry.

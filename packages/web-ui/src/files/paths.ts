@@ -1,5 +1,5 @@
 /** POSIX path arithmetic for the file browser: pure, no filesystem. */
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 
 /** Collapses repeated and trailing slashes and resolves `.` and `..`; a relative input is taken from the root. */
 export function normalizePath(path: string): string {
@@ -65,7 +65,7 @@ export function parentPath(path: string): string {
 }
 
 /** The plugin kit takes its path helpers from here (`plugin-sdk` reaches only `web-ui`). */
-export { baseName } from '@demicodes/utils'
+export { baseName } from '@jush-ai/utils'
 
 /** `path` as it reads from `root`: `a/b` under it, `''` for `root` itself, any other path whole. */
 export function relativePath(root: string, path: string): string {

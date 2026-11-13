@@ -1,9 +1,9 @@
 //! Schedules: what a conversation's Schedules menu lists, and the rules each
-//! part of a schedule follows wherever it arrives, an agent's `demi schedule`
+//! part of a schedule follows wherever it arrives, an agent's `jush schedule`
 //! alike. The backend's scheduler reads the timing; this crate only carries
 //! it.
 
-use demi_shared_types::{Nullable, ScheduleId, ScheduleRunId, Timestamp};
+use jush_shared_types::{Nullable, ScheduleId, ScheduleRunId, Timestamp};
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ use serde_with::rust::{double_option, unwrap_or_skip};
 
 use crate::text::Trimmed;
 
-/// The runs `demi schedule show` lists, newest first; older ones are kept
+/// The runs `jush schedule show` lists, newest first; older ones are kept
 /// until the schedule is deleted, and are not shown.
 ///
 /// Bounded because the list goes into the agent's context window and a
@@ -294,7 +294,7 @@ impl Trigger {
 }
 
 fn not_blank(text: &str, _: &()) -> garde::Result {
-    if demi_shared_types::is_blank(text) {
+    if jush_shared_types::is_blank(text) {
         Err(garde::Error::new("is blank"))
     } else {
         Ok(())
@@ -317,7 +317,7 @@ pub enum IfBusy {
 pub enum RunState {
     Running,
     Done,
-    /// Its agent ran `demi notify`.
+    /// Its agent ran `jush notify`.
     Notified,
     Skipped,
     Failed,
@@ -373,7 +373,7 @@ pub struct ScheduleRunDto {
     pub line: Option<String>,
 }
 
-/// A schedule as `demi schedule` shows it, with its latest runs.
+/// A schedule as `jush schedule` shows it, with its latest runs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ScheduleDto {
@@ -400,7 +400,7 @@ pub struct ScheduleDto {
     pub runs: Vec<ScheduleRunDto>,
 }
 
-/// What `demi schedule create` and `edit` change; a new schedule starts from
+/// What `jush schedule create` and `edit` change; a new schedule starts from
 /// its defaults, *New Schedule*, paused, every day with one task at 09:00 and
 /// no message, which waits if the conversation is busy, and takes these over
 /// them.

@@ -1,5 +1,5 @@
 import { inject, provide, type InjectionKey } from 'vue'
-import type { MediaSource } from '@demicodes/protocol'
+import type { MediaSource } from '@jush-ai/protocol'
 import { copiedStoredFileSchema, type CopiedMessage } from '../message-input/copied-message'
 import { ATTACHMENT_FILE_ATTRIBUTE } from '../../markdown/render'
 import { ATTACHMENT_MARK } from '../../markdown/user-markdown'

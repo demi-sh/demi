@@ -4,13 +4,13 @@
 
 use std::collections::BTreeMap;
 
-use demi_plugin_host::store::{
+use jush_plugin_host::store::{
     MirrorOutcome, OAuthClient, WorkOutcome, PluginReport, PluginStore, PluginValue, SealedSecret, SecretRow, StoreError, Stored,
     ValueWrite, Written,
 };
-use demi_plugin_interface::{DeviceDirectory, WorkspaceName};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId, WorkspaceId};
-use demi_web_api_protocol::work::{CreateWorkTab, WorkChange, Work};
+use jush_plugin_interface::{DeviceDirectory, WorkspaceName};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId, WorkspaceId};
+use jush_web_api_protocol::work::{CreateWorkTab, WorkChange, Work};
 use futures_util::FutureExt;
 use serde_json::Value;
 

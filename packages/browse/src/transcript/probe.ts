@@ -1,4 +1,4 @@
-// What `demi.transcript.watch` reads in the page (browse.md § The
+// What `jush.transcript.watch` reads in the page (browse.md § The
 // transcript's ruler): in every frame the page paints, where each row of a
 // transcript stands in its view, and each thing the reader does to it, with
 // when.
@@ -124,7 +124,7 @@ export interface Watching extends Recording {
 export const BLOCKS = 6
 
 /** The name the page keeps the watch under. */
-export const WATCH = '__demiTranscriptWatch'
+export const WATCH = '__jushTranscriptWatch'
 
 /**
  * Starts reading the `which`th transcript of the page, by `[data-transcript]`,

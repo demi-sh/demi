@@ -23,7 +23,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::LazyLock;
 
-use demi_web_api_protocol::schedules::HolidayPlace;
+use jush_web_api_protocol::schedules::HolidayPlace;
 use jiff::ToSpan;
 use jiff::civil::{Date, date};
 

@@ -55,7 +55,7 @@ and an agent woken only by an end has nothing to poll.
   the agent waits by ending its turn and that a command's end wakes it.
 * A message that arrives during a call still returns the call early, as
   0015 decided.
-* `demi shell status` loses `--interval`.
+* `jush shell status` loses `--interval`.
 * A report or a saved state that names an interval is read without it; no
   stored history is rewritten. Only the table of running commands changes,
   which records whether a command runs in the background in place of its

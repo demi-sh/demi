@@ -70,7 +70,7 @@ fn read(name: &str, args: Vec<OsString>, owner: bool, usage: &str) -> Read {
                     return Read::Done(0);
                 }
                 "version" => {
-                    uucore::context_println!("{name} (Demi)");
+                    uucore::context_println!("{name} (Jush)");
                     return Read::Done(0);
                 }
                 "recursive" => options.recursive = true,

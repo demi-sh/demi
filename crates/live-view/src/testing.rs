@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use demi_live_view_protocol::{CHUNK_BYTES, ChunkAck};
+use jush_live_view_protocol::{CHUNK_BYTES, ChunkAck};
 
 use crate::rate::{ChunkId, Rate};
 

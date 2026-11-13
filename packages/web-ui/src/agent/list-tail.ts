@@ -1,5 +1,5 @@
-import type { Block, PendingCall, QueuedMessage, SessionPhase } from '@demicodes/protocol'
-import { nonEmptyString } from '@demicodes/utils'
+import type { Block, PendingCall, QueuedMessage, SessionPhase } from '@jush-ai/protocol'
+import { nonEmptyString } from '@jush-ai/utils'
 import { pendingSteersToRenderBlocks, type MessageListBlock, type PendingCallRenderBlock } from './pending-steers'
 import { queuedMessagesToRenderBlocks } from './queued-messages'
 import { isCompacting } from './conversation-status'
@@ -22,7 +22,7 @@ import type { PendingSteerMessage, PendingSubmissionState } from './types'
 //   transcript, above them.
 // - The Requesting row says one word for as long as the provider is asked,
 //   since which part of the system holds a message is no concern of the person
-//   waiting. A row that changed its word as Demi confirmed the message, or with
+//   waiting. A row that changed its word as Jush confirmed the message, or with
 //   each retry, would show two names for one wait.
 
 /**

@@ -13,10 +13,10 @@ sent to it or started it.
 Alex allows Use Your Other Conversations in the conversation *Release
 prep*, and its agent sends *Check the login test* to the conversation
 *Stabilize the login test*. That agent does the work and wants to report
-back with `demi conversation send`, and stops for a card: Allow This
+back with `jush conversation send`, and stops for a card: Allow This
 Conversation to Use Your Other Conversations? Alex answers a second card
 for the same exchange. The same happens to a conversation that *Release
-prep* started with `demi conversation new` and that should report back,
+prep* started with `jush conversation new` and that should report back,
 and to one that needs to read *Release prep*'s transcript to do what it was
 asked.
 
@@ -27,7 +27,7 @@ starts, holds `conversation.use` from then on, as if Alex had allowed it.
 It answers, reads the conversation that reached it, and does whatever the
 category covers, without a card.
 
-- Only an agent's message grants it: `demi conversation send` and `demi
+- Only an agent's message grants it: `jush conversation send` and `jush
   conversation new`, which run only in a conversation that holds the
   category. A message the user types grants nothing.
 - Only `conversation.use`: the conversation needs it to answer. Credentials

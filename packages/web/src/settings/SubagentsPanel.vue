@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsSubagents from '@demicodes/web-ui/settings/SettingsSubagents.vue'
-import AsyncRegion from '@demicodes/web-ui/ui/AsyncRegion.vue'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsSubagents from '@jush-ai/web-ui/settings/SettingsSubagents.vue'
+import AsyncRegion from '@jush-ai/web-ui/ui/AsyncRegion.vue'
 import { useProduct } from '../state/product'
 import { useResources } from '../state/resources'
 import { useSubagentSettings } from './subagents'

@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends string">
 import { computed } from 'vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
-import type { TitleText } from '@demicodes/web-ui/ui/ui-text'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
+import type { TitleText } from '@jush-ai/web-ui/ui/ui-text'
 
 /** One axis of the gallery's appearance or of a specimen: a label over the product's `Segmented`. */
 const props = defineProps<{

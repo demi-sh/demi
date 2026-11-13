@@ -3,10 +3,10 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::{Arc, OnceLock};
 
-use demi_runner_protocol::values::BackendUrl;
+use jush_runner_protocol::values::BackendUrl;
 use url::Url;
 
-/// `DEMI_BACKEND_PUBLIC_URL`, or without one (a test's backend) the
+/// `JUSH_BACKEND_PUBLIC_URL`, or without one (a test's backend) the
 /// listener's own address. The edge sets it once the backend listens,
 /// before it serves; a Cloud's boot and a development store's downloads
 /// name it. Cloning it shares it.

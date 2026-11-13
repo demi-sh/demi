@@ -9,7 +9,7 @@
 
 use std::collections::HashMap;
 
-use demi_command_package_mobile_protocol::mobile::{ElementRef, FoldDisplay};
+use jush_command_package_mobile_protocol::mobile::{ElementRef, FoldDisplay};
 
 use crate::driver::{RawElement, Rect};
 

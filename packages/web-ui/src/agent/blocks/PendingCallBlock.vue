@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
 import type { PendingCallRenderBlock } from '../pending-steers'
 import FunctionalBlock from './FunctionalBlock.vue'
 import { toolRowIcon } from './tool-row-icon'

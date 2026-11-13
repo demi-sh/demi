@@ -45,8 +45,8 @@ None.
 VS Code's editor tab menu
 ([`editor.contribution.ts`](https://github.com/microsoft/vscode/blob/main/src/vs/workbench/browser/parts/editor/editor.contribution.ts),
 `MenuId.EditorTitleContext`) has Close, Close Others, Close to the Right, Close
-Saved and Close All; Demi's menu already follows its names, so Close All
-takes its name and its place at the end. Demi departs from its order by
+Saved and Close All; Jush's menu already follows its names, so Close All
+takes its name and its place at the end. Jush departs from its order by
 keeping Close Others beside Close All, the two commands that close more than
 one side. Safari and Chrome have no
 Close All in a tab's menu, where closing every tab would close the window;

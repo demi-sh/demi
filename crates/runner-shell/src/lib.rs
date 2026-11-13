@@ -81,7 +81,7 @@ mod utilities;
 mod which;
 mod work;
 
-use demi_runner_process::job_shell::{JobShell, JobStart, ShellJob};
+use jush_runner_process::job_shell::{JobShell, JobStart, ShellJob};
 use futures_util::future::BoxFuture;
 use std::{collections::BTreeSet, io};
 
@@ -104,7 +104,7 @@ pub fn device_environment() -> impl Iterator<Item = (String, String)> {
 /// and utility of a job runs on a thread of its blocking pool, apart from the
 /// control thread. A unit blocked on a full pipe waits for a sibling that has
 /// a thread of its own, so the pool takes a thread for every unit and has no
-/// bound of Demi's: the system's own limit on threads is the only one.
+/// bound of Jush's: the system's own limit on threads is the only one.
 #[derive(Clone)]
 pub struct ShellRuntime(tokio::runtime::Handle);
 

@@ -1,17 +1,17 @@
-# Contributing to Demi
+# Contributing to Jush
 
-Thanks for your interest in Demi. This guide covers:
+Thanks for your interest in Jush. This guide covers:
 
 - Local setup
 - The checks a change must pass
 - The architecture rules those checks enforce
-- How to extend Demi
+- How to extend Jush
 
 ## Issues and pull requests
 
-Demi doesn't accept public pull requests. To report a bug or ask for a
-feature, open an [issue](https://github.com/demi-sh/demi/issues/new/choose). To
-become a contributor, email [join@demi.sh](mailto:join@demi.sh).
+Jush doesn't accept public pull requests. To report a bug or ask for a
+feature, open an [issue](https://github.com/jush-ai/jush/issues/new/choose). To
+become a contributor, email [join@jush.ai](mailto:join@jush.ai).
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ human contribution, which this guide covers:
 
 - `AGENTS.md` holds the rules the coding agents working in this repository
   follow.
-- `.demi/workflows/` holds the maintainers' subagent workflow for Demi itself.
+- `.jush/workflows/` holds the maintainers' subagent workflow for Jush itself.
 
 ## Setup and checks
 
@@ -57,9 +57,9 @@ Zod schemas derive from them, and you don't commit them:
 After you change a type the browser uses, `bun run typecheck:web` shows every
 place in the frontend that the change breaks.
 
-## Run Demi locally
+## Run Jush locally
 
-Start Demi on your machine with these commands:
+Start Jush on your machine with these commands:
 
 ```sh
 bun install
@@ -78,7 +78,7 @@ bun run web:gallery   # the component gallery, with no backend
 `.env` (copy `.env.example`) can name the account and add a real model. Two
 options change the steps (`crates/xtask/src/dev/mod.rs`):
 
-- `--unseeded` makes no account, so the page opens on Set Up Demi.
+- `--unseeded` makes no account, so the page opens on Set Up Jush.
 - `--data <dir>` keeps the data between runs.
 
 A real Cloud needs Linux with gVisor. To run a server release built from your
@@ -113,7 +113,7 @@ Four rules apply across the code:
   - In Rust: the standard library, the crate's declared dependencies and the
     workspace.
   - In the browser packages: the package's declared dependencies,
-    `@demicodes/utils` and the workspace.
+    `@jush-ai/utils` and the workspace.
 
   Two implementations of the same purpose are a defect. Import the existing
   one and merge duplicates. Domain-specific helpers stay in the crate or
@@ -131,7 +131,7 @@ coding standards.
 
 ## Tests
 
-[Testing](docs/delivery/testing.md) says what Demi tests: only compaction.
+[Testing](docs/delivery/testing.md) says what Jush tests: only compaction.
 Read it before you add or change a test.
 
 Two rules apply to the suite:
@@ -152,7 +152,7 @@ Follow these rules for commits:
 - Keep changes scoped.
 - Commit working checkpoints.
 
-## Extending Demi
+## Extending Jush
 
 To add a new provider, add a provider crate that implements the provider
 contract for one vendor family. For the steps, see
@@ -160,5 +160,5 @@ contract for one vendor family. For the steps, see
 
 ## License
 
-Demi is under the [Apache License 2.0](LICENSE), and a contribution falls
+Jush is under the [Apache License 2.0](LICENSE), and a contribution falls
 under it, as its section 5 says.

@@ -1,5 +1,5 @@
-//! The `demi.browser` package: the browsers of the conversations, as a resident
-//! that carries out the `demi browser` catalog.
+//! The `jush.browser` package: the browsers of the conversations, as a resident
+//! that carries out the `jush browser` catalog.
 //!
 //! The browser is a plugin (`plugin-browser`) whose commands bind this package
 //! through the conversation-scoped state port. Nothing in the agent, the
@@ -59,27 +59,27 @@ mod tab_record;
 
 use std::{future::Future, pin::Pin, sync::Arc};
 
-use demi_command_package_browser_chrome::driver::installation::Chrome;
-use demi_command_package_browser_protocol::{Operation, OperationError, browser as protocol};
-use demi_command_protocol::{Completion, Invocation};
-use demi_shared_openh264::{Cisco, Codec};
-use demi_command_sdk::{
+use jush_command_package_browser_chrome::driver::installation::Chrome;
+use jush_command_package_browser_protocol::{Operation, OperationError, browser as protocol};
+use jush_command_protocol::{Completion, Invocation};
+use jush_shared_openh264::{Cisco, Codec};
+use jush_command_sdk::{
     Artifacts, ConversationContext, Handler, InvocationContext, Messages, Numbers, ResidentError,
 };
 
 /// The resident.
-pub struct DemiBrowser {
+pub struct JushBrowser {
     browsers: Arc<conversations::Conversations>,
     chrome: Chrome,
 }
 
-impl Default for DemiBrowser {
+impl Default for JushBrowser {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl DemiBrowser {
+impl JushBrowser {
     /// The resident, whose browsers start the pinned Chrome, which the
     /// runner installs.
     pub fn new() -> Self {
@@ -88,9 +88,9 @@ impl DemiBrowser {
 
     /// The resident, whose browsers start `chrome`.
     pub fn with_chrome(chrome: Chrome) -> Self {
-        let home = std::env::var_os("DEMI_HOME").map(std::path::PathBuf::from);
+        let home = std::env::var_os("JUSH_HOME").map(std::path::PathBuf::from);
         let codec = Arc::new(Cisco::in_installation(home.as_deref()));
-        Self::with_recording(chrome, demi_command_protocol::scratch_root(), codec)
+        Self::with_recording(chrome, jush_command_protocol::scratch_root(), codec)
     }
 
     /// The resident, whose browsers start `chrome`, and whose recordings and
@@ -109,7 +109,7 @@ impl DemiBrowser {
     }
 }
 
-impl Handler for DemiBrowser {
+impl Handler for JushBrowser {
     type Metadata = Invocation;
 
     fn conversation(

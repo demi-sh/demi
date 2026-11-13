@@ -15,14 +15,14 @@
 //! It takes on nothing else of MCP. Exa signs a third-party app in only for its
 //! MCP server, whose resource the tokens are issued for, while its REST API
 //! accepts API keys alone. A signed-in search therefore has to speak to that
-//! server, but `demi web search` stays its own command.
+//! server, but `jush web search` stays its own command.
 
 use std::cell::{Cell, RefCell};
 use std::convert::Infallible;
 use std::rc::Rc;
 use std::time::Instant;
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     PluginPort, PortFailure, PortRefusal, WebMethod, WebRequest, WebResponse,
 };
 use eventsource_stream::Eventsource;
@@ -194,7 +194,7 @@ impl Mcp {
             "params": {
                 "protocolVersion": PROTOCOL_VERSION,
                 "capabilities": {},
-                "clientInfo": { "name": "demi", "version": env!("CARGO_PKG_VERSION") },
+                "clientInfo": { "name": "jush", "version": env!("CARGO_PKG_VERSION") },
             },
         });
         let response = post(port, bearer, None, None, &initialize, deadline).await?;

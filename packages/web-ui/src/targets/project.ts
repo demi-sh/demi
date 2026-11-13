@@ -98,7 +98,7 @@ export type DeviceProjectAction = 'add' | 'create'
 
 /**
  * New Project's button for a directory on a device: Add Project when the
- * directory exists, Create Project when Demi will create it, as the listing the
+ * directory exists, Create Project when Jush will create it, as the listing the
  * directory field completes from tells (`useDirectoryExistence`).
  *
  * - While the listing is on its way, or after it failed, the button keeps what it

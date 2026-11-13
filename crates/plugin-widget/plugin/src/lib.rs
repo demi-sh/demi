@@ -1,6 +1,6 @@
-//! The `widget` plugin: `demi widget`, and the widgets a reply shows in place.
+//! The `widget` plugin: `jush widget`, and the widgets a reply shows in place.
 //!
-//! An agent writes an HTML page into `demi widget create`, which keeps it as
+//! An agent writes an HTML page into `jush widget create`, which keeps it as
 //! the user's next widget, `w1`, draws it with the device's browser light and
 //! dark for the agent to see, and prints its ID. The reply places it on a
 //! line of its own, `<widget id="w1" />`, and the page's reply block draws it
@@ -8,7 +8,7 @@
 //! (`crates/plugin-widget/page/src/index.ts`).
 //!
 //! ```text
-//!   agent ── demi widget create ──> plugin ── keeps ──> value w1 + blob
+//!   agent ── jush widget create ──> plugin ── keeps ──> value w1 + blob
 //!                                     │ draw, light and dark
 //!                                     v
 //!                        browser package on the device ──> two screenshots
@@ -25,7 +25,7 @@ mod widget;
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     CommandPlugin, Manifest, Page, Plugin, PluginError, PluginFactory, PluginFile, PluginId, PluginPort,
     Reply, Request,
 };
@@ -46,11 +46,11 @@ impl Widgets {
         let mut manifest = Manifest::new(
             PluginId::try_from(PLUGIN).expect("a valid plugin id"),
             "Widgets",
-            "Agents put charts, diagrams and interactive pages into their replies with demi widget.",
+            "Agents put charts, diagrams and interactive pages into their replies with jush widget.",
         );
         manifest.commands = commands::manifest_commands(&commands::commands());
         manifest.conversations = true;
-        manifest.page = Some(Page::new("@demicodes/plugin-widget").block::<widget::WidgetFacts>("widget", true));
+        manifest.page = Some(Page::new("@jush-ai/plugin-widget").block::<widget::WidgetFacts>("widget", true));
         Self { manifest }
     }
 }

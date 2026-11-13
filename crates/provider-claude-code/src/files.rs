@@ -3,13 +3,13 @@
 //! writes them.
 //!
 //! Its sign-in is in `.credentials.json` (`claudeAiOauth`), and the account it
-//! signed in is in `.claude.json` (`oauthAccount`). Demi reads only the account
+//! signed in is in `.claude.json` (`oauthAccount`). Jush reads only the account
 //! of a new sign-in, and writes both once, for the sign-in an earlier release
 //! kept in an account's record.
 
 use bytes::Bytes;
-use demi_provider_common::Secret;
-use demi_shared_types::Timestamp;
+use jush_provider_common::Secret;
+use jush_shared_types::Timestamp;
 use serde::Deserialize;
 use serde_json::json;
 
@@ -18,7 +18,7 @@ pub(crate) const CREDENTIALS: &str = ".credentials.json";
 /// The file the CLI keeps its account in there.
 pub(crate) const CONFIG: &str = ".claude.json";
 
-/// What Demi reads of the CLI's `.claude.json`: the signed-in account.
+/// What Jush reads of the CLI's `.claude.json`: the signed-in account.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ConfigFile {

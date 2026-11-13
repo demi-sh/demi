@@ -4,11 +4,11 @@
 //!
 //! - an explicit message, or the notice of a child's end, which carries what the
 //!   child wrote; an explicit message may come from an agent of another
-//!   conversation of the user (`demi conversation send`);
+//!   conversation of the user (`jush conversation send`);
 //! - the user's decision on a permission request, which reaches the agent that
 //!   asked the same way;
 //! - the user's move of the conversation, which the user tells the root of;
-//! - Demi's notice that a move the agent asked for failed
+//! - Jush's notice that a move the agent asked for failed
 //!   (`crates/backend-device-access/src/transition.rs`).
 //!
 //! It is structured input, neither a human message nor the receiving agent's
@@ -20,7 +20,7 @@
 //! A completion's ID names the child and the round, so it identifies exactly
 //! one round of one child. A completion tells how the round ended and carries
 //! every text the child wrote in it, whole and in order, and for a failed one
-//! the reason Demi gives for the failure after them. Editing and Fork are not
+//! the reason Jush gives for the failure after them. Editing and Fork are not
 //! offered on a receipt, and compaction keeps what it tells as context, never
 //! as a human instruction.
 
@@ -44,7 +44,7 @@ pub struct AgentMessage {
     #[garde(custom(names_completed_round(&self.sender, &self.event)))]
     pub id: BlockId,
     /// The agent that sent it; none for the user's permission decision and
-    /// move, and Demi's notice of a failed move.
+    /// move, and Jush's notice of a failed move.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[garde(custom(sent_by_an_agent_unless_the_products(&self.event)), dive)]
     pub sender: Option<Sender>,
@@ -62,7 +62,7 @@ pub struct AgentMessage {
     pub event: AgentMessageEvent,
     /// The block of the sender's transcript the message came from, which the
     /// receipt row's name brings into view: for an explicit message, the call
-    /// that ran `demi agent send`; for a failed completion, the child's failure
+    /// that ran `jush agent send`; for a failed completion, the child's failure
     /// record, which an earlier release also named for a finished one, as its
     /// last answer. None for any other completion, for a failure with no record
     /// and for a message no agent sent.
@@ -87,7 +87,7 @@ pub struct Sender {
     #[garde(range(min = 1, max = MAX_SAFE_INTEGER))]
     pub round: u64,
     /// The conversation the sender is an agent of, when it is not the
-    /// recipient's: `demi conversation send` reached the recipient from it.
+    /// recipient's: `jush conversation send` reached the recipient from it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[garde(dive)]
     pub conversation: Option<SenderConversation>,
@@ -164,7 +164,7 @@ pub enum AgentMessageEvent {
         #[garde(skip)]
         home: Option<String>,
     },
-    /// Demi's notice that a move the recipient asked for failed, which left
+    /// Jush's notice that a move the recipient asked for failed, which left
     /// the conversation where it was; the receipt row says `reason` after
     /// *Move failed* (`crates/backend-device-access/src/transition.rs`).
     MoveFailed {
@@ -180,7 +180,7 @@ pub enum AgentMessageEvent {
 }
 
 impl AgentMessageEvent {
-    /// Whether the user or Demi sends it rather than an agent: a permission
+    /// Whether the user or Jush sends it rather than an agent: a permission
     /// decision, a move the user told of or a failed move, which wake the
     /// recipient while it is idle even after the user stopped its last turn.
     pub fn is_from_product(&self) -> bool {
@@ -268,7 +268,7 @@ impl FromStr for CompletionId {
     }
 }
 
-/// The user sends a permission decision and a move, Demi a failed move's
+/// The user sends a permission decision and a move, Jush a failed move's
 /// notice, and an agent every other message.
 fn sent_by_an_agent_unless_the_products(
     event: &AgentMessageEvent,

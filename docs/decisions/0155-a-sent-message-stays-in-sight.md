@@ -55,7 +55,7 @@ page shows holds it, or it says that it was not delivered.
 - **Not delivered.** A message given to the session waits ten seconds for its
   confirmation, or none while the browser says it is offline. Then it is not
   delivered: a red alert stands left of the bubble, always in view, as
-  Messages marks one, and `Not Delivered · Demi can’t be reached.` stands under
+  Messages marks one, and `Not Delivered · Jush can’t be reached.` stands under
   it. The alert sends that message again, as a new message at the end. The
   page does not send it again by itself. A message already on its way may
   still arrive, and the session takes it once by its id. A refusal shows the
@@ -65,7 +65,7 @@ page shows holds it, or it says that it was not delivered.
 
   ```text
                               (!) [ Did you check the logs? ]
-                     Not Delivered · Demi can’t be reached.
+                     Not Delivered · Jush can’t be reached.
   ```
 
 - **The connection, while the user waits.** While a message waits for its

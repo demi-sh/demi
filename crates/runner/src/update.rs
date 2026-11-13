@@ -3,14 +3,14 @@
 //!
 //! It puts the backend's executable in the installation's `releases/` as the
 //! installers do, under their lock, moves it over the installation's runner,
-//! `<installation>/demi-runner`, names it in `release-id`, and starts it in its
+//! `<installation>/jush-runner`, names it in `release-id`, and starts it in its
 //! own place once the registration has ended. The jobs run on in their shells'
 //! processes meanwhile, and the new runner takes them over and lists them in its
 //! hello (`crates/runner-shell/src/remote/mod.rs`).
 //!
 //! # One path
 //!
-//! Every release runs from `<installation>/demi-runner`, so the system tells
+//! Every release runs from `<installation>/jush-runner`, so the system tells
 //! one program across updates: a Mac's privacy permissions follow the path of a
 //! program outside an app bundle, and a new path asked for them all again.
 //!
@@ -22,7 +22,7 @@
 //! - Every update writes the installation's launcher anew, so a launcher never
 //!   names a file an update removed.
 //! - An installation from before ran each release from
-//!   `releases/<release>/demi-runner`. Its runner of this release links itself
+//!   `releases/<release>/jush-runner`. Its runner of this release links itself
 //!   to the one path as it starts ([`Installed::settle`]), writes the
 //!   installation's launcher anew, and starts from there. The old path stays
 //!   until the launcher is written, so a failure leaves a launcher that still
@@ -44,8 +44,8 @@
 //! - One release waits ahead at most: a server that got a newer release ready
 //!   since has its devices download that one, and their download removes the
 //!   earlier one's.
-//! - Every download of a runner executable, ahead or in an update, is Demi's
-//!   one download (`demi_shared_artifacts`), staged in
+//! - Every download of a runner executable, ahead or in an update, is Jush's
+//!   one download (`jush_shared_artifacts`), staged in
 //!   `releases/.download-<release>/` and resumed.
 //!
 //! # Failures
@@ -64,8 +64,8 @@
 //!
 //! - It downloads through the backend's runner socket, its only way to the
 //!   backend, onto the system image, and moves the release to one path there,
-//!   `/var/lib/demi/runner/demi-runner`, as an installation's: the image's
-//!   `/opt/demi` is read-only, and `/run` and `/tmp` are small and in memory.
+//!   `/var/lib/jush/runner/jush-runner`, as an installation's: the image's
+//!   `/opt/jush` is read-only, and `/run` and `/tmp` are small and in memory.
 //! - The successor runs from there in this process, which keeps its id, so the
 //!   sandbox's init sees no exit and stops nothing. It keeps the temporary
 //!   directory, which its predecessor's jobs use.
@@ -79,19 +79,19 @@ use std::{
     process::Command,
 };
 
-use demi_command_protocol::host_target;
-use demi_runner_protocol::{
+use jush_command_protocol::host_target;
+use jush_runner_protocol::{
     installation::{LAUNCHER_PS1, LAUNCHER_SH},
     release::{COMPRESSED_SUFFIX, RELEASE_ENV, RUNNER, RunnerUpdate, TOKEN_HEADER},
     values::{BackendUrl, DeviceToken},
 };
-use demi_runner_process::backend::Backend;
-use demi_shared_artifacts::{Digest, Mode, Permissions, Publication};
+use jush_runner_process::backend::Backend;
+use jush_shared_artifacts::{Digest, Mode, Permissions, Publication};
 use tokio_util::sync::CancellationToken;
 
 /// An installation that an installer made, whose runner this process is:
-/// its executable is `<root>/demi-runner`, or in an installation from before
-/// `<root>/releases/<release>/demi-runner`, until it settles.
+/// its executable is `<root>/jush-runner`, or in an installation from before
+/// `<root>/releases/<release>/jush-runner`, until it settles.
 pub struct Installed {
     root: PathBuf,
     release: String,
@@ -103,6 +103,8 @@ pub struct Installed {
 pub struct Successor {
     executable: PathBuf,
     release: String,
+    /// An installer's installation, which the successor serves.
+    installation: Option<PathBuf>,
 }
 
 impl Installed {
@@ -113,7 +115,10 @@ impl Installed {
         let release = release?;
         let running = executable.canonicalize().ok()?;
         let runs = |path: PathBuf| path.canonicalize().is_ok_and(|path| path == running);
+        // An installation from before the rename runs `demi-runner` until it
+        // settles (`crate::renamed`).
         let installed = runs(root.join(file_name()))
+            || runs(root.join(crate::renamed::earlier_runner()))
             || runs(root.join("releases").join(release).join(file_name()));
         installed.then(|| Self {
             root: root.to_owned(),
@@ -150,6 +155,7 @@ impl Installed {
         Ok(Some(Successor {
             executable,
             release: self.release.clone(),
+            installation: Some(self.root.clone()),
         }))
     }
 
@@ -165,7 +171,7 @@ impl Installed {
         cancel: &CancellationToken,
     ) -> io::Result<()> {
         let _lock = InstallerLock::take(&self.root)?;
-        let http = demi_shared_artifacts::download_client_allowing_http().map_err(io::Error::other)?;
+        let http = jush_shared_artifacts::download_client_allowing_http().map_err(io::Error::other)?;
         place(&self.root.join("releases"), &http, backend.url(), token, release, expected, cancel).await?;
         self.prune_ahead(release).await;
         Ok(())
@@ -214,7 +220,7 @@ impl Installed {
     ) -> io::Result<Successor> {
         let expected = expected(update)?;
         let _lock = InstallerLock::take(&self.root)?;
-        let http = demi_shared_artifacts::download_client_allowing_http().map_err(io::Error::other)?;
+        let http = jush_shared_artifacts::download_client_allowing_http().map_err(io::Error::other)?;
         let path = place(&self.root.join("releases"), &http, backend.url(), token, &update.release, &expected, cancel).await?;
         let executable = self.executable();
         // Windows renames the running executable aside, which it cannot
@@ -231,7 +237,7 @@ impl Installed {
         }
         tokio::fs::rename(&path, &executable).await?;
         self.publish_launcher().await?;
-        demi_shared_artifacts::publish_bytes(
+        jush_shared_artifacts::publish_bytes(
             &self.root.join("release-id"),
             format!("{}\n", update.release).as_bytes(),
             Publication {
@@ -246,6 +252,7 @@ impl Installed {
         Ok(Successor {
             executable,
             release: update.release.clone(),
+            installation: Some(self.root.clone()),
         })
     }
 
@@ -256,7 +263,7 @@ impl Installed {
         } else {
             ("run", LAUNCHER_SH)
         };
-        demi_shared_artifacts::publish_bytes(
+        jush_shared_artifacts::publish_bytes(
             &self.root.join(name),
             launcher.as_bytes(),
             Publication {
@@ -296,7 +303,7 @@ impl Installed {
 /// A managed guest's runner, which its Cloud's image brings at each boot: it
 /// replaces itself in its own process with its backend's runner release,
 /// downloaded through the backend's runner socket into `<root>/releases/` on
-/// the system image and moved to the one path `<root>/demi-runner`. Every
+/// the system image and moved to the one path `<root>/jush-runner`. Every
 /// later release goes to the same path, so the command aliases of a job that
 /// a successor started name a file that stays. The next boot runs the
 /// image's runner again, which removes all of it.
@@ -309,7 +316,7 @@ pub struct Managed {
 /// Where a managed guest's runner keeps the release it replaced itself
 /// with, on the system image beside its job root
 /// (`crates/machine-manager/src/storage/mod.rs`).
-pub const MANAGED_ROOT: &str = "/var/lib/demi/runner";
+pub const MANAGED_ROOT: &str = "/var/lib/jush/runner";
 
 impl Managed {
     /// The managed runner that `executable` is, keeping its successor in
@@ -365,7 +372,7 @@ impl Managed {
         let expected = expected(update)?;
         let releases = self.root.join("releases");
         tokio::fs::create_dir_all(&releases).await?;
-        let http = demi_shared_artifacts::download_client_through(|builder| backend.http(builder))
+        let http = jush_shared_artifacts::download_client_through(|builder| backend.http(builder))
             .map_err(io::Error::other)?;
         let placed = place(&releases, &http, &backend.origin()?, token, &update.release, &expected, cancel).await?;
         let executable = self.executable();
@@ -373,6 +380,7 @@ impl Managed {
         Ok(Successor {
             executable,
             release: update.release.clone(),
+            installation: None,
         })
     }
 }
@@ -416,7 +424,7 @@ async fn place(
     let name = file_name();
     let path = directory.join(&name);
     if path.exists() {
-        let found = demi_shared_artifacts::digest(&path, expected.size, cancel)
+        let found = jush_shared_artifacts::digest(&path, expected.size, cancel)
             .await
             .map_err(io::Error::other)?;
         if found == *expected {
@@ -449,14 +457,14 @@ async fn place(
         }
         headers
     };
-    let request = demi_shared_artifacts::Download {
+    let request = jush_shared_artifacts::Download {
         headers: &headers,
-        ..demi_shared_artifacts::Download::new(url.as_str())
+        ..jush_shared_artifacts::Download::new(url.as_str())
     };
     // The backend counts the bytes it serves to the device itself, and
     // serves the compressed file without a content coding, which the
     // check below decodes.
-    demi_shared_artifacts::download(http, request, &compressed, cancel, |_, _| {})
+    jush_shared_artifacts::download(http, request, &compressed, cancel, |_, _| {})
         .await
         .map_err(io::Error::other)?;
     let stage = download.join("release");
@@ -468,12 +476,12 @@ async fn place(
     if let Err(error) = decode(&compressed, &stage.join(&name), expected, cancel).await {
         // Bytes that fail the check are no start for the next attempt;
         // a cancelled check says nothing of them.
-        if !matches!(error, demi_shared_artifacts::Error::Cancelled) {
+        if !matches!(error, jush_shared_artifacts::Error::Cancelled) {
             tokio::fs::remove_file(&compressed).await?;
         }
         return Err(io::Error::other(error));
     }
-    demi_shared_artifacts::publish_directory(&stage, &directory)
+    jush_shared_artifacts::publish_directory(&stage, &directory)
         .await
         .map_err(io::Error::other)?;
     // The release is in place; its download holds nothing anyone needs.
@@ -502,7 +510,7 @@ impl Successor {
         use std::os::windows::process::CommandExt as _;
         const CREATE_NO_WINDOW: u32 = 0x0800_0000;
         self.command()
-            .env_remove(demi_runner_protocol::SUPERVISED)
+            .env_remove(jush_runner_protocol::SUPERVISED)
             .creation_flags(CREATE_NO_WINDOW)
             .spawn()?;
         Ok(())
@@ -513,6 +521,11 @@ impl Successor {
         command
             .args(std::env::args_os().skip(1).collect::<Vec<OsString>>())
             .env(RELEASE_ENV, &self.release);
+        // The installation may have moved since the launcher named it
+        // (`crate::renamed`).
+        if let Some(installation) = &self.installation {
+            command.env(jush_runner_protocol::installation::HOME_ENV, installation);
+        }
         command
     }
 }
@@ -540,8 +553,8 @@ async fn decode(
     path: &Path,
     expected: &Digest,
     cancel: &CancellationToken,
-) -> Result<(), demi_shared_artifacts::Error> {
-    let mut staged = demi_shared_artifacts::Staged::new(
+) -> Result<(), jush_shared_artifacts::Error> {
+    let mut staged = jush_shared_artifacts::Staged::new(
         path,
         Publication {
             mode: Mode::CreateNew,
@@ -550,7 +563,7 @@ async fn decode(
         },
     )
     .await?;
-    demi_shared_artifacts::decode_file(compressed, expected, staged.file(), cancel).await?;
+    jush_shared_artifacts::decode_file(compressed, expected, staged.file(), cancel).await?;
     staged.publish().await
 }
 

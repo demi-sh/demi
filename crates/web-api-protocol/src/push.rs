@@ -5,7 +5,7 @@ use std::borrow::Cow;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_shared_types::Nullable;
+use jush_shared_types::Nullable;
 use garde::Validate;
 use p256::PublicKey;
 use p256::elliptic_curve::sec1::ToEncodedPoint as _;
@@ -267,7 +267,7 @@ pub enum PushMessage {
         request: PermissionRequestId,
         ask: PushAsk,
     },
-    /// The agent ran `demi notify send`: its title and body, as it wrote
+    /// The agent ran `jush notify send`: its title and body, as it wrote
     /// them.
     Agent {
         conversation_id: ConversationId,

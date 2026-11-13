@@ -70,7 +70,7 @@ None.
   ([#46954](https://github.com/zed-industries/zed/pull/46954)), beside
   editing it ([#47234](https://github.com/zed-industries/zed/pull/47234)).
 - Codex's terminal UI only takes a queued message back into the composer,
-  as Recall does; Demi keeps that and adds what Replit and Zed have.
+  as Recall does; Jush keeps that and adds what Replit and Zed have.
 
 ## Alternatives
 

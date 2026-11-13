@@ -1,8 +1,8 @@
-//! What Demi does inside an emulator over adb
+//! What Jush does inside an emulator over adb
 //! (`crates/plugin-mobile/command/src/android/mod.rs`):
 //!
 //! - the UI tree with its display rotation, a field's text and the clipboard,
-//!   through openatx's `u2.jar`, which `demi-mobile` carries and runs with
+//!   through openatx's `u2.jar`, which `jush-mobile` carries and runs with
 //!   `app_process` as a shell process, not an installed app;
 //! - appearance, the keyboard's tutorials, and keys where the emulator has
 //!   no hardware keyboard to take its own, through the shell.
@@ -44,7 +44,7 @@ pub struct Resolved {
 const PORT: u16 = 9018;
 /// Where the helper's process id is kept, so the next program stops the
 /// helper this one left.
-const PID_FILE: &str = "/data/local/tmp/demi-u2.pid";
+const PID_FILE: &str = "/data/local/tmp/jush-u2.pid";
 /// How long the helper takes to start.
 const STARTING: Duration = Duration::from_secs(30);
 /// What the helper prints once it listens.
@@ -54,16 +54,16 @@ const LISTENING: &str = "http server listening";
 const HELD: &str = "already registered";
 /// The start of the helper's own `CLASSPATH`, which tells its process from
 /// any other the id in a stale pid file may name now.
-const OURS: &str = "CLASSPATH=/data/local/tmp/demi-u2-";
+const OURS: &str = "CLASSPATH=/data/local/tmp/jush-u2-";
 
 /// Why a command that needs the helper fails while another client, such as
 /// Appium, holds the UI automation connection (`crates/plugin-mobile/command/src/android/mod.rs`).
 pub const TAKEN: &str = "another UI automation client, such as Appium, holds this emulator's UI automation; \
-                         Demi takes it back once that client lets it go";
+                         Jush takes it back once that client lets it go";
 
-#[cfg(demi_android_helper)]
-const JAR: Option<(&[u8], &str)> = Some((include_bytes!(concat!(env!("OUT_DIR"), "/u2.jar")), env!("DEMI_U2_JAR_SHA256")));
-#[cfg(not(demi_android_helper))]
+#[cfg(jush_android_helper)]
+const JAR: Option<(&[u8], &str)> = Some((include_bytes!(concat!(env!("OUT_DIR"), "/u2.jar")), env!("JUSH_U2_JAR_SHA256")));
+#[cfg(not(jush_android_helper))]
 const JAR: Option<(&[u8], &str)> = None;
 
 /// What the driver does inside one emulator.
@@ -140,7 +140,7 @@ pub trait Guest: Send + Sync + 'static {
     /// `logcat -v epoch,uid,usec` prints them, every level, until the
     /// stream is dropped or the emulator ends.
     fn log(&self, since: f64) -> BoxFuture<'_, Result<BoxStream<'static, String>>>;
-    /// Stops what Demi runs inside the emulator.
+    /// Stops what Jush runs inside the emulator.
     fn close(&self) -> BoxFuture<'_, ()>;
 }
 
@@ -160,7 +160,7 @@ fn package_name(package: &str) -> Result<&str> {
 struct Server {
     /// Cancelled once the process ended.
     ended: CancellationToken,
-    /// Reads what the helper prints until it ends; aborted as Demi lets go.
+    /// Reads what the helper prints until it ends; aborted as Jush lets go.
     reader: tokio::task::JoinHandle<()>,
 }
 
@@ -187,9 +187,9 @@ impl U2 {
     /// there, and stopping one an earlier program left.
     async fn start(&self) -> Result<Server> {
         let (jar, digest) = JAR.ok_or_else(|| {
-            DriverError::Failed("this build of demi-mobile carries no Android helper".into())
+            DriverError::Failed("this build of jush-mobile carries no Android helper".into())
         })?;
-        let remote = format!("/data/local/tmp/demi-u2-{}.jar", &digest[..12]);
+        let remote = format!("/data/local/tmp/jush-u2-{}.jar", &digest[..12]);
         let present = self.adb.shell(&self.serial, &format!("[ -f {remote} ] && echo present")).await?;
         if present.trim() != "present" {
             self.adb.push(&self.serial, jar, &remote, 0o644).await?;
@@ -440,7 +440,7 @@ impl Guest for U2 {
             // lost while its clipboard connection starts, so the text is
             // read back, and written once more when it is not there.
             for _ in 0..2 {
-                self.call("setClipboard", json!(["demi", text])).await?;
+                self.call("setClipboard", json!(["jush", text])).await?;
                 if self.clipboard().await? == text {
                     return Ok(());
                 }

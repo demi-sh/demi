@@ -1,5 +1,5 @@
-<!-- Demi doesn't accept public pull requests. To report a bug or ask for a
-feature, open an issue. To become a contributor, email join@demi.sh. -->
+<!-- Jush doesn't accept public pull requests. To report a bug or ask for a
+feature, open an issue. To become a contributor, email join@jush.ai. -->
 
 **What changes and why**
 

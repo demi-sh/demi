@@ -10,14 +10,14 @@ Alex adds an Anthropic API key, picks Claude Opus 4.5 at Low and sends a
 message. The turn fails with HTTP 400, `adaptive thinking is not supported
 on this model`, before Alex has had one answer.
 
-Demi decides how a Messages API model takes a reasoning level from
+Jush decides how a Messages API model takes a reasoning level from
 models.dev: a model whose record lists an `effort` option gets adaptive
 thinking at that effort, and any other model a token budget. models.dev
 lists the same options, `effort` and `budget_tokens`, for Claude Opus 4.5 and
 Claude Opus 4.6, yet only 4.6 takes adaptive thinking. Its records cannot
 tell the two apart, so no rule over them gets both right.
 
-Anthropic's own list of the key's models, `GET /v1/models`, which Demi
+Anthropic's own list of the key's models, `GET /v1/models`, which Jush
 already reads to leave out the models a key cannot call, states it per
 model:
 
@@ -100,10 +100,10 @@ model's form:
 - **A budget for every model models.dev lists `budget_tokens` for.** It fixes
   Opus 4.5 without new code, but Opus 4.6 and Sonnet 4.6 would lose adaptive
   thinking for the deprecated budget, and with it the thinking between tool
-  calls that Demi gets without the interleaved-thinking beta header.
+  calls that Jush gets without the interleaved-thinking beta header.
 - **Retry with a budget after this 400.** Every first request to such a model
   would fail once, and the retry depends on the words of an error message.
-- **A list of model names in Demi's code.** Each new model would need a
+- **A list of model names in Jush's code.** Each new model would need a
   release, and the list would be a second source for what Anthropic states.
 
 ## Open questions

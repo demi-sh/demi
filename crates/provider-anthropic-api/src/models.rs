@@ -3,8 +3,8 @@
 //! ([List Models](https://docs.anthropic.com/en/api/models-list)), each
 //! with the thinking its `capabilities` state it takes.
 
-use demi_provider_common::{OfferedModel, ProviderHttp, refusal_words};
-use demi_shared_types::ThinkingForm;
+use jush_provider_common::{OfferedModel, ProviderHttp, refusal_words};
+use jush_shared_types::ThinkingForm;
 use reqwest::Url;
 use reqwest::header::HeaderValue;
 use serde::Deserialize;

@@ -5,7 +5,7 @@
 //! A reply names an attachment by a line that is its tag alone,
 //! `<attachment id="a3" />`, the rule the page's renderer follows, and by the
 //! copy it keeps of a picture of the device it shows
-//! (`demi_backend_database::shares::block_attachments`). The socket's
+//! (`jush_backend_database::shares::block_attachments`). The socket's
 //! transcript frames and the history route both carry the attachments their
 //! blocks and their text name, whoever in the conversation stored them, so the
 //! page draws each card or picture at its size with the reply, and asks for
@@ -21,19 +21,19 @@
 //! A reply block, such as a widget, is named by its tag's line as an
 //! attachment is, for the tags the plugins' pages draw, and its facts are
 //! what its plugin answers for it, on or off
-//! (`demi_plugin_host::UserPlugins::reply_block_facts`). They never change,
+//! (`jush_plugin_host::UserPlugins::reply_block_facts`). They never change,
 //! so a socket sends each block's once.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_attachments::{AttachmentNumber, read_all};
-use demi_backend_database::conversations::ConversationStores;
-use demi_backend_database::shares::{block_attachments, named_attachments, named_reply_blocks};
-use demi_conversation_lane_protocol::{ConversationAttachment, ReplyBlockFacts, TranscriptPatch};
-use demi_plugin_host::UserPlugins;
-use demi_shared_types::{Block, NodeId, TextBlock};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_attachments::{AttachmentNumber, read_all};
+use jush_backend_database::conversations::ConversationStores;
+use jush_backend_database::shares::{block_attachments, named_attachments, named_reply_blocks};
+use jush_conversation_lane_protocol::{ConversationAttachment, ReplyBlockFacts, TranscriptPatch};
+use jush_plugin_host::UserPlugins;
+use jush_shared_types::{Block, NodeId, TextBlock};
+use jush_web_api_protocol::ids::ConversationId;
 
 /// How many text blocks of a node a socket keeps the text of: the one being
 /// written and the few before it.

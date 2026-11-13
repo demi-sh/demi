@@ -1,4 +1,4 @@
-//! `demi-server setup` (`installation.md`): sets a Linux machine up as a Demi
+//! `jush-server setup` (`installation.md`): sets a Linux machine up as a Jush
 //! server with the release of this program, from the choices its parameters
 //! give.
 //!
@@ -19,8 +19,8 @@ use std::{
     process::Command,
 };
 
-use demi_shared_artifacts::releases::{self, Channel};
-use demi_shared_artifacts::{Mode as Publish, Permissions, Publication};
+use jush_shared_artifacts::releases::{self, Channel};
+use jush_shared_artifacts::{Mode as Publish, Permissions, Publication};
 use semver::Version;
 use tokio_util::sync::CancellationToken;
 
@@ -34,10 +34,10 @@ use crate::{
 /// The guide `--help` prints, and what a run without a terminal and without
 /// a required choice prints.
 pub const GUIDE: &str = "\
-Sets this Linux machine up as a Demi server, with the release of this
-demi-server, then checks it from outside. Run as root.
+Sets this Linux machine up as a Jush server, with the release of this
+jush-server, then checks it from outside. Run as root.
 
-Demi serves plain HTTP and never terminates TLS: something in front of it
+Jush serves plain HTTP and never terminates TLS: something in front of it
 serves the domain over HTTPS and forwards to the address --listen names. It
 must pass the Origin and Host headers unchanged and allow WebSocket upgrades.
   - A reverse proxy on this machine (Caddy, nginx) or a tunnel (such as
@@ -54,15 +54,15 @@ afterwards creates the master account on its setup page, so open it right
 away.
 
 Examples:
-  demi-server setup --domain demi.example.com --listen 127.0.0.1:3271
-  demi-server setup --domain demi.example.com --listen 0.0.0.0:80
-  AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... demi-server setup \\
-    --domain demi.example.com --listen 127.0.0.1:3271 \\
-    --storage s3 --s3-bucket demi --s3-region eu-central-1
+  jush-server setup --domain jush.example.com --listen 127.0.0.1:3271
+  jush-server setup --domain jush.example.com --listen 0.0.0.0:80
+  AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... jush-server setup \\
+    --domain jush.example.com --listen 127.0.0.1:3271 \\
+    --storage s3 --s3-bucket jush --s3-region eu-central-1
 
 A run that stops, such as before the proxy is ready, says what to do; the
 same command then continues where it stopped. A server that is set up moves
-to later releases with `demi-server upgrade`.";
+to later releases with `jush-server upgrade`.";
 
 #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum Storage {
@@ -78,7 +78,7 @@ pub enum Switch {
 
 #[derive(clap::Args)]
 pub struct Options {
-    /// The domain Demi is reached at, over HTTPS: the public URL is
+    /// The domain Jush is reached at, over HTTPS: the public URL is
     /// https://<domain>. Required.
     #[arg(long, value_name = "NAME")]
     domain: Option<String>,
@@ -103,16 +103,16 @@ pub struct Options {
     #[arg(long)]
     s3_force_path_style: bool,
     /// The machine manager's state directory, on one filesystem.
-    #[arg(long, value_name = "DIRECTORY", default_value = "/opt/demi/data/cloud")]
+    #[arg(long, value_name = "DIRECTORY", default_value = "/opt/jush/data/cloud")]
     cloud_data: PathBuf,
     /// Whether Clouds run under cgroup CPU, memory and PID limits.
     #[arg(long, value_enum, default_value = "on")]
     cloud_limits: Switch,
-    /// The release to set up [default: this demi-server's].
+    /// The release to set up [default: this jush-server's].
     #[arg(long)]
     version: Option<Version>,
     /// Sets up the newest release of a channel instead of this
-    /// demi-server's.
+    /// jush-server's.
     #[command(flatten)]
     channel: crate::Channels,
     /// A directory holding the release's assets instead of the GitHub
@@ -129,7 +129,7 @@ pub struct Options {
 }
 
 /// The backend's data directory on every server, also the home of its user.
-const BACKEND_DATA: &str = "/opt/demi/data/backend";
+const BACKEND_DATA: &str = "/opt/jush/data/backend";
 
 /// What setup reached, kept while a run has not finished: a `current`
 /// without it is a server that is set up.
@@ -155,7 +155,7 @@ pub enum Outcome {
 pub fn run(layout: &Layout, services: &dyn Services, mut options: Options) -> Result<Outcome, Box<dyn std::error::Error>> {
     let continuing = marker(layout).exists();
     if layout.current().exists() && !continuing {
-        return Err("this machine is a Demi server already: `demi-server upgrade` moves it to a later release".into());
+        return Err("this machine is a Jush server already: `jush-server upgrade` moves it to a later release".into());
     }
     // Asked for nothing: the guide, whoever runs it.
     let asking = io::stdin().is_terminal() && !options.no_input;
@@ -215,7 +215,7 @@ pub fn run(layout: &Layout, services: &dyn Services, mut options: Options) -> Re
             .map_err(|error| format!("{} is not free to listen on: {error}", choices.listen))?;
     }
 
-    step(&format!("Fetching Demi {version}"));
+    step(&format!("Fetching Jush {version}"));
     runtime.block_on(fetch::fetch(layout, &source, &version, &CancellationToken::new(), &mut |_| {}))?;
 
     step("Making the Cloud store");
@@ -233,7 +233,7 @@ pub fn run(layout: &Layout, services: &dyn Services, mut options: Options) -> Re
     runtime.block_on(check_outside(&choices))?;
     finish(layout, &version)?;
     println!(
-        "\nDemi {version} is set up at https://{0}.\n\
+        "\nJush {version} is set up at https://{0}.\n\
          Open https://{0} now and create the master account on its setup page: until it exists, anyone who reaches it can.",
         choices.domain
     );
@@ -250,7 +250,7 @@ pub fn run_in_container(layout: &Layout, services: &dyn Services) -> Result<(), 
     let source = fetch::Source::Directory(PathBuf::from(crate::container::ASSETS));
     require_tools()?;
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build()?;
-    step(&format!("Unpacking Demi {version}"));
+    step(&format!("Unpacking Jush {version}"));
     runtime.block_on(fetch::fetch(layout, &source, &version, &CancellationToken::new(), &mut |_| {}))?;
 
     step("Making the Cloud store");
@@ -269,7 +269,7 @@ pub fn run_in_container(layout: &Layout, services: &dyn Services) -> Result<(), 
     finish(layout, &version)?;
     let url = settings.public_url().unwrap_or("its public URL");
     println!(
-        "\nDemi {version} is set up at {url}.\n\
+        "\nJush {version} is set up at {url}.\n\
          Open it now and create the master account on its setup page: until it exists, anyone who reaches it can."
     );
     Ok(())
@@ -279,7 +279,7 @@ pub fn run_in_container(layout: &Layout, services: &dyn Services) -> Result<(), 
 /// namespace of its own when `unshare`, as its unit runs it.
 fn check_cloud(layout: &Layout, settings: &Settings, version: &Version, unshare: bool) -> Result<(), Box<dyn std::error::Error>> {
     step("Checking that this machine can run Cloud");
-    let manager = layout.release(version).join("bin/demi-machine-manager");
+    let manager = layout.release(version).join("bin/jush-machine-manager");
     let check = || {
         let mut command = if unshare {
             let mut command = settings.command(Path::new("unshare"));
@@ -297,7 +297,7 @@ fn check_cloud(layout: &Layout, settings: &Settings, version: &Version, unshare:
         step("Fetching the gVisor runtime it pins");
         gvisor::of_release(layout, version)?;
         if !check()?.success() {
-            return Err("this machine cannot run Cloud, so Demi cannot be set up on it (the check above names why)".into());
+            return Err("this machine cannot run Cloud, so Jush cannot be set up on it (the check above names why)".into());
         }
     }
     Ok(())
@@ -305,7 +305,7 @@ fn check_cloud(layout: &Layout, settings: &Settings, version: &Version, unshare:
 
 /// Points `current` at `version` and starts its services.
 fn start(layout: &Layout, services: &dyn Services, version: &Version) -> Result<(), Box<dyn std::error::Error>> {
-    step("Starting Demi");
+    step("Starting Jush");
     layout.point_at(version)?;
     layout.install_units(version)?;
     services.reload(&layout.path_units())?;
@@ -339,7 +339,7 @@ fn step(name: &str) {
 fn choices(options: &mut Options, asking: bool) -> io::Result<Option<Choices>> {
     if asking {
         if options.domain.is_none() {
-            options.domain = Some(ask("Domain Demi is reached at over HTTPS", None)?);
+            options.domain = Some(ask("Domain Jush is reached at over HTTPS", None)?);
         }
         if options.listen.is_none() {
             let listen = ask("Address and port the backend listens on", Some("127.0.0.1:3271"))?;
@@ -379,25 +379,25 @@ fn configuration(choices: &Choices, options: &Options) -> Result<Settings, Box<d
         return Err(format!("{domain} is no domain: the public URL names a domain, never an address").into());
     }
     let mut variables = vec![
-        ("DEMI_BACKEND_PUBLIC_URL".into(), format!("https://{domain}")),
-        ("DEMI_BACKEND_LISTEN".into(), choices.listen.to_string()),
-        ("DEMI_BACKEND_DATA".into(), BACKEND_DATA.into()),
-        ("DEMI_MANAGED_DATA".into(), options.cloud_data.display().to_string()),
+        ("JUSH_BACKEND_PUBLIC_URL".into(), format!("https://{domain}")),
+        ("JUSH_BACKEND_LISTEN".into(), choices.listen.to_string()),
+        ("JUSH_BACKEND_DATA".into(), BACKEND_DATA.into()),
+        ("JUSH_MANAGED_DATA".into(), options.cloud_data.display().to_string()),
     ];
     if options.cloud_limits == Switch::Off {
-        variables.push(("DEMI_MANAGED_LIMITS".into(), "off".into()));
+        variables.push(("JUSH_MANAGED_LIMITS".into(), "off".into()));
     }
     if options.storage == Storage::S3 {
-        variables.push(("DEMI_STORAGE".into(), "s3".into()));
+        variables.push(("JUSH_STORAGE".into(), "s3".into()));
         let bucket = options.s3_bucket.clone().ok_or("--storage s3 needs --s3-bucket")?;
         let region = options.s3_region.clone().ok_or("--storage s3 needs --s3-region")?;
-        variables.push(("DEMI_S3_BUCKET".into(), bucket));
-        variables.push(("DEMI_S3_REGION".into(), region));
+        variables.push(("JUSH_S3_BUCKET".into(), bucket));
+        variables.push(("JUSH_S3_REGION".into(), region));
         if let Some(endpoint) = &options.s3_endpoint {
-            variables.push(("DEMI_S3_ENDPOINT".into(), endpoint.clone()));
+            variables.push(("JUSH_S3_ENDPOINT".into(), endpoint.clone()));
         }
         if options.s3_force_path_style {
-            variables.push(("DEMI_S3_FORCE_PATH_STYLE".into(), "true".into()));
+            variables.push(("JUSH_S3_FORCE_PATH_STYLE".into(), "true".into()));
         }
         for name in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"] {
             let value = std::env::var(name).map_err(|_| format!("--storage s3 needs {name} in setup's environment"))?;
@@ -409,7 +409,7 @@ fn configuration(choices: &Choices, options: &Options) -> Result<Settings, Box<d
 
 /// The setting of the channel Settings › Updates starts on
 /// (`crates/backend/src/config/mod.rs`).
-const UPGRADE_CHANNEL: &str = "DEMI_UPGRADE_CHANNEL";
+const UPGRADE_CHANNEL: &str = "JUSH_UPGRADE_CHANNEL";
 
 
 /// A package manager of the distributions `setup` offers
@@ -423,7 +423,7 @@ enum PackageManager {
 /// Requires systemd and a distribution `setup` offers.
 fn machine() -> Result<PackageManager, Box<dyn std::error::Error>> {
     if !Path::new("/run/systemd/system").exists() {
-        return Err("Demi runs its services under systemd, which is not this machine's init".into());
+        return Err("Jush runs its services under systemd, which is not this machine's init".into());
     }
     let release = std::fs::read_to_string("/etc/os-release")?;
     let field = |name: &str| {
@@ -508,7 +508,7 @@ fn write_installation(layout: &Layout, settings: &Settings) -> Result<(), Box<dy
         }
         Err(error) if error.kind() == io::ErrorKind::NotFound => {
             std::fs::create_dir_all(config.parent().expect("the configuration lies in a directory"))?;
-            demi_shared_artifacts::publish_bytes_blocking(
+            jush_shared_artifacts::publish_bytes_blocking(
                 &config,
                 text.as_bytes(),
                 Publication {
@@ -525,50 +525,50 @@ fn write_installation(layout: &Layout, settings: &Settings) -> Result<(), Box<dy
 
 /// The backend's user and group, its data directory and the manager's.
 fn make_users_and_directories(settings: &Settings) -> Result<(), Box<dyn std::error::Error>> {
-    if !succeeded(Command::new("getent").args(["group", "demi-cloud"]))? {
-        checked(Command::new("groupadd").args(["--system", "demi-cloud"]))?;
+    if !succeeded(Command::new("getent").args(["group", "jush-cloud"]))? {
+        checked(Command::new("groupadd").args(["--system", "jush-cloud"]))?;
     }
-    if !succeeded(Command::new("id").arg("demi"))? {
+    if !succeeded(Command::new("id").arg("jush"))? {
         checked(Command::new("useradd").args([
             "--system",
             "--user-group",
             "--groups",
-            "demi-cloud",
+            "jush-cloud",
             "--home-dir",
             BACKEND_DATA,
             "--no-create-home",
             "--shell",
             "/usr/sbin/nologin",
-            "demi",
+            "jush",
         ]))?;
     }
-    checked(Command::new("install").args(["-d", "-o", "root", "-g", "root", "-m", "0755", "/opt/demi/data"]))?;
-    checked(Command::new("install").args(["-d", "-o", "demi", "-g", "demi", "-m", "0700", BACKEND_DATA]))?;
+    checked(Command::new("install").args(["-d", "-o", "root", "-g", "root", "-m", "0755", "/opt/jush/data"]))?;
+    checked(Command::new("install").args(["-d", "-o", "jush", "-g", "jush", "-m", "0700", BACKEND_DATA]))?;
     let cloud = settings.manager_data()?;
     checked(Command::new("install").args(["-d", "-o", "root", "-g", "root", "-m", "0700"]).arg(&cloud))?;
     Ok(())
 }
 
-/// Links `/usr/local/bin/demi-server` to the current release's.
-fn link_program(layout: &Layout) -> io::Result<()> {
+/// Links `/usr/local/bin/jush-server` to the current release's.
+pub(crate) fn link_program(layout: &Layout) -> io::Result<()> {
     let bin = layout.root().join("usr/local/bin");
     std::fs::create_dir_all(&bin)?;
-    let staged = bin.join(".demi-server.new");
+    let staged = bin.join(".jush-server.new");
     match std::fs::remove_file(&staged) {
         Err(error) if error.kind() != io::ErrorKind::NotFound => return Err(error),
         _ => {}
     }
-    std::os::unix::fs::symlink(layout.current().join("bin/demi-server"), &staged)?;
-    std::fs::rename(staged, bin.join("demi-server"))
+    std::os::unix::fs::symlink(layout.current().join("bin/jush-server"), &staged)?;
+    std::fs::rename(staged, bin.join("jush-server"))
 }
 
 /// The server from outside: its domain answers over HTTPS with a valid
 /// certificate, and the proxy passes `Origin`.
 async fn check_outside(choices: &Choices) -> Result<(), Box<dyn std::error::Error>> {
-    let client = demi_shared_artifacts::client()?;
+    let client = jush_shared_artifacts::client()?;
     let domain = &choices.domain;
     let proxy = format!(
-        "The proxy in front of Demi must serve https://{domain} and forward to {}, passing Origin and device unchanged and allowing WebSocket upgrades; set it up and run the same command again.",
+        "The proxy in front of Jush must serve https://{domain} and forward to {}, passing Origin and device unchanged and allowing WebSocket upgrades; set it up and run the same command again.",
         choices.listen
     );
     let login = |origin: &str| {
@@ -583,7 +583,7 @@ async fn check_outside(choices: &Choices) -> Result<(), Box<dyn std::error::Erro
         .await
         .map_err(|error| format!("https://{domain} does not answer: {}\n{proxy}", error.without_url()))?;
     if own.status() != 400 {
-        return Err(format!("https://{domain} answers {} where Demi answers 400\n{proxy}", own.status()).into());
+        return Err(format!("https://{domain} answers {} where Jush answers 400\n{proxy}", own.status()).into());
     }
     let other = login("https://elsewhere.example").await.map_err(|error| error.without_url().to_string())?;
     if other.status() != 403 {

@@ -11,7 +11,7 @@
 //! way, as their compressed copies.
 //!
 //! Each shard thread builds its own `CommandCatalog` from the catalog, since a
-//! catalog's artifact resolver lives on one thread. A job that `demi device
+//! catalog's artifact resolver lives on one thread. A job that `jush device
 //! shell` starts on another device receives the calling session's catalog.
 //!
 //! A local store's downloads need no credentials and expire never, like the
@@ -32,12 +32,12 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use axum::http::Method;
-use demi_runner_client::{ArtifactResolver, CommandCatalog};
-use demi_command_protocol::{
+use jush_runner_client::{ArtifactResolver, CommandCatalog};
+use jush_command_protocol::{
     ArtifactLocation, ArtifactUrl, PackageArtifact, PackageDescriptor,
 };
-use demi_runner_protocol::manifest::ManifestError;
-use demi_runner_protocol::release::{COMMANDS, FILES, RUNNER, RunnerRelease, compressed_file};
+use jush_runner_protocol::manifest::ManifestError;
+use jush_runner_protocol::release::{COMMANDS, FILES, RUNNER, RunnerRelease, compressed_file};
 use futures_util::future::LocalBoxFuture;
 use object_store::signer::Signer;
 use object_store::{GetOptions, GetRange, GetResult, ObjectStore, ObjectStoreExt as _};

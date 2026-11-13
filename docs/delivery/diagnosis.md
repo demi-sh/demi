@@ -1,8 +1,8 @@
 # Diagnosing a problem from the log
 
-Demi keeps few tests, so a problem is diagnosed from the log, after the fact,
+Jush keeps few tests, so a problem is diagnosed from the log, after the fact,
 without reproducing it. The backend's `log.sqlite`, in its data directory
-(`<DEMI_BACKEND_DATA>/log.sqlite`), holds every line of the backend, of each
+(`<JUSH_BACKEND_DATA>/log.sqlite`), holds every line of the backend, of each
 device's runner and of each page, under the same IDs. Whoever diagnoses, a person
 or an agent with a shell on the server, reads it with `sqlite3`. No route reads
 it.
@@ -12,7 +12,7 @@ switched back to a conversation. The agent reads the lines of that conversation
 for the minute, in order:
 
 ```sh
-sqlite3 -json "$DEMI_BACKEND_DATA/log.sqlite" "
+sqlite3 -json "$JUSH_BACKEND_DATA/log.sqlite" "
   SELECT at, origin, level, event, fields FROM events
   WHERE conversation_id = 'cv_example' AND at BETWEEN 1761140000000 AND 1761140120000
   ORDER BY at"
@@ -47,35 +47,35 @@ names things by ID and counts their sizes.
 By request, the ID that a toast or an error shows:
 
 ```sh
-sqlite3 -json "$DEMI_BACKEND_DATA/log.sqlite" \
+sqlite3 -json "$JUSH_BACKEND_DATA/log.sqlite" \
   "SELECT at, origin, level, event, fields FROM events WHERE request_id = 'req_example' ORDER BY at"
 ```
 
 By page, what one page load wrote and what the backend did for its requests:
 
 ```sh
-sqlite3 -json "$DEMI_BACKEND_DATA/log.sqlite" \
+sqlite3 -json "$JUSH_BACKEND_DATA/log.sqlite" \
   "SELECT at, origin, level, event, fields FROM events WHERE page_id = 'pg_example' ORDER BY at"
 ```
 
 By device, an hour of its runner's lines and the backend's lines about it:
 
 ```sh
-sqlite3 -json "$DEMI_BACKEND_DATA/log.sqlite" \
+sqlite3 -json "$JUSH_BACKEND_DATA/log.sqlite" \
   "SELECT at, origin, level, event, fields FROM events WHERE device_id = 'device_example' AND at > 1761140000000 ORDER BY at"
 ```
 
 The warnings and errors of the last hour:
 
 ```sh
-sqlite3 -json "$DEMI_BACKEND_DATA/log.sqlite" "SELECT at, origin, event, fields FROM events
+sqlite3 -json "$JUSH_BACKEND_DATA/log.sqlite" "SELECT at, origin, event, fields FROM events
   WHERE level IN ('warn', 'error') AND at > (strftime('%s', 'now') - 3600) * 1000 ORDER BY at"
 ```
 
 The slowest requests, by the duration each wrote itself:
 
 ```sh
-sqlite3 "$DEMI_BACKEND_DATA/log.sqlite" "SELECT json_extract(fields, '$.duration_ms') AS ms, request_id,
+sqlite3 "$JUSH_BACKEND_DATA/log.sqlite" "SELECT json_extract(fields, '$.duration_ms') AS ms, request_id,
   json_extract(fields, '$.path') FROM events WHERE event = 'request.answered' ORDER BY ms DESC LIMIT 20"
 ```
 
@@ -85,8 +85,8 @@ on a million lines.
 
 ## What the log keeps
 
-- **Level.** The server keeps `info` and above by default; `DEMI_LOG` selects
-  more, as `info,demi_backend_http=debug` does. A page's lines are held to it as
+- **Level.** The server keeps `info` and above by default; `JUSH_LOG` selects
+  more, as `info,jush_backend_http=debug` does. A page's lines are held to it as
   the target `page`, so `info,page=debug` keeps the page's `debug` lines only.
   An event that happens many times a second, such as a transcript patch, is `debug`, and its unit's end
   line at `info` carries its count.
@@ -114,7 +114,7 @@ on a million lines.
   until it connects again. The backend stores them as the device's owner's: a
   request, page or turn ID a runner names is not taken.
 - **A command package's resident** writes each `tracing` event as one JSON line
-  of the log on its standard error (`demi_command_sdk::log_to_stderr`), and its
+  of the log on its standard error (`jush_command_sdk::log_to_stderr`), and its
   runner keeps the line as it is among its own, so a resident's line names its
   conversation and invocation as any other. A line of its standard error that is
   not one, as a panic's report, is kept with the event `stderr` and its text in
@@ -129,4 +129,4 @@ on a million lines.
   a browser caps a page's `keepalive` bodies in flight at 64 KiB in total,
   and the drafts and preferences saved as the page closes need the rest. A
   page that is signed out keeps its lines until it is signed in. Every request of a page carries its
-  ID in `X-Demi-Page`, and its page connection in its URL's `page` parameter.
+  ID in `X-Jush-Page`, and its page connection in its URL's `page` parameter.

@@ -9,8 +9,8 @@ use std::{
     time::Duration,
 };
 
-use demi_shared_openh264::Codec;
-use demi_shared_recording_protocol::{EndReason, FrameRow, FrameSet, Gap, Input, InputRow, KEPT, RecordingId, RecordingInfo};
+use jush_shared_openh264::Codec;
+use jush_shared_recording_protocol::{EndReason, FrameRow, FrameSet, Gap, Input, InputRow, KEPT, RecordingId, RecordingInfo};
 
 /// How long a pause between keys may be for the keys to be one word typed.
 const TYPING_US: u64 = 1_500_000;

@@ -15,7 +15,7 @@ use std::cell::Cell;
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_provider_common::ProviderEvent;
+use jush_provider_common::ProviderEvent;
 
 use tokio::time::Instant;
 use tracing::Span;

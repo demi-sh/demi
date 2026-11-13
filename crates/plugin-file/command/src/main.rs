@@ -4,13 +4,13 @@ use std::sync::Arc;
 async fn main() {
     // A panic leaves its report on standard error
     // (`crates/xtask/src/native/build.rs`).
-    demi_shared_cli::install_panic_hook();
-    demi_command_sdk::Launch::from_process();
+    jush_shared_cli::install_panic_hook();
+    jush_command_sdk::Launch::from_process();
     // Events go to standard error as lines of the log, which the runner keeps
     // as they are.
-    demi_command_sdk::log_to_stderr("file");
+    jush_command_sdk::log_to_stderr("file");
     if let Err(error) =
-        demi_command_sdk::serve_stdio(Arc::new(demi_file::DemiFile::default())).await
+        jush_command_sdk::serve_stdio(Arc::new(jush_file::JushFile::default())).await
     {
         tracing::error!(event = "file_resident.exited", %error, "the resident ended with an error");
         std::process::exit(1);

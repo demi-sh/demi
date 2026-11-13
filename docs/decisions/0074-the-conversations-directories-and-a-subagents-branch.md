@@ -99,7 +99,7 @@ None.
 
 * VS Code shows the branch in its status bar, and Zed and JetBrains IDEs
   in their title bars; pressing it opens a picker that checks out another
-  branch. Demi's opens the branch's history in the Change view instead: a
+  branch. Jush's opens the branch's history in the Change view instead: a
   subagent's branch is the subagent's to change, and what the user wants
   of it is what the subagent did there.
 * The Files menu is the composer's directory menu, row for row, without

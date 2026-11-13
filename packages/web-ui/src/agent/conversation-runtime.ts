@@ -15,8 +15,8 @@ import {
   type ConversationHeld,
   type ClientSessionEvent,
   type HeldEdge,
-} from '@demicodes/conversation-client'
-import { asError, createId, deferred } from '@demicodes/utils'
+} from '@jush-ai/conversation-client'
+import { asError, createId, deferred } from '@jush-ai/utils'
 import type {
   AgentEntry,
   ClientContent,
@@ -26,7 +26,7 @@ import type {
   SavedDelivery,
   Version,
   QueuedMessage,
-} from '@demicodes/protocol'
+} from '@jush-ai/protocol'
 import { ConversationLaneError } from '../transport/conversation-lane'
 import { pendingReturnCheck, waitToReconnect } from '../transport/liveness'
 import { failureHeadline } from './error-detail'
@@ -199,7 +199,7 @@ export class ConversationRuntime {
    * landed, then taken in one step: the page never shows the transcript of
    * one moment beside the agents of another, as a red record of a turn the
    * restart interrupted beside a root that still runs, before the entry
-   * that says Demi resumes it. Null while no reconnection opens.
+   * that says Jush resumes it. Null while no reconnection opens.
    */
   private gathering: ClientSessionEvent[] | null = null
 

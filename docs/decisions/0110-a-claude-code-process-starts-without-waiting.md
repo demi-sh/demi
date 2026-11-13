@@ -26,7 +26,7 @@ Speeding the start up exposes a race that today's slowness hides. The CLI
 does not hold a turn for an SDK MCP server that is still connecting: it
 lists a pending server's tools later, and offers the model a built-in tool
 to wait for them. The provider starts the CLI with no built-in tools, so the
-model cannot wait, and a turn that starts before the handshake with Demi's
+model cannot wait, and a turn that starts before the handshake with Jush's
 MCP server ends offers no tools at all. Today the CLI's own network waits
 are longer than the handshake, so the first turn has its tools; a CLI that
 starts fast, or whose waits fail fast, answers its first turn without them.
@@ -41,7 +41,7 @@ average, 10 at the peak, most of them idle.
 
 ## Decision
 
-A new process answers as soon as its machine can run it, with Demi's tools
+A new process answers as soon as its machine can run it, with Jush's tools
 from its first turn, and a process nobody uses for five minutes closes. The
 user sees a conversation's first word, a compaction and a title sooner, and
 nothing else changes.
@@ -89,7 +89,7 @@ tried again at the next start after three hours, as any probe is.
 
 ### Tools from the first turn
 
-The provider hands the CLI the result of the MCP handshake with Demi's server
+The provider hands the CLI the result of the MCP handshake with Jush's server
 in the `initialize` request, as the Agent SDK does, and the CLI reads that
 request during its startup:
 
@@ -209,7 +209,7 @@ A process in use is never closed for memory.
 
 ### What changes for what exists
 
-* Demi supports only the CLI it installs now, which knows
+* Jush supports only the CLI it installs now, which knows
   `--await-initialize` (since 2.1.261) and the manifest (since 2.1.265). A
   start passes both, and no start runs another way.
 * A runner reports its memory in its hello, whose wire version rises from
@@ -273,13 +273,13 @@ and `BUN_OPTIONS=--smol` changed nothing.
 * The [Claude Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk)
   captures its in-process MCP servers' handshakes and sends them as
   `sdkMcpServerManifests`, and offers `prewarm()`, a spare process started
-  with `--await-claim` that a `claim_session` binds to a new session. Demi
+  with `--await-claim` that a `claim_session` binds to a new session. Jush
   takes the first. It does not take spares: one holds 230 to 260 MB parked,
-  and a claim starts a new session, where most of Demi's starts resume one.
+  and a claim starts a new session, where most of Jush's starts resume one.
 * [tars](https://github.com/devlikebear/tars/pull/888) sets
   `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY`,
   `DISABLE_ERROR_REPORTING` and `DISABLE_AUTOUPDATER` and measured each turn's
-  start fall from 1.4 s to 0.38 s. It runs on the default flags; Demi keeps
+  start fall from 1.4 s to 0.38 s. It runs on the default flags; Jush keeps
   the cached ones.
 * Zed's [claude-agent-acp](https://github.com/agentclientprotocol/claude-agent-acp)
   starts the CLI through the Agent SDK with no setting of its own for this.

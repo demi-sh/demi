@@ -108,7 +108,7 @@ The design to build from:
 * [CodeMirror 6](https://github.com/codemirror/dev) draws its selection
   with `drawSelection()`: a layer of absolutely placed boxes behind the
   text, the browser's `::selection` made transparent, so the selection
-  looks the same when the editor loses the focus. Demi's editor already
+  looks the same when the editor loses the focus. Jush's editor already
   uses it (`cmTheme.ts`). This record does the same for the transcript.
 * [VS Code](https://github.com/microsoft/vscode) draws the editor's
   selection as a layer of rounded boxes, one per line

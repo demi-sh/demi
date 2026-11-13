@@ -53,9 +53,9 @@ use futures_util::{StreamExt as _, future::BoxFuture};
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
-use demi_shared_recording::Sink;
+use jush_shared_recording::Sink;
 
-use demi_command_package_mobile_protocol::{
+use jush_command_package_mobile_protocol::{
     mobile::{Appearance, FoldDisplay, MobilePlatform, Orientation, PowerState, SCREENSHOT_LONG_SIDE},
 };
 
@@ -71,7 +71,7 @@ use crate::{
 pub use adb::Adb;
 pub use emulator::Discovery;
 pub use guest::Guest;
-pub use demi_shared_openh264::{Codec, Load};
+pub use jush_shared_openh264::{Codec, Load};
 pub use process::Process;
 use proto::{
     ImageFormat, KeyboardEvent, MouseEvent, ParameterValue, PhysicalModelValue, VmRunState,
@@ -161,7 +161,7 @@ pub trait Sdk: Send + Sync + 'static {
     /// Ends the process, when it is still that process, and waits until it
     /// ended.
     fn terminate(&self, process: Process) -> BoxFuture<'_, Result<()>>;
-    /// What Demi does inside the emulator adb names `serial`.
+    /// What Jush does inside the emulator adb names `serial`.
     fn guest<'a>(&'a self, serial: &'a str) -> BoxFuture<'a, Result<Arc<dyn Guest>>>;
     /// The folders of the art of the AVD's `device`, such as `pixel_10`,
     /// downloaded first when this device has none; none for an emulator without
@@ -176,7 +176,7 @@ pub struct Android {
 }
 
 impl Android {
-    /// The SDK of this device; an emulator Demi starts writes its log into
+    /// The SDK of this device; an emulator Jush starts writes its log into
     /// `directory`, which encodes its emulators' pictures with `codec`.
     pub fn new(directory: Option<std::path::PathBuf>, codec: Arc<dyn Codec>) -> Self {
         Self::with_sdk(Arc::new(sdk::Installed::new(directory)), codec)
@@ -200,7 +200,7 @@ impl Android {
     /// as the boot begins, and ends an emulator whose boot failed.
     async fn start(&self, native_id: &str, booting: &dyn Booting, wipe: bool) -> Result<()> {
         let process = self.sdk.launch(native_id, wipe).await?;
-        // Demi's from its first moment, by the process it started.
+        // Jush's from its first moment, by the process it started.
         booting.began(process.started);
         let waited = async {
             let running = self.sdk.advertised(native_id, process).await?;
@@ -411,7 +411,7 @@ impl Driver for Android {
                     client.clone(),
                     largest,
                     (largest_points.x.round() as u32, largest_points.y.round() as u32),
-                    demi_shared_h264::hardware(),
+                    jush_shared_h264::hardware(),
                 ),
                 client,
                 guest,

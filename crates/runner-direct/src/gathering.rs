@@ -14,7 +14,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use demi_runner_protocol::direct::StunUrl;
+use jush_runner_protocol::direct::StunUrl;
 use tokio::net::UdpSocket;
 use tokio::time::Instant;
 

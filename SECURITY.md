@@ -5,7 +5,7 @@ operators should handle data, and the sandboxing of Clouds and devices.
 
 ## Supported versions
 
-Demi is pre-1.0. Security fixes land on the latest release. There are no
+Jush is pre-1.0. Security fixes land on the latest release. There are no
 backported maintenance branches yet.
 
 ## Reporting a vulnerability
@@ -17,7 +17,7 @@ Report through either channel:
 
 - GitHub's private security advisory on this repository ("Report a
   vulnerability" under Security)
-- Email to [support@demi.sh](mailto:support@demi.sh)
+- Email to [support@jush.ai](mailto:support@jush.ai)
 
 Include a description, affected versions or packages, and a reproduction if
 possible.
@@ -26,7 +26,7 @@ We aim to acknowledge reports promptly and coordinate a fix and disclosure.
 
 ## Data handling notes for operators
 
-Demi is a hosted product. The backend keeps the product's records, and each
+Jush is a hosted product. The backend keeps the product's records, and each
 conversation's work runs on a device: the user's Cloud or a device the user
 paired.
 
@@ -50,13 +50,13 @@ Operators handling sensitive prompts should know where data rests:
   - The selected account's token reaches the Claude Code CLI on the user's
     Cloud through the process environment, and never reaches a paired device
     ([Data and credentials](docs/overview.md#data-and-credentials)).
-  - Demi writes the raw stream-json exchange, prompts included, only to a
+  - Jush writes the raw stream-json exchange, prompts included, only to a
     `tracing` target that is off by default
     (`crates/provider-claude-code/src/live.rs`).
 - **Failure records.**
   - A failure record keeps only what the vendor sent back, never the request
-    Demi sent, so it never contains a credential Demi used.
-  - Demi shows vendor error messages as the vendor sent them, without
+    Jush sent, so it never contains a credential Jush used.
+  - Jush shows vendor error messages as the vendor sent them, without
     redaction (`crates/shared-types/src/failure.rs`).
 
 ## Sandboxing
@@ -68,7 +68,7 @@ The sandbox is the isolation boundary. The infrastructure still trusts the
 Linux kernel, the machine manager, the runsc distribution and the image builder
 (`crates/machine-manager/src/sandbox/oci.rs`).
 
-A user's projects share that user's Cloud. Jobs run as the image's `demi` user,
+A user's projects share that user's Cloud. Jobs run as the image's `jush` user,
 which has passwordless sudo inside the sandbox
 (`cloud-guest-image/rootfs/build.sh`).
 

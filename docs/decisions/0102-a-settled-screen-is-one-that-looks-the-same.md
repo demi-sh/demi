@@ -7,7 +7,7 @@ status: proposed
 ## Problem
 
 Alex asks the agent to check an app's welcome screen on an iPhone
-simulator. Every `demi mobile screenshot` and `inspect` of that screen
+simulator. Every `jush mobile screenshot` and `inspect` of that screen
 takes 1.8 s and says the screen was still changing, yet two screenshots
 taken 4 s apart are the same to the pixel.
 
@@ -25,7 +25,7 @@ keep coming but two pictures of it 300 ms apart differ in at most 0.5% of
 their pixels. A screenshot or an inspect of such a screen returns in about
 half a second, and says nothing of a change.
 
-- **Two pictures.** Once frames keep coming past the first 300 ms, Demi
+- **Two pictures.** Once frames keep coming past the first 300 ms, Jush
   takes a picture, and another 300 ms after the first was taken. The
   second picture is the settled screen, so a screenshot returns it rather
   than taking a third. A pixel differs when one of
@@ -68,7 +68,7 @@ page once it was in place.
 - [Maestro](https://github.com/mobile-dev-inc/maestro/blob/main/maestro-client/src/main/java/maestro/utils/ScreenshotUtils.kt)
   waits for an app to settle by reading the view hierarchy until two reads
   are the same, and its `waitForAnimationToEnd` until two screenshots
-  differ by at most 0.5%. Demi keeps its frame signal, which costs nothing
+  differ by at most 0.5%. Jush keeps its frame signal, which costs nothing
   on a still screen, and compares pictures only when frames keep coming.
 - Playwright waits for an element to be stable over two animation frames;
   it has no notion of the whole page settling.

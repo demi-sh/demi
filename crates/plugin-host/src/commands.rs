@@ -1,11 +1,11 @@
-//! The command set every node starts from: the `demi` root with the product's
+//! The command set every node starts from: the `jush` root with the product's
 //! groups and the plugins' groups, and the plugins' roots, each `rpc` leaf
 //! served by a handler that forwards the call to its plugin as a command
 //! request.
 //!
-//! A plugin of this repository adds named groups to `demi`. A plugin from
+//! A plugin of this repository adds named groups to `jush`. A plugin from
 //! outside it adds root commands of its own, such as `jira`, never a group of
-//! `demi`. The groups of the agent runtime and the product are taken.
+//! `jush`. The groups of the agent runtime and the product are taken.
 //!
 //! Every registered plugin is checked against every other, so any set of them a
 //! user turns on is free of conflicts and a conflict is never found while a
@@ -20,18 +20,18 @@
 
 use std::rc::Rc;
 
-use demi_device_interface::{
+use jush_device_interface::{
     CommandSet, Declared, GroupBuilder, RpcError, RpcHandler, RpcInvocation, RpcPort,
 };
-use demi_plugin_interface::{DEMI_ROOT, DEMI_SUMMARY, Feature, Placement, Reply, Request};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_plugin_interface::{JUSH_ROOT, JUSH_SUMMARY, Feature, Placement, Reply, Request};
+use jush_web_api_protocol::ids::ConversationId;
 use futures_util::future::LocalBoxFuture;
 
 use crate::features::narrow;
 use crate::user::Shared;
 use crate::{Registry, RegistryError};
 
-/// The `demi` groups the agent runtime and the product own.
+/// The `jush` groups the agent runtime and the product own.
 pub(crate) const TAKEN_GROUPS: &[&str] = &["agent", "shell", "device", "attachment", "conversation"];
 
 /// The command set of the plugins of `registry` that `include` takes, by
@@ -46,14 +46,14 @@ pub(crate) fn compose(
     on: impl Fn(usize, &Feature) -> bool,
 ) -> Result<CommandSet, RegistryError> {
     let mut set = CommandSet::new();
-    let mut demi = !product.is_empty();
-    if demi {
+    let mut jush = !product.is_empty();
+    if jush {
         let root = product.into_iter().fold(
-            GroupBuilder::new(DEMI_ROOT, DEMI_SUMMARY),
+            GroupBuilder::new(JUSH_ROOT, JUSH_SUMMARY),
             GroupBuilder::group,
         );
         set.register(root)
-            .expect("the product's groups are a valid `demi` root");
+            .expect("the product's groups are a valid `jush` root");
     }
     for (index, registered) in registry.plugins.iter().enumerate() {
         if !include(index) {
@@ -65,7 +65,7 @@ pub(crate) fn compose(
                 continue;
             };
             let strip = match commands.placement {
-                Placement::Demi => 1,
+                Placement::Jush => 1,
                 Placement::Root => 0,
             };
             let handler = Rc::new(Forward {
@@ -76,10 +76,10 @@ pub(crate) fn compose(
             let served = Declared::served(tree, handler);
             let registered_tree = match commands.placement {
                 Placement::Root => set.register(served),
-                Placement::Demi if demi => set.graft(&[DEMI_ROOT], served),
-                Placement::Demi => {
-                    demi = true;
-                    set.register(GroupBuilder::new(DEMI_ROOT, DEMI_SUMMARY).child(served))
+                Placement::Jush if jush => set.graft(&[JUSH_ROOT], served),
+                Placement::Jush => {
+                    jush = true;
+                    set.register(GroupBuilder::new(JUSH_ROOT, JUSH_SUMMARY).child(served))
                 }
             };
             registered_tree.map_err(|error| RegistryError::Commands {

@@ -2,7 +2,7 @@
 //!
 //! - The user pauses, resumes or deletes a schedule of a conversation they
 //!   own, in the caller's shard; the change reaches the conversation's pages
-//!   in its metadata. The agent does the rest, with `demi schedule`.
+//!   in its metadata. The agent does the rest, with `jush schedule`.
 //! - A schedule's URL, `/hooks/<id>`, is authenticated by no session: its id
 //!   and its secret are its only keys.
 
@@ -11,11 +11,11 @@ use std::time::Instant;
 use axum::extract::{Path, Request, State};
 use axum::http::{Method, StatusCode};
 use axum::response::{IntoResponse, Response};
-use demi_backend_user_shard::schedules::{CALLS_PER_MINUTE, HookAnswer, HookCall, ScheduleError};
-use demi_shared_types::ScheduleId;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::schedules::{ScheduleChange, SchedulePatch};
+use jush_backend_user_shard::schedules::{CALLS_PER_MINUTE, HookAnswer, HookCall, ScheduleError};
+use jush_shared_types::ScheduleId;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::schedules::{ScheduleChange, SchedulePatch};
 
 use super::AppState;
 use super::body::{JsonBody, read};
@@ -128,7 +128,7 @@ fn refused(error: ScheduleError) -> ApiError {
     let (status, code) = match error {
         ScheduleError::NotFound => (StatusCode::NOT_FOUND, ErrorCode::ScheduleNotFound),
         ScheduleError::Storage(error) => return error.into(),
-        // The rest are an agent's, which `demi schedule` words.
+        // The rest are an agent's, which `jush schedule` words.
         other => return ApiError::new(StatusCode::BAD_REQUEST, ErrorCode::InvalidBody, other.to_string()),
     };
     ApiError::new(status, code, message)

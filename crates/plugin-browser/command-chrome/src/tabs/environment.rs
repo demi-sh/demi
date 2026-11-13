@@ -2,8 +2,8 @@
 //! task, its directories and the tab registry, from launch to retirement.
 //!
 //! ```text
-//! /tmp/demi-browser-a1B2c3/                 the runtime directory
-//!   demi-profile.lock                       the environment's lock
+//! /tmp/jush-browser-a1B2c3/                 the runtime directory
+//!   jush-profile.lock                       the environment's lock
 //!   org.chromium.Chromium.d4E5f6/SingletonSocket
 //! <scratch>/<conversation>/.browser/        the conversation's profile
 //!   profile.lock                            held while a Chrome runs on it
@@ -16,7 +16,7 @@
 //!   socket's path has a limit (108 bytes on Linux), so it lives in the short
 //!   `/tmp`, not in the resident's `TMPDIR`, which can be any length.
 //! - The profile is the conversation's, in its scratch directory
-//!   (`demi_command_protocol::browser_profile_directory`): every Chrome the
+//!   (`jush_command_protocol::browser_profile_directory`): every Chrome the
 //!   conversation starts on this device runs on it, so its sign-ins outlast a
 //!   crash, the last tab closing and a release. The runner removes it when the
 //!   conversation is archived or deleted (`crates/runner-jobs/src/scratch.rs`).
@@ -73,14 +73,14 @@ use tokio_util::{
 };
 
 use crate::driver::capture::CaptureChannel;
-use demi_shared_recording::Live;
+use jush_shared_recording::Live;
 use crate::driver::{
     installation::Installation,
     numbers::TabNumbers,
     operation::{BrowserError, CONTROL_TIMEOUT, Operation, Result, after_cleanup},
     process::ChromeProcess,
 };
-use demi_command_protocol::{ColorScheme, CommandLocale};
+use jush_command_protocol::{ColorScheme, CommandLocale};
 
 use crate::tabs::{
     protocol::{BrowserCreatedBy, BrowserViewport, TabId},
@@ -143,16 +143,16 @@ impl BrowserHandle {
 
 /// An environment's runtime directory's name starts with this, in the
 /// runtime base; the rest is the environment's identity.
-const RUNTIME_PREFIX: &str = "demi-browser-";
+const RUNTIME_PREFIX: &str = "jush-browser-";
 /// An environment's profile's name starts with this, in the profile base;
 /// the rest is its environment's identity.
-const PROFILE_PREFIX: &str = "demi-profile-";
+const PROFILE_PREFIX: &str = "jush-profile-";
 /// The file an environment's lock is held on while the environment exists,
 /// in its runtime directory.
-const LOCK: &str = "demi-profile.lock";
+const LOCK: &str = "jush-profile.lock";
 /// The lock file until it is held. The sweep never opens it, so it finds an
 /// environment either without a lock or with a held one.
-const STAGED_LOCK: &str = "demi-profile.lock.new";
+const STAGED_LOCK: &str = "jush-profile.lock.new";
 /// The runtime directory's link to its profile, on Unix.
 #[cfg(unix)]
 const PROFILE_LINK: &str = "profile";
@@ -951,7 +951,7 @@ impl Recordings {
     async fn finish(&self) {
         let running: Vec<Live> = self.0.lock().expect("the recordings are intact").drain(..).collect();
         for live in running {
-            let _ended = live.stop(demi_shared_recording_protocol::EndReason::Closed).await;
+            let _ended = live.stop(jush_shared_recording_protocol::EndReason::Closed).await;
         }
     }
 }
@@ -989,7 +989,7 @@ impl BrowserEnvironment {
     pub fn saved_download(&self) -> Result<PathBuf> {
         Ok(self
             .download_directory
-            .join(crate::driver::handles::fresh("demi-download")?))
+            .join(crate::driver::handles::fresh("jush-download")?))
     }
 
     /// Where the files the user chose in the live view stay until the

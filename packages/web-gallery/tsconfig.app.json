@@ -7,14 +7,14 @@
     "types": ["vite/client", "bun"],
     "paths": {
       "@/*": ["./src/*"],
-      "@demicodes/web-ui/*": ["../web-ui/src/*"],
-      "@demicodes/plugin-browser/*": ["../../crates/plugin-browser/page/src/*"],
-      "@demicodes/plugin-mobile/*": ["../../crates/plugin-mobile/page/src/*"],
-      "@demicodes/plugin-changes/*": ["../../crates/plugin-changes/page/src/*"],
-      "@demicodes/plugin-file-browser/*": ["../../crates/plugin-file-browser/page/src/*"],
-      "@demicodes/plugin-skills/*": ["../../crates/plugin-skills/page/src/*"],
-      "@demicodes/plugin-web/*": ["../../crates/plugin-web/page/src/*"],
-      "@demicodes/*": ["../*/src/index.ts", "../../crates/*/page/src/index.ts"]
+      "@jush-ai/web-ui/*": ["../web-ui/src/*"],
+      "@jush-ai/plugin-browser/*": ["../../crates/plugin-browser/page/src/*"],
+      "@jush-ai/plugin-mobile/*": ["../../crates/plugin-mobile/page/src/*"],
+      "@jush-ai/plugin-changes/*": ["../../crates/plugin-changes/page/src/*"],
+      "@jush-ai/plugin-file-browser/*": ["../../crates/plugin-file-browser/page/src/*"],
+      "@jush-ai/plugin-skills/*": ["../../crates/plugin-skills/page/src/*"],
+      "@jush-ai/plugin-web/*": ["../../crates/plugin-web/page/src/*"],
+      "@jush-ai/*": ["../*/src/index.ts", "../../crates/*/page/src/index.ts"]
     }
   },
   "include": ["src"],

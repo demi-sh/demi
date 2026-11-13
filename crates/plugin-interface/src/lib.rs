@@ -54,7 +54,7 @@ mod request;
 mod web;
 
 pub use manifest::{
-    Commands, Constant, DEMI_ROOT, DEMI_SUMMARY, EXECUTION_SOURCE, Feature, Manifest, Method, OAuth, Page,
+    Commands, Constant, JUSH_ROOT, JUSH_SUMMARY, EXECUTION_SOURCE, Feature, Manifest, Method, OAuth, Page,
     Placement, PluginId, PluginIdError, ReplyBlock, Scope, State, Stream,
 };
 pub use web::{
@@ -75,5 +75,5 @@ pub use providers::{
 };
 pub use request::{PluginError, Reply, Request};
 /// What a project search names to watch (`Reply::Project`).
-pub use demi_web_api_protocol::files::SubscriptionKind;
-pub use demi_web_api_protocol::workflows::WatchSubject;
+pub use jush_web_api_protocol::files::SubscriptionKind;
+pub use jush_web_api_protocol::workflows::WatchSubject;

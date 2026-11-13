@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RotateCcw } from '@lucide/vue'
-import { IconButton, Slider } from '@demicodes/plugin-sdk'
+import { IconButton, Slider } from '@jush-ai/plugin-sdk'
 import { t } from '../locales/text'
 
 /**

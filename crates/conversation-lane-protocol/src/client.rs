@@ -1,6 +1,6 @@
 //! What the web app sends.
 
-use demi_shared_types::{BlobRef, BlockId, CommandId, Comment, CommentPart, CommentStage, MAX_SAFE_INTEGER, NodeId, OperationId, TurnId, is_blank};
+use jush_shared_types::{BlobRef, BlockId, CommandId, Comment, CommentPart, CommentStage, MAX_SAFE_INTEGER, NodeId, OperationId, TurnId, is_blank};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

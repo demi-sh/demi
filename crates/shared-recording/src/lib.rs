@@ -25,7 +25,7 @@
 //! - Its files are the only state a recording has, so a program that ends
 //!   leaves recordings that can be read; the recording it was writing is
 //!   reported interrupted.
-//! - An export decodes the video with OpenH264 (`demi-shared-openh264`),
+//! - An export decodes the video with OpenH264 (`jush-shared-openh264`),
 //!   the same everywhere, which is why an exported frame is the video's
 //!   decoded picture, not the screen's exact pixels.
 //! - A source also hands over the inputs its screen took, the agent's
@@ -59,7 +59,7 @@ pub use recorder::{Handover, Live, Picture, Sink};
 
 use std::path::{Path, PathBuf};
 
-use demi_shared_recording_protocol::RecordingId;
+use jush_shared_recording_protocol::RecordingId;
 
 /// How many pictures a source codes between key frames, every source the
 /// same: a recording is decoded from the key frame before the frame wanted,

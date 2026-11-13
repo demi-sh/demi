@@ -19,15 +19,15 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_device_interface::{Process, ProcessControl, ProcessEnd, ProcessOutput, Signal};
-use demi_provider_common::quota::Observation;
-use demi_provider_common::wire::Tagged;
-use demi_provider_common::{
+use jush_device_interface::{Process, ProcessControl, ProcessEnd, ProcessOutput, Signal};
+use jush_provider_common::quota::Observation;
+use jush_provider_common::wire::Tagged;
+use jush_provider_common::{
     OpaqueStep,
     CallEvent, InferenceItem, InferenceRequest, ProviderEvent, ProviderFailure, ResultPart,
     ToolCall, UserPart, encode_body,
 };
-use demi_shared_types::{OpaqueStatus, StreamKind, ThinkingConfig, Timestamp};
+use jush_shared_types::{OpaqueStatus, StreamKind, ThinkingConfig, Timestamp};
 use futures_channel::mpsc;
 use futures_util::future::{LocalBoxFuture, Shared as SharedFuture};
 use futures_util::stream::LocalBoxStream;
@@ -51,7 +51,7 @@ use crate::timing::{StartTiming, Took};
 use crate::{FAMILY, Shared, cli};
 
 /// The `tracing` target of the raw stream-json exchange, at trace level.
-pub(crate) const WIRE: &str = "demi::provider::claude_code::wire";
+pub(crate) const WIRE: &str = "jush::provider::claude_code::wire";
 
 /// How much of the process's standard error is kept: a process may print
 /// without end, and the tail is where it says why it failed.
@@ -60,7 +60,7 @@ const STDERR_TAIL_BYTES: usize = 64 * 1024;
 /// How long a closed process has to end after SIGTERM before SIGKILL.
 const CLOSE_GRACE: Duration = Duration::from_secs(5);
 
-/// The longest line Demi reads; a longer one fails the run like a line that
+/// The longest line Jush reads; a longer one fails the run like a line that
 /// cannot be read: a line is held whole in memory, and a process may print one
 /// without end.
 const MAX_LINE_BYTES: usize = 64 * 1024 * 1024;
@@ -73,7 +73,7 @@ type Lines =
 /// line, as when the process's machine went away while it wrote, is not a line.
 ///
 /// The rest is dropped and `cut` says so, so the end is read by how the process
-/// ended rather than as a line Demi cannot read.
+/// ended rather than as a line Jush cannot read.
 struct CliLines {
     lines: LinesCodec,
     cut: Rc<Cell<bool>>,
@@ -237,13 +237,13 @@ pub(crate) enum Next {
     /// The run's token was cancelled.
     Cancelled,
     /// A line, with its text, which is the record of a failure it causes;
-    /// `None` for a line of a type Demi does not read.
+    /// `None` for a line of a type Jush does not read.
     Line(String, Option<Line>),
     /// The MCP server opened a call.
     Opened(ToolCall),
     /// The output ended.
     End,
-    /// The output cannot be read on, or Demi's answer cannot be written.
+    /// The output cannot be read on, or Jush's answer cannot be written.
     Broken(ProviderFailure),
 }
 
@@ -803,7 +803,7 @@ impl LiveCli {
         } = line;
         let answer = if request.subtype != "mcp_message" {
             Err(format!(
-                "Demi does not serve the control request {}",
+                "Jush does not serve the control request {}",
                 request.subtype
             ))
         } else {
@@ -1093,7 +1093,7 @@ impl LiveCli {
     }
 
     /// Says what a status line of the CLI reports that matters to the
-    /// session: a compaction the CLI ran on its own, which Demi did not ask
+    /// session: a compaction the CLI ran on its own, which Jush did not ask
     /// for, and so changes what the model holds.
     pub(crate) fn note_system(&self, line: &crate::output::SystemLine) {
         let Some(compaction) = line.compaction() else {
@@ -1286,7 +1286,7 @@ impl Tail {
     }
 }
 
-/// A failure Demi composes, which is never retried by itself.
+/// A failure Jush composes, which is never retried by itself.
 fn failure(message: String) -> ProviderFailure {
     ProviderFailure {
         message,
@@ -1306,10 +1306,10 @@ fn ended(end: &ProcessEnd, message: String) -> ProviderFailure {
     }
 }
 
-/// The failure of a line Demi cannot read, with the line as its record.
+/// The failure of a line Jush cannot read, with the line as its record.
 fn undecodable(error: &dyn std::fmt::Display, text: String) -> ProviderFailure {
     ProviderFailure::protocol(
-        format!("Claude Code sent a line Demi cannot read: {error}"),
+        format!("Claude Code sent a line Jush cannot read: {error}"),
         text,
     )
 }

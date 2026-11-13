@@ -262,7 +262,7 @@ impl Mapped {
     fn create(long: u32) -> Option<Self> {
         static COUNT: AtomicU64 = AtomicU64::new(0);
         let path = std::env::temp_dir().join(format!(
-            "demi-screen-{}-{}.rgba",
+            "jush-screen-{}-{}.rgba",
             std::process::id(),
             COUNT.fetch_add(1, Ordering::Relaxed)
         ));

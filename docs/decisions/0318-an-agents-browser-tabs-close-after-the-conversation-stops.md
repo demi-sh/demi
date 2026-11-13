@@ -19,10 +19,10 @@ tabs drown among them, and closing them by hand is Alex's chore.
 running, unless the user made it theirs.** A tab the user opened stays until
 someone closes it, as now.
 
-- **The agent's**: a tab `demi browser tab new` made, and a page's popup
+- **The agent's**: a tab `jush browser tab new` made, and a page's popup
   from one of the agent's tabs that is not the user's.
 - **The user's**: a tab the user opened, one an agent showed to the user
-  with `demi browser show` (a sign-in, a choice, a result to look at), and
+  with `jush browser show` (a sign-in, a choice, a result to look at), and
   one the user acted in: a click, a key, a wheel turn, a paste or a dialog's
   answer in its live view, or an address, Back, Forward, Reload or Stop in
   its window. Once a tab is the user's, it stays the user's.
@@ -31,7 +31,7 @@ someone closes it, as now.
   close 30 minutes later. The conversation running again before then, at the
   user's message, a schedule's or another conversation's, cancels the close,
   which its next stop sets again. A subagent that ends before its parent
-  leaves its tabs until the conversation stops: Demi follows when the
+  leaves its tabs until the conversation stops: Jush follows when the
   conversation runs, not each agent's turn.
 - **While the user watches**: a tab whose live view the user watches when
   its time comes closes once nobody watches it, so a page never vanishes
@@ -67,7 +67,7 @@ asking, as a conversation's browser keeps its sign-ins (0193).
   closed and those it left because a viewer watches them. While one is left,
   the plugin asks again a minute later, as long as the conversation does not
   run. A tab that fails to close is left for the next stop, and the others
-  still close. It is no `demi browser` leaf, and the browser refuses it from
+  still close. It is no `jush browser` leaf, and the browser refuses it from
   an agent.
 - The device's tab keeps whether the user acted in it; `shows` already
   counts the shows. A popup whose opener closed has no known owner and stays.
@@ -76,7 +76,7 @@ asking, as a conversation's browser keeps its sign-ins (0193).
 
 Playwright's MCP server and browser-use close the browser context the agent's
 session made when the session ends; Chrome's tab groups for an agent, as in
-Claude for Chrome, leave the tabs to the user. Demi keeps the tabs a short
+Claude for Chrome, leave the tabs to the user. Jush keeps the tabs a short
 while past the turn, as the user may look at them, and hands over the ones
 the user took.
 
@@ -88,7 +88,7 @@ the user took.
   today.
 - **Close a tab no one used for 30 minutes**, with no turn: a long turn that
   comes back to a page after a build loses it in the middle of its work.
-- **Follow each agent's turn**: Demi follows whether the conversation runs;
+- **Follow each agent's turn**: Jush follows whether the conversation runs;
   the tree's agents would need a turn's end of their own told to plugins, for
   a subagent's tabs to go a little sooner.
 - **Hold the wait on the device**: the device's browser has no notion of

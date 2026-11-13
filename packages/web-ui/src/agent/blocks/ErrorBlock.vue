@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ProviderErrorDiagnostics } from '@demicodes/protocol'
-import ErrorNotice from '@demicodes/web-ui/ui/ErrorNotice.vue'
+import type { ProviderErrorDiagnostics } from '@jush-ai/protocol'
+import ErrorNotice from '@jush-ai/web-ui/ui/ErrorNotice.vue'
 import Checkbox from '../../ui/Checkbox.vue'
 import { useClock } from '../../composables/useClock'
 import { useTranscript } from '../edit-selection'

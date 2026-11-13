@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { clamp } from '@demicodes/utils'
+import { clamp } from '@jush-ai/utils'
 import { disabledTooltip } from './disabled'
 import Tooltip from './Tooltip.vue'
 import type { SentenceText } from './ui-text'

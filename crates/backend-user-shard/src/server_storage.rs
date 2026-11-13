@@ -11,8 +11,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use demi_machine_manager_protocol::DiskUsageParams;
-use demi_shared_types::Timestamp;
+use jush_machine_manager_protocol::DiskUsageParams;
+use jush_shared_types::Timestamp;
 use tokio::sync::Mutex;
 
 use crate::services::Services;

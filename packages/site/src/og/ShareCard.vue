@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The share image (`SHARE_IMAGE` in `seo.ts`, 1200 by 630): the logo and the
 // first screen's heading over the first screen's demo, on the page's shore.
-import DemiLogo from '@/components/DemiLogo.vue'
+import JushLogo from '@/components/JushLogo.vue'
 import DemoStage from '@/components/DemoStage.vue'
 import shore from '@/assets/hero-shore-2x.webp'
 import { SITE } from '@/seo'
@@ -11,7 +11,7 @@ import { SITE } from '@/seo'
   <div class="card">
     <img class="shore" :src="shore" alt="" />
     <div class="head">
-      <DemiLogo class="logo" otter />
+      <JushLogo class="logo" otter />
       <h1>{{ SITE.headline }}</h1>
     </div>
     <DemoStage class="stage" demo="hero" label="" />

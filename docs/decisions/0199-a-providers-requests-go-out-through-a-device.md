@@ -10,7 +10,7 @@ of the provider endpoints that reach a device.
 ## Problem
 
 The user runs Ollama on a workstation at `192.168.1.50`, on the same office
-network as their paired MacBook. Demi's backend is on a server outside that
+network as their paired MacBook. Jush's backend is on a server outside that
 network, so it cannot reach `192.168.1.50`. An exposed port only reaches
 `127.0.0.1:<port>` on the device, at the address `http://<device id>:<port>`,
 so the user has to run a forwarder of their own on the MacBook, such as
@@ -42,13 +42,13 @@ Connect Through   [alex-mbp v]   Server / alex-mbp / build-01 (Offline)
   fails at once with "alex-mbp is offline", which no request wakes.
 - On a shared instance an administrator's shared entry goes out through the
   administrator's device for every user of the entry.
-- `demi providers` sets it as it sets an entry's endpoint, under the same
+- `jush providers` sets it as it sets an entry's endpoint, under the same
   permission.
 - The runner reaches what any program on its device reaches: no list of
   ports or hosts limits it. The device is the owner's, who runs any command
   on it already.
 
-The exposed ports go: their list on a device's page, `demi host expose` and
+The exposed ports go: their list on a device's page, `jush host expose` and
 its permission with its grants, the Expose Port that a failed test or turn
 offered, and the address `http://<device id>:<port>`. An entry whose endpoint
 names one of its owner's devices that way connects through that device, its

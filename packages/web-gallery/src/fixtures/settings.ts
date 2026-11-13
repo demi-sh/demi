@@ -1,9 +1,9 @@
 import { createSmallModelState } from './small-model'
 import { DEMO_PERSONAL_INSTRUCTIONS } from './instructions'
 import { reactive } from 'vue'
-import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
-import { providerLogo, vendorLogo } from '@demicodes/web-ui/settings/vendor-logos'
-import { DEFAULT_TRANSCRIPT_TEXT_SIZE } from '@demicodes/web-ui/theme/productAppearance'
+import { appShortcuts } from '@jush-ai/web-ui/settings/shortcuts'
+import { providerLogo, vendorLogo } from '@jush-ai/web-ui/settings/vendor-logos'
+import { DEFAULT_TRANSCRIPT_TEXT_SIZE } from '@jush-ai/web-ui/theme/productAppearance'
 import type {
   SettingsArchivedConversation,
   SettingsCacheTtl,
@@ -13,14 +13,14 @@ import type {
   SettingsModelMatch,
   SettingsProviderModel,
   SettingsVendor
-} from '@demicodes/web-ui/settings/types'
-import type { SkillsState, SourceState } from '@demicodes/plugin-skills'
-import type { WebState } from '@demicodes/plugin-web'
+} from '@jush-ai/web-ui/settings/types'
+import type { SkillsState, SourceState } from '@jush-ai/plugin-skills'
+import type { WebState } from '@jush-ai/plugin-web'
 import { commitOf } from './plugins'
 import { DAY_SECONDS, HOUR_SECONDS, WEEK_SECONDS, windowNamed } from './usage-limits'
 import { createCredentialState, demoCredentials, manyCredentials } from './credentials'
 import { createUsersState } from './users'
-import type { SettingsCompatibleShapes, SettingsPasskey, SettingsSession } from '@demicodes/web-ui/settings/types'
+import type { SettingsCompatibleShapes, SettingsPasskey, SettingsSession } from '@jush-ai/web-ui/settings/types'
 
 const DAY_MS = 24 * 3_600_000
 
@@ -276,7 +276,7 @@ export function provider(
   return 'cacheTtl' in partial ? entry : { ...entry, cacheTtl: galleryCacheTtl(entry) }
 }
 
-/** models.dev vendors one of Demi's runtimes can speak to, with their marks. */
+/** models.dev vendors one of Jush's runtimes can speak to, with their marks. */
 export interface MockVendor extends SettingsVendor {
   family: 'anthropic' | 'openai' | 'google' | 'media'
 }
@@ -1006,7 +1006,7 @@ export function mockProviders(): MockProvider[] {
       models: [model({ id: 'claude-sonnet-5', contextWindow: 1_000_000, tools: true, extensions: [] })],
     }),
     provider({
-      // A provider another Demi server shares, in Shared with You: its page
+      // A provider another Jush server shares, in Shared with You: its page
       // has the share key alone, and its models and media are the ones that
       // server has on, shown without a switch.
       id: 'studio-relay', name: 'Studio', kind: 'api_key', family: 'relay', vendorId: null,
@@ -1226,23 +1226,23 @@ export function createSettingsState() {
     selectedProviderId: null as string | null,
     providerDetailOpen: false,
     plugins: [
-      { id: 'file', name: 'Demi File Commands', description: 'Reads, writes, edits and searches the conversation’s files with demi file.', enabled: false },
+      { id: 'file', name: 'Jush File Commands', description: 'Reads, writes, edits and searches the conversation’s files with jush file.', enabled: false },
       {
         id: 'browser',
         name: 'Browser',
-        description: 'Gives the agent a browser on the conversation’s device, which it drives with demi browser and you watch and use in its window.',
+        description: 'Gives the agent a browser on the conversation’s device, which it drives with jush browser and you watch and use in its window.',
         enabled: true,
       },
       {
         id: 'skills',
         name: 'Skills',
-        description: 'Teaches the agent workflows with skills from Git repositories you add with demi skills, and from your repository.',
+        description: 'Teaches the agent workflows with skills from Git repositories you add with jush skills, and from your repository.',
         enabled: true,
       },
       {
         id: 'web',
         name: 'Web',
-        description: 'Searches the web with Exa and reads pages from the conversation’s Device with demi web.',
+        description: 'Searches the web with Exa and reads pages from the conversation’s Device with jush web.',
         enabled: true,
       },
       {

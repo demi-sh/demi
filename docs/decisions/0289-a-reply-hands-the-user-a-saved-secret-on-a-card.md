@@ -7,7 +7,7 @@ status: proposed
 ## Problem
 
 Alex asks an agent to set up a deploy key for a repository. The agent
-makes the key on the Host and saves it with `demi credentials save`, so
+makes the key on the Host and saves it with `jush credentials save`, so
 the model never reads it. Alex needs the key to paste it into the
 repository host's settings, but nothing on the page shows it: Settings ›
 Credentials lists a credential's name and fields and never a secret's
@@ -49,11 +49,11 @@ field takes no `field`:
   conversation anyone but the vault's owner reads, draw the card with the
   name only, and the share serves no value.
 * **Nothing else carries the value.** The transcript, the model's context,
-  `demi conversation history` and notifications hold the tag alone.
+  `jush conversation history` and notifications hold the tag alone.
 * **A tag that names nothing** (a credential removed or renamed, a field it
   does not have) draws the card with the name and "No longer saved", as an
   attachment that is gone does.
-* **The agent learns the tag where it learns the vault.** The `demi
+* **The agent learns the tag where it learns the vault.** The `jush
   credentials` entry of the command list says it, one sentence, so a
   conversation without the vault never reads it:
 
@@ -69,7 +69,7 @@ attribute.
 ## Spike
 
 * The vault already answers a secret's value only to a command's pipe
-  (`demi credentials read`), never to the page; reveal is a new route, and
+  (`jush credentials read`), never to the page; reveal is a new route, and
   the only one that sends a value to a browser.
 * The page's existing "Confirm it is you" flow answers
   `verification_required` for a handoff code and a passkey; the card's
@@ -81,7 +81,7 @@ attribute.
   master password re-prompt asks again before either.
 * macOS Passwords and 1Password reveal and copy a secret after the user
   proves it is them.
-* GitHub shows a new token once with Copy; Demi keeps it in the vault
+* GitHub shows a new token once with Copy; Jush keeps it in the vault
   instead, so the card works again later.
 
 ## Alternatives

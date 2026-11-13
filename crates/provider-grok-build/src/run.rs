@@ -9,7 +9,7 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     CallEvent, ErrorCode, HttpFailureRecord, InferenceRequest, ProviderEvent, ProviderFailure, VendorCall, encode_body,
     http_failure,
     quota::Observation,
@@ -29,7 +29,7 @@ use crate::{
 /// event, and dropping the stream drops the connection.
 pub(crate) fn run(
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     request: InferenceRequest,
 ) -> impl Stream<Item = ProviderEvent> {
     async_stream::stream! {

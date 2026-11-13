@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 use std::fmt;
 
-use demi_shared_types::Timestamp;
+use jush_shared_types::Timestamp;
 use garde::Validate;
 use garde::rules::length::chars::HasChars;
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};

@@ -13,8 +13,8 @@ use std::{
     time::Duration,
 };
 
-use demi_command_protocol::ResidentSequence;
-use demi_command_sdk::Numbers;
+use jush_command_protocol::ResidentSequence;
+use jush_command_sdk::Numbers;
 use tokio::sync::watch;
 
 use crate::driver::operation::{BrowserError, Result};

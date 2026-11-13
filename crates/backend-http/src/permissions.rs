@@ -5,10 +5,10 @@
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_backend_database::permissions::AnswerProblem;
-use demi_backend_permissions::{PermissionError, decide as decide_request};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::permissions::{
+use jush_backend_database::permissions::AnswerProblem;
+use jush_backend_permissions::{PermissionError, decide as decide_request};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::permissions::{
     DecidePermission, PermissionRequestId,
 };
 

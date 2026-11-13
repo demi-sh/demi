@@ -4,7 +4,7 @@
  * The web app is a shell that plugins fill, and a page is written only against
  * this package. The shell therefore knows no plugin, and a plugin knows no part
  * of the shell beyond this package. A page imports this package,
- * `@demicodes/utils`, Vue, Zod and its own generated types, and nothing else of
+ * `@jush-ai/utils`, Vue, Zod and its own generated types, and nothing else of
  * the workspace.
  *
  * ```text
@@ -70,39 +70,39 @@ export {
   type PluginPage,
   type PluginSettingsSection,
   type PluginState,
-} from '@demicodes/web-ui/plugins/page'
-export type { IntentName, IntentPayloads, IntentRequest } from '@demicodes/web-ui/plugins/intents'
+} from '@jush-ai/web-ui/plugins/page'
+export type { IntentName, IntentPayloads, IntentRequest } from '@jush-ai/web-ui/plugins/intents'
 // Where a pinned tab is, as the page's address holds it.
-export { definePlace, type TabPlace, type PlaceFields } from '@demicodes/web-ui/plugins/place'
-export { windowHeight } from '@demicodes/web-ui/ui/window-height'
+export { definePlace, type TabPlace, type PlaceFields } from '@jush-ai/web-ui/plugins/place'
+export { windowHeight } from '@jush-ai/web-ui/ui/window-height'
 // What a page keeps live while its plugin is on, apart from the work:
 // its stores, which its page
 // context's `store` reaches, its sessions by key that outlive the views
 // watching them, and its disk cache.
-export { definePluginStore, type PluginStore } from '@demicodes/web-ui/plugins/stores'
-export { KEPT_SESSIONS, KeptSessions, type KeptSession, type SessionWatch } from '@demicodes/web-ui/plugins/kept'
-export { PLUGIN_CACHE_BYTES, type PluginCache } from '@demicodes/web-ui/plugins/cache'
+export { definePluginStore, type PluginStore } from '@jush-ai/web-ui/plugins/stores'
+export { KEPT_SESSIONS, KeptSessions, type KeptSession, type SessionWatch } from '@jush-ai/web-ui/plugins/kept'
+export { PLUGIN_CACHE_BYTES, type PluginCache } from '@jush-ai/web-ui/plugins/cache'
 export type {
   OpenUserStream,
   StreamBytes,
   UserStream,
   UserStreamHandlers,
-} from '@demicodes/web-ui/plugins/streams'
-export type { DownloadProgress, DeviceArtifact, DeviceDownload } from '@demicodes/web-ui/devices/installed'
-export { downloadProgress } from '@demicodes/web-ui/devices/installed'
-export type { OverlayStore } from '@demicodes/web-ui/overlay/overlayStore'
+} from '@jush-ai/web-ui/plugins/streams'
+export type { DownloadProgress, DeviceArtifact, DeviceDownload } from '@jush-ai/web-ui/devices/installed'
+export { downloadProgress } from '@jush-ai/web-ui/devices/installed'
+export type { OverlayStore } from '@jush-ai/web-ui/overlay/overlayStore'
 // What the page says of a failure, in the page's language.
-export { errorMessage } from '@demicodes/web-ui/infra/errors'
+export { errorMessage } from '@jush-ai/web-ui/infra/errors'
 // A copy button's copy: Copied for a moment after, and the app's toast when it fails.
-export { useCopy } from '@demicodes/web-ui/composables/useCopy'
-export type { SettingsRowStatus } from '@demicodes/web-ui/settings/types'
+export { useCopy } from '@jush-ai/web-ui/composables/useCopy'
+export type { SettingsRowStatus } from '@jush-ai/web-ui/settings/types'
 // The style a plugin's own prop of UI text declares (the gallery's Writing page).
-export type { HeadlineText, PlaceholderText, SentenceText, TitleText } from '@demicodes/web-ui/ui/ui-text'
+export type { HeadlineText, PlaceholderText, SentenceText, TitleText } from '@jush-ai/web-ui/ui/ui-text'
 
-// The plugin's own text in every language Demi speaks:
+// The plugin's own text in every language Jush speaks:
 // `definePluginText(PLUGIN, { en, ... })` in its `src/locales/text.ts`.
-export { definePluginText, type Catalogue, type Text } from '@demicodes/web-ui/i18n/text'
-export type { Language } from '@demicodes/web-ui/i18n/languages'
+export { definePluginText, type Catalogue, type Text } from '@jush-ai/web-ui/i18n/text'
+export type { Language } from '@jush-ai/web-ui/i18n/languages'
 
 // The plugin kit. Streams: the liveness a stream's protocol uses.
 export {
@@ -112,11 +112,11 @@ export {
   watchSilence,
   type ReconnectWait,
   type SilenceWatch,
-} from '@demicodes/web-ui/transport/liveness'
+} from '@jush-ai/web-ui/transport/liveness'
 // The live view (`crates/plugin-mobile/page/src/index.ts`): its frames, the decoder that
 // shows its pictures, and the viewer's input in the picture's coordinates,
 // which every source's view shares.
-export * from '@demicodes/web-ui/live/protocol'
+export * from '@jush-ai/web-ui/live/protocol'
 export {
   LiveFrameAssembler,
   LiveFrameSplitter,
@@ -130,14 +130,14 @@ export {
   type LiveRawFrame,
   type LiveVideoChunk,
   type LiveVideoFrame,
-} from '@demicodes/web-ui/live/frames'
+} from '@jush-ai/web-ui/live/frames'
 export {
   CanvasPictures,
   picturesSupported,
   type LivePictureStream,
   type PictureHandlers,
   type PictureSink,
-} from '@demicodes/web-ui/live/pictures'
+} from '@jush-ai/web-ui/live/pictures'
 export {
   ALT,
   CONTROL,
@@ -153,7 +153,7 @@ export {
   type ModifierState,
   type PointerInput,
   type WheelInput,
-} from '@demicodes/web-ui/live/input'
+} from '@jush-ai/web-ui/live/input'
 export {
   LiveLink,
   REFUSED_FRAME,
@@ -163,7 +163,7 @@ export {
   type LiveFrames,
   type LiveLinkHandlers,
   type LiveLinkState,
-} from '@demicodes/web-ui/live/link'
+} from '@jush-ai/web-ui/live/link'
 export {
   DRAWN_FRAME_ROOM,
   SQUARE_CORNERS,
@@ -179,21 +179,21 @@ export {
   type DrawnFrameShape,
   type ScreenCorner,
   type ScreenCorners,
-} from '@demicodes/web-ui/live/drawn-frame'
-export { default as LiveDrawnFrame } from '@demicodes/web-ui/live/LiveDrawnFrame.vue'
-export { default as LiveActivityOverlay } from '@demicodes/web-ui/live/LiveActivityOverlay.vue'
+} from '@jush-ai/web-ui/live/drawn-frame'
+export { default as LiveDrawnFrame } from '@jush-ai/web-ui/live/LiveDrawnFrame.vue'
+export { default as LiveActivityOverlay } from '@jush-ai/web-ui/live/LiveActivityOverlay.vue'
 // Whether the person asked for less motion, as the system's Reduce Motion does.
-export { prefersReducedMotion } from '@demicodes/web-ui/ui/stream-reveal'
+export { prefersReducedMotion } from '@jush-ai/web-ui/ui/stream-reveal'
 // Composables.
 // A field that takes the focus as its surface opens, as a phone allows.
-export { useAutofocus } from '@demicodes/web-ui/ui/autofocus'
+export { useAutofocus } from '@jush-ai/web-ui/ui/autofocus'
 export {
   vContextMenu,
   type ContextMenuDeclaration,
   type ContextMenuEntry,
   type ContextMenuGroup,
   type ContextMenuValue,
-} from '@demicodes/web-ui/ui/context-menu'
+} from '@jush-ai/web-ui/ui/context-menu'
 
 // Files: the shapes the conversation files service gives, and their paths.
 export {
@@ -203,7 +203,7 @@ export {
   type ChangeSetSource,
   type ChangeSources,
   type ReadCallChange,
-} from '@demicodes/web-ui/files/changes'
+} from '@jush-ai/web-ui/files/changes'
 // A request's changes: what the `edit` intent names, and the files the Change view lists.
 export {
   requestEditSelectionSchema,
@@ -215,59 +215,59 @@ export {
   type RequestEditSelection,
   type RequestFile,
   type TranscriptRequest,
-} from '@demicodes/web-ui/files/request-changes'
+} from '@jush-ai/web-ui/files/request-changes'
 // The repositories Commits offers for a conversation's directory.
-export type { Repositories, RepositoryEntry } from '@demicodes/web-ui/files/repositories'
-export type { FileBrowserSource } from '@demicodes/web-ui/files/types'
-export { baseName, isAbsoluteDevicePath, joinPath, relativePath } from '@demicodes/web-ui/files/paths'
-export { downloadUrl } from '@demicodes/web-ui/files/download'
-export { formatByteRatio, formatBytes } from '@demicodes/web-ui/files/format'
-export { treeLayout } from '@demicodes/web-ui/files/tree-layout'
+export type { Repositories, RepositoryEntry } from '@jush-ai/web-ui/files/repositories'
+export type { FileBrowserSource } from '@jush-ai/web-ui/files/types'
+export { baseName, isAbsoluteDevicePath, joinPath, relativePath } from '@jush-ai/web-ui/files/paths'
+export { downloadUrl } from '@jush-ai/web-ui/files/download'
+export { formatByteRatio, formatBytes } from '@jush-ai/web-ui/files/format'
+export { treeLayout } from '@jush-ai/web-ui/files/tree-layout'
 // A window's view says whether it has read what it first needs, and its empty area waits for it.
-export { usePaneReady, usePaneWaiting } from '@demicodes/web-ui/agent/pane-ready'
-export { default as PaneReading } from '@demicodes/web-ui/ui/PaneReading.vue'
+export { usePaneReady, usePaneWaiting } from '@jush-ai/web-ui/agent/pane-ready'
+export { default as PaneReading } from '@jush-ai/web-ui/ui/PaneReading.vue'
 
 // Components: settings, controls, progress, navigation, files and icons.
-export { default as AddressBar } from '@demicodes/web-ui/agent/AddressBar.vue'
-export { default as Button } from '@demicodes/web-ui/ui/Button.vue'
-export type { Action, Operation } from '@demicodes/web-ui/ui/operations'
-export { default as ChangeView } from '@demicodes/web-ui/files/ChangeView.vue'
-export { HTML_SANDBOX } from '@demicodes/web-ui/files/preview'
-export { default as ConfirmDialog } from '@demicodes/web-ui/ui/ConfirmDialog.vue'
-export { default as Dialog } from '@demicodes/web-ui/ui/Dialog.vue'
-export { default as Dropdown } from '@demicodes/web-ui/ui/Dropdown.vue'
-export { default as ExternalLink } from '@demicodes/web-ui/ui/ExternalLink.vue'
-export { default as Fold } from '@demicodes/web-ui/ui/Fold.vue'
-export { default as FileIcon } from '@demicodes/web-ui/files/FileIcon.vue'
-export { default as FileView } from '@demicodes/web-ui/files/FileView.vue'
-export { default as AttachmentView } from '@demicodes/web-ui/files/AttachmentView.vue'
-export { default as MediaView } from '@demicodes/web-ui/files/MediaView.vue'
-export { default as LineCounts } from '@demicodes/web-ui/files/LineCounts.vue'
-export { default as FoldChevron } from '@demicodes/web-ui/ui/FoldChevron.vue'
-export { default as IconButton } from '@demicodes/web-ui/ui/IconButton.vue'
-export { default as InlineError } from '@demicodes/web-ui/ui/InlineError.vue'
-export { default as IndeterminateSpinner } from '@demicodes/web-ui/ui/IndeterminateSpinner.vue'
-export { default as Menu } from '@demicodes/web-ui/ui/Menu.vue'
-export { default as MenuDivider } from '@demicodes/web-ui/ui/MenuDivider.vue'
-export { default as MenuGroup } from '@demicodes/web-ui/ui/MenuGroup.vue'
-export { default as MenuItem } from '@demicodes/web-ui/ui/MenuItem.vue'
-export { default as Popover } from '@demicodes/web-ui/ui/Popover.vue'
-export { default as ProgressLine } from '@demicodes/web-ui/ui/ProgressLine.vue'
-export { default as RegionStatus } from '@demicodes/web-ui/ui/RegionStatus.vue'
-export { default as ScrollArea } from '@demicodes/web-ui/ui/ScrollArea.vue'
-export { default as SettingsGroup } from '@demicodes/web-ui/settings/SettingsGroup.vue'
-export { default as SettingsPage } from '@demicodes/web-ui/settings/SettingsPage.vue'
-export { default as SettingsRow } from '@demicodes/web-ui/settings/SettingsRow.vue'
-export { default as Slider } from '@demicodes/web-ui/ui/Slider.vue'
-export { default as Switch } from '@demicodes/web-ui/ui/Switch.vue'
-export { default as TextInput } from '@demicodes/web-ui/ui/TextInput.vue'
-export { default as Toolbar } from '@demicodes/web-ui/ui/Toolbar.vue'
-export type { ToolbarAction } from '@demicodes/web-ui/ui/Toolbar.vue'
-export { default as Tooltip } from '@demicodes/web-ui/ui/Tooltip.vue'
-export { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
+export { default as AddressBar } from '@jush-ai/web-ui/agent/AddressBar.vue'
+export { default as Button } from '@jush-ai/web-ui/ui/Button.vue'
+export type { Action, Operation } from '@jush-ai/web-ui/ui/operations'
+export { default as ChangeView } from '@jush-ai/web-ui/files/ChangeView.vue'
+export { HTML_SANDBOX } from '@jush-ai/web-ui/files/preview'
+export { default as ConfirmDialog } from '@jush-ai/web-ui/ui/ConfirmDialog.vue'
+export { default as Dialog } from '@jush-ai/web-ui/ui/Dialog.vue'
+export { default as Dropdown } from '@jush-ai/web-ui/ui/Dropdown.vue'
+export { default as ExternalLink } from '@jush-ai/web-ui/ui/ExternalLink.vue'
+export { default as Fold } from '@jush-ai/web-ui/ui/Fold.vue'
+export { default as FileIcon } from '@jush-ai/web-ui/files/FileIcon.vue'
+export { default as FileView } from '@jush-ai/web-ui/files/FileView.vue'
+export { default as AttachmentView } from '@jush-ai/web-ui/files/AttachmentView.vue'
+export { default as MediaView } from '@jush-ai/web-ui/files/MediaView.vue'
+export { default as LineCounts } from '@jush-ai/web-ui/files/LineCounts.vue'
+export { default as FoldChevron } from '@jush-ai/web-ui/ui/FoldChevron.vue'
+export { default as IconButton } from '@jush-ai/web-ui/ui/IconButton.vue'
+export { default as InlineError } from '@jush-ai/web-ui/ui/InlineError.vue'
+export { default as IndeterminateSpinner } from '@jush-ai/web-ui/ui/IndeterminateSpinner.vue'
+export { default as Menu } from '@jush-ai/web-ui/ui/Menu.vue'
+export { default as MenuDivider } from '@jush-ai/web-ui/ui/MenuDivider.vue'
+export { default as MenuGroup } from '@jush-ai/web-ui/ui/MenuGroup.vue'
+export { default as MenuItem } from '@jush-ai/web-ui/ui/MenuItem.vue'
+export { default as Popover } from '@jush-ai/web-ui/ui/Popover.vue'
+export { default as ProgressLine } from '@jush-ai/web-ui/ui/ProgressLine.vue'
+export { default as RegionStatus } from '@jush-ai/web-ui/ui/RegionStatus.vue'
+export { default as ScrollArea } from '@jush-ai/web-ui/ui/ScrollArea.vue'
+export { default as SettingsGroup } from '@jush-ai/web-ui/settings/SettingsGroup.vue'
+export { default as SettingsPage } from '@jush-ai/web-ui/settings/SettingsPage.vue'
+export { default as SettingsRow } from '@jush-ai/web-ui/settings/SettingsRow.vue'
+export { default as Slider } from '@jush-ai/web-ui/ui/Slider.vue'
+export { default as Switch } from '@jush-ai/web-ui/ui/Switch.vue'
+export { default as TextInput } from '@jush-ai/web-ui/ui/TextInput.vue'
+export { default as Toolbar } from '@jush-ai/web-ui/ui/Toolbar.vue'
+export type { ToolbarAction } from '@jush-ai/web-ui/ui/Toolbar.vue'
+export { default as Tooltip } from '@jush-ai/web-ui/ui/Tooltip.vue'
+export { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
 // A system's logo, as a device's mark draws it.
-export { default as SystemLogo } from '@demicodes/web-ui/devices/DeviceLogo.vue'
+export { default as SystemLogo } from '@jush-ai/web-ui/devices/DeviceLogo.vue'
 // A device as every menu row and list draws it: its mark with its state, and its state's words.
-export { deviceGlyph } from '@demicodes/web-ui/devices/device-glyphs'
-export { deviceStatusLabel, type DeviceState } from '@demicodes/web-ui/devices/state'
-export type { DeviceMark } from '@demicodes/web-ui/devices/mark'
+export { deviceGlyph } from '@jush-ai/web-ui/devices/device-glyphs'
+export { deviceStatusLabel, type DeviceState } from '@jush-ai/web-ui/devices/state'
+export type { DeviceMark } from '@jush-ai/web-ui/devices/mark'

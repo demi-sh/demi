@@ -1,4 +1,4 @@
-import type { Block } from '@demicodes/protocol'
+import type { Block } from '@jush-ai/protocol'
 import { demoModel, inRequests } from './blocks'
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString()

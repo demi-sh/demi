@@ -147,7 +147,7 @@ before: its fallback for a refused steer is never needed.
   the input.
 
 All four keep what the user sent while the agent worked, and three of the
-four send it on after an interrupt. Demi takes OpenCode's shape, one owner
+four send it on after an interrupt. Jush takes OpenCode's shape, one owner
 in the session, with Codex's and Claude Code's interrupt.
 
 ## Alternatives

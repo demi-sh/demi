@@ -1,11 +1,11 @@
-import type { InstructionEntry } from '@demicodes/protocol'
+import type { InstructionEntry } from '@jush-ai/protocol'
 
 /** What an instructions block holds for a conversation in `~/Projects/shop/packages/web`: personal instructions, the root's file and the package's. */
 export const demoInstructions: InstructionEntry[] = [
   { kind: 'personal' },
   { kind: 'file', path: '/Users/alex/Projects/shop/AGENTS.md' },
   { kind: 'file', path: '/Users/alex/Projects/shop/packages/web/CLAUDE.md' },
-  { kind: 'workflow', name: 'Review Team', path: '/Users/alex/Projects/shop/.demi/workflows/review.yaml' },
+  { kind: 'workflow', name: 'Review Team', path: '/Users/alex/Projects/shop/.jush/workflows/review.yaml' },
 ]
 
 /** The personal instructions the Instructions section starts with. */

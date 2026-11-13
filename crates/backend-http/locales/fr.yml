@@ -5,13 +5,13 @@ oauth:
     text: "Connecté à %{vendor}. Vous pouvez fermer cet onglet."
   unknown_plugin:
     title: "Connexion introuvable"
-    text: "Rien dans Demi ne se connecte ici. Fermez cet onglet."
+    text: "Rien dans Jush ne se connecte ici. Fermez cet onglet."
   unknown_state:
     title: "Connexion expirée"
-    text: "Cette connexion a expiré, a déjà été utilisée ou a été lancée par un autre compte. Fermez cet onglet et reconnectez-vous dans Demi."
+    text: "Cette connexion a expiré, a déjà été utilisée ou a été lancée par un autre compte. Fermez cet onglet et reconnectez-vous dans Jush."
   denied:
     title: "Non connecté à %{vendor}"
-    text: "%{vendor} ne vous a pas connecté (%{error}). Fermez cet onglet et réessayez dans Demi."
+    text: "%{vendor} ne vous a pas connecté (%{error}). Fermez cet onglet et réessayez dans Jush."
   exchange_failed:
     title: "Non connecté à %{vendor}"
-    text: "%{vendor} n’a pas terminé la connexion : %{failure}. Fermez cet onglet et réessayez dans Demi."
+    text: "%{vendor} n’a pas terminé la connexion : %{failure}. Fermez cet onglet et réessayez dans Jush."

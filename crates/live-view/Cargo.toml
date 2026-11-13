@@ -1,5 +1,5 @@
 [package]
-name = "demi-live-view"
+name = "jush-live-view"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -17,9 +17,9 @@ testing = []
 
 [dependencies]
 bytes.workspace = true
-demi-command-sdk = { path = "../command-sdk" }
-demi-live-view-protocol = { path = "../live-view-protocol" }
-demi-shared-types = { path = "../shared-types" }
+jush-command-sdk = { path = "../command-sdk" }
+jush-live-view-protocol = { path = "../live-view-protocol" }
+jush-shared-types = { path = "../shared-types" }
 garde.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -31,7 +31,7 @@ tokio-util.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
-demi-live-view = { path = ".", features = ["testing"] }
+jush-live-view = { path = ".", features = ["testing"] }
 
 [[test]]
 name = "live-view"

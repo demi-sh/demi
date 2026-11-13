@@ -17,8 +17,8 @@
   "foot": {
     "handOff": "An ein anderes Gerät übergeben",
     "settings": "Einstellungen",
-    "updateAvailable": "Demi {version} ist verfügbar",
-    "updating": "Demi wird aktualisiert"
+    "updateAvailable": "Jush {version} ist verfügbar",
+    "updating": "Jush wird aktualisiert"
   },
   "account": {
     "label": "Konto",

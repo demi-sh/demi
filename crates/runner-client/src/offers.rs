@@ -1,5 +1,5 @@
 //! Files the backend offers a device's runner for download
-//! (`crates/shared-artifacts/src/download.rs`): an attachment `demi attachment download` writes on
+//! (`crates/shared-artifacts/src/download.rs`): an attachment `jush attachment download` writes on
 //! a device is one.
 //!
 //! Unlike a pipe's bytes, an offer's stay whole while its call lasts, so the runner's download
@@ -8,7 +8,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use bytes::Bytes;
-use demi_runner_protocol::wire::FileOffer;
+use jush_runner_protocol::wire::FileOffer;
 
 /// The offers of one user's devices, by id.
 #[derive(Clone, Default)]

@@ -3,8 +3,8 @@
 
 use std::num::NonZeroU64;
 
-use demi_runner_protocol::boot::ManagedBoot;
-use demi_shared_types::LogLine;
+use jush_runner_protocol::boot::ManagedBoot;
+use jush_shared_types::LogLine;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::{BaseVersion, Isolation, MachineImageState, MoveStatus, NetworkRules, RuntimeOffer, RuntimeState, Volume};

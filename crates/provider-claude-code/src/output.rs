@@ -1,19 +1,19 @@
-//! What the CLI writes on its standard output, as Demi reads it: one type for
-//! each line Demi reads, decoded by its `type` tag, and the events a line
+//! What the CLI writes on its standard output, as Jush reads it: one type for
+//! each line Jush reads, decoded by its `type` tag, and the events a line
 //! becomes.
 //!
-//! A line, content block, stream event or delta of a type Demi does not read is
-//! skipped, so a CLI release that adds one does not break a run. One Demi reads
+//! A line, content block, stream event or delta of a type Jush does not read is
+//! skipped, so a CLI release that adds one does not break a run. One Jush reads
 //! that is malformed fails the run.
 
-use demi_provider_common::wire::{
+use jush_provider_common::wire::{
     Reported, ReportedString, Tagged,
     messages::{CallUsage, MessagesUsage},
 };
-use demi_provider_common::{CallEvent, CallOutcome, ErrorCode, OpaqueStep, ProviderEvent, ToolCall, tagged_wire};
+use jush_provider_common::{CallEvent, CallOutcome, ErrorCode, OpaqueStep, ProviderEvent, ToolCall, tagged_wire};
 use std::collections::HashMap;
 
-use demi_shared_types::{OpaqueStatus, OpaqueView, SearchAction, SearchSource, TokenUsage};
+use jush_shared_types::{OpaqueStatus, OpaqueView, SearchAction, SearchSource, TokenUsage};
 use serde::Deserialize;
 
 use crate::failure::USAGE_LIMIT;
@@ -38,7 +38,7 @@ tagged_wire! {
 }
 
 /// A status line of the CLI. Only its `compact_boundary` is read, which says
-/// the CLI compacted the conversation by itself, not at Demi's request;
+/// the CLI compacted the conversation by itself, not at Jush's request;
 /// whatever else a `system` line says is skipped, as an unread line is.
 #[derive(Deserialize)]
 pub(crate) struct SystemLine {
@@ -197,8 +197,8 @@ struct AssistantMessage {
     stop_reason: Option<String>,
 }
 
-/// A content block as the CLI printed it, and as Demi reads it: `None` for
-/// a type Demi does not read.
+/// A content block as the CLI printed it, and as Jush reads it: `None` for
+/// a type Jush does not read.
 pub(crate) struct Printed {
     pub(crate) raw: serde_json::Value,
     pub(crate) block: Option<ContentBlock>,
@@ -439,7 +439,7 @@ pub(crate) struct SignatureDelta {
     signature: String,
 }
 
-/// A request the CLI makes of Demi, which it answers once, by its
+/// A request the CLI makes of Jush, which it answers once, by its
 /// `request_id`.
 #[derive(Deserialize)]
 pub(crate) struct ControlRequestLine {
@@ -458,7 +458,7 @@ pub(crate) struct ControlRequestBody {
     pub(crate) message: Option<serde_json::Value>,
 }
 
-/// The CLI's answer to a request of Demi's.
+/// The CLI's answer to a request of Jush's.
 #[derive(Deserialize)]
 pub(crate) struct ControlResponseLine {
     #[serde(default)]

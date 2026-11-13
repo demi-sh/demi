@@ -28,4 +28,4 @@ export {
   type LiveRelease,
   type Platform,
   type ViewerInput,
-} from '@demicodes/protocol'
+} from '@jush-ai/protocol'

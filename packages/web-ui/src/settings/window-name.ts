@@ -1,4 +1,4 @@
-import type { QuotaWindowName } from '@demicodes/protocol'
+import type { QuotaWindowName } from '@jush-ai/protocol'
 import { pageLanguage } from '../i18n/text'
 import { t } from './locales/text'
 

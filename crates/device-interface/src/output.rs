@@ -2,12 +2,12 @@
 //! each read of its stdout and stderr with its stream, in the order the runner
 //! read them, and where the device's kept output left bytes out.
 //!
-//! The backend stores it when the command ends. `demi shell output` and the
+//! The backend stores it when the command ends. `jush shell output` and the
 //! result that reports the end read it as lines of text ([`OutputText`]).
 
 use bytes::{Bytes, BytesMut};
-use demi_command_protocol::is_binary;
-use demi_shared_types::{BinaryStdout, OutputChunk, StreamKind};
+use jush_command_protocol::is_binary;
+use jush_shared_types::{BinaryStdout, OutputChunk, StreamKind};
 
 use crate::BinaryOutput;
 

@@ -8,7 +8,7 @@ status: proposed
 
 Alex builds an app for iPhone Duo and asks an agent to check its layout open
 and closed. The iPhone Duo simulator boots closed, on its outer display, and
-nothing in Demi opens it: `demi mobile` has no fold, the view has no
+nothing in Jush opens it: `jush mobile` has no fold, the view has no
 control, and only Xcode's Device Hub window on the Mac can move the hinge.
 When Alex opens it there, the view's picture follows the inner display, but
 taps still go to the outer one, and the screen's tree keeps the outer
@@ -16,12 +16,12 @@ display's size, so the agent taps the wrong places.
 
 The same holds for an Android foldable such as Pixel 10 Pro Fold: the
 emulator folds from Android Studio's toolbar and its console, neither of
-which Demi calls, and the view keeps the open device's frame and size
+which Jush calls, and the view keeps the open device's frame and size
 whatever the emulator shows.
 
 ## Decision
 
-A foldable device folds and opens from its view and from `demi mobile fold`.
+A foldable device folds and opens from its view and from `jush mobile fold`.
 iPhone Duo shows as Apple's own 3D model of it, with a hinge the user sets to
 any angle; an Android foldable shows as its 2D frame, open or closed.
 
@@ -52,7 +52,7 @@ any angle; an Android foldable shows as its 2D frame, open or closed.
   controls, the posture the device is at pressed. A posture moves the hinge
   to 0°, 130° or 180° over about 0.6 s, as Device Hub does, and the model
   folds with it; its button pressed again moves the hinge there again,
-  which a fold outside Demi may have left elsewhere.
+  which a fold outside Jush may have left elsewhere.
 - A capsule at the bottom of the view, on the view's own background, holds
   a hinge slider from 0° to 180° with the angle beside it, and Reset. The
   slider moves the hinge as it is dragged, one fold at a time, to the
@@ -89,23 +89,23 @@ any angle; an Android foldable shows as its 2D frame, open or closed.
 ### What the agent sees
 
 ```text
-$ demi mobile open alex-duo
+$ jush mobile open alex-duo
 m1  Alex's Duo · iOS 27.1 · 1078×1568 · closed at 0° · simctl id …
-$ demi mobile fold m1 half-open
+$ jush mobile fold m1 half-open
 m1 is half open at 130°: the inner display shows, 1568×1103.
-$ demi mobile fold m1 100
+$ jush mobile fold m1 100
 m1 is half open at 100°: the inner display shows, 1568×1103.
-$ demi mobile inspect m1
+$ jush mobile inspect m1
 Device: m1 · Alex's Duo · portrait · 1568×1103 · half open at 100°
 …
 ```
 
-- `demi mobile fold <device> closed|half-open|open|<degrees>`. An Android
+- `jush mobile fold <device> closed|half-open|open|<degrees>`. An Android
   foldable takes `closed` and `open` only. On any other device the command
   fails, saying the device does not fold. It answers once the device shows
   the display the fold lights.
 - `open` and the header of `inspect` say a foldable's posture. `list` names
-  devices that are not open too, whose posture Demi does not read, so it
+  devices that are not open too, whose posture Jush does not read, so it
   says none.
 - After a fold, `screenshot`, `inspect`, `tap`, `swipe` and `type` act on
   the display that is lit, in its size; a ref listed on the other display,
@@ -140,7 +140,7 @@ Device: m1 · Alex's Duo · portrait · 1568×1103 · half open at 100°
     displays leaves it switching until it is locked and woken. A guest
     that keeps its display for 6 s kept it, and the answer names it.
   - Knows the angle of its own folds only: no call reads the hinge, so a
-    fold outside Demi, as from Device Hub, reads by the display it lit,
+    fold outside Jush, as from Device Hub, reads by the display it lit,
     open flat for the inner display and closed for the outer.
   - Reports the path of the device's 3D model, from its device type's
     product class and the selected Xcode's DeviceKit.
@@ -201,7 +201,7 @@ On this Mac, with Xcode 27.1 (27A9275) and iOS 27.1 (24A94425):
 - A probe sent the hinge event from 0° to 180° to a booted iPhone Duo: the
   inner display lit with the home screen, 2853×2007 pixels; 180° to 0° lit
   the outer display again.
-- A device `demi mobile` opened open went on showing the lit display after
+- A device `jush mobile` opened open went on showing the lit display after
   a fold, but its taps stayed on the display it was opened on: Settings did
   not open from the outer display until the device was opened again. Its
   tree kept the inner display's size.
@@ -226,7 +226,7 @@ On this Mac, with Xcode 27.1 (27A9275) and iOS 27.1 (24A94425):
   and a hinge slider, and draws the device as this model.
 - [Device Hub Pro](https://github.com/gitemre/device-hub-pro) (MIT) found
   the hinge event and the lit display's screen ID, and draws Xcode's model
-  read at runtime, never copied. Demi does the same in the web page, for
+  read at runtime, never copied. Jush does the same in the web page, for
   the use Xcode's own Device Hub makes of it: developing an app on the
   user's own simulator. The model is never committed or stored beyond the
   session.
@@ -234,12 +234,12 @@ On this Mac, with Xcode 27.1 (27A9275) and iOS 27.1 (24A94425):
   `adb emu fold`, `unfold` and `posture`.
 - [auto-mobile](https://github.com/kaeawc/auto-mobile) gives agents a
   `setPosture` tool; on iOS it moves the hinge from a runner inside the
-  simulator, which Demi has no need for.
+  simulator, which Jush has no need for.
 - macOS Quick Look turns a USDZ model by dragging it, with no other control.
 
 ## Alternatives
 
-- A 3D model Demi draws for Android foldables: it would look like no real
+- A 3D model Jush draws for Android foldables: it would look like no real
   device, where Android Studio's frames look like the one simulated, and
   with only Closed and Open there is no angle to show.
 - Half Open pressed again to face the other page: the same button doing a

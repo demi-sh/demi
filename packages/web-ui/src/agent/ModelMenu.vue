@@ -10,11 +10,11 @@ import type { ContextLimitChange } from './context-limit'
 import { modelSwitch, type ModelSettings, type ModelSettingsChange } from './model-selection'
 import { modelMenuRows } from './model-menu'
 import ContextMenu from './ContextMenu.vue'
-import Menu from '@demicodes/web-ui/ui/Menu.vue'
-import MenuDivider from '@demicodes/web-ui/ui/MenuDivider.vue'
-import MenuGroup from '@demicodes/web-ui/ui/MenuGroup.vue'
-import MenuItem from '@demicodes/web-ui/ui/MenuItem.vue'
-import Switch from '@demicodes/web-ui/ui/Switch.vue'
+import Menu from '@jush-ai/web-ui/ui/Menu.vue'
+import MenuDivider from '@jush-ai/web-ui/ui/MenuDivider.vue'
+import MenuGroup from '@jush-ai/web-ui/ui/MenuGroup.vue'
+import MenuItem from '@jush-ai/web-ui/ui/MenuItem.vue'
+import Switch from '@jush-ai/web-ui/ui/Switch.vue'
 
 const props = defineProps<{
   providers: ProviderInfo[]
@@ -156,7 +156,7 @@ function selectStandIn() {
       </template>
     </MenuItem>
     <MenuDivider v-if="fast || rows.reasoning || context" />
-    <!-- data-model-menu-models, data-model: the product checks choose a model by them (`demi.model`). -->
+    <!-- data-model-menu-models, data-model: the product checks choose a model by them (`jush.model`). -->
     <MenuItem :icon="Cpu" :label="t('models.model')" :value="rows.model.value" data-model-menu-models>
       <template #submenu>
         <Menu>

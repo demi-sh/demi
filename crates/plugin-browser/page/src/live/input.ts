@@ -3,7 +3,7 @@
  * `pointerInput`, `wheelInput`, `keyInput`) to the watched tab, and the keys
  * the browser's panel keeps for itself.
  */
-import { keyInput, type KeyInput, type ViewerInput } from '@demicodes/plugin-sdk'
+import { keyInput, type KeyInput, type ViewerInput } from '@jush-ai/plugin-sdk'
 import type { LiveViewerMessage } from '../generated/plugin'
 
 /** The viewer's `input` to the browser tab `tab`. */

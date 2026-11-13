@@ -1,13 +1,18 @@
 //! A share key as a person copies it: one line that names the lending server
-//! and holds the token it checks, `demi-share-key-` and the unpadded
-//! base64url of `{"url": "https://demi.example.com/", "token": "…"}`.
+//! and holds the token it checks, `jush-share-key-` and the unpadded
+//! base64url of `{"url": "https://jush.example.com/", "token": "…"}`.
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-const PREFIX: &str = "demi-share-key-";
+const PREFIX: &str = "jush-share-key-";
+
+/// The prefix of a key a server of before the product took the name Jush
+/// made, which is read as one of now until the other migrations go, when the
+/// history starts again at the first formal release.
+const EARLIER_PREFIX: &str = "demi-share-key-";
 
 /// A share key's parts.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -34,7 +39,11 @@ impl ShareKey {
     /// The key `text` holds, with the white space around it that a copy
     /// brings left out.
     pub fn parse(text: &str) -> Result<Self, NotAKey> {
-        let encoded = text.trim().strip_prefix(PREFIX).ok_or(NotAKey)?;
+        let text = text.trim();
+        let encoded = text
+            .strip_prefix(PREFIX)
+            .or_else(|| text.strip_prefix(EARLIER_PREFIX))
+            .ok_or(NotAKey)?;
         let json = URL_SAFE_NO_PAD.decode(encoded).map_err(|_| NotAKey)?;
         let key: Self = serde_json::from_slice(&json).map_err(|_| NotAKey)?;
         if key.token.is_empty() || !matches!(key.url.scheme(), "http" | "https") {

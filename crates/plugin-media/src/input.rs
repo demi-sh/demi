@@ -1,10 +1,10 @@
 //! A media call's input: its arguments, its model, its prompt, its images
 //! and its shape.
 
-use demi_device_interface::RpcInvocation;
-use demi_plugin_interface::{ImageAspect, ImageInput, ImageKind, PluginError, PluginPort, PortFailure, PortRefusal};
-use demi_device_interface::{DeviceFile, DeviceRead};
-use demi_shared_types::{B64Bytes, MediaKind, mp4};
+use jush_device_interface::RpcInvocation;
+use jush_plugin_interface::{ImageAspect, ImageInput, ImageKind, PluginError, PluginPort, PortFailure, PortRefusal};
+use jush_device_interface::{DeviceFile, DeviceRead};
+use jush_shared_types::{B64Bytes, MediaKind, mp4};
 use image::ImageFormat;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -32,7 +32,7 @@ pub fn decode_args<T: DeserializeOwned>(invocation: &RpcInvocation) -> Result<T,
 pub fn required_model(model: Option<String>, kind: MediaKind) -> Result<String, PluginError> {
     model
         .filter(|model| !model.trim().is_empty())
-        .ok_or_else(|| PluginError::failed(format!("--model is required; demi {kind} models lists them")))
+        .ok_or_else(|| PluginError::failed(format!("--model is required; jush {kind} models lists them")))
 }
 
 /// The call's prompt: the argument, or the whole of stdin for `-`.

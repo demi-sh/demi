@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use demi_shared_types::{LogLevel, LogLine, LogOrigin};
+use jush_shared_types::{LogLevel, LogLine, LogOrigin};
 use rusqlite::{Connection, OpenFlags, OptionalExtension as _, params};
 
 use super::{Limits, Message, Row};
@@ -242,7 +242,7 @@ impl<'a> Database<'a> {
 
     fn failed(&mut self, what: &str, error: &StorageError) {
         if !self.failing {
-            eprintln!("demi-backend: the server log {what}: {error}");
+            eprintln!("jush-backend: the server log {what}: {error}");
         }
         self.failing = true;
     }
@@ -344,7 +344,7 @@ fn remove(path: &Path) {
             && error.kind() != std::io::ErrorKind::NotFound
         {
             eprintln!(
-                "demi-backend: the server log's {} could not be removed: {error}",
+                "jush-backend: the server log's {} could not be removed: {error}",
                 Path::new(&file).display()
             );
         }

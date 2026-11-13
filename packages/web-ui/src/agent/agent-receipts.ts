@@ -1,4 +1,4 @@
-import type { AgentMessage, Block } from '@demicodes/protocol'
+import type { AgentMessage, Block } from '@jush-ai/protocol'
 import { inject, provide, type InjectionKey } from 'vue'
 import { homePath } from '../files/paths'
 import { codeText } from '../infra/errors'
@@ -17,7 +17,7 @@ import { agentName } from './subagents'
 export interface ReceiptRow {
   notice: string
   /**
-   * The agent the row names; none for a row the user's own decision or Demi
+   * The agent the row names; none for a row the user's own decision or Jush
    * makes.
    */
   title: string | null
@@ -58,7 +58,7 @@ export function receiptRow(message: AgentMessage): ReceiptRow {
     // The user's move of the conversation, which the user told the agent of.
     case 'moved':
       return plain(t('transcript.receipt.moved', { device: event.device, path: homePath(event.path, event.home) }))
-    // Demi's notice that a move the agent asked for failed, and why, as the
+    // Jush's notice that a move the agent asked for failed, and why, as the
     // row's own words.
     case 'move_failed':
       return plain(t('transcript.receipt.moveFailed', {

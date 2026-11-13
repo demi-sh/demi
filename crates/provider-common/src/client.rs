@@ -18,7 +18,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_shared_types::ProviderHeader;
+use jush_shared_types::ProviderHeader;
 use futures_util::future::BoxFuture;
 use futures_util::stream::BoxStream;
 use http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode};
@@ -386,22 +386,22 @@ fn redirected(hop: &DeviceRequest, answer: &DeviceAnswer) -> Option<DeviceReques
 /// A file's download goes the provider's way, to the network or through
 /// its owner's device (`crates/shared-artifacts/src/download.rs`); its client follows
 /// no redirect, as [`ProviderHttp::without_redirects`] makes it.
-impl demi_shared_artifacts::Fetch for ProviderHttp {
+impl jush_shared_artifacts::Fetch for ProviderHttp {
     fn fetch(
         &self,
         url: reqwest::Url,
         headers: HeaderMap,
-    ) -> futures_util::future::BoxFuture<'_, Result<reqwest::Response, demi_shared_artifacts::Unsent>> {
+    ) -> futures_util::future::BoxFuture<'_, Result<reqwest::Response, jush_shared_artifacts::Unsent>> {
         Box::pin(async move {
             self.get(url).headers(headers).send().await.map_err(|error| match error {
-                SendError::Transport(error) => demi_shared_artifacts::Unsent::of(error),
+                SendError::Transport(error) => jush_shared_artifacts::Unsent::of(error),
                 // A removed device never answers again; one that was offline
                 // or failed may answer a later connection.
-                SendError::Device(refusal @ DeviceRefusal::Removed) => demi_shared_artifacts::Unsent::Refused(
-                    demi_shared_artifacts::Error::Download(refusal.to_string()),
+                SendError::Device(refusal @ DeviceRefusal::Removed) => jush_shared_artifacts::Unsent::Refused(
+                    jush_shared_artifacts::Error::Download(refusal.to_string()),
                 ),
-                SendError::Device(refusal) => demi_shared_artifacts::Unsent::Connection(
-                    demi_shared_artifacts::Error::Download(refusal.to_string()),
+                SendError::Device(refusal) => jush_shared_artifacts::Unsent::Connection(
+                    jush_shared_artifacts::Error::Download(refusal.to_string()),
                 ),
             })
         })

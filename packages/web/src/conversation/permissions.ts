@@ -1,6 +1,6 @@
 import { reactive, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { codeText, formError, reportError, type ShownError } from '@demicodes/web-ui/infra/errors'
+import { codeText, formError, reportError, type ShownError } from '@jush-ai/web-ui/infra/errors'
 import { t } from './locales/text'
 import {
   afterDecision,
@@ -8,7 +8,7 @@ import {
   type PermissionDecision,
   type PermissionRequestView,
   type RequestView,
-} from '@demicodes/web-ui/permissions/types'
+} from '@jush-ai/web-ui/permissions/types'
 import { ApiError } from '../api/client'
 import { decidePermission } from '../api/permissions'
 import type { ConversationPermissions, PermissionCategory, PermissionRequest } from '../api/generated/web-api'

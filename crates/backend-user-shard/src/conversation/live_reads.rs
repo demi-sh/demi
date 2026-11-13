@@ -7,15 +7,15 @@
 //! keep: the entries of the newest instructions block and the summary size of
 //! each compaction marker.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::tree::{self, Transcript};
-use demi_conversation_lane_protocol::{CacheChart, ShellStatus, index_u32};
-use demi_shared_types::NodeId;
-use demi_web_api_protocol::conversations::TranscriptPage;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_database::StorageError;
+use jush_backend_database::tree::{self, Transcript};
+use jush_conversation_lane_protocol::{CacheChart, ShellStatus, index_u32};
+use jush_shared_types::NodeId;
+use jush_web_api_protocol::conversations::TranscriptPage;
+use jush_web_api_protocol::ids::ConversationId;
 
 use crate::shard::Shard;
-use demi_backend_device_access::root_of;
+use jush_backend_device_access::root_of;
 
 impl Shard {
     /// The latest `count` blocks, a page at most, of the live node `node` of
@@ -73,7 +73,7 @@ impl Shard {
 
     /// The cache chart of the node `node` of the conversation `id`; none for a
     /// node that has none.
-    pub async fn cache_chart(&self, id: &ConversationId, node: &NodeId) -> Result<Option<CacheChart>, demi_agent_store::StoreError> {
+    pub async fn cache_chart(&self, id: &ConversationId, node: &NodeId) -> Result<Option<CacheChart>, jush_agent_store::StoreError> {
         self.agent().cache_chart(&root_of(id), node).await
     }
 

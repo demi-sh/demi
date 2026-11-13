@@ -12,7 +12,7 @@ loading of html-to-image from jsDelivr.
 
 Every widget's document loads Tailwind from jsDelivr
 (`@tailwindcss/browser@4`) before the agent's page. The theme's names, such
-as `text-fg-muted`, are Tailwind's, so a widget draws in Demi's look only
+as `text-fg-muted`, are Tailwind's, so a widget draws in Jush's look only
 once that script arrives. Three things follow:
 
 - A user whose network reaches the server but not jsDelivr, as on a company
@@ -21,16 +21,16 @@ once that script arrives. Three things follow:
 - When jsDelivr is slow, each widget waits on it. A copy as an image that
   loaded html-to-image the same way took 8.5 seconds the first time.
 - `@4` follows whatever 4.x jsDelivr serves that day, so a Tailwind release
-  can change how every past widget draws, with no Demi release.
+  can change how every past widget draws, with no Jush release.
 
 ## Decision
 
-A library Demi's own code runs is Demi's: it ships with the release and the
+A library Jush's own code runs is Jush's: it ships with the release and the
 backend serves it. A library only the agent's page chooses, such as Chart.js
 or an icon set, stays the page's, loaded from wherever the page says, and the
 guide still says so.
 
-For the widget plugin, Demi's libraries are two:
+For the widget plugin, Jush's libraries are two:
 
 | Library               | Version | Size     | Loaded                  |
 | --------------------- | ------- | -------- | ----------------------- |
@@ -104,7 +104,7 @@ documents and the same files at the same paths, in place of the blob URLs it
 frames them by today, whose documents cannot resolve a root-relative
 address.
 
-The document a Host's browser draws for `demi widget create`'s screenshots
+The document a Host's browser draws for `jush widget create`'s screenshots
 holds Tailwind's code in its own script element instead: that browser loads
 the document as text and reaches no backend.
 
@@ -147,7 +147,7 @@ still shows keeps the jsDelivr copy it loaded until it reloads.
   extension's package, under `/lab/extensions/{name}/static/`
   ([Prebuilt extensions](https://jupyterlab.readthedocs.io/en/stable/extension/extension_dev.html#prebuilt-extensions)).
 
-Both serve the files from the server that runs the extension. Demi departs
+Both serve the files from the server that runs the extension. Jush departs
 in serving them without a session, because its frames are opaque origins
 and its shares have readers without an account.
 

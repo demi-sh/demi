@@ -33,7 +33,7 @@ export interface ModelInfo {
   name: string
   contextWindow: number | null
   /**
-   * The limit the user set on the window Demi uses for this model, while its
+   * The limit the user set on the window Jush uses for this model, while its
    * window offers it; null uses the full window (`packages/web-ui/src/agent/context-limit.ts`).
    */
   contextLimit: number | null
@@ -44,7 +44,7 @@ export interface ModelInfo {
 }
 
 // The session's events and the one transcript patch applier, which a host
-// reads through here: it reaches `@demicodes/conversation-client` only through this
+// reads through here: it reaches `@jush-ai/conversation-client` only through this
 // package.
 export {
   EMPTY_TRANSCRIPT,
@@ -71,4 +71,4 @@ export {
   type HeldTranscript,
   type TranscriptRead,
   type TranscriptWindow,
-} from '@demicodes/conversation-client'
+} from '@jush-ai/conversation-client'

@@ -32,7 +32,7 @@ the call in the other 3.
 command running, and the command's end wakes the agent, as the end of a
 command that moved to the background does.** The command is the
 conversation's: the work panel shows it running, its own Stop there stops
-it, and `demi shell output` reads it. Like any command in the background,
+it, and `jush shell output` reads it. Like any command in the background,
 it keeps running when the user stops the agent's turn.
 
 The model reads, in the tool's description:
@@ -82,7 +82,7 @@ each, used no `background` in either version. GPT was not tested.
 - Claude Code's Bash tool takes `run_in_background`: the call returns at
   once, and the model is told when the command completes, so it does not
   poll ([background bash commands](https://code.claude.com/docs/en/interactive-mode)).
-  The models Demi runs are trained on it, which is why they reach for a
+  The models Jush runs are trained on it, which is why they reach for a
   background of their own when the tool has none.
 - Codex's `exec_command` returns after `yield_time_ms` with the session
   still running, and the model polls it with `write_stdin`

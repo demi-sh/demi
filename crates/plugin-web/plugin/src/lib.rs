@@ -2,8 +2,8 @@
 //!
 //! The plugin holds:
 //!
-//! - the `demi web` group, whose `search` runs here against Exa and whose
-//!   `fetch` is bound to the `demi.fetch` command package on the device;
+//! - the `jush web` group, whose `search` runs here against Exa and whose
+//!   `fetch` is bound to the `jush.fetch` command package on the device;
 //! - the user's Exa account, signed in through the plugin host's OAuth sign-in
 //!   or as an API key kept as a secret;
 //! - the switches of search and fetch, which the user turns on and off
@@ -22,7 +22,7 @@ mod web;
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     CommandPlugin, Manifest, OAuth, Plugin, PluginError, PluginFactory, PluginId, PluginPort,
     Reply, Request,
 };
@@ -44,7 +44,7 @@ impl Web {
         let mut manifest = Manifest::new(
             PluginId::try_from("web").expect("a valid plugin id"),
             "Web",
-            "Searches the web with Exa and reads pages from the conversation's device with demi web.",
+            "Searches the web with Exa and reads pages from the conversation's device with jush web.",
         );
         manifest.commands = web::commands().manifest_commands();
         manifest.features = web::features();
@@ -83,7 +83,7 @@ struct Instance(Rc<State>);
 
 /// What the instance keeps in memory, for its user only: never a result.
 struct State {
-    /// The `demi web` group, whose `search` the instance answers.
+    /// The `jush web` group, whose `search` the instance answers.
     commands: CommandPlugin,
     /// The MCP sessions with Exa, anonymous and signed in.
     mcp: mcp::Mcp,

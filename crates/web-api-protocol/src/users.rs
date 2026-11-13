@@ -5,7 +5,7 @@
 
 use std::fmt;
 
-use demi_shared_types::Timestamp;
+use jush_shared_types::Timestamp;
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

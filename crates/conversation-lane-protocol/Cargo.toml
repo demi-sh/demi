@@ -1,5 +1,5 @@
 [package]
-name = "demi-conversation-lane-protocol"
+name = "jush-conversation-lane-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,7 +13,7 @@ test = false
 bench = false
 
 [dependencies]
-demi-shared-types = { path = "../shared-types" }
+jush-shared-types = { path = "../shared-types" }
 garde.workspace = true
 schemars.workspace = true
 serde.workspace = true

@@ -8,7 +8,7 @@
 //! `PublicKeyCredential.parseRequestOptionsFromJSON` and takes them from
 //! `PublicKeyCredential.toJSON()` as they are.
 
-use demi_shared_types::Timestamp;
+use jush_shared_types::Timestamp;
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -19,13 +19,13 @@ use webauthn_rs_proto::{
 
 use crate::text::Trimmed;
 
-demi_shared_types::id!(
+jush_shared_types::id!(
     /// A passkey's id: its credential id in base64url without padding, as
     /// the browser names it.
     PasskeyId
 );
 
-demi_shared_types::id!(
+jush_shared_types::id!(
     /// A passkey sign-in's or addition's challenge, which the backend keeps
     /// for five minutes and uses once.
     PasskeyChallengeId

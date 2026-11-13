@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { Layers } from '@lucide/vue'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
-import Fold from '@demicodes/web-ui/ui/Fold.vue'
-import { CHROME_ENTER_MS, chromeEntrance } from '@demicodes/web-ui/ui/chrome-enter'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
+import Fold from '@jush-ai/web-ui/ui/Fold.vue'
+import { CHROME_ENTER_MS, chromeEntrance } from '@jush-ai/web-ui/ui/chrome-enter'
 import FunctionalBlock from './FunctionalBlock.vue'
 import StepRow from './StepRow.vue'
 import FileChangePills from './FileChangePills.vue'

@@ -14,10 +14,10 @@
 //! What the manager relies on in a base is the base's format, which
 //! `formatVersion` names:
 //!
-//! - The `demi` user.
+//! - The `jush` user.
 //! - Init.
 //! - The runner's directories.
-//! - `/opt/demi` as the place of Demi's programs.
+//! - `/opt/jush` as the place of Jush's programs.
 //!
 //! A release that changes any of it changes the format. The manager boots every
 //! base whose format it supports, and a release that ends the support for one
@@ -31,8 +31,8 @@
 
 use std::collections::BTreeMap;
 
-use demi_command_protocol::{PackageArtifact, PackageDescriptor, digest};
-use demi_runner_protocol::{image::ARTIFACTS_PATH, release::RunnerRelease};
+use jush_command_protocol::{PackageArtifact, PackageDescriptor, digest};
+use jush_runner_protocol::{image::ARTIFACTS_PATH, release::RunnerRelease};
 use serde::{Deserialize, Serialize};
 
 /// The manifest's schema version.
@@ -155,7 +155,7 @@ pub struct CloudImageManifest {
     /// The command package releases whose artifacts the image embeds.
     #[garde(dive)]
     pub releases: Vec<PackageDescriptor>,
-    /// The runner release of `/opt/demi/bin/demi-runner`.
+    /// The runner release of `/opt/jush/bin/jush-runner`.
     #[garde(dive)]
     pub runner: RunnerRelease,
 }
@@ -173,13 +173,13 @@ pub enum ManifestError {
     Release(String),
 }
 
-/// Where Demi's own programs live in every image: the runner, its alias and
+/// Where Jush's own programs live in every image: the runner, its alias and
 /// the embedded command packages. The machine manager mounts the configured
 /// image's over the pinned one's at every boot
 /// (`crates/machine-manager/src/sandbox/mod.rs`).
-pub const PROGRAMS_PATH: &str = "/opt/demi";
+pub const PROGRAMS_PATH: &str = "/opt/jush";
 /// Where the runner executable lives in every image.
-pub const RUNNER_PATH: &str = "/opt/demi/bin/demi-runner";
+pub const RUNNER_PATH: &str = "/opt/jush/bin/jush-runner";
 /// The image's init, which runs the runner and reaps orphaned processes.
 pub const INIT_PATH: &str = "/usr/bin/tini";
 

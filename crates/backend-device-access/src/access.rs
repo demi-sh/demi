@@ -66,22 +66,22 @@ use std::collections::HashMap;
 use std::future::Future;
 use std::rc::Rc;
 
-use demi_backend_blobs::ObjectError;
-use demi_backend_cloud::machine::{CloudAdmission, CloudError};
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_index::{ConversationRecord, ExecutionTarget};
-use demi_backend_database::devices::DeviceRecord;
-use demi_agent_tools::duration;
-use demi_backend_database::projects::TypedDirectory;
-use demi_runner_client::{Admission, Link, RemoteDevice, WeakLink, Withdrawal};
-use demi_backend_runners::file_gate::{FileGate, FileLease};
-use demi_device_interface::{Device as _, DeviceError, DeviceErrorKind, DeviceFs};
-use demi_runner_protocol::files::FsFailure;
-use demi_shared_gates::{ActivityGate, GateLease, Purpose, SerialGate};
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::error::ErrorCode;
+use jush_backend_blobs::ObjectError;
+use jush_backend_cloud::machine::{CloudAdmission, CloudError};
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_index::{ConversationRecord, ExecutionTarget};
+use jush_backend_database::devices::DeviceRecord;
+use jush_agent_tools::duration;
+use jush_backend_database::projects::TypedDirectory;
+use jush_runner_client::{Admission, Link, RemoteDevice, WeakLink, Withdrawal};
+use jush_backend_runners::file_gate::{FileGate, FileLease};
+use jush_device_interface::{Device as _, DeviceError, DeviceErrorKind, DeviceFs};
+use jush_runner_protocol::files::FsFailure;
+use jush_shared_gates::{ActivityGate, GateLease, Purpose, SerialGate};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::error::ErrorCode;
 use futures_util::future::LocalBoxFuture;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 use futures_util::future::join_all;
 use tokio::sync::Notify;
 use tokio_util::sync::CancellationToken;
@@ -401,7 +401,7 @@ pub enum DeviceAccessError {
     /// A put of a fitted upload image through the agent's view of the blob
     /// namespace failed.
     #[error(transparent)]
-    Store(#[from] demi_agent_store::StoreError),
+    Store(#[from] jush_agent_store::StoreError),
 }
 
 impl DeviceAccessError {
@@ -551,9 +551,9 @@ pub struct Waits<'a> {
     pub device: Option<DeviceWait<'a>>,
     /// Whether the admission may make the conversation's directory on its
     /// device, as its first use does (`first_use`). A turn's work, a transfer
-    /// and a `demi device` command do; a request the user makes to read does
+    /// and a `jush device` command do; a request the user makes to read does
     /// not, and finds a directory that is not there missing, except the
-    /// directory of a conversation on the Cloud, which is Demi's to make.
+    /// directory of a conversation on the Cloud, which is Jush's to make.
     pub creates: bool,
     /// Whether it is for a subagent's own device
     /// (`crates/agent-server/src/node/mod.rs`): its shells start where the
@@ -1071,7 +1071,7 @@ impl dyn DeviceShard + '_ {
     }
 
     /// Makes a Cloud conversation's directory for a read, without the file
-    /// gate, once per connection: the Cloud is Demi's, so a conversation that
+    /// gate, once per connection: the Cloud is Jush's, so a conversation that
     /// ran nothing yet shows an empty folder, not a missing one. Its name is
     /// the work's to settle (`first_use`): one the Cloud names otherwise is
     /// left for the work's first use to name. A directory the Cloud cannot
@@ -1136,7 +1136,7 @@ impl dyn DeviceShard + '_ {
     }
 
     /// The devices the user's conversation `id` reaches, which the web app's device
-    /// routes and `demi device shell --device` accept
+    /// routes and `jush device shell --device` accept
     /// (`crates/backend-database/src/conversation_index.rs`): its primary device,
     /// then its attached ones.
     ///

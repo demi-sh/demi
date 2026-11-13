@@ -16,20 +16,20 @@
 //! the revision it describes, and a switch and a reset are each announced to a
 //! node once.
 
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_index::{
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_index::{
     AttachedDevice, ExecutionTarget, TargetSwitch,
 };
-use demi_backend_database::devices::{CLOUD_NAME, DeviceRecord};
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_agent_store::Placement;
-use demi_conversation_lane_protocol::{AgentEntry, Version};
-use demi_agent_tools::NodeContext;
-use demi_backend_device_access::access::DeviceAccessError;
-use demi_backend_device_access::{conversation_of, root_of};
-use demi_device_paths::DevicePaths;
-use demi_runner_protocol::wire::RunnerPlatform;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_backend_database::devices::{CLOUD_NAME, DeviceRecord};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_agent_store::Placement;
+use jush_conversation_lane_protocol::{AgentEntry, Version};
+use jush_agent_tools::NodeContext;
+use jush_backend_device_access::access::DeviceAccessError;
+use jush_backend_device_access::{conversation_of, root_of};
+use jush_device_paths::DevicePaths;
+use jush_runner_protocol::wire::RunnerPlatform;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
 
 use crate::shard::Shard;
 
@@ -40,7 +40,7 @@ pub enum AgentsError {
     Device(#[from] DeviceAccessError),
     /// The conversation's database could not be read.
     #[error(transparent)]
-    Unreadable(demi_agent_store::StoreError),
+    Unreadable(jush_agent_store::StoreError),
 }
 
 /// What opens every context block, before the revision it describes.
@@ -51,17 +51,17 @@ const SWITCHED: &str = "[Execution target switched]";
 
 /// What a block for Linux, or for a device whose system is not known, says of a
 /// job's standard utilities and shells (`crates/runner-shell/src/utilities.rs`):
-/// the utilities that write files or start programs are Demi's, so that their
+/// the utilities that write files or start programs are Jush's, so that their
 /// changes are recorded, and the others are the system's own.
-const UTILITIES: &str = "sh, bash and the standard utilities that write files or start programs (sed, cp, mv, rm, find, xargs, …) are Demi's own, GNU's, and what they write is recorded as your changes; every other program (grep, ls, cat, tar, patch, python, …) is the system's own, and what it writes is not recorded";
+const UTILITIES: &str = "sh, bash and the standard utilities that write files or start programs (sed, cp, mv, rm, find, xargs, …) are Jush's own, GNU's, and what they write is recorded as your changes; every other program (grep, ls, cat, tar, patch, python, …) is the system's own, and what it writes is not recorded";
 
 /// What a block for a Mac says: the utilities that write files or start
-/// programs are Demi's, so that their changes are recorded, and the others
+/// programs are Jush's, so that their changes are recorded, and the others
 /// are the Mac's own, BSD, in /bin and /usr/bin.
-const MACOS_UTILITIES: &str = "sh, bash and the standard utilities that write files or start programs (sed, cp, mv, rm, find, xargs, …) are Demi's own, GNU's, read macOS's forms too (`sed -i ''`), and what they write is recorded as your changes; every other program (grep, ls, cat, tar, patch, python, …) is macOS's own, in /bin and /usr/bin, and what it writes is not recorded";
+const MACOS_UTILITIES: &str = "sh, bash and the standard utilities that write files or start programs (sed, cp, mv, rm, find, xargs, …) are Jush's own, GNU's, read macOS's forms too (`sed -i ''`), and what they write is recorded as your changes; every other program (grep, ls, cat, tar, patch, python, …) is macOS's own, in /bin and /usr/bin, and what it writes is not recorded";
 
 /// Where the agent keeps the files only it needs (`crates/runner-jobs/src/scratch.rs`), which every block says after where shells start.
-const SCRATCH: &str = "Files only you need (screenshots, probe scripts) go in $DEMI_SCRATCH, which shows as no change; what goes unused for a while, or past its size limit, is removed.";
+const SCRATCH: &str = "Files only you need (screenshots, probe scripts) go in $JUSH_SCRATCH, which shows as no change; what goes unused for a while, or past its size limit, is removed.";
 
 /// What a block for a Cloud says of what it reaches, which the machine
 /// manager's firewall and resolver limit to what the master's network policy
@@ -71,11 +71,11 @@ const CLOUD_NETWORK_POLICY: &str = "The server's network policy, which its maste
 
 /// What a block for Windows says of its utilities: the others are Git for
 /// Windows' (`crates/runner/src/git.rs`).
-const WINDOWS_UTILITIES: &str = "sh, bash and the standard utilities that write files or start programs (sed, cp, mv, rm, find, xargs, …) are Demi's own, GNU's, and what they write is recorded as your changes; every other utility (grep, ls, cat, …) is Git for Windows' own, and any other program is the system's, and what they write is not recorded";
+const WINDOWS_UTILITIES: &str = "sh, bash and the standard utilities that write files or start programs (sed, cp, mv, rm, find, xargs, …) are Jush's own, GNU's, and what they write is recorded as your changes; every other utility (grep, ls, cat, …) is Git for Windows' own, and any other program is the system's, and what they write is not recorded";
 
 /// What a block for Windows adds: what the shell is, since a model
 /// otherwise guesses Git Bash or MSYS, and which drive path a program takes.
-const WINDOWS_SHELLS: &str = "Shells are bash (Demi's own, not Git Bash or WSL); Windows programs such as cmd, powershell and git run by name. The shell and its utilities read /c/Users/… as C:/Users/…, a Windows program only C:/Users/…; quote a path with backslashes.";
+const WINDOWS_SHELLS: &str = "Shells are bash (Jush's own, not Git Bash or WSL); Windows programs such as cmd, powershell and git run by name. The shell and its utilities read /c/Users/… as C:/Users/…, a Windows program only C:/Users/…; quote a path with backslashes.";
 
 /// The line of a block after the conversation's attached devices changed.
 const ATTACHED_CHANGED: &str = "[Attached devices changed]";
@@ -229,7 +229,7 @@ impl Shard {
     ///   them;
     /// - the directory its shells start in, and where the files only the agent
     ///   needs go;
-    /// - which of its standard utilities are Demi's own, GNU's, and which the
+    /// - which of its standard utilities are Jush's own, GNU's, and which the
     ///   system's, and what a Windows device's shell is.
     ///
     /// A device whose runner never connected, such as a Cloud not made yet, is named
@@ -242,7 +242,7 @@ impl Shard {
             _ => format!("{UTILITIES}."),
         };
         let limited = |record: &DeviceRecord| {
-            demi_backend_cloud::isolation::network_policy_applies(&self.services().cloud, record.id.as_str())
+            jush_backend_cloud::isolation::network_policy_applies(&self.services().cloud, record.id.as_str())
         };
         if device.as_ref().is_none_or(|record| record.kind == DeviceKind::Managed && limited(record)) {
             utilities = format!("{utilities} {CLOUD_NETWORK_POLICY}");
@@ -286,7 +286,7 @@ impl Shard {
     /// The attached devices as one line: each one's name, connection and
     /// directory, and how to reach them.
     fn attached_devices_line(&self, attached: &[AttachedDevice]) -> String {
-        const LIST: &str = "`demi device list` shows all of the user's devices; `demi device shell --device <name> <script>` runs a shell string on any of them, attaching it first.";
+        const LIST: &str = "`jush device list` shows all of the user's devices; `jush device shell --device <name> <script>` runs a shell string on any of them, attaching it first.";
         if attached.is_empty() {
             return format!("{ATTACHED}none. {LIST}");
         }
@@ -367,7 +367,7 @@ fn switch_lines(
         let name = &departed.name;
         let from = switch.from.path();
         lines.push(format!(
-            "The previous device stays attached as \"{name}\": `demi device shell --device {name} <script>` runs a shell string there with byte-faithful stdio, starting in {from} (e.g. `demi device shell --device {name} \"tar c -C {from} .\" | tar x` pulls its files into the current directory)."
+            "The previous device stays attached as \"{name}\": `jush device shell --device {name} <script>` runs a shell string there with byte-faithful stdio, starting in {from} (e.g. `jush device shell --device {name} \"tar c -C {from} .\" | tar x` pulls its files into the current directory)."
         ));
     }
     if let (

@@ -192,7 +192,7 @@
     "selectFile": "Selecciona un archivo cambiado",
     "previousNotKept": "No se conservó el contenido anterior.",
     "changeNotKept": "No se conservó el contenido de este cambio.",
-    "binaryNotKept": "Demi conserva el texto de los cambios que hace un chat, no imágenes ni otros archivos binarios.",
+    "binaryNotKept": "Jush conserva el texto de los cambios que hace un chat, no imágenes ni otros archivos binarios.",
     "onNoBranch": "No está en ninguna rama",
     "committed": "Con commit",
     "workingTree": "Árbol de trabajo",

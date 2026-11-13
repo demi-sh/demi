@@ -1,12 +1,12 @@
-# Demi's container image: one release's assets, from which
-# `demi-server container` sets up or upgrades the server on the volume at
-# /opt/demi (crates/server/src/container.rs). The release workflow builds it
+# Jush's container image: one release's assets, from which
+# `jush-server container` sets up or upgrades the server on the volume at
+# /opt/jush (crates/server/src/container.rs). The release workflow builds it
 # from the release's published assets, in a context laid out as
 #
 #   assets/<arch>/SHA256SUMS                          of these two
-#   assets/<arch>/demi-<version>-server-linux-<arch>.tar.zst
-#   assets/<arch>/demi-<version>-image-linux-<arch>.tar
-#   bin/<arch>/demi-server                            the release's
+#   assets/<arch>/jush-<version>-server-linux-<arch>.tar.zst
+#   assets/<arch>/jush-<version>-image-linux-<arch>.tar
+#   bin/<arch>/jush-server                            the release's
 #
 # for amd64 and arm64.
 FROM ubuntu:26.04
@@ -24,23 +24,23 @@ RUN apt-get update \
 
 # The users setup makes, with ids of their own, since the volume's files keep
 # them from one image to the next.
-RUN groupadd --system --gid 990 demi-cloud \
-    && groupadd --system --gid 991 demi \
-    && useradd --system --uid 991 --gid demi --groups demi-cloud \
-      --home-dir /opt/demi/data/backend --no-create-home \
-      --shell /usr/sbin/nologin demi
+RUN groupadd --system --gid 990 jush-cloud \
+    && groupadd --system --gid 991 jush \
+    && useradd --system --uid 991 --gid jush --groups jush-cloud \
+      --home-dir /opt/jush/data/backend --no-create-home \
+      --shell /usr/sbin/nologin jush
 
-COPY assets/${TARGETARCH}/ /usr/lib/demi/assets/
-COPY --chmod=0755 bin/${TARGETARCH}/demi-server /usr/lib/demi/demi-server
-# As setup links it on a machine, for `docker exec ... demi-server status`.
-RUN ln -s /opt/demi/current/bin/demi-server /usr/local/bin/demi-server
+COPY assets/${TARGETARCH}/ /usr/lib/jush/assets/
+COPY --chmod=0755 bin/${TARGETARCH}/jush-server /usr/lib/jush/jush-server
+# As setup links it on a machine, for `docker exec ... jush-server status`.
+RUN ln -s /opt/jush/current/bin/jush-server /usr/local/bin/jush-server
 
-ENV DEMI_UPGRADE_CHANNEL=${CHANNEL} \
-    DEMI_BACKEND_LISTEN=0.0.0.0:3271 \
-    DEMI_BACKEND_DATA=/opt/demi/data/backend \
-    DEMI_MANAGED_DATA=/opt/demi/data/cloud
+ENV JUSH_UPGRADE_CHANNEL=${CHANNEL} \
+    JUSH_BACKEND_LISTEN=0.0.0.0:3271 \
+    JUSH_BACKEND_DATA=/opt/jush/data/backend \
+    JUSH_MANAGED_DATA=/opt/jush/data/cloud
 
 EXPOSE 3271
-VOLUME /opt/demi
+VOLUME /opt/jush
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["/usr/lib/demi/demi-server", "container"]
+ENTRYPOINT ["/usr/lib/jush/jush-server", "container"]

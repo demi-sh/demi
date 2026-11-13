@@ -1,5 +1,5 @@
 import { DEMO_BUN_TEST, DEMO_GIT_DIFF, DEMO_RG } from './terminal-output'
-import { endedTerminal, type EndedCommandEntry, type EndedOutputText, type TerminalRecord } from '@demicodes/web-ui/agent/terminals'
+import { endedTerminal, type EndedCommandEntry, type EndedOutputText, type TerminalRecord } from '@jush-ai/web-ui/agent/terminals'
 import { BASH_SCRIPT, steppedRunCall, LEFT_RUNNING_CALL, RUNNING_RUN_CALL, RUNNING_SHELL_DESCRIPTION, RUNNING_SHELL_SCRIPT, returnedShellTool, runningShellTool } from './blocks'
 import { ago } from './time'
 

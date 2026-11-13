@@ -1,5 +1,5 @@
-import { showToast } from '@demicodes/web-ui/infra/toast'
-import type { HeadlineText } from '@demicodes/web-ui/ui/ui-text'
+import { showToast } from '@jush-ai/web-ui/infra/toast'
+import type { HeadlineText } from '@jush-ai/web-ui/ui/ui-text'
 
 /**
  * What the product would do with a device or another page, said in a neutral

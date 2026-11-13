@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { wholeHistory } from '@demicodes/web-ui/agent/history'
+import { wholeHistory } from '@jush-ai/web-ui/agent/history'
 import { computed, ref } from 'vue'
-import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
-import type { ChatSessionState } from '@demicodes/web-ui/agent/types'
-import MarkdownDocument from '@demicodes/web-ui/files/MarkdownDocument.vue'
+import ChatSession from '@jush-ai/web-ui/agent/ChatSession.vue'
+import type { ChatSessionState } from '@jush-ai/web-ui/agent/types'
+import MarkdownDocument from '@jush-ai/web-ui/files/MarkdownDocument.vue'
 import AxisPicker from './AxisPicker.vue'
 import { demoModel } from '../fixtures/blocks'
 import { PROJECT_ROOT } from '../fixtures/project'

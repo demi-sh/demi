@@ -19,7 +19,7 @@ import type { SidebarConversation } from './types'
  */
 
 /** The product's name, as the tab says it. */
-const PRODUCT_NAME = 'demi'
+const PRODUCT_NAME = 'jush'
 
 /** How many conversations wear each dot that says something is new. */
 type TabNews = Readonly<Record<NewsTone, number>>

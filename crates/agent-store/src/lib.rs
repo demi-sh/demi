@@ -58,9 +58,9 @@ use std::{
     rc::Rc,
 };
 
-use demi_conversation_lane_protocol::{JobModel, JobPhase, Subagent, TurnSpeed, Versions};
-use demi_device_interface::{CommandMedium, Seen, UnsentStart, WholeOutput};
-use demi_shared_types::{
+use jush_conversation_lane_protocol::{JobModel, JobPhase, Subagent, TurnSpeed, Versions};
+use jush_device_interface::{CommandMedium, Seen, UnsentStart, WholeOutput};
+use jush_shared_types::{
     AgentAccount, AgentMessage, AgentMessageEvent, Block, BlockId, CommandEnd, CommandId, CommandReport, CompletionId, ModelSelection, NodeId,
     OperationId, QueuedMessage, Sequence, SessionPhase, Timestamp, TurnId, UserContentBlock,
 };
@@ -235,7 +235,7 @@ pub trait AgentTreeStore {
         reprofile: Option<Reprofile>,
     ) -> LocalBoxFuture<'a, Result<(), StoreError>>;
 
-    /// Changes the child `id`'s placement to `placement`, as `demi agent cwd` asks
+    /// Changes the child `id`'s placement to `placement`, as `jush agent cwd` asks
     /// (`crates/agent-server/src/node/mod.rs`).
     fn set_placement<'a>(
         &'a self,
@@ -371,7 +371,7 @@ pub enum StoreError {
 }
 
 /// The versions of a tree's stored state, at the epoch
-/// [`STORED_EPOCH`](demi_conversation_lane_protocol::STORED_EPOCH): they
+/// [`STORED_EPOCH`](jush_conversation_lane_protocol::STORED_EPOCH): they
 /// change with every save that changes what the value shows, so a page that
 /// holds one knows whether what it read is what the store holds now.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -438,7 +438,7 @@ pub struct NodeRecord {
     /// stored before versions existed, which is on every path.
     pub started_by: Option<BlockId>,
     /// A child's own placement, its device's device and its working directory
-    /// there, which its spawn and `demi agent cwd` set and a move of the
+    /// there, which its spawn and `jush agent cwd` set and a move of the
     /// conversation leaves (`crates/agent-server/src/node/mod.rs`); none for
     /// the root, which works where the conversation does.
     pub placement: Option<Placement>,
@@ -480,7 +480,7 @@ pub struct SideOf {
     pub start: u64,
     pub end: u64,
     pub quote: String,
-    pub picture: Option<demi_shared_types::MediaSource>,
+    pub picture: Option<jush_shared_types::MediaSource>,
     /// What was asked, a message's content.
     pub question: Vec<UserContentBlock>,
     pub asked_at: Timestamp,
@@ -834,7 +834,7 @@ impl Kind {
             Self::User => matches!(block, Block::User(_)),
             Self::ToolCall => matches!(block, Block::ToolCall(_)),
             Self::ExecutingCall => {
-                matches!(block, Block::ToolCall(call) if call.status == demi_shared_types::ToolCallStatus::Executing)
+                matches!(block, Block::ToolCall(call) if call.status == jush_shared_types::ToolCallStatus::Executing)
             }
             Self::Text => matches!(block, Block::Text(_)),
             Self::CompletedText => matches!(block, Block::Text(text) if text.forkable),
@@ -843,7 +843,7 @@ impl Kind {
             Self::Record => match block {
                 Block::CompactionBoundary(_) | Block::CompactionMarker(_) | Block::AgentMessage(_) => false,
                 Block::Error(error) => !error.outside_turn,
-                Block::Wakeup(wakeup) => wakeup.placement != demi_shared_types::WakeupPlacement::Steer,
+                Block::Wakeup(wakeup) => wakeup.placement != jush_shared_types::WakeupPlacement::Steer,
                 _ => true,
             },
         }

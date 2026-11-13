@@ -1,7 +1,7 @@
 import { computed, ref, shallowRef, watch, type ComputedRef, type Ref } from 'vue'
 import { defaultWindow, transition, tryOnScopeDispose } from '@vueuse/core'
-import type { RequestOutputReading } from '@demicodes/conversation-client'
-import type { TurnSpeed } from '@demicodes/protocol'
+import type { RequestOutputReading } from '@jush-ai/conversation-client'
+import type { TurnSpeed } from '@jush-ai/protocol'
 
 /** How long the count rolls to its next value within a request. */
 export const ROLL_MS = 500

@@ -57,7 +57,7 @@ defineExpose({ dockHeight, dockFootprint })
     the full-width scroller, so the scrollbar stays at the edge.
 
     data-session-surface: the product checks find a transcript's own dock by
-    it (`demi.transcript`).
+    it (`jush.transcript`).
   -->
   <div
     data-session-surface

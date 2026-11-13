@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue'
-import { emptyChangeSet, sameRequestFiles, type ChangeSources, type ConversationFileService, type RequestFile } from '@demicodes/plugin-sdk'
+import { emptyChangeSet, sameRequestFiles, type ChangeSources, type ConversationFileService, type RequestFile } from '@jush-ai/plugin-sdk'
 import type { ChangeData } from './data'
 
 const NO_FILES: readonly RequestFile[] = []

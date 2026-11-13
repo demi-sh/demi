@@ -5,7 +5,7 @@
 //! - a turn of the root that the user asked for and that ends, with an
 //!   answer or an error, once the conversation no longer runs;
 //! - a request that asks the user;
-//! - what the agent sends with `demi notify send`.
+//! - what the agent sends with `jush notify send`.
 //!
 //! Each goes, in the background and in the order they came, to the subscriptions
 //! that chose it, but those of a session one of whose pages shows its
@@ -15,8 +15,8 @@
 //!
 //! A turn notifies only when the user asked for it: one a schedule's message
 //! or another conversation's started notifies nothing
-//! (`demi_agent_session::AgentSession::take_turn_end_asked_by_user`), and its
-//! agent tells what is worth telling with `demi notify send`. A schedule's
+//! (`jush_agent_session::AgentSession::take_turn_end_asked_by_user`), and its
+//! agent tells what is worth telling with `jush notify send`. A schedule's
 //! run queued behind the user's turn never hides it (§ Telling turns apart).
 //! The same end, kept on the conversation's row, is what alone marks the
 //! conversation unread in the sidebar, so a dot and a notification never
@@ -56,17 +56,17 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_agent_session::{EndedTurn, TurnOutcome};
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_index::AskedEnd;
-use demi_backend_database::push::StoredPushSubscription;
-use demi_backend_device_access::root_of;
-use demi_backend_page_sync::Part;
-use demi_shared_types::BlockId;
-use demi_web_api_protocol::ids::ConversationId;
-use demi_web_api_protocol::permissions::PermissionRequestId;
-use demi_web_api_protocol::push::{ANSWER_START_CHARS, IN_USE_MINUTES, PushAsk, PushMessage};
-use demi_web_api_protocol::sessions::SessionId;
+use jush_agent_session::{EndedTurn, TurnOutcome};
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_index::AskedEnd;
+use jush_backend_database::push::StoredPushSubscription;
+use jush_backend_device_access::root_of;
+use jush_backend_page_sync::Part;
+use jush_shared_types::BlockId;
+use jush_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::permissions::PermissionRequestId;
+use jush_web_api_protocol::push::{ANSWER_START_CHARS, IN_USE_MINUTES, PushAsk, PushMessage};
+use jush_web_api_protocol::sessions::SessionId;
 use tokio::time::Instant;
 
 use crate::shard::Shard;
@@ -434,7 +434,7 @@ impl Shard {
             );
             // Each session says whether its browser has notifications on.
             if removed {
-                this.mark(demi_backend_page_sync::Part::Sessions);
+                this.mark(jush_backend_page_sync::Part::Sessions);
             }
         });
     }

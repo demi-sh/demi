@@ -1,5 +1,5 @@
 //! Cgroups: with the resource limits on, every sandbox's Sentry and Gofer
-//! live in `demi-cloud/<sandbox>`, which limits them together and lets the
+//! live in `jush-cloud/<sandbox>`, which limits them together and lets the
 //! manager kill all of them. With the limits off, nothing here runs.
 //!
 //! runsc makes the cgroup from the bundle's `cgroupsPath` on either
@@ -30,7 +30,7 @@ pub enum CgroupError {
     Io(#[from] io::Error),
     #[error(
         "Cloud resource limits need the cgroup cpu, memory and pids controllers at /sys/fs/cgroup; missing: {}. \
-         DEMI_MANAGED_LIMITS=off runs Clouds without limits",
+         JUSH_MANAGED_LIMITS=off runs Clouds without limits",
         .0.join(", ")
     )]
     Missing(Vec<&'static str>),
@@ -57,7 +57,7 @@ fn hierarchy() -> Hierarchy {
 
 /// The directory of the sandboxes' cgroups under the v2 root.
 fn sandboxes() -> PathBuf {
-    PathBuf::from(ROOT).join("demi-cloud")
+    PathBuf::from(ROOT).join("jush-cloud")
 }
 
 /// Requires the CPU, memory and PID controllers and enables them for the
@@ -178,7 +178,7 @@ fn cgroups(sandbox: &str) -> io::Result<Vec<PathBuf>> {
     let candidates = match hierarchy() {
         Hierarchy::V2 => vec![sandboxes().join(sandbox)],
         Hierarchy::V1 => fs_err::read_dir(ROOT)?
-            .map(|entry| entry.map(|entry| entry.path().join("demi-cloud").join(sandbox)))
+            .map(|entry| entry.map(|entry| entry.path().join("jush-cloud").join(sandbox)))
             .collect::<io::Result<_>>()?,
     };
     Ok(candidates.into_iter().filter(|cgroup| cgroup.exists()).collect())

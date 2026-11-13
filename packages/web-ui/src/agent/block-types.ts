@@ -1,4 +1,4 @@
-import type { Block, ToolView } from '@demicodes/protocol'
+import type { Block, ToolView } from '@jush-ai/protocol'
 
 export type ToolCallBlock = Extract<Block, { type: 'tool_call' }>
 /** A step its vendor ran on its side, drawn by its view. */

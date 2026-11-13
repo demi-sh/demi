@@ -102,7 +102,7 @@ pub use transcript::{
     index_u32, latest_page_start, light, page,
 };
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 
 /// Why a client frame was refused.
 #[derive(Debug, thiserror::Error)]
@@ -120,7 +120,7 @@ pub enum FrameError {
 /// Decodes one message of the conversation WebSocket into a frame and checks
 /// it, before anything acts on it.
 pub fn decode_client_frame(text: &str) -> Result<ClientFrame, FrameError> {
-    let frame: ClientFrame = match demi_shared_types::decode(text) {
+    let frame: ClientFrame = match jush_shared_types::decode(text) {
         Ok(frame) => frame,
         Err(DecodeError::Syntax(error)) => return Err(FrameError::NotJson(error)),
         Err(error) => return Err(FrameError::Invalid(error)),

@@ -47,7 +47,7 @@ pub use software::{Software, software};
 
 use std::sync::OnceLock;
 
-use demi_shared_openh264::Load;
+use jush_shared_openh264::Load;
 
 /// Why a picture could not be coded.
 #[derive(Debug, Clone, thiserror::Error)]

@@ -13,7 +13,7 @@ use crate::driver::{
     operation::{BrowserError, Result},
 };
 use crate::tabs::environment::BrowserEnvironment;
-use demi_command_package_browser_protocol::live::{ControlToken, LiveModuleMessage, UploadFile};
+use jush_command_package_browser_protocol::live::{ControlToken, LiveModuleMessage, UploadFile};
 
 use crate::live::{commands::find, hub::Membership, observers, protocol::TabId, writer::Writer};
 use crate::traced::SpawnTraced as _;

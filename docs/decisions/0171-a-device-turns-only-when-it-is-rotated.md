@@ -36,13 +36,13 @@ drawn on its side.
 ## Decision
 
 A device in the view turns only when it is rotated: by Rotate Left or Right
-in the toolbar, or by `demi mobile rotate`. An app that turns or refuses to,
+in the toolbar, or by `jush mobile rotate`. An app that turns or refuses to,
 and folding, opening and the guest's switch between its displays, never turn
 it.
 
 - The device shows held the way it was last rotated, as Simulator.app,
-  Xcode's Device Hub and Android Studio hold it: upright once Demi opened it,
-  as Demi turns it upright then.
+  Xcode's Device Hub and Android Studio hold it: upright once Jush opened it,
+  as Jush turns it upright then.
 - The screen shows its picture as the app lays it out. An app that does not
   follow the device lies on its side in the screen: a game in landscape on an
   iPhone held upright, or the outer display's home screen of iPhone Duo held
@@ -72,20 +72,20 @@ orientation of its pictures and frame, which become the held one.
 
 - The iOS helper (`DeviceSession.swift`) owns how the device is held: upright
   once attached, and the orientation of each rotation. It tells it with the
-  screen, and `demi-mobile` reads it there (`Screen::held`); an Android
+  screen, and `jush-mobile` reads it there (`Screen::held`); an Android
   device is held as its screen shows, since its pictures follow its sensors.
 - The helper's live captures turn each display's picture upright as the
   device is held, not as its screen shows, and it draws the frame that way.
   Screenshots, recordings, the screen's tree and the agent's coordinates
   stay the screen's.
-- `demi-mobile`'s live view names the held orientation, with the screen's
+- `jush-mobile`'s live view names the held orientation, with the screen's
   points turned to match, in its pictures' layout, its frame and the
   device's state (`Screen::as_held`), and turns each point a viewer gives
   back into the screen's before it reaches the device (`Screen::from_held`).
 - `rotate` answers how the device is held after the turn (`RotateResult::held`)
   beside the screen's orientation, which the page's press waits for.
 
-The page and `demi-mobile` ship in the same release.
+The page and `jush-mobile` ship in the same release.
 
 ## Spike
 

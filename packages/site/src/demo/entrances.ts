@@ -1,5 +1,5 @@
 // How the demos bring in what the app shows at once: a window, a side
-// question's card, a window's or a search's content once loaded. Demi itself
+// question's card, a window's or a search's content once loaded. Jush itself
 // puts them in place in one frame, as a tool should; a demo is watched, not
 // used, and a part that pops in reads as a glitch there. Each animation is
 // the page's own, so a recording keeps it and its play runs it.

@@ -18,22 +18,22 @@ use std::num::NonZeroU32;
 use std::rc::{Rc, Weak};
 use std::sync::Arc;
 
-use demi_agent_server::{ProviderResolver, ResolveError};
-use demi_agent_tools::{ProfileModel, Unavailable};
-use demi_backend_device_access::transition::ChangeRefusal;
-use demi_backend_providers::usage::meter::{Ledger, MeteredRuntime, ModelPrices, RetireModel};
-use demi_provider_registry::entry::{EntryCredential, ProviderEntry};
-use demi_provider_common::{
+use jush_agent_server::{ProviderResolver, ResolveError};
+use jush_agent_tools::{ProfileModel, Unavailable};
+use jush_backend_device_access::transition::ChangeRefusal;
+use jush_backend_providers::usage::meter::{Ledger, MeteredRuntime, ModelPrices, RetireModel};
+use jush_provider_registry::entry::{EntryCredential, ProviderEntry};
+use jush_provider_common::{
     AccountSwitch, Ahead, ErrorCode, InferenceRequest, Provider, ProviderEvent, ProviderFailure, ProviderRun,
     ProviderRuntime, RequestLimits, RuntimeEnv,
 };
-use demi_provider_registry::rotation::{Candidate, Choice, Running, USED_UP_FOR_MS, window_used_up};
-use demi_shared_types::{
+use jush_provider_registry::rotation::{Candidate, Choice, Running, USED_UP_FOR_MS, window_used_up};
+use jush_shared_types::{
     AccountSwitchCause, AgentAccount, Model, ModelSelection, NodeId, QuotaWindowName, Rotation, Timestamp, UnavailableSetting,
     session_context_window,
 };
-use demi_web_api_protocol::conversations::ModelSettings;
-use demi_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
+use jush_web_api_protocol::conversations::ModelSettings;
+use jush_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
 use futures_util::future::LocalBoxFuture;
 use futures_util::StreamExt as _;
 use tracing::Instrument as _;
@@ -41,7 +41,7 @@ use tracing::Instrument as _;
 use crate::conversation::claude_cli::{CrossPlacement, ProcessWork};
 use crate::services::Services;
 use crate::shard::Shard;
-use demi_backend_device_access::conversation_of;
+use jush_backend_device_access::conversation_of;
 
 impl Shard {
     /// Follows the entries whose agents may take another account until the
@@ -288,12 +288,12 @@ fn missing(model: &str, refusal: ChangeRefusal) -> Unavailable {
 }
 
 /// `selection` with the facts `entry`'s catalog states for its model now
-/// ([`ProviderRegistry::current_selection`](demi_provider_registry::registry::ProviderRegistry)).
+/// ([`ProviderRegistry::current_selection`](jush_provider_registry::registry::ProviderRegistry)).
 async fn current_selection(
     services: &Services,
     entry: &ProviderEntry,
     selection: ModelSelection,
-) -> Result<ModelSelection, demi_provider_registry::catalog::NotConfigured> {
+) -> Result<ModelSelection, jush_provider_registry::catalog::NotConfigured> {
     let registry = &services.provider_registry;
     let provider = registry.provider_for(entry).await;
     registry.current_selection(entry, &provider, selection).await
@@ -829,7 +829,7 @@ impl ConversationRuntime {
             // closes it.
             self.close_current().await;
             return Err(refused(
-                demi_provider_registry::details::NO_ACCOUNT,
+                jush_provider_registry::details::NO_ACCOUNT,
                 Some(ErrorCode::AuthMissing),
             ));
         }

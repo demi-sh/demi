@@ -2,13 +2,13 @@
 //! database stores as the master wrote it, turned into the rules the machine
 //! manager applies (`crates/machine-manager-protocol/src/network.rs`).
 
-use demi_backend_database::StorageError;
-pub use demi_machine_manager_protocol::network::AllowedError;
-use demi_machine_manager_protocol::{
+use jush_backend_database::StorageError;
+pub use jush_machine_manager_protocol::network::AllowedError;
+use jush_machine_manager_protocol::{
     Allowed, NetworkRules, SetNetworkRulesParams,
     network::DEVELOPER_SERVICES,
 };
-use demi_web_api_protocol::settings::{CloudNetwork, CustomNetworkPolicy, NetworkPolicy};
+use jush_web_api_protocol::settings::{CloudNetwork, CustomNetworkPolicy, NetworkPolicy};
 
 use crate::{CloudServices, ControlService};
 use crate::client::MachinesError;

@@ -26,7 +26,7 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     ErrorCode, ProviderFailure, Secret,
     audio::{AudioFormatAsk, AudioMaker, AudioOption, AudioRequest, MadeAudio, Voice, unsent_of},
     endpoint_url, json_body,
@@ -34,8 +34,8 @@ use demi_provider_common::{
     media_catalog::{AudioOutput, Catalog, MediaKind},
     read_http_failure,
 };
-use demi_shared_types::audio::Pcm;
-use demi_shared_types::{AudioKind, Clock};
+use jush_shared_types::audio::Pcm;
+use jush_shared_types::{AudioKind, Clock};
 use futures_util::future::BoxFuture;
 use reqwest::{
     StatusCode, Url,
@@ -87,7 +87,7 @@ impl KeyAudio {
 
     /// The speech models ElevenLabs lists for the key, then the catalog's
     /// music and effect models, which no listing names.
-    async fn list(&self, http: &demi_provider_common::ProviderHttp, catalog: &Catalog) -> Result<Vec<MediaModelInfo>, MediaFailure> {
+    async fn list(&self, http: &jush_provider_common::ProviderHttp, catalog: &Catalog) -> Result<Vec<MediaModelInfo>, MediaFailure> {
         let url = endpoint_url(&self.base, "/v1/models");
         let text = self.call().get(http, &url, self.headers()).await?;
         let listed: Vec<ListedModel> = serde_json::from_slice(&text)
@@ -142,7 +142,7 @@ fn used_up(mut failure: ProviderFailure) -> ProviderFailure {
     let refusal = failure
         .diagnostics
         .as_deref()
-        .and_then(demi_provider_common::HttpFailureRecord::read)
+        .and_then(jush_provider_common::HttpFailureRecord::read)
         .and_then(|record| serde_json::from_str::<Refusal>(&record.body).ok());
     if refusal.is_some_and(|refusal| refusal.detail.status == "quota_exceeded") {
         failure.code = Some(ErrorCode::UsageLimit);
@@ -161,7 +161,7 @@ impl MediaMaker for KeyAudio {
 
     fn models<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(self.list(http, catalog))
@@ -188,7 +188,7 @@ impl AudioMaker for KeyAudio {
 
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
         request: AudioRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeAudio>> {
@@ -243,7 +243,7 @@ impl AudioMaker for KeyAudio {
 
     fn voices<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
         _model: &'a str,
         search: Option<&'a str>,

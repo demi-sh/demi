@@ -1,5 +1,5 @@
 import { watch } from 'vue'
-import { isAbortError } from '@demicodes/utils'
+import { isAbortError } from '@jush-ai/utils'
 import type { CostWindow, RecentCost } from '../api/generated/web-api'
 import type { Conversation } from '../state/types'
 

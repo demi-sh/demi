@@ -11,6 +11,8 @@
 //   module outside its contract suite, which starts the backend, runner and
 //   scripted machine manager processes.
 
+// First, so the keys it renames move before any module reads them.
+import './state/renamed'
 import { createApp, shallowRef, watch } from 'vue'
 import { until } from '@vueuse/core'
 import { createPinia, disposePinia } from 'pinia'
@@ -19,23 +21,23 @@ import {
   applyProductAppearance,
   applyTranscriptTextSize,
   productAppearance,
-} from '@demicodes/web-ui/theme/productAppearance'
+} from '@jush-ai/web-ui/theme/productAppearance'
 import {
   appThemeStore,
   applyThemeToDocument,
   setThemeChoice,
-} from '@demicodes/web-ui/theme/appTheme'
-import { followThemeColor } from '@demicodes/web-ui/theme/themeColor'
-import { installPhonePage } from '@demicodes/web-ui/ui/phone-page'
-import { createPageI18n, setPageLanguage } from '@demicodes/web-ui/i18n/text'
-import { keepShownLanguage, lastShownLanguage, resolveLanguage } from '@demicodes/web-ui/i18n/languages'
-import { errorFields, reportPageErrorsWith, showUnexpectedErrors } from '@demicodes/web-ui/infra/errors'
-import { reportUncaughtErrors } from '@demicodes/web-ui/infra/uncaught'
-import { logPageError, logPageWith, pageLog, pageLogSignedIn } from '@demicodes/web-ui/infra/log'
-import { logLongFrames } from '@demicodes/web-ui/infra/long-frames'
-import { historySettled, setHistoryTraversal } from '@demicodes/web-ui/overlay/back-close'
+} from '@jush-ai/web-ui/theme/appTheme'
+import { followThemeColor } from '@jush-ai/web-ui/theme/themeColor'
+import { installPhonePage } from '@jush-ai/web-ui/ui/phone-page'
+import { createPageI18n, setPageLanguage } from '@jush-ai/web-ui/i18n/text'
+import { keepShownLanguage, lastShownLanguage, resolveLanguage } from '@jush-ai/web-ui/i18n/languages'
+import { errorFields, reportPageErrorsWith, showUnexpectedErrors } from '@jush-ai/web-ui/infra/errors'
+import { reportUncaughtErrors } from '@jush-ai/web-ui/infra/uncaught'
+import { logPageError, logPageWith, pageLog, pageLogSignedIn } from '@jush-ai/web-ui/infra/log'
+import { logLongFrames } from '@jush-ai/web-ui/infra/long-frames'
+import { historySettled, setHistoryTraversal } from '@jush-ai/web-ui/overlay/back-close'
 import { useConversations } from './conversation/store'
-import { closeDraftStorage } from './conversation/drafts'
+import { closeDraftStorage, moveEarlierDrafts } from './conversation/drafts'
 import { useResources } from './state/resources'
 import { useProduct } from './state/product'
 import { followDirect } from './direct'
@@ -47,7 +49,7 @@ import { usePreferences } from './state/preferences'
 import { useNotifications } from './state/notifications'
 import { useWork } from './conversation/work'
 import { apiRequest, apiUrl, onSessionExpired } from './api/client'
-import { configurePageConnection } from '@demicodes/web-ui/transport/page-connection'
+import { configurePageConnection } from '@jush-ai/web-ui/transport/page-connection'
 import { sendPageLog } from './api/page-log'
 import { useSession } from './auth/session'
 import ChatPage from './conversation/ChatPage.vue'
@@ -141,10 +143,11 @@ product.start()
 // direct channels and keeps the page for opening offline, for its lifetime
 // (`packages/web/src/direct/raw-bridge.ts`).
 startServiceWorker()
+void moveEarlierDrafts()
 // The page makes the peer of the device a conversation it shows runs on, and
 // follows what changes its paths, for its lifetime.
 followDirect()
-/** A page signed out, or of a Demi without accounts, follows no state; one whose check failed keeps the channel for its Retry. */
+/** A page signed out, or of a Jush without accounts, follows no state; one whose check failed keeps the channel for its Retry. */
 function stopUnlessSignedIn(): void {
   const { status } = session.current
   if (status === 'signedOut' || status === 'setupNeeded') {
@@ -323,7 +326,7 @@ const stopAppearance = watch(
 const stopTheme = applyThemeToDocument()
 const stopThemeColor = followThemeColor()
 // The page speaks the language the user chose, or with System the first of
-// the browser's that Demi speaks; a change of either, the choice made on
+// the browser's that Jush speaks; a change of either, the choice made on
 // another page included, applies at once.
 const stopLanguage = watch(
   () => (product.snapshot ? resolveLanguage(preferences.language, browserLanguages.value) : null),

@@ -32,19 +32,19 @@ use std::{
     time::Instant,
 };
 
-use demi_agent_session::{
+use jush_agent_session::{
     AgentSession, EditCheck, EditSubmission, accepted, edit_digest, regenerate_digest,
 };
-use demi_agent_tools::DeviceResolver;
-use demi_conversation_lane_protocol::{
+use jush_agent_tools::DeviceResolver;
+use jush_conversation_lane_protocol::{
     AgentCode, ClientFrame, ClientFrameKind, EditOutcome, EditRequest, Follow, Followed, Held, RegenerateRequest,
     Refusal, RemoveOutcome, STORED_EPOCH, SendMessage, ServerFrame, SteerOutcome, Version,
 };
-use demi_provider_common::Ahead;
-use demi_shared_types::{BlockId, NodeId, QueuedMessage, SessionPhase, TurnId};
+use jush_provider_common::Ahead;
+use jush_shared_types::{BlockId, NodeId, QueuedMessage, SessionPhase, TurnId};
 use tokio::sync::mpsc::{self, error::TrySendError};
 
-use demi_agent_store::SavedVersions;
+use jush_agent_store::SavedVersions;
 use super::{
     AgentServer,
     content::{ContentResolver, resolve_edit, resolve_message},

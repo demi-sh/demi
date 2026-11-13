@@ -13,28 +13,28 @@ use std::rc::Weak;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_backend_device_access::DeviceShard;
-use demi_backend_device_access::device_git::DeviceGitError;
-use demi_plugin_interface::{DeviceName, GitEntry, GitFile, GitRefusal, GitTree};
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_backend_device_access::access::DeviceAccessError;
-use demi_backend_device_access::plugin_files::ReadFilesError;
-use demi_backend_device_access::stream::{ResidentBinding, ResidentCall, UserCallError, UserCallKind};
-use demi_backend_page_sync::Part;
-use demi_backend_device_access::device_commands::reachable;
-use demi_plugin_host::{Lost, MediaCall, ProductPort, ReadOn, VideoJob};
-use demi_backend_providers::vault::seal::Row;
-use demi_runner_client::ResidentCallError;
-use demi_command_declarations::NativeOperation;
-use demi_device_interface::{DeviceErrorKind, JobCaller, PortError};
-use demi_plugin_interface::{
+use jush_backend_device_access::DeviceShard;
+use jush_backend_device_access::device_git::DeviceGitError;
+use jush_plugin_interface::{DeviceName, GitEntry, GitFile, GitRefusal, GitTree};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_backend_device_access::access::DeviceAccessError;
+use jush_backend_device_access::plugin_files::ReadFilesError;
+use jush_backend_device_access::stream::{ResidentBinding, ResidentCall, UserCallError, UserCallKind};
+use jush_backend_page_sync::Part;
+use jush_backend_device_access::device_commands::reachable;
+use jush_plugin_host::{Lost, MediaCall, ProductPort, ReadOn, VideoJob};
+use jush_backend_providers::vault::seal::Row;
+use jush_runner_client::ResidentCallError;
+use jush_command_declarations::NativeOperation;
+use jush_device_interface::{DeviceErrorKind, JobCaller, PortError};
+use jush_plugin_interface::{
     AskedVideo, AudioAsk, AudioVoices, CallKind, ImageAsk, MadeAudio, MediaListing, MadeImage, PortFailure,
     PortRefusal, VideoAsk,
 };
-use demi_device_interface::{DeviceFile, DeviceRead};
-use demi_shared_types::{B64Bytes, BlobRef, MediaKind, Timestamp};
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_device_interface::{DeviceFile, DeviceRead};
+use jush_shared_types::{B64Bytes, BlobRef, MediaKind, Timestamp};
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 use futures_util::future::LocalBoxFuture;
 use serde_json::{Map, Value};
 use tokio_util::sync::CancellationToken;
@@ -314,7 +314,7 @@ pub(crate) fn web_client(services: &Services) -> reqwest::Client {
         let _ = services;
         &[]
     };
-    demi_plugin_host::web_client(roots)
+    jush_plugin_host::web_client(roots)
 }
 
 fn failed(error: impl ToString) -> PortFailure {
@@ -390,7 +390,7 @@ impl Shard {
         &self,
         plugin: &str,
         enabled: bool,
-    ) -> Result<(), demi_plugin_host::SwitchError> {
+    ) -> Result<(), jush_plugin_host::SwitchError> {
         let Some(switched) = self.plugins().switch(plugin, enabled).await? else {
             return Ok(());
         };
@@ -407,7 +407,7 @@ impl Shard {
         let marks = self.services().sync.of(self.user());
         for root in self.agent().live_roots() {
             marks.mark(Part::Metadata(
-                demi_backend_device_access::conversation_of(&root),
+                jush_backend_device_access::conversation_of(&root),
             ));
         }
         Ok(())
@@ -421,7 +421,7 @@ impl Shard {
         plugin: &str,
         feature: &str,
         enabled: bool,
-    ) -> Result<(), demi_plugin_host::SwitchError> {
+    ) -> Result<(), jush_plugin_host::SwitchError> {
         if !self.plugins().switch_feature(plugin, feature, enabled).await? {
             return Ok(());
         }
@@ -431,7 +431,7 @@ impl Shard {
         let marks = self.services().sync.of(self.user());
         for root in self.agent().live_roots() {
             marks.mark(Part::Metadata(
-                demi_backend_device_access::conversation_of(&root),
+                jush_backend_device_access::conversation_of(&root),
             ));
         }
         Ok(())
@@ -446,7 +446,7 @@ impl Shard {
             return Err(ReloadRefusal::Archived);
         }
         self.agent()
-            .reload(&demi_backend_device_access::root_of(&record.id))
+            .reload(&jush_backend_device_access::root_of(&record.id))
             .await
             .map_err(|_| ReloadRefusal::Working)
     }

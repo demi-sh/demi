@@ -6,8 +6,8 @@ use super::super::Migration;
 pub(super) const MIGRATION: Migration = Migration::Sql(CONTROL_FROM_0_1_5979_FORMAT_3);
 
 const CONTROL_FROM_0_1_5979_FORMAT_3: &str = "
--- The media jobs vendors took for the calls of `demi image`, `demi video`
--- and `demi audio`, each followed to its end across restarts
+-- The media jobs vendors took for the calls of `jush image`, `jush video`
+-- and `jush audio`, each followed to its end across restarts
 -- (`crates/backend-database/src/media_jobs.rs`): written with the vendor's
 -- id of the job, ended with its file in the user's blobs or why it failed,
 -- and deleted when its call collects it, or with its conversation. A call

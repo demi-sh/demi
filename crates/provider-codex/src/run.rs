@@ -9,7 +9,7 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     CallEvent, CallOutcome, ErrorCode, InferenceRequest, PromptCache, ProviderEvent, ProviderFailure, VendorCall,
     encode_body,
     wire::{ReportedString, Vendor, responses::{self, RecordOwner}},
@@ -30,7 +30,7 @@ use crate::{
 /// event, and dropping the stream drops the connection.
 pub(crate) fn run(
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     request: InferenceRequest,
 ) -> impl Stream<Item = ProviderEvent> {
     async_stream::stream! {
@@ -169,12 +169,12 @@ fn refused(refusal: Refusal, shared: &Shared) -> ProviderFailure {
     with_usage_limit(failure)
 }
 
-/// The body of a refused request, as far as Demi reports it; a body it
+/// The body of a refused request, as far as Jush reports it; a body it
 /// cannot read leaves the status to speak.
 #[derive(Default, Deserialize)]
 struct ErrorBody {
     #[serde(default)]
-    error: demi_provider_common::wire::Reported<ErrorFields>,
+    error: jush_provider_common::wire::Reported<ErrorFields>,
     #[serde(default)]
     request_id: ReportedString,
 }

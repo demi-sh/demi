@@ -29,30 +29,30 @@ import {
 } from '@lucide/vue'
 import type { OverlayStore } from '../overlay/overlayStore'
 import AsyncRegion from '../ui/AsyncRegion.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import IconButton from '@demicodes/web-ui/ui/IconButton.vue'
-import IndeterminateSpinner from '@demicodes/web-ui/ui/IndeterminateSpinner.vue'
-import ProgressBar from '@demicodes/web-ui/ui/ProgressBar.vue'
-import { formatByteRatio } from '@demicodes/web-ui/files/format'
-import InlineError from '@demicodes/web-ui/ui/InlineError.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import IconButton from '@jush-ai/web-ui/ui/IconButton.vue'
+import IndeterminateSpinner from '@jush-ai/web-ui/ui/IndeterminateSpinner.vue'
+import ProgressBar from '@jush-ai/web-ui/ui/ProgressBar.vue'
+import { formatByteRatio } from '@jush-ai/web-ui/files/format'
+import InlineError from '@jush-ai/web-ui/ui/InlineError.vue'
 import ProviderCacheTtl from './ProviderCacheTtl.vue'
 import ProviderHeaders from './ProviderHeaders.vue'
 import ProviderQuota from './ProviderQuota.vue'
 import RelativeTime from '../ui/RelativeTime.vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
-import Switch from '@demicodes/web-ui/ui/Switch.vue'
-import Tag from '@demicodes/web-ui/ui/Tag.vue'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
+import Switch from '@jush-ai/web-ui/ui/Switch.vue'
+import Tag from '@jush-ai/web-ui/ui/Tag.vue'
 import CommitTextInput from '../ui/CommitTextInput.vue'
 import TitleInput from '../ui/TitleInput.vue'
-import Tooltip from '@demicodes/web-ui/ui/Tooltip.vue'
-import TruncatedText from '@demicodes/web-ui/ui/TruncatedText.vue'
-import VendorMark from '@demicodes/web-ui/ui/VendorMark.vue'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
-import { usePhone } from '@demicodes/web-ui/ui/phone'
-import Dropdown from '@demicodes/web-ui/ui/Dropdown.vue'
-import Menu from '@demicodes/web-ui/ui/Menu.vue'
-import MenuItem from '@demicodes/web-ui/ui/MenuItem.vue'
-import MenuDivider from '@demicodes/web-ui/ui/MenuDivider.vue'
+import Tooltip from '@jush-ai/web-ui/ui/Tooltip.vue'
+import TruncatedText from '@jush-ai/web-ui/ui/TruncatedText.vue'
+import VendorMark from '@jush-ai/web-ui/ui/VendorMark.vue'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
+import { usePhone } from '@jush-ai/web-ui/ui/phone'
+import Dropdown from '@jush-ai/web-ui/ui/Dropdown.vue'
+import Menu from '@jush-ai/web-ui/ui/Menu.vue'
+import MenuItem from '@jush-ai/web-ui/ui/MenuItem.vue'
+import MenuDivider from '@jush-ai/web-ui/ui/MenuDivider.vue'
 import { targetGlyph } from '../devices/device-glyphs'
 import { DEVICE_STATE_LABEL } from '../devices/state'
 import type { MenuDevice } from '../targets/types'
@@ -195,7 +195,7 @@ const props = defineProps<{
    */
   devices?: MenuDevice[]
   /**
-   * Share's keys, by which another Demi server uses an entry the user
+   * Share's keys, by which another Jush server uses an entry the user
    * manages, as every entry the page lists is; absent, no entry has Share.
    */
   shareService?: ProviderShareService
@@ -218,7 +218,7 @@ const emit = defineEmits<{
   add: [vendor: SettingsVendor]
   /** A compatible API, created at once with its defaults. */
   addCompatible: []
-  /** Another Demi's provider, created at once without its share key. */
+  /** Another Jush's provider, created at once without its share key. */
   addBorrowed: []
   signIn: [provider: SettingsProviderEntry]
   /** Test the provider; a subscription names the account to test with. */
@@ -243,14 +243,14 @@ const detailOpen = defineModel<boolean>('detailOpen', { default: false })
 const subscriptions = computed(() =>
   props.providers.filter((p) => p.kind === 'subscription'),
 )
-/** Whether `provider` is another Demi server's, which only its lender sets up. */
+/** Whether `provider` is another Jush server's, which only its lender sets up. */
 function borrowed(provider: SettingsProviderEntry): boolean {
   return provider.lender !== undefined
 }
 const apiKeys = computed(() =>
   props.providers.filter((p) => p.kind === 'api_key' && !borrowed(p)),
 )
-/** Another Demi server's providers, in a group of their own below the keys. */
+/** Another Jush server's providers, in a group of their own below the keys. */
 const shared = computed(() => props.providers.filter(borrowed))
 const selected = computed(
   () => props.providers.find((p) => p.id === selectedId.value) ?? null,
@@ -530,7 +530,7 @@ function moveProvider(order: typeof keyOrder, event: KeyboardEvent, id: string):
 }
 
 /**
- * The kinds the entry makes, each with its switch on the page: another Demi's,
+ * The kinds the entry makes, each with its switch on the page: another Jush's,
  * those its lender lists models of now.
  */
 function madeKinds(provider: SettingsProviderEntry): SettingsMediaKind[] {
@@ -1181,7 +1181,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
             /></template>
           </SettingsListItem>
           </div>
-          <!-- Another Demi's providers, below the keys once there is one, as Shared with You sits
+          <!-- Another Jush's providers, below the keys once there is one, as Shared with You sits
                apart from a person's own in Apple's apps. Add Provider adds them. -->
           <div
             v-if="shared.length"
@@ -1434,7 +1434,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
                 <ReuseThrough v-if="selected.connectsThrough" :provider="selected" />
               </template>
 
-              <!-- Connection (another Demi's provider): the share key alone. The endpoint,
+              <!-- Connection (another Jush's provider): the share key alone. The endpoint,
                    key and everything else are the lending server's, which this server never sees. -->
               <SettingsRow
                 v-else-if="selected.lender !== undefined"
@@ -1564,7 +1564,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
                 />
               </template>
               <!-- A key's test has a row of its own; a subscription's sits on its active account.
-                   Another Demi's provider is its lender's to test. -->
+                   Another Jush's provider is its lender's to test. -->
               <SettingsRow
                 v-if="selected.kind === 'api_key' && !borrowed(selected)"
                 :label="t('providers.connection.test')"
@@ -1628,7 +1628,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
               </SettingsRow>
             </SettingsGroup>
 
-            <!-- The CLI of a provider whose requests are a process: Demi installs the vendor's newest
+            <!-- The CLI of a provider whose requests are a process: Jush installs the vendor's newest
                on Claude Code's one machine and keeps it updated, so this shows the version it
                follows, and only a failure asks for anything. -->
             <SettingsGroup v-if="selected.cli" :title="t('providers.cli.title')">
@@ -1785,7 +1785,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
                         :aria-label="t('providers.models.refresh')"
                         @click="emit('refresh', selected)" /></Tooltip
                   ></span>
-                  <!-- Another Demi's provider lists its lender's models, which only the lender changes. -->
+                  <!-- Another Jush's provider lists its lender's models, which only the lender changes. -->
                   <Segmented
                     size="sm"
                     v-else-if="!selected.compatible && selected.lender === undefined"
@@ -1827,7 +1827,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
                     @click="openAddModel()"
                 /></Tooltip>
                 <!-- A compatible API has no catalog to read again: its models are the ones added.
-                     Another Demi's lists its lender's whenever it is read. -->
+                     Another Jush's lists its lender's whenever it is read. -->
                 <Tooltip
                   v-if="!selected.compatible && selected.modelSource === 'catalog' && !borrowed(selected)"
                   :content="t('providers.models.refresh')"
@@ -1844,7 +1844,7 @@ function endpointDescription(provider: SettingsProviderEntry): string | undefine
                     @click="emit('refresh', selected)"
                 /></Tooltip>
                 </template>
-                <!-- Another Demi's models are the ones its lender has on, each shown, none
+                <!-- Another Jush's models are the ones its lender has on, each shown, none
                      switched here. -->
                 <SettingsRow
                   v-for="m in visibleModels(selected)"

@@ -3,14 +3,14 @@
 
 use std::rc::Rc;
 
-use demi_command_declarations::Node;
-use demi_device_interface::{
+use jush_command_declarations::Node;
+use jush_device_interface::{
     CommandSet, GroupBuilder, RegisterError, RpcError, RpcHandler, RpcInvocation, RpcPort,
 };
 use futures_util::future::LocalBoxFuture;
 
 use crate::{
-    Commands, DEMI_ROOT, DEMI_SUMMARY, Manifest, Placement, PluginError, PluginPort, Reply, Request,
+    Commands, JUSH_ROOT, JUSH_SUMMARY, Manifest, Placement, PluginError, PluginPort, Reply, Request,
 };
 
 /// A plugin as the backend registers it.
@@ -63,7 +63,7 @@ pub trait Plugin {
 
 /// A plugin whose requests are its commands, served by a command set of its
 /// own whose handlers act through the request's rpc port. The set is laid
-/// out as the plugin host places the trees, so a group under `demi` is not a
+/// out as the plugin host places the trees, so a group under `jush` is not a
 /// root and may take a name a root may not, such as `file`.
 pub struct CommandPlugin {
     commands: CommandSet,
@@ -75,9 +75,9 @@ impl CommandPlugin {
     pub fn new(placement: Placement, trees: Vec<GroupBuilder>) -> Result<Self, RegisterError> {
         let mut commands = CommandSet::new();
         match placement {
-            Placement::Demi => {
+            Placement::Jush => {
                 let root = trees.into_iter().fold(
-                    GroupBuilder::new(DEMI_ROOT, DEMI_SUMMARY),
+                    GroupBuilder::new(JUSH_ROOT, JUSH_SUMMARY),
                     GroupBuilder::group,
                 );
                 commands.register(root)?;
@@ -98,10 +98,10 @@ impl CommandPlugin {
     pub fn manifest_commands(&self) -> Vec<Commands> {
         let trees = self.commands.declarations();
         let trees: Vec<_> = match self.placement {
-            Placement::Demi => trees
+            Placement::Jush => trees
                 .flat_map(|root| match root {
-                    Node::Group(demi) => demi.subcommands.clone(),
-                    Node::Leaf(_) => unreachable!("the demi root is a group"),
+                    Node::Group(jush) => jush.subcommands.clone(),
+                    Node::Leaf(_) => unreachable!("the jush root is a group"),
                 })
                 .collect(),
             Placement::Root => trees.cloned().collect(),
@@ -125,8 +125,8 @@ impl CommandPlugin {
         mut invocation: RpcInvocation,
         port: &PluginPort,
     ) -> Result<Reply, PluginError> {
-        if self.placement == Placement::Demi {
-            invocation.path.insert(0, DEMI_ROOT.to_owned());
+        if self.placement == Placement::Jush {
+            invocation.path.insert(0, JUSH_ROOT.to_owned());
         }
         // The backend's dispatch, which forwarded the call, tells a usage
         // error with the leaf's usage.
@@ -139,8 +139,8 @@ impl CommandPlugin {
     /// answers its leaves itself with the whole port ([`PortHandled`]).
     pub fn check(&self, invocation: &RpcInvocation) -> Result<(), PluginError> {
         let mut invocation = invocation.clone();
-        if self.placement == Placement::Demi {
-            invocation.path.insert(0, DEMI_ROOT.to_owned());
+        if self.placement == Placement::Jush {
+            invocation.path.insert(0, JUSH_ROOT.to_owned());
         }
         self.commands.check(&invocation)?;
         Ok(())

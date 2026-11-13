@@ -3,7 +3,7 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-use demi_provider_common::{
+use jush_provider_common::{
     CallEvent, CallOutcome, EarlyEnd, ErrorCode, InferenceRequest, OpaqueStep, PromptCache, ProviderEvent, ProviderFailure, ToolCall, encode_body,
     http_failure, read_http_failure, tagged_wire,
     wire::{
@@ -12,7 +12,7 @@ use demi_provider_common::{
         sse_data,
     },
 };
-use demi_shared_types::{CacheTtl, Clock, Entry, FailureSource, OpaqueStatus, OpaqueView, ProviderErrorDiagnostics};
+use jush_shared_types::{CacheTtl, Clock, Entry, FailureSource, OpaqueStatus, OpaqueView, ProviderErrorDiagnostics};
 use futures_util::{Stream, StreamExt};
 use reqwest::header::{ACCEPT, CONTENT_TYPE};
 use serde::Deserialize;
@@ -33,7 +33,7 @@ pub(crate) const ANTHROPIC_VERSION: &str = "2023-06-01";
 /// event, and dropping the stream drops the connection.
 pub(crate) fn run(
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     request: InferenceRequest,
 ) -> impl Stream<Item = ProviderEvent> {
     async_stream::stream! {
@@ -185,10 +185,10 @@ impl Mapper {
     fn frame(&mut self, data: &str) -> Next {
         let event = match decode_tagged::<StreamEvent>(data) {
             Ok(Some(event)) => event,
-            // An event type Demi does not map, such as `ping`.
+            // An event type Jush does not map, such as `ping`.
             Ok(None) => return Next::Nothing,
             Err(error) => {
-                let message = format!("{LABEL} API stream sent a frame Demi cannot read: {error}");
+                let message = format!("{LABEL} API stream sent a frame Jush cannot read: {error}");
                 return Next::Last(ProviderEvent::Error(ProviderFailure::protocol(
                     message, data,
                 )));
@@ -368,7 +368,7 @@ fn tagged(value: &str) -> String {
 }
 
 tagged_wire! {
-    /// The stream events Demi maps; any other type, such as `ping` or one the
+    /// The stream events Jush maps; any other type, such as `ping` or one the
     /// vendor adds, is skipped.
     enum StreamEvent {
         "message_start" => MessageStart(MessageStart),
@@ -418,7 +418,7 @@ struct MessageDelta {
     usage: Option<MessagesUsage>,
 }
 
-/// What a message delta changes; Demi reads why the model stopped.
+/// What a message delta changes; Jush reads why the model stopped.
 #[derive(Deserialize)]
 struct MessageChange {
     stop_reason: Option<String>,
@@ -443,7 +443,7 @@ struct ErrorBody {
 }
 
 tagged_wire! {
-    /// The content blocks Demi maps.
+    /// The content blocks Jush maps.
     enum ContentBlock {
         "text" => Text(TextBlock),
         "thinking" => Thinking(ThinkingBlock),
@@ -473,7 +473,7 @@ struct ToolUseBlock {
 }
 
 tagged_wire! {
-    /// The block deltas Demi maps.
+    /// The block deltas Jush maps.
     enum Delta {
         "text_delta" => Text(TextDelta),
         "thinking_delta" => Thinking(ThinkingDelta),

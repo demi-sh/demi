@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, reactive, ref } from 'vue'
-import { delay } from '@demicodes/utils'
-import type { SubagentRecord } from '@demicodes/web-ui/agent/subagents'
-import { EMPTY_TRANSCRIPT } from '@demicodes/web-ui/transport/protocol'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import { delay } from '@jush-ai/utils'
+import type { SubagentRecord } from '@jush-ai/web-ui/agent/subagents'
+import { EMPTY_TRANSCRIPT } from '@jush-ai/web-ui/transport/protocol'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { briefSubagent } from '../fixtures/subagents'
 import GalleryOwnWindows from './GalleryOwnWindows.vue'
 import GallerySpecimen from './GallerySpecimen.vue'

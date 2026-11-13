@@ -67,21 +67,21 @@ use std::{
     time::SystemTime,
 };
 
-use demi_command_protocol::{ArtifactForm, ArtifactProgress, InstalledArtifact, PackageArtifact};
-use demi_shared_artifacts::{
+use jush_command_protocol::{ArtifactForm, ArtifactProgress, InstalledArtifact, PackageArtifact};
+use jush_shared_artifacts::{
     Archive, ArchiveInstall, CONTENT_CODING, Digest, Download, Mode, Permissions, Publication,
     Staged,
 };
 use serde::{Deserialize, Serialize};
-use demi_runner_process::backend::Backend;
-use demi_runner_protocol::wire::{DeviceArtifact, DeviceDownload};
+use jush_runner_process::backend::Backend;
+use jush_runner_protocol::wire::{DeviceArtifact, DeviceDownload};
 use tokio::io::AsyncWrite;
 use futures_util::FutureExt;
 use futures_util::future::{BoxFuture, Shared, WeakShared};
 use tokio::sync::{broadcast, watch};
 use tokio_util::sync::CancellationToken;
 
-use demi_runner_process::private_files::chmod;
+use jush_runner_process::private_files::chmod;
 
 use crate::{
     ArtifactResolver, ArtifactSource, RuntimeError,
@@ -374,7 +374,7 @@ impl ArtifactCache {
         let backend = match backend {
             Some(backend) => {
                 let http =
-                    demi_shared_artifacts::download_client_through(|builder| backend.http(builder))?;
+                    jush_shared_artifacts::download_client_through(|builder| backend.http(builder))?;
                 Some((backend, http))
             }
             None => None,
@@ -385,7 +385,7 @@ impl ArtifactCache {
             root,
             image,
             checked: Mutex::default(),
-            http: demi_shared_artifacts::download_client_allowing_http()?,
+            http: jush_shared_artifacts::download_client_allowing_http()?,
             backend,
             holds: Holds::default(),
             installs: Mutex::default(),
@@ -622,7 +622,7 @@ impl ArtifactCache {
         self.shared(sha256, resolver, progress, cancel, move |report, resolver, cancel| {
             Box::pin(async move {
                 let directory = cache.root.join(&artifact.sha256);
-                if let Some(entry) = demi_shared_artifacts::recorded(&directory, &archive).await? {
+                if let Some(entry) = jush_shared_artifacts::recorded(&directory, &archive).await? {
                     return Ok(entry);
                 }
                 attempts(&cancel, || async {
@@ -633,7 +633,7 @@ impl ArtifactCache {
                         return Ok(entry);
                     }
                     let unpacking =
-                        match demi_shared_artifacts::install_archive(&cache.root, &archive, &cancel)
+                        match jush_shared_artifacts::install_archive(&cache.root, &archive, &cancel)
                             .await?
                         {
                             // Another runner sharing the cache installed it meanwhile.
@@ -780,7 +780,7 @@ impl ArtifactCache {
             permissions: Permissions::Private,
             durable: true,
         };
-        demi_shared_artifacts::publish_bytes(&file, &bytes, publication).await?;
+        jush_shared_artifacts::publish_bytes(&file, &bytes, publication).await?;
         Ok(())
     }
 
@@ -882,7 +882,7 @@ impl ArtifactCache {
             if of.and_then(|bytes| serde_json::from_slice::<Line>(&bytes).ok()) != Some(line.clone()) {
                 continue;
             }
-            demi_shared_artifacts::discard(&self.root.join(format!("{STAGING}{sha256}"))).await;
+            jush_shared_artifacts::discard(&self.root.join(format!("{STAGING}{sha256}"))).await;
             // Each goes when it can; one left is pruned at a later install.
             let _removed = tokio::fs::remove_file(self.root.join(format!("{STAGING}{sha256}.lock"))).await;
             let _removed = tokio::fs::remove_file(entry.path()).await;
@@ -1005,7 +1005,7 @@ impl ArtifactCache {
         self.fetch(line, version, artifact, staged.file(), resolver, progress, cancel)
             .await?;
         match staged.publish().await {
-            Err(demi_shared_artifacts::Error::Io(error))
+            Err(jush_shared_artifacts::Error::Io(error))
                 if error.kind() == io::ErrorKind::AlreadyExists =>
             {
                 cached(destination, artifact).await?;
@@ -1056,14 +1056,14 @@ impl ArtifactCache {
                     report(written, artifact.size);
                 });
                 let mut input = tokio::fs::File::open(path).await?;
-                demi_shared_artifacts::copy(&mut input, &expected, &mut output, cancel).await?;
+                jush_shared_artifacts::copy(&mut input, &expected, &mut output, cancel).await?;
                 return Ok(());
             }
             ArtifactSource::Url { url, expires_at } => (url, expires_at),
         };
         let sha256 = &artifact.sha256;
         // Runners sharing the cache keep one staging file for each artifact.
-        let _lock = demi_shared_artifacts::InstallLock::acquire(
+        let _lock = jush_shared_artifacts::InstallLock::acquire(
             &self.root.join(format!("{STAGING}{sha256}.lock")),
             cancel,
         )
@@ -1096,7 +1096,7 @@ impl ArtifactCache {
             // No form of the artifact's bytes is larger than this, so more
             // fail as they arrive.
             let request = Download {
-                limit: demi_shared_artifacts::encoded_bound(artifact.size),
+                limit: jush_shared_artifacts::encoded_bound(artifact.size),
                 redirects,
                 headers: &headers,
                 // A signed URL that expires is asked for again below, and
@@ -1104,7 +1104,7 @@ impl ArtifactCache {
                 renewable: expires_at.is_some(),
                 ..Download::new(&location)
             };
-            let downloaded = demi_shared_artifacts::download(
+            let downloaded = jush_shared_artifacts::download(
                 http,
                 request,
                 &staging,
@@ -1115,7 +1115,7 @@ impl ArtifactCache {
             match downloaded {
                 // A URL that expired while the bytes arrived is asked for
                 // again, and the download resumes from the new one.
-                Err(demi_shared_artifacts::Error::Rejected { status: 403 })
+                Err(jush_shared_artifacts::Error::Rejected { status: 403 })
                     if expires_at.is_some_and(|expires| expires <= SystemTime::now()) =>
                 {
                     let ArtifactSource::Url {
@@ -1132,8 +1132,8 @@ impl ArtifactCache {
                 }
                 // A refusal of an address not renewed ends the staging file
                 // the download kept for a renewal.
-                Err(refused @ demi_shared_artifacts::Error::Rejected { .. }) => {
-                    demi_shared_artifacts::discard(&staging).await;
+                Err(refused @ jush_shared_artifacts::Error::Rejected { .. }) => {
+                    jush_shared_artifacts::discard(&staging).await;
                     return Err(refused.into());
                 }
                 downloaded => break downloaded?,
@@ -1202,10 +1202,10 @@ async fn cached(
         Err(error) => return Err(error.into()),
     };
     if !metadata.is_file() {
-        return Err(demi_shared_artifacts::Error::Digest.into());
+        return Err(jush_shared_artifacts::Error::Digest.into());
     }
     if metadata.len() != artifact.size {
-        return Err(demi_shared_artifacts::Error::Size {
+        return Err(jush_shared_artifacts::Error::Size {
             declared: artifact.size,
             actual: metadata.len(),
         }
@@ -1224,7 +1224,7 @@ async fn attempts<T, F>(
 where
     F: Future<Output = Result<T, RuntimeError>>,
 {
-    let mut backoff = demi_command_sdk::descriptors::Backoff::default();
+    let mut backoff = jush_command_sdk::descriptors::Backoff::default();
     loop {
         let result = tokio::select! {
             biased;
@@ -1248,7 +1248,7 @@ async fn image_archive(
     archive: &Archive,
     cancel: &CancellationToken,
 ) -> Result<PathBuf, RuntimeError> {
-    demi_shared_artifacts::installed(directory, archive, cancel)
+    jush_shared_artifacts::installed(directory, archive, cancel)
         .await?
         .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound).into())
 }
@@ -1273,7 +1273,7 @@ async fn check(
     let executable = entry.path();
     let mut input = tokio::fs::File::open(&executable).await?;
     // Checked as a download is, with nowhere to write the bytes to.
-    demi_shared_artifacts::copy(&mut input, expected, &mut tokio::io::sink(), cancel).await?;
+    jush_shared_artifacts::copy(&mut input, expected, &mut tokio::io::sink(), cancel).await?;
     Ok(executable)
 }
 
@@ -1281,8 +1281,8 @@ async fn check(
 fn out_of_files(error: &RuntimeError) -> bool {
     match error {
         RuntimeError::Io(error)
-        | RuntimeError::Artifact(demi_shared_artifacts::Error::Io(error)) => {
-            demi_command_sdk::descriptors::exhausted(error)
+        | RuntimeError::Artifact(jush_shared_artifacts::Error::Io(error)) => {
+            jush_command_sdk::descriptors::exhausted(error)
         }
         _ => false,
     }

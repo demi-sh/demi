@@ -5,8 +5,8 @@
 
 use axum::Json;
 use axum::extract::{Path, State};
-use demi_backend_user_shard::conversation::search;
-use demi_web_api_protocol::search::{MessageResults, SearchQuery, SearchResults};
+use jush_backend_user_shard::conversation::search;
+use jush_web_api_protocol::search::{MessageResults, SearchQuery, SearchResults};
 
 use super::AppState;
 use super::conversations::owned;

@@ -1,9 +1,9 @@
 //! The runner's private local endpoint (`crates/runner-process/src/command_client.rs`), which command aliases and the runner's management commands
 //! reach.
 
-use demi_command_protocol::LocalInvocation;
-use demi_command_sdk::{Handler, ResidentError};
-use demi_runner_process::local_socket::Listener;
+use jush_command_protocol::LocalInvocation;
+use jush_command_sdk::{Handler, ResidentError};
+use jush_runner_process::local_socket::Listener;
 use std::io;
 use std::sync::Arc;
 use tokio::sync::watch;
@@ -59,25 +59,25 @@ impl Server {
         let counted = active.clone();
         let owner = tokio::spawn(async move {
             let mut connections = tokio::task::JoinSet::new();
-            let mut backoff = demi_command_sdk::descriptors::Backoff::default();
+            let mut backoff = jush_command_sdk::descriptors::Backoff::default();
             let mut outcome = loop {
                 tokio::select! {
                     _ = stop.cancelled() => break Ok(()),
                     socket = listener.accept() => {
                         match socket {
                             Ok(socket) => {
-                                backoff = demi_command_sdk::descriptors::Backoff::default();
+                                backoff = jush_command_sdk::descriptors::Backoff::default();
                                 let registration = ActiveConnection::new(&counted);
                                 let handler = handler.clone();
                                 let cancel = stop.child_token();
                                 connections.spawn(async move {
                                     let _registration = registration;
-                                    demi_command_sdk::serve_cancellable(socket, handler, cancel).await
+                                    jush_command_sdk::serve_cancellable(socket, handler, cancel).await
                                 });
                             }
                             // Out of open files, the connection stays queued until one
                             // closes (`crates/command-sdk/src/descriptors.rs`).
-                            Err(error) if demi_command_sdk::descriptors::exhausted(&error) => backoff.wait().await,
+                            Err(error) if jush_command_sdk::descriptors::exhausted(&error) => backoff.wait().await,
                             Err(error) => break Err(error),
                         }
                     }

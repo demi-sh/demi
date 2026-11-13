@@ -1,7 +1,7 @@
 import { inject, provide, type InjectionKey } from 'vue'
 import type { HeldTranscript } from '../../transport/protocol'
 import { z } from 'zod'
-import { messageCommentSchema, type MediaSource, type MessageComment } from '@demicodes/protocol'
+import { messageCommentSchema, type MediaSource, type MessageComment } from '@jush-ai/protocol'
 import { ATTACHMENT_MARK } from '../../markdown/user-markdown'
 import type { PasteHost } from '../message-input/copied-message'
 import { contentMessage, type MessageCapsule, type TransferContext } from '../message-editor/capsules'

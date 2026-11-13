@@ -1,6 +1,6 @@
 {
   "packageManager": "bun@1.4.2",
-  "name": "demi",
+  "name": "jush",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -28,8 +28,8 @@
     "check:registry": "bun run scripts/check-public-registry.ts",
     "contracts": "bun scripts/xtask.ts contracts",
     "typecheck": "bun run contracts && tsgo --noEmit && tsgo --noEmit -p packages/browse",
-    "typecheck:web": "bun run contracts && bun run --sequential --no-exit-on-error --filter @demicodes/protocol --filter @demicodes/conversation-client --filter @demicodes/utils --filter @demicodes/web-ui --filter '@demicodes/plugin-*' --filter @demicodes/web-gallery --filter @demicodes/web --filter @demicodes/site typecheck",
-    "build": "bun run contracts && bun --filter '*' --filter '!@demicodes/site' build",
+    "typecheck:web": "bun run contracts && bun run --sequential --no-exit-on-error --filter @jush-ai/protocol --filter @jush-ai/conversation-client --filter @jush-ai/utils --filter @jush-ai/web-ui --filter '@jush-ai/plugin-*' --filter @jush-ai/web-gallery --filter @jush-ai/web --filter @jush-ai/site typecheck",
+    "build": "bun run contracts && bun --filter '*' --filter '!@jush-ai/site' build",
     "web:gallery": "bun scripts/web-gallery.ts",
     "web:dev": "bun scripts/web-dev.ts",
     "web:build": "bun run build"
@@ -47,10 +47,10 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/demi-sh/demi.git"
+    "url": "git+https://github.com/jush-ai/jush.git"
   },
-  "homepage": "https://github.com/demi-sh/demi#readme",
-  "bugs": "https://github.com/demi-sh/demi/issues",
+  "homepage": "https://github.com/jush-ai/jush#readme",
+  "bugs": "https://github.com/jush-ai/jush/issues",
   "overrides": {
     "@codemirror/autocomplete": "6.20.1",
     "@codemirror/commands": "6.10.3",

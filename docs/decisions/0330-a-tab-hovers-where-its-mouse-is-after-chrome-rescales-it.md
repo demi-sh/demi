@@ -8,7 +8,7 @@ status: accepted
 
 Alex's agent checks that a video player shows its controls on hover. The
 tab's viewport is 1440 × 900 at pixel ratio 2. The agent moves the mouse off
-the player, runs `demi browser record t1 start`, then moves onto the player:
+the player, runs `jush browser record t1 start`, then moves onto the player:
 the controls stay hidden. Only a second move shows them, so the recording
 shows the controls missing, and the agent concludes that the hover is broken.
 
@@ -18,7 +18,7 @@ another scale. The page gets a `resize` event at the same size, and Chrome
 then hovers the place at the mouse's coordinates halved, at ratio 2, instead
 of the mouse's own place. A move sent while that happens lands at the wrong
 place too. The page stays wrong until the mouse moves again. Nobody sees the
-real mouse: the tab's mouse exists only in the events Demi sends Chrome.
+real mouse: the tab's mouse exists only in the events Jush sends Chrome.
 
 ## Decision
 
@@ -75,7 +75,7 @@ showed one `resize` event.
 
 Playwright's and Puppeteer's `Mouse` classes also remember the mouse's last
 place, but only to start a move's steps from it. Neither gives it to Chrome
-again after a resize, and neither captures tabs the way Demi does.
+again after a resize, and neither captures tabs the way Jush does.
 
 ## Alternatives
 

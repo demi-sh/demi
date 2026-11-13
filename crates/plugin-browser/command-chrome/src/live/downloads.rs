@@ -14,7 +14,7 @@ use tokio_util::task::TaskTracker;
 
 use crate::driver::operation::Result;
 use crate::tabs::tab::BrowserTab;
-use demi_command_package_browser_protocol::live::{DownloadState, LiveDownload, MAX_DOWNLOADS};
+use jush_command_package_browser_protocol::live::{DownloadState, LiveDownload, MAX_DOWNLOADS};
 use crate::traced::SpawnTraced as _;
 
 /// The longest file name the protocol carries, in characters.

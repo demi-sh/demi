@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import SettingsAbout from '@demicodes/web-ui/settings/SettingsAbout.vue'
-import type { AcknowledgementsState } from '@demicodes/web-ui/settings/types'
+import SettingsAbout from '@jush-ai/web-ui/settings/SettingsAbout.vue'
+import type { AcknowledgementsState } from '@jush-ai/web-ui/settings/types'
 import { DEMO_NOTICES, type NoticesAnswer } from '../fixtures/acknowledgements'
 import { slow } from '../fixtures/slow'
 

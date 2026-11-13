@@ -12,20 +12,20 @@
 
 use std::fmt;
 
-use demi_command_declarations::{NativeOperation, Node, Schema};
-pub use demi_shared_types::EXECUTION_SOURCE;
-use demi_shared_types::INSTRUCTIONS_SOURCE;
+use jush_command_declarations::{NativeOperation, Node, Schema};
+pub use jush_shared_types::EXECUTION_SOURCE;
+use jush_shared_types::INSTRUCTIONS_SOURCE;
 use schemars::{JsonSchema, generate::SchemaSettings};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use url::Url;
 
 /// The root the plugins of this repository place their groups under.
-pub use demi_device_interface::DEMI_ROOT;
+pub use jush_device_interface::JUSH_ROOT;
 
-/// The `demi` root's summary in the model's command help.
-pub const DEMI_SUMMARY: &str =
-    "The Demi platform command: every subcommand is a platform domain (file, browser, …).";
+/// The `jush` root's summary in the model's command help.
+pub const JUSH_SUMMARY: &str =
+    "The Jush platform command: every subcommand is a platform domain (file, browser, …).";
 
 /// A plugin's id, such as `browser`: 1 to 32 lowercase letters, digits and
 /// hyphens. It names the plugin's context blocks, values, part of the
@@ -92,7 +92,7 @@ pub struct Manifest {
     pub id: PluginId,
     /// Its name in settings. A plugin with a feature the user sees is named
     /// after that feature, short, in title style, such as `File Browser`; one
-    /// that only gives the agent a `demi <group>` is named Demi *Group*
+    /// that only gives the agent a `jush <group>` is named Jush *Group*
     /// Commands.
     pub name: String,
     /// What it does for the user, in one full sentence in sentence style that
@@ -161,7 +161,7 @@ impl Manifest {
 }
 
 /// A vendor that signs its users in with OAuth 2.1 (`crates/plugin-host/src/oauth.rs`): the
-/// plugin host registers Demi with its authorization server, runs the sign-in and keeps the tokens.
+/// plugin host registers Jush with its authorization server, runs the sign-in and keeps the tokens.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct OAuth {
@@ -242,7 +242,7 @@ pub struct Constant {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Page {
-    /// The page package, such as `@demicodes/plugin-browser`, which the web
+    /// The page package, such as `@jush-ai/plugin-browser`, which the web
     /// app's registry lists and the plugin's types are generated into.
     pub package: String,
     /// Its state for the user, which reaches every page on the sync channel.
@@ -464,7 +464,7 @@ fn schema_of<T: JsonSchema>(direction: Direction) -> Schema {
 }
 
 /// Some leaves of one of a plugin's command groups that each user turns on
-/// and off apart from the rest, such as `demi web search` beside `demi web
+/// and off apart from the rest, such as `jush web search` beside `jush web
 /// fetch`. Its plugin's page shows its switch; a feature off takes its
 /// leaves out of the user's command set.
 ///
@@ -513,8 +513,8 @@ pub struct Commands {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Placement {
-    /// A named group of the `demi` root, for a plugin of this repository.
-    Demi,
+    /// A named group of the `jush` root, for a plugin of this repository.
+    Jush,
     /// A root command of its own.
     Root,
 }

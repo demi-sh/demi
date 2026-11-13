@@ -14,13 +14,13 @@
 //! it, which makes the directory's project when there is none, by the
 //! directory's name on its device (`crates/backend-database/src/selection.rs`).
 
-use demi_backend_database::conversation_index::{ConversationStart, Creation};
-use demi_backend_device_access::transition::ChangeRefusal;
-use demi_backend_page_sync::Part;
-use demi_web_api_protocol::conversations::{
+use jush_backend_database::conversation_index::{ConversationStart, Creation};
+use jush_backend_device_access::transition::ChangeRefusal;
+use jush_backend_page_sync::Part;
+use jush_web_api_protocol::conversations::{
     ConversationTarget, CreateConversation, FirstMessageAnswer, ModelSettings,
 };
-use demi_web_api_protocol::ids::ConversationId;
+use jush_web_api_protocol::ids::ConversationId;
 
 use crate::shard::Shard;
 
@@ -67,7 +67,7 @@ impl Shard {
     }
 
     /// Creates the user's conversation `id` with what `start` says, checked:
-    /// the page's request, or an agent's `demi conversation new`
+    /// the page's request, or an agent's `jush conversation new`
     /// (`organize.rs`).
     pub(crate) async fn create_started(
         &self,

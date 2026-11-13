@@ -234,10 +234,10 @@ fit 1280 x 720, 1440 x 900 and 1920 x 1080.
 - [dockview](https://github.com/mathuo/dockview) (`5b9bed8`): its drop target
   divides a group into edges and a center (`calculateQuadrantAsPercentage` in
   `packages/dockview-core/src/dnd/droptarget.ts`, 20% edges) and floats
-  groups over the grid. Demi keeps one column of rows, so a drop over a row
+  groups over the grid. Jush keeps one column of rows, so a drop over a row
   has three bands and no left or right.
 - Windows 11's taskbar and Snap: pins, a button per open app, a preview of
-  its windows on hover, a window dragged to an edge snaps. Demi's buttons
+  its windows on hover, a window dragged to an edge snaps. Jush's buttons
   keep the tab's name, which Windows' icon-only buttons hide.
 - JetBrains tool windows: docked, floating or maximized, the same view in
   each.

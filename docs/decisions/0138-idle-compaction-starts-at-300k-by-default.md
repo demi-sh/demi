@@ -41,7 +41,7 @@ None.
 Claude Code compacts an idle conversation from 200,000 tokens, and its
 `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS` changes that minimum
 ([changelog](https://code.claude.com/docs/en/changelog)).
-Demi departs from it for windows of 1,000,000 tokens, where 200,000 is a
+Jush departs from it for windows of 1,000,000 tokens, where 200,000 is a
 fifth of the window.
 
 ## Alternatives

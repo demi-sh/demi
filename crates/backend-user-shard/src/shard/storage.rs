@@ -1,16 +1,16 @@
-//! What Demi keeps on the user's devices and on the server, as Settings ›
+//! What Jush keeps on the user's devices and on the server, as Settings ›
 //! Storage shows it: the rules each device applies, the reports each runner
 //! sends (`crates/runner/src/storage.rs`), and what the user removes by hand.
 
 use std::collections::HashSet;
 
-use demi_backend_database::StorageError;
-use demi_backend_device_access::root_of;
-use demi_command_protocol::scratch_name;
-use demi_device_interface::DeviceError;
-use demi_runner_protocol::wire;
-use demi_web_api_protocol::ids::DeviceId;
-use demi_web_api_protocol::storage::{
+use jush_backend_database::StorageError;
+use jush_backend_device_access::root_of;
+use jush_command_protocol::scratch_name;
+use jush_device_interface::DeviceError;
+use jush_runner_protocol::wire;
+use jush_web_api_protocol::ids::DeviceId;
+use jush_web_api_protocol::storage::{
     CleanupCause, ConversationFiles, DeviceStorage, DeviceStorageReport, LogRetention, ServerStorage, Storage,
     StorageAction, StorageCleanup, StorageConversation, StorageRule, StorageRules,
 };
@@ -164,7 +164,7 @@ impl Shard {
         Ok(retention)
     }
 
-    fn conversation_running(&self, conversation: &demi_web_api_protocol::ids::ConversationId) -> bool {
+    fn conversation_running(&self, conversation: &jush_web_api_protocol::ids::ConversationId) -> bool {
         self.agent().tree(&root_of(conversation)).is_some_and(|tree| tree.is_running())
     }
 }
@@ -177,7 +177,7 @@ pub(crate) fn wire_rules(rules: StorageRules) -> wire::StorageRules {
 
 fn report_of(report: wire::StorageReport) -> DeviceStorageReport {
     let time = |time: wire::Timestamp| {
-        demi_shared_types::Timestamp::from_millisecond(time.0).unwrap_or(demi_shared_types::Timestamp::UNIX_EPOCH)
+        jush_shared_types::Timestamp::from_millisecond(time.0).unwrap_or(jush_shared_types::Timestamp::UNIX_EPOCH)
     };
     DeviceStorageReport {
         measured_at: time(report.measured_at),

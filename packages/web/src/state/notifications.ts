@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import { nextTick, ref, watch } from 'vue'
 import { z } from 'zod'
-import { errorFields, reportError } from '@demicodes/web-ui/infra/errors'
-import { logStorageFailed, pageLog } from '@demicodes/web-ui/infra/log'
-import { conversationTitle } from '@demicodes/web-ui/agent/conversation-title'
-import { pageLanguage } from '@demicodes/web-ui/i18n/text'
-import { requestTitleWords } from '@demicodes/web-ui/permissions/types'
-import { FRAME_INPUT, USER_INPUT_EVENTS } from '@demicodes/web-ui/ui/user-input'
+import { errorFields, reportError } from '@jush-ai/web-ui/infra/errors'
+import { logStorageFailed, pageLog } from '@jush-ai/web-ui/infra/log'
+import { conversationTitle } from '@jush-ai/web-ui/agent/conversation-title'
+import { pageLanguage } from '@jush-ai/web-ui/i18n/text'
+import { requestTitleWords } from '@jush-ai/web-ui/permissions/types'
+import { FRAME_INPUT, USER_INPUT_EVENTS } from '@jush-ai/web-ui/ui/user-input'
 import { t } from './locales/text'
 import { ApiError, apiRequest, jsonBody, readResponse } from '../api/client'
 import {
@@ -68,7 +68,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 }
 
 /** The setting belongs to the browser, not the account, so one key holds it for every user of the browser. */
-const STORAGE_KEY = 'demi.notifications'
+const STORAGE_KEY = 'jush.notifications'
 
 function readSettings(): NotificationSettings {
   try {
@@ -92,7 +92,7 @@ function writeSettings(settings: NotificationSettings): void {
 }
 
 /** Which session made the browser's subscription, which belongs to the browser too. */
-const MAKER_KEY = 'demi.notifications.session'
+const MAKER_KEY = 'jush.notifications.session'
 
 function subscriptionMaker(): string | null {
   try {
@@ -130,7 +130,7 @@ function browserPermission(): BrowserPermission {
 
 /**
  * Safari on an iPhone or iPad outside the Home Screen, which pushes only to
- * Demi added there: its `navigator.standalone`, a property of Safari's
+ * Jush added there: its `navigator.standalone`, a property of Safari's
  * alone, is false; true in the app the Home Screen opens.
  */
 export function needsHomeScreen(browser: object): boolean {
@@ -248,7 +248,7 @@ export const useNotifications = defineStore('notifications', () => {
   const settings = ref(readSettings())
   watch(settings, writeSettings, { deep: true })
   const permission = ref<BrowserPermission>(browserPermission())
-  /** Safari outside the Home Screen: turning notifications on shows how to add Demi there. */
+  /** Safari outside the Home Screen: turning notifications on shows how to add Jush there. */
   const homeScreen = typeof navigator !== 'undefined' && needsHomeScreen(navigator)
 
   /** Asks the browser for permission to notify; a browser that blocks the site answers without asking. */

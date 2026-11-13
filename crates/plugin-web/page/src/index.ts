@@ -3,7 +3,7 @@
 // the app's sidebar, and the types of its state, parameters and results,
 // generated from the plugin's manifest.
 import { Globe } from '@lucide/vue'
-import { definePage } from '@demicodes/plugin-sdk'
+import { definePage } from '@jush-ai/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import { t } from './locales/text'
 import WebSearchSettings from './WebSearchSettings.vue'

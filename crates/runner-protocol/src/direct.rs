@@ -6,14 +6,14 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use demi_command_protocol::{
+use jush_command_protocol::{
     ColorScheme, CommandLocale, PackageDescriptor, conversation_name, without_nul,
 };
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use demi_shared_types::ReadAt;
+use jush_shared_types::ReadAt;
 
 use crate::files::{DirectoryEntry, FileWatchRequest};
 
@@ -286,10 +286,10 @@ pub enum ChannelHeader {
         #[garde(length(min = 1), custom(without_nul))]
         path: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+        #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
         offset: Option<u64>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+        #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
         length: Option<u64>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[garde(inner(length(min = 1)))]
@@ -438,7 +438,7 @@ pub struct ChannelRefusal {
 /// answers for the same failure, and the runner's words. A `text` of a file
 /// that is binary or too large also carries the file's version and the
 /// device's number before it read, as the relay's 415 and 413 carry its ETag
-/// and `X-Demi-Read-At`, since such a file is an answer like any other.
+/// and `X-Jush-Read-At`, since such a file is an answer like any other.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ChannelError {
@@ -525,16 +525,16 @@ pub struct VideoOpened {
 
 /// A `read`'s answer: the file's size, version and modification time,
 /// which the relay's raw route answers in `Last-Modified`, and the device's
-/// number before it read, as the relay's `X-Demi-Read-At`; its bytes follow.
+/// number before it read, as the relay's `X-Jush-Read-At`; its bytes follow.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Validate)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[garde(allow_unvalidated)]
 pub struct ReadOpened {
     pub ok: bool,
-    #[garde(range(max = demi_shared_types::MAX_SAFE_INTEGER))]
+    #[garde(range(max = jush_shared_types::MAX_SAFE_INTEGER))]
     pub size: u64,
     pub version: String,
-    pub modified_at: demi_shared_types::Timestamp,
+    pub modified_at: jush_shared_types::Timestamp,
     pub read_at: ReadAt,
 }
 
@@ -546,7 +546,7 @@ impl ReadOpened {
             ok: true,
             size,
             version,
-            modified_at: demi_shared_types::Timestamp::from_millisecond(modified.0).ok()?,
+            modified_at: jush_shared_types::Timestamp::from_millisecond(modified.0).ok()?,
             read_at,
         })
     }
@@ -554,7 +554,7 @@ impl ReadOpened {
 
 /// A `text`'s answer: the file's version, whether it is the one the header
 /// named, in which case no text follows, and the device's number before it
-/// read, as the relay's `X-Demi-Read-At`.
+/// read, as the relay's `X-Jush-Read-At`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TextOpened {
@@ -572,7 +572,7 @@ pub struct Listed {
     pub ok: bool,
     pub path: String,
     #[serde(deserialize_with = "Option::deserialize")]
-    #[schemars(with = "demi_shared_types::Nullable<String>")]
+    #[schemars(with = "jush_shared_types::Nullable<String>")]
     pub home: Option<String>,
     pub entries: Vec<DirectoryEntry>,
     pub read_at: ReadAt,

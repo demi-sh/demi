@@ -64,7 +64,7 @@ The design to build from:
   when there were more; the window then ends its list with *Showing the 50
   most recent matches*. The query is the same `SearchText` as
   `GET /api/search`, and a conversation not the caller's answers 404.
-* `backend-database`: `SearchIndexes::find_in`, which `demi conversation
+* `backend-database`: `SearchIndexes::find_in`, which `jush conversation
   history search` reads, answers each text's `FoundText`: its position,
   block, kind, time and text, so one query serves both, and its
   `HistoryQuery` takes a `limit`. The route cuts each text to its line with
@@ -101,8 +101,8 @@ search window already opens a conversation at a block.
 * Telegram and WhatsApp: search in a chat lists the chat's matching
   messages, newest first, and opening one scrolls to it.
 
-Demi departs from Slack in showing the scope as one token with ✕ rather than
-text the user edits, since Demi has no other modifiers to type beside it.
+Jush departs from Slack in showing the scope as one token with ✕ rather than
+text the user edits, since Jush has no other modifiers to type beside it.
 
 ## Alternatives
 

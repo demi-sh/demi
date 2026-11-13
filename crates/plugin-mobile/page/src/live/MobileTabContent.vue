@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
-import { Toolbar, downloadUrl, usePage, type ToolbarAction } from '@demicodes/plugin-sdk'
+import { Toolbar, downloadUrl, usePage, type ToolbarAction } from '@jush-ai/plugin-sdk'
 import DeviceView from './DeviceView.vue'
 import { drawsWebgl } from './webgl'
 import type { MobileDevicesController } from './controller'
@@ -94,7 +94,7 @@ function act(control: DeviceControl): Promise<void> | undefined {
   const call = control.call(props.data.device, state)
   if (call.method === 'fold') {
     // A posture the device is in moves it there again, as a fold outside
-    // Demi may have left it elsewhere; a hinged one's view moves the hinge
+    // Jush may have left it elsewhere; a hinged one's view moves the hinge
     // as it shows it.
     if (hinged.value && hinge.value) {
       hinged.value.posture(POSTURE_DEGREES[call.params.to as Posture])

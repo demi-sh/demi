@@ -4,12 +4,12 @@
 //! It is made through the Cloud's machine access
 //! (`crates/backend-device-access/src/lib.rs`), which wakes a stopped Cloud.
 
-use demi_backend_database::projects::{ProjectCreation, ProjectRecord, new_project_id};
-use demi_web_api_protocol::ids::WorkspaceId;
-use demi_device_interface::{Device as _, DeviceErrorKind, DeviceFs, MkdirOptions};
+use jush_backend_database::projects::{ProjectCreation, ProjectRecord, new_project_id};
+use jush_web_api_protocol::ids::WorkspaceId;
+use jush_device_interface::{Device as _, DeviceErrorKind, DeviceFs, MkdirOptions};
 
 use crate::shard::Shard;
-use demi_backend_device_access::access::{DeviceAccessError, Refusal};
+use jush_backend_device_access::access::{DeviceAccessError, Refusal};
 
 /// What a new Cloud project came to.
 #[derive(Debug)]

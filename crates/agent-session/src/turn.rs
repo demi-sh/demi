@@ -49,20 +49,20 @@
 
 use std::rc::Rc;
 
-use demi_agent_store::{Kind, StoreError, changes, media, media::ModelView};
-use demi_agent_transcript::{
+use jush_agent_store::{Kind, StoreError, changes, media, media::ModelView};
+use jush_agent_transcript::{
     PendingCall,
     estimate::context_tokens,
     resume_point_within, tool_input,
 };
-use demi_provider_common::{
+use jush_provider_common::{
     ErrorCode, InferenceRequest, ProviderEvent, ProviderFailure, ProviderRun,
 };
-use demi_shared_types::{Block, BlockId, ModelSelection, OpaqueStatus, OpaqueView, ShellToolView, ToolView};
+use jush_shared_types::{Block, BlockId, ModelSelection, OpaqueStatus, OpaqueView, ShellToolView, ToolView};
 use futures_util::StreamExt;
 use tokio_util::sync::CancellationToken;
 
-use demi_conversation_lane_protocol::AgentCode;
+use jush_conversation_lane_protocol::AgentCode;
 
 use super::{
     ErrorReport, SessionEvent, SessionShared, TurnError,
@@ -792,7 +792,7 @@ async fn run_tools(
             }
         }
         let before = s.read(|core| core.inputs.arrivals());
-        let ran = if demi_provider_common::offers(&tools, &step[0].tool_name) {
+        let ran = if jush_provider_common::offers(&tools, &step[0].tool_name) {
             let (model, request_limits) =
                 s.read(|core| (core.model.clone(), core.request_limits()));
             let handles: Vec<CallCommand> = step.iter().map(|_| CallCommand::default()).collect();

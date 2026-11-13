@@ -34,16 +34,16 @@
 
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::ids::UserId;
-use demi_web_api_protocol::sessions::{HandoffCode, HandoffId, ProductPath, SessionId, SessionList};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::ids::UserId;
+use jush_web_api_protocol::sessions::{HandoffCode, HandoffId, ProductPath, SessionId, SessionList};
 use jiff::SignedDuration;
 use url::Url;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::accounts::{ResolvedSession, SessionPolicy, TokenHash};
-use demi_backend_database::control::ControlService;
-use demi_backend_database::web_sessions::{HandoffIssue, NewSession};
+use jush_backend_database::StorageError;
+use jush_backend_database::accounts::{ResolvedSession, SessionPolicy, TokenHash};
+use jush_backend_database::control::ControlService;
+use jush_backend_database::web_sessions::{HandoffIssue, NewSession};
 
 use crate::user_agent::browser_and_system;
 

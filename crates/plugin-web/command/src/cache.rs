@@ -1,6 +1,6 @@
 //! The pages read, kept on the device for 15 minutes, so that reading on
 //! fetches a page once: one file per URL under the temporary directory's
-//! `demi-fetch/pages/`, on disk since the resident may exit between calls.
+//! `jush-fetch/pages/`, on disk since the resident may exit between calls.
 //! Only text answered with a 2xx status is kept.
 
 use std::{
@@ -8,7 +8,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use demi_command_package_fetch_protocol::CACHE_SECONDS;
+use jush_command_package_fetch_protocol::CACHE_SECONDS;
 use serde::{Deserialize, Serialize};
 
 /// A page read as text.

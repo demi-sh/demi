@@ -1,8 +1,8 @@
 import { computed } from 'vue'
 import { defineStore } from 'pinia'
-import { IDLE_COMPACTION_CONTEXT } from '@demicodes/protocol'
-import { SerialQueue } from '@demicodes/utils'
-import { reportError } from '@demicodes/web-ui/infra/errors'
+import { IDLE_COMPACTION_CONTEXT } from '@jush-ai/protocol'
+import { SerialQueue } from '@jush-ai/utils'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
 import { t } from './locales/text'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
@@ -14,12 +14,12 @@ import {
   type ShortcutsPatch,
 } from '../api/generated/web-api'
 import { useProduct, type Answer, type ProductChange } from './product'
-import { appShortcuts } from '@demicodes/web-ui/settings/shortcuts'
-import { shortcutSet } from '@demicodes/web-ui/ui/shortcut'
-import { appThemeStore } from '@demicodes/web-ui/theme/appTheme'
-import { resolveLanguage } from '@demicodes/web-ui/i18n/languages'
-import { DEFAULT_SEND_WHILE_RUNNING } from '@demicodes/web-ui/agent/send-way'
-import { DEFAULT_ACCENT, DEFAULT_TRANSCRIPT_TEXT_SIZE } from '@demicodes/web-ui/theme/productAppearance'
+import { appShortcuts } from '@jush-ai/web-ui/settings/shortcuts'
+import { shortcutSet } from '@jush-ai/web-ui/ui/shortcut'
+import { appThemeStore } from '@jush-ai/web-ui/theme/appTheme'
+import { resolveLanguage } from '@jush-ai/web-ui/i18n/languages'
+import { DEFAULT_SEND_WHILE_RUNNING } from '@jush-ai/web-ui/agent/send-way'
+import { DEFAULT_ACCENT, DEFAULT_TRANSCRIPT_TEXT_SIZE } from '@jush-ai/web-ui/theme/productAppearance'
 
 /**
  * `preferences` with what `patch` changes, as the backend applies it: appearance

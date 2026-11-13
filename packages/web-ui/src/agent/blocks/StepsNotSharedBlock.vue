@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { EyeOff } from '@lucide/vue'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
 import NoticeRow from './NoticeRow.vue'
 import { t } from '../locales/text'
 

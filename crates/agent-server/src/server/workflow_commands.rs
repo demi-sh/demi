@@ -1,4 +1,4 @@
-//! The `demi agent workflows` group
+//! The `jush agent workflows` group
 //! (`crates/backend-user-shard/src/conversation/workflows.rs`).
 //!
 //! It lists the project's workflows as the conversation's Workflow menu lists
@@ -13,9 +13,9 @@
 
 use std::rc::Weak;
 
-use demi_agent_tools::{DeviceResolver, WORKFLOWS_HELP, WorkflowListing, parse_workflow};
-use demi_device_interface::{GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
-use demi_shared_types::{
+use jush_agent_tools::{DeviceResolver, WORKFLOWS_HELP, WorkflowListing, parse_workflow};
+use jush_device_interface::{GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
+use jush_shared_types::{
     WorkflowChoice,
     output::{Cell, Fields, Table, warning},
 };
@@ -27,7 +27,7 @@ use super::{
     commands::{Invoked, fail, json, out, verb},
 };
 
-/// The permission category `demi agent workflows use` needs, which the
+/// The permission category `jush agent workflows use` needs, which the
 /// `agent` group declares: its id, its action and what a grant allows.
 pub(super) const WORKFLOW_CATEGORY: (&str, &str, &str) = (
     "agent.workflow",
@@ -39,7 +39,7 @@ pub(super) const WORKFLOW_CATEGORY: (&str, &str, &str) = (
 const GLOBAL: &str = "global";
 const NONE: &str = "none";
 
-const WORKFLOWS_GROUP: &str = "The project's workflows, groups of subagent profiles in .demi/workflows/*.yaml picked for a conversation in the composer's Workflow menu: list them, check a file, and pick one for this conversation. Its --help gives the file format and an example.";
+const WORKFLOWS_GROUP: &str = "The project's workflows, groups of subagent profiles in .jush/workflows/*.yaml picked for a conversation in the composer's Workflow menu: list them, check a file, and pick one for this conversation. Its --help gives the file format and an example.";
 
 const LIST_SUMMARY: &str = "List the workflows of this conversation's project as the composer's Workflow menu does, and in a git worktree whose own workflows differ the worktree's too, WORKTREE true for those; CURRENT names the one this conversation uses, and a warning on stderr says why a file cannot be used. A read.";
 
@@ -47,7 +47,7 @@ const CHECK_SUMMARY: &str = "Check a workflow file with the parser that reads it
 
 const USE_SUMMARY: &str = "Pick this conversation's workflow as the composer's Workflow menu does, which shows it at once: a workflow by its id, the project's or with --worktree the git worktree's this conversation works in (the worktree's when only it has the id), global for Global Workflow (the user's own profiles) or none for No Subagents. Spawns take its profiles from then on, with the user's unless it keeps them out, and its instructions reach the leading agent from its next request. A workflow that cannot be used fails with why and the choice stays. Needs the user's permission.";
 
-/// The input of `demi agent workflows use`.
+/// The input of `jush agent workflows use`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct UseArgs {
@@ -57,12 +57,12 @@ struct UseArgs {
     worktree: Option<bool>,
 }
 
-/// The input of `demi agent workflows list`, which takes none.
+/// The input of `jush agent workflows list`, which takes none.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct ListArgs {}
 
-/// The input of `demi agent workflows check`.
+/// The input of `jush agent workflows check`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct CheckArgs {
@@ -84,7 +84,7 @@ pub(super) fn workflows_group<H: DeviceResolver>(server: Weak<AgentServer<H>>) -
         .leaf(
             LeafBuilder::rpc("check", CHECK_SUMMARY)
                 .input::<CheckArgs>()
-                .describe("file", "The workflow file, such as .demi/workflows/review.yaml, absolute or relative to the shell's current directory.")
+                .describe("file", "The workflow file, such as .jush/workflows/review.yaml, absolute or relative to the shell's current directory.")
                 .positionals(["file"])
                 .json_output::<Checked>()
                 .bind(TypedRpc::new(verb(server.clone(), check))),
@@ -92,7 +92,7 @@ pub(super) fn workflows_group<H: DeviceResolver>(server: Weak<AgentServer<H>>) -
         .leaf(
             LeafBuilder::rpc("use", USE_SUMMARY)
                 .input::<UseArgs>()
-                .describe("workflow", "A workflow's id, as demi agent workflows list lists it; global for Global Workflow; none for No Subagents.")
+                .describe("workflow", "A workflow's id, as jush agent workflows list lists it; global for Global Workflow; none for No Subagents.")
                 .positionals(["workflow"])
                 .json_output::<Used>()
                 .permission(category)
@@ -100,7 +100,7 @@ pub(super) fn workflows_group<H: DeviceResolver>(server: Weak<AgentServer<H>>) -
         )
 }
 
-/// `demi agent workflows use --json`: the conversation's choice now.
+/// `jush agent workflows use --json`: the conversation's choice now.
 #[derive(Serialize, JsonSchema)]
 struct Used {
     /// The workflow's id, global or none.
@@ -111,7 +111,7 @@ struct Used {
     name: String,
 }
 
-/// One workflow of `demi agent workflows list --json`.
+/// One workflow of `jush agent workflows list --json`.
 #[derive(Serialize, JsonSchema)]
 struct ListedEntry {
     id: String,
@@ -127,7 +127,7 @@ struct ListedEntry {
     unavailable: Option<String>,
 }
 
-/// `demi agent workflows check --json`: what the file reads as.
+/// `jush agent workflows check --json`: what the file reads as.
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct Checked {
@@ -268,13 +268,13 @@ async fn check<H: DeviceResolver>(call: Invoked<H, CheckArgs>, port: RpcPort) ->
     out(&port, fields.render()).await
 }
 
-/// What `demi agent workflows list` tells on stderr: that the project has
+/// What `jush agent workflows list` tells on stderr: that the project has
 /// no workflows or cannot use them, that this conversation's workflow is no
 /// longer in the project, and why each file that cannot be used cannot.
 fn notes(listing: &WorkflowListing) -> Vec<String> {
     let mut notes = Vec::new();
     let Some(directory) = &listing.directory else {
-        notes.push("this project has no workflows: no directory from the project's directory up to the repository's root has .demi/workflows/".to_owned());
+        notes.push("this project has no workflows: no directory from the project's directory up to the repository's root has .jush/workflows/".to_owned());
         return notes;
     };
     if let Some(reason) = &listing.unavailable {

@@ -26,11 +26,11 @@ conversation is the user's own, a message or a steer.
   report woke notifies as the request's first turn would: it is the work
   the user asked for, finishing.
 * A turn that a message from another conversation started
-  (`demi conversation send`) notifies nothing: another agent asked for it.
+  (`jush conversation send`) notifies nothing: another agent asked for it.
 * A turn of a schedule's request that the user steered notifies.
-* What the agent sends with `demi notify send`, and a request that asks
+* What the agent sends with `jush notify send`, and a request that asks
   the user, notify as before, whatever started the turn. A schedule whose
-  run finds something worth telling says so with `demi notify send`.
+  run finds something worth telling says so with `jush notify send`.
 
 The sidebar's dots and the tab are unchanged: a schedule's turn still
 marks its conversation unread.
@@ -72,7 +72,7 @@ protocol changes.
 * Codex CLI (`codex-rs`) runs its `notify` program at every
   `agent-turn-complete`, and has no schedule.
 * ChatGPT's scheduled tasks notify of each run, since a task's result is
-  what the user scheduled it for. A Demi schedule more often watches for
+  what the user scheduled it for. A Jush schedule more often watches for
   something, and its agent decides whether a run found it.
 
 ## Alternatives

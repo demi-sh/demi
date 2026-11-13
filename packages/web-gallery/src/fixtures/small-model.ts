@@ -1,6 +1,6 @@
 import { computed, reactive } from 'vue'
-import type { ModelInfo } from '@demicodes/web-ui/transport/protocol'
-import type { SmallModelChoice } from '@demicodes/web-ui/settings/types'
+import type { ModelInfo } from '@jush-ai/web-ui/transport/protocol'
+import type { SmallModelChoice } from '@jush-ai/web-ui/settings/types'
 import { composerModels } from './context-limits'
 
 /** The state of Settings › Agent's Small Model group in a specimen. */

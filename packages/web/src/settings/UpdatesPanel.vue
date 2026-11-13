@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { t } from './locales/text'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import SettingsUpdates from '@demicodes/web-ui/settings/SettingsUpdates.vue'
-import type { UpgradeChannel } from '@demicodes/web-ui/settings/server-upgrade'
-import type { HeadlineText } from '@demicodes/web-ui/ui/ui-text'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import SettingsUpdates from '@jush-ai/web-ui/settings/SettingsUpdates.vue'
+import type { UpgradeChannel } from '@jush-ai/web-ui/settings/server-upgrade'
+import type { HeadlineText } from '@jush-ai/web-ui/ui/ui-text'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   serverUpgradeSchema,

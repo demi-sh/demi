@@ -1,6 +1,6 @@
 {
-  "name": "@demicodes/utils",
-  "description": "Small generic helpers shared by the Demi browser packages.",
+  "name": "@jush-ai/utils",
+  "description": "Small generic helpers shared by the Jush browser packages.",
   "version": "0.24.0",
   "private": false,
   "type": "module",
@@ -27,9 +27,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/demi-sh/demi.git",
+    "url": "git+https://github.com/jush-ai/jush.git",
     "directory": "packages/utils"
   },
-  "homepage": "https://github.com/demi-sh/demi/tree/main/packages/utils#readme",
-  "bugs": "https://github.com/demi-sh/demi/issues"
+  "homepage": "https://github.com/jush-ai/jush/tree/main/packages/utils#readme",
+  "bugs": "https://github.com/jush-ai/jush/issues"
 }

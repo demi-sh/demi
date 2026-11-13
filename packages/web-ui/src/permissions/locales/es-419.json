@@ -49,7 +49,7 @@
   },
   "notificationsCard": {
     "title": "El agente no puede notificarte",
-    "body": "Ninguno de tus navegadores tiene las notificaciones activadas. Actívalas para saber cuándo el agente termina o te necesita, incluso con Demi cerrado.",
+    "body": "Ninguno de tus navegadores tiene las notificaciones activadas. Actívalas para saber cuándo el agente termina o te necesita, incluso con Jush cerrado.",
     "blocked": "Las notificaciones están bloqueadas en la configuración del sitio de este navegador.",
     "unsupported": "Este navegador no admite notificaciones.",
     "dismiss": "Descartar",

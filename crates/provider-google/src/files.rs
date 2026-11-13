@@ -14,11 +14,11 @@
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     json_body,
     media::{Ask, Holding, MediaFailure, unreadable},
 };
-use demi_shared_types::VendorTrace;
+use jush_shared_types::VendorTrace;
 use reqwest::Url;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Deserialize;
@@ -58,7 +58,7 @@ impl GeminiKey {
     /// Google has processed it.
     pub(crate) async fn upload(
         &self,
-        http: &demi_provider_common::ProviderHttp,
+        http: &jush_provider_common::ProviderHttp,
         bytes: Bytes,
         media_type: &'static str,
     ) -> Result<String, MediaFailure> {
@@ -72,7 +72,7 @@ impl GeminiKey {
         set(&mut headers, "x-goog-upload-command", "start");
         set(&mut headers, "x-goog-upload-header-content-length", &bytes.len().to_string());
         set(&mut headers, "x-goog-upload-header-content-type", media_type);
-        let body = Bytes::from(json_body(&serde_json::json!({ "file": { "display_name": "demi" } })));
+        let body = Bytes::from(json_body(&serde_json::json!({ "file": { "display_name": "jush" } })));
         let started = self
             .call()
             .send(http, Ask::post_json(&start, body), Holding::Json, |_| std::future::ready(Ok((headers.clone(), None))))
@@ -106,7 +106,7 @@ impl GeminiKey {
                 _ => return Ok(file.uri),
             }
             tokio::time::sleep(PROCESSING_READ_EVERY).await;
-            let url = demi_provider_common::endpoint_url(self.base(), &format!("/{}", file.name));
+            let url = jush_provider_common::endpoint_url(self.base(), &format!("/{}", file.name));
             let body = self.call().get(http, &url, self.headers()).await?;
             file = serde_json::from_slice(&body)
                 .map_err(|error| unreadable(format!("its file could not be read: {error}")))?;

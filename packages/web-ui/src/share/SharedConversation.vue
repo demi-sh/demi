@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { HeldTranscript } from '@demicodes/conversation-client'
+import type { HeldTranscript } from '@jush-ai/conversation-client'
 import AgentMessageList from '../agent/AgentMessageList.vue'
 import SessionSurface from '../agent/SessionSurface.vue'
 import type { ShownError } from '../infra/errors'

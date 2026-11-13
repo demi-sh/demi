@@ -23,7 +23,7 @@ import { updateOffered, type UpgradeChannel, type ServerUpgrade, type UpgradeSte
 
 /**
  * The groups of Settings › Updates once the server's state is there, as
- * macOS's: the release Demi runs on this server, the channel it is offered
+ * macOS's: the release Jush runs on this server, the channel it is offered
  * releases from, and the newest one with Update Now, which asks first.
  * While an update runs, its row lists every step it takes with what each did
  * or how far it is, and a bar of the whole; from its restart every page

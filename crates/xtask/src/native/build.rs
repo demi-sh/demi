@@ -101,7 +101,7 @@ use serde::Deserialize;
 
 use super::{Error, Executable, apple, linux, windows};
 
-/// The one target whose demi-mobile carries the iOS helper.
+/// The one target whose jush-mobile carries the iOS helper.
 const IOS_HELPER_TARGET: &str = "aarch64-apple-darwin";
 
 /// The Apple SDK the Apple targets are built against: the one the Command
@@ -209,13 +209,13 @@ pub fn run(options: Options) -> Result<(), Error> {
                 Some(image) => build.in_container(image, target, &built)?,
                 None => build.here(target, &built),
             };
-            // demi-mobile's build carries the iOS helper on Apple silicon,
+            // jush-mobile's build carries the iOS helper on Apple silicon,
             // and a release never ships without it (`crates/plugin-mobile/command/build.rs`).
             if target == IOS_HELPER_TARGET && built.contains(&Executable::Mobile) {
                 if options.container.is_some() || Platform::HOST != Platform::Mac {
                     return Err(Error::IosHelperNeedsMac);
                 }
-                command.env("DEMI_MOBILE_IOS_HELPER", "required");
+                command.env("JUSH_MOBILE_IOS_HELPER", "required");
             }
             let status = command.status()?;
             if !status.success() {
@@ -439,11 +439,11 @@ impl Build<'_> {
             ("XWIN_CRT_VERSION", WINDOWS_CRT_VERSION),
             ("MACOSX_DEPLOYMENT_TARGET", MACOS_MINIMUM),
         ];
-        // demi-mobile carries the Android helper on every target, and a
+        // jush-mobile carries the Android helper on every target, and a
         // release never ships without it (`crates/plugin-mobile/command/build.rs`): a fetch
         // that fails fails the build.
         if executables.contains(&Executable::Mobile) {
-            pins.push(("DEMI_MOBILE_ANDROID_HELPER", "required"));
+            pins.push(("JUSH_MOBILE_ANDROID_HELPER", "required"));
         }
         if windows(target) {
             match Tool::of(self.host, target) {

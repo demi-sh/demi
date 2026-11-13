@@ -14,9 +14,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::credentials::{CredentialDto, CredentialField, FieldKind, Keep, ListedField};
-use demi_web_api_protocol::ids::{ConversationId, UserCredentialId, UserId};
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::credentials::{CredentialDto, CredentialField, FieldKind, Keep, ListedField};
+use jush_web_api_protocol::ids::{ConversationId, UserCredentialId, UserId};
 use garde::Validate;
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};

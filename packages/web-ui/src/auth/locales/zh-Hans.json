@@ -23,9 +23,9 @@
     "locked": "登录失败次数过多。请在 {time} 后重试。"
   },
   "setup": {
-    "title": "设置 Demi",
-    "message": "创建用于管理 Demi 的所有者账户。",
-    "taken": "Demi 已完成设置。请使用其所有者账户登录。",
+    "title": "设置 Jush",
+    "message": "创建用于管理 Jush 的所有者账户。",
+    "taken": "Jush 已完成设置。请使用其所有者账户登录。",
     "name": "名称",
     "email": "电子邮件",
     "password": "密码",
@@ -53,7 +53,7 @@
     "passwordMessage": "请确认是你本人，以添加通行密钥。",
     "password": "密码",
     "readyTitle": "通行密钥已就绪",
-    "readyMessage": "你的密码管理器中已有 Demi 的通行密钥。"
+    "readyMessage": "你的密码管理器中已有 Jush 的通行密钥。"
   },
   "unlock": {
     "ios": "使用面容 ID 或触控 ID 代替密码登录。",

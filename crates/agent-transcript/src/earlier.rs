@@ -7,8 +7,8 @@
 
 use std::collections::HashSet;
 
-use demi_agent_store::{EarlierRows, SessionStore, StoreError};
-use demi_shared_types::{ScheduleMark, Block, BlockId, ErrorBlock, Timestamp, TurnId};
+use jush_agent_store::{EarlierRows, SessionStore, StoreError};
+use jush_shared_types::{ScheduleMark, Block, BlockId, ErrorBlock, Timestamp, TurnId};
 
 use super::cut::{turn_of, turn_record};
 

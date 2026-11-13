@@ -61,7 +61,7 @@ on:
       - "packages/site/*.html"
       - "packages/site/tsconfig*.json"
       - "packages/site/wrangler.jsonc"
-      - ".demi/**"
+      - ".jush/**"
       - "README*.md"
       - "AGENTS.md"
       - "CLAUDE.md"
@@ -153,11 +153,11 @@ jobs:
             runner: windows-11-arm
             msvc: arm64
           - group: runner
-            packages: --package demi-runner
+            packages: --package jush-runner
           - group: commands
-            # demi-mobile's iOS helper is built on the aarch64-apple-darwin
+            # jush-mobile's iOS helper is built on the aarch64-apple-darwin
             # job, with that runner's Xcode (`crates/plugin-mobile/command/src/ios/mod.rs`).
-            packages: --package demi-file --package demi-fetch --package demi-browser --package demi-claude-code --package demi-mobile
+            packages: --package jush-file --package jush-fetch --package jush-browser --package jush-claude-code --package jush-mobile
     defaults:
       run:
         shell: bash
@@ -185,7 +185,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: cargo run --locked --package xtask --no-default-features -- native build --target ${{ matrix.target }} ${{ matrix.packages }}
-      # Demi's own certificate, the same in every release, so macOS keeps
+      # Jush's own certificate, the same in every release, so macOS keeps
       # the user's grants to the runner across updates
       # (`crates/runner/src/autostart.rs`). Signed
       # before packaging, which hashes the program as it ships.
@@ -208,9 +208,9 @@ jobs:
           # finds a self-signed one, which no trust setting vouches for,
           # only by its hash.
           security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
-          runner=".cache/native-target/${{ matrix.target }}/release/demi-runner"
-          codesign --force --sign 250817EDB3EADABE250D5271ABB40DBD8B5984E9 --keychain "$keychain" --identifier sh.demi.runner --timestamp=none "$runner"
-          codesign --verify -R='identifier "sh.demi.runner" and certificate root = H"250817edb3eadabe250d5271abb40dbd8b5984e9"' "$runner"
+          runner=".cache/native-target/${{ matrix.target }}/release/jush-runner"
+          codesign --force --sign 78E247958CED7352A27BF0EAD23D200CA0FCACE1 --keychain "$keychain" --identifier ai.jush.runner --timestamp=none "$runner"
+          codesign --verify -R='identifier "ai.jush.runner" and certificate root = H"78e247958ced7352a27bf0ead23d200ca0fcace1"' "$runner"
           security delete-keychain "$keychain"
       # Packaging compresses each program into the cache, by its SHA-256,
       # where the server release finds the copies made, so it compresses
@@ -264,7 +264,7 @@ jobs:
         with:
           version: ${{ needs.version.outputs.version }}
       - name: Build
-        run: cargo run --locked --package xtask --no-default-features -- native build --target ${{ matrix.target }} --package demi-backend --package demi-machine-manager --package demi-server
+        run: cargo run --locked --package xtask --no-default-features -- native build --target ${{ matrix.target }} --package jush-backend --package jush-machine-manager --package jush-server
       - uses: ./.github/actions/collect-programs
         with:
           name: native-${{ matrix.target }}-server
@@ -368,10 +368,10 @@ jobs:
           "$RUNNER_TEMP/xtask/xtask" server-release --publish --output "$RUNNER_TEMP/root" \
             --server ${{ matrix.target }} --web "$RUNNER_TEMP/web" \
             --artifacts native-target --compressed compressed
-          tar --zstd -cf "dist/server/demi-$VERSION-server-linux-${{ matrix.arch }}.tar.zst" \
+          tar --zstd -cf "dist/server/jush-$VERSION-server-linux-${{ matrix.arch }}.tar.zst" \
             -C "$RUNNER_TEMP/root" .
-          cp "native-target/${{ matrix.target }}/release/demi-server" \
-            "dist/server/demi-server-${{ matrix.target }}"
+          cp "native-target/${{ matrix.target }}/release/jush-server" \
+            "dist/server/jush-server-${{ matrix.target }}"
       - uses: actions/upload-artifact@v7
         with:
           name: server-${{ matrix.arch }}
@@ -404,7 +404,7 @@ jobs:
             --output "$RUNNER_TEMP/out/image" \
             --mirror http://azure.archive.ubuntu.com/ubuntu
           mkdir -p dist/image
-          tar -cf "dist/image/demi-$VERSION-image-linux-${{ matrix.arch }}.tar" -C "$RUNNER_TEMP/out" image
+          tar -cf "dist/image/jush-$VERSION-image-linux-${{ matrix.arch }}.tar" -C "$RUNNER_TEMP/out" image
           echo "key=ubuntu-packages-${{ matrix.arch }}-$(ls "$RUNNER_TEMP/packages" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
       - name: Save the Ubuntu packages
         if: steps.packages.outputs.cache-matched-key != steps.image.outputs.key

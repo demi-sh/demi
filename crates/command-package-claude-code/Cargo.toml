@@ -1,5 +1,5 @@
 [package]
-name = "demi-claude-code"
+name = "jush-claude-code"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,16 +12,16 @@ doctest = false
 bench = false
 
 [[bin]]
-name = "demi-claude-code"
+name = "jush-claude-code"
 path = "src/main.rs"
 test = false
 
 [dependencies]
 bytes.workspace = true
-demi-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-sdk = { path = "../command-sdk" }
-demi-shared-cli = { path = "../shared-cli", features = ["device-allocator"] }
+jush-command-package-claude-code-protocol = { path = "../command-package-claude-code-protocol" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-sdk = { path = "../command-sdk" }
+jush-shared-cli = { path = "../shared-cli", features = ["device-allocator"] }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

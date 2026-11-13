@@ -1,5 +1,5 @@
 [package]
-name = "demi-runner-protocol"
+name = "jush-runner-protocol"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,10 +12,10 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-declarations = { path = "../command-declarations" }
-demi-device-paths = { path = "../device-paths" }
-demi-shared-types = { path = "../shared-types" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-declarations = { path = "../command-declarations" }
+jush-device-paths = { path = "../device-paths" }
+jush-shared-types = { path = "../shared-types" }
 bytes.workspace = true
 garde.workspace = true
 jiff.workspace = true

@@ -15,7 +15,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use demi_backend_database::{DatabaseKind, SchemaFit, schema_fit};
+use jush_backend_database::{DatabaseKind, SchemaFit, schema_fit};
 use semver::Version;
 
 /// The databases of a data directory, relative to it, with their kinds.
@@ -78,11 +78,11 @@ pub fn size(data: &Path, databases: &[PathBuf]) -> io::Result<u64> {
 
 /// Refuses a write of `bytes` to the filesystem of `path` that would leave it
 /// less than the reserve every large write leaves
-/// ([`ROOM_RESERVE`](demi_machine_manager_protocol::ROOM_RESERVE)).
+/// ([`ROOM_RESERVE`](jush_machine_manager_protocol::ROOM_RESERVE)).
 pub fn ensure_room(path: &Path, bytes: u64, what: &str) -> io::Result<()> {
     let stats = rustix::fs::statvfs(path)?;
     let free = stats.f_bavail.saturating_mul(stats.f_frsize);
-    let needed = bytes.saturating_add(demi_machine_manager_protocol::ROOM_RESERVE);
+    let needed = bytes.saturating_add(jush_machine_manager_protocol::ROOM_RESERVE);
     if free >= needed {
         return Ok(());
     }
@@ -220,7 +220,7 @@ fn with_suffix(path: &Path, suffix: &str) -> PathBuf {
 }
 
 /// Gives `path` the owner of the data directory, whose service user
-/// writes it; a copy that the root `demi-server` made is root's otherwise.
+/// writes it; a copy that the root `jush-server` made is root's otherwise.
 fn own_like(path: &Path, owner: &std::fs::Metadata) -> io::Result<()> {
     use std::os::unix::fs::MetadataExt as _;
     if std::fs::metadata(path)?.uid() == owner.uid() {

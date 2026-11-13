@@ -47,7 +47,7 @@ None.
 - Codex's terminal UI previews each pending message in at most three lines,
   then an ellipsis
   ([`pending_input_preview.rs`](https://github.com/openai/codex/blob/67f0994b532b8740f14b5b738af7b7b2a915b1d6/codex-rs/tui/src/bottom_pane/pending_input_preview.rs)).
-  Demi keeps two, since its bubble adds a row of controls the terminal does
+  Jush keeps two, since its bubble adds a row of controls the terminal does
   not have, and fades the last line as its sent messages do, rather than an
   ellipsis.
 - Mail on macOS and iOS previews a message in the list in two lines, and

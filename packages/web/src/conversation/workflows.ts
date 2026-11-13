@@ -1,5 +1,5 @@
 import { computed, onScopeDispose, shallowRef, watch, type ComputedRef } from 'vue'
-import type { WorkflowList } from '@demicodes/web-ui/agent/workflow-menu'
+import type { WorkflowList } from '@jush-ai/web-ui/agent/workflow-menu'
 import { t } from './locales/text'
 import { ApiError, apiRequest, readResponse } from '../api/client'
 import { fileBrowserError } from '../api/files'

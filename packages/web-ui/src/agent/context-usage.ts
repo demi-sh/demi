@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
 import type { ShownError } from '../infra/errors'
 import { useLocalStorage } from '@vueuse/core'
-import type { ContextRowKind, ContextUsage } from '@demicodes/protocol'
+import type { ContextRowKind, ContextUsage } from '@jush-ai/protocol'
 import type { SettingsQuotaWindow } from '../settings/types'
 import { pageLanguage } from '../i18n/text'
 import { formatPercent } from '../ui/percent'
@@ -150,7 +150,7 @@ export function useContextCardSection(): Ref<ContextCardSection | null> {
 }
 
 /** Where the browser keeps which part of the context card stands open. */
-const CONTEXT_CARD_SECTION_KEY = 'demi-context-card-open'
+const CONTEXT_CARD_SECTION_KEY = 'jush-context-card-open'
 
 /**
  * `tokens` as a share of `window` to a tenth of a percent, "24.2%"; a share too

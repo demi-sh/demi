@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { productWould } from '../product-would'
-import type { UserContentBlock } from '@demicodes/protocol'
-import UserBlock from '@demicodes/web-ui/agent/blocks/UserBlock.vue'
-import { shownComment, type ShownComment } from '@demicodes/web-ui/agent/comments/comments'
-import { provideMessageFiles } from '@demicodes/web-ui/markdown/message-files'
-import type { ConversationFiles } from '@demicodes/web-ui/markdown/types'
+import type { UserContentBlock } from '@jush-ai/protocol'
+import UserBlock from '@jush-ai/web-ui/agent/blocks/UserBlock.vue'
+import { shownComment, type ShownComment } from '@jush-ai/web-ui/agent/comments/comments'
+import { provideMessageFiles } from '@jush-ai/web-ui/markdown/message-files'
+import type { ConversationFiles } from '@jush-ai/web-ui/markdown/types'
 import { demoImageUrl, longUserText } from '../fixtures/blocks'
 import GallerySection from './GallerySection.vue'
 import GallerySpecimen from './GallerySpecimen.vue'
-import type { SentenceText } from '@demicodes/web-ui/ui/ui-text'
+import type { SentenceText } from '@jush-ai/web-ui/ui/ui-text'
 
 /**
  * Every length a user message comes in, each in a frame whose right edge

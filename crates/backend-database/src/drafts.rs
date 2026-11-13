@@ -4,11 +4,11 @@
 //! Every change reads the row and writes it in one transaction, so two saves
 //! never build on the same revision.
 
-use demi_shared_types::{BlobRef, Comment, CommentStage, MediaSource};
-use demi_web_api_protocol::drafts::{
+use jush_shared_types::{BlobRef, Comment, CommentStage, MediaSource};
+use jush_web_api_protocol::drafts::{
     ConversationDraft, Draft, DraftComment, DraftFile, DraftMessage, DraftWritten, Revisions,
 };
-use demi_web_api_protocol::ids::{AttachmentId, ConversationId, UserId};
+use jush_web_api_protocol::ids::{AttachmentId, ConversationId, UserId};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 

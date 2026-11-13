@@ -4,7 +4,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use demi_shared_types::{Nullable, Timestamp};
+use jush_shared_types::{Nullable, Timestamp};
 use garde::Validate;
 use jiff::SignedDuration;
 use schemars::JsonSchema;

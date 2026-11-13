@@ -1,4 +1,4 @@
-import type { Block, MediaSource, UserContentBlock } from '@demicodes/protocol'
+import type { Block, MediaSource, UserContentBlock } from '@jush-ai/protocol'
 import { demoModel, shellView, withEnd } from './blocks'
 import { commentedConversation } from './comments'
 

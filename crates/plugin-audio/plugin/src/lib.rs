@@ -1,4 +1,4 @@
-//! The `audio` plugin: the `demi audio` group.
+//! The `audio` plugin: the `jush audio` group.
 //!
 //! The group asks the port's Providers service for one file of speech, music or
 //! a sound effect, wraps a vendor's raw PCM as WAV, checks the file it reads,
@@ -9,7 +9,7 @@
 //! vendor states, each read and checked where the answer is decoded. One it
 //! states wrongly or not at all fails the call, never guessed.
 //!
-//! Making a voice, a clone or a designed one, is not a Demi command: each
+//! Making a voice, a clone or a designed one, is not a Jush command: each
 //! vendor asks for the speaker's consent its own way, on its own site.
 
 mod audio;
@@ -17,7 +17,7 @@ mod commands;
 
 use std::rc::Rc;
 
-use demi_plugin_interface::{
+use jush_plugin_interface::{
     CommandPlugin, Manifest, Plugin, PluginError, PluginFactory, PluginId, PluginPort, Reply, Request,
 };
 
@@ -31,7 +31,7 @@ impl Audio {
         let mut manifest = Manifest::new(
             PluginId::try_from("audio").expect("a valid plugin id"),
             "Audio Generation",
-            "Makes speech, music and sound effects through an OpenAI, Google, ElevenLabs, MiniMax, BytePlus Speech or Doubao Speech key or a compatible API with demi audio.",
+            "Makes speech, music and sound effects through an OpenAI, Google, ElevenLabs, MiniMax, BytePlus Speech or Doubao Speech key or a compatible API with jush audio.",
         );
         manifest.commands = commands::commands().manifest_commands();
         Self { manifest }

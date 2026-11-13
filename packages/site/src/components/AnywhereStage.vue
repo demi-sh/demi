@@ -13,8 +13,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useOnScreen } from '@/onScreen'
 import { BatteryFullIcon, LaptopIcon, LockIcon, SignalIcon, SmartphoneIcon, TabletIcon, WifiIcon } from '@lucide/vue'
 import { FORMS, type DemoId } from '@/features'
-import DeviceLogo from '@demicodes/web-ui/devices/DeviceLogo.vue'
-import type { SystemLogo } from '@demicodes/web-ui/devices/mark'
+import DeviceLogo from '@jush-ai/web-ui/devices/DeviceLogo.vue'
+import type { SystemLogo } from '@jush-ai/web-ui/devices/mark'
 import type { DevicesShot, ShotDevice, StageCard } from '@/demo/message'
 import DemoFrame from './DemoFrame.vue'
 
@@ -203,7 +203,7 @@ function style(device: Device): Record<string, string> {
       <div v-if="device === 'laptop'" class="window">
         <div class="bar">
           <span class="lights"><i /><i /><i /></span>
-          <span class="address"><LockIcon :size="13" />demi.example.com</span>
+          <span class="address"><LockIcon :size="13" />jush.example.com</span>
         </div>
         <DemoFrame :demo="demo" form="desktop" :width="FORMS.desktop.width" :height="FORMS.desktop.height" :run="run" :paused="paused" @ready="ready = new Set([...ready, 'laptop'])" @card="hear" />
       </div>

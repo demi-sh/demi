@@ -1,6 +1,6 @@
 # Deploy on Render
 
-Demi runs on one Render web service, with a 5 GB disk for its data and its
+Jush runs on one Render web service, with a 5 GB disk for its data and its
 attachments. The Starter instance with 512 MB and the disk costs about $8.25 a
 month.
 
@@ -16,7 +16,7 @@ You need a Render account with a card on it: a service with a disk is paid.
 3. Open the service's address, and create the admin account right away: until
    it exists, anyone who reaches the address can.
 
-Then add a model in **Settings › Providers**, and update Demi from
+Then add a model in **Settings › Providers**, and update Jush from
 **Settings › Updates**.
 
 ## Afterwards

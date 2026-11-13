@@ -1,6 +1,6 @@
 /**
  * The steps of a server update as both of its surfaces show them: Settings ›
- * Updates while the server still serves, and the Updating Demi screen from
+ * Updates while the server still serves, and the Updating Jush screen from
  * the restart on. Each surface names its own steps; the states and their
  * numbers are the same.
  */

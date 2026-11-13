@@ -41,7 +41,7 @@ pub fn copy_xattrs<P: AsRef<Path>>(source: P, dest: P) -> crate::context::io::Re
     Ok(())
 }
 
-/// Demi's: removes the extended attributes of `path`, for a copy whose file
+/// Jush's: removes the extended attributes of `path`, for a copy whose file
 /// system copied the source's along with its data, as macOS's clonefile(2)
 /// does, where GNU cp's copy has none unless it preserves them. An
 /// attribute the system protects is left: removing it is refused with

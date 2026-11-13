@@ -24,8 +24,8 @@ use gix::bstr::{BStr, ByteSlice};
 use gix::hash::ObjectId;
 use gix::object::tree::diff::ChangeDetached;
 
-use demi_command_protocol::line_counts;
-use demi_runner_protocol::wire::{self, ChangeKind};
+use jush_command_protocol::line_counts;
+use jush_runner_protocol::wire::{self, ChangeKind};
 
 use crate::git::{GitError, Located, MAX_BLOB_BYTES, discover, internal, locate, root_relative_path};
 

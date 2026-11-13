@@ -22,7 +22,7 @@ that page. Almost every automation wakes the conversation it was made in.
 An automation becomes a **schedule**, and a schedule belongs to one
 conversation: it wakes that conversation and nothing else. The agent
 creates, changes and deletes the conversation's schedules with
-`demi schedule`; the user sees them, turns them off and on, and deletes
+`jush schedule`; the user sees them, turns them off and on, and deletes
 them. Nothing else changes in what a schedule can do.
 
 ### What the user sees
@@ -123,7 +123,7 @@ A once schedule is deleted after it wakes the conversation.
 * The page writes `PATCH /conversations/:id/schedules/:schedule` with
   `{ paused }` for the switch, and `DELETE` on the same path. Every
   `/automations` route goes; `/hooks/<id>` stays.
-* `demi schedule list | show | create | edit | run | delete` acts on the
+* `jush schedule list | show | create | edit | run | delete` acts on the
   conversation it runs in only: `--conversation`, `--new`, `--device`,
   `--directory`, `--model` and `--effort` go. Nothing shows a URL
   trigger's secret again, so `show` prints its address only, `create` prints
@@ -141,7 +141,7 @@ A once schedule is deleted after it wakes the conversation.
 
 ### The agent's words
 
-`demi schedule`'s description, before and after:
+`jush schedule`'s description, before and after:
 
 ```text
 Before: The user's automations: the agent started on a repeating cycle

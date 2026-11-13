@@ -9,7 +9,7 @@ status: proposed, superseded in part by 0321
 Alex's employer keeps its skills in a private repository,
 `git@github.example.com:acme/internal-skills.git`, which only his work
 laptop can reach: the laptop has the SSH key, and the company's network.
-Demi's server fetches every skill source itself, anonymously, over HTTPS,
+Jush's server fetches every skill source itself, anonymously, over HTTPS,
 so Settings › Skills cannot add the repository at all, though the laptop
 is paired and online.
 
@@ -50,7 +50,7 @@ A Git repository. Each SKILL.md in it is a skill.
 * A device's unpairing leaves its sources fetched by no one: they keep
   their skills, show *alex-mbp was removed*, and fetch again once the user
   chooses another fetcher.
-* `demi skills add` gains `--fetch-with <device>`, and `demi skills list`
+* `jush skills add` gains `--fetch-with <device>`, and `jush skills list`
   shows each source's fetcher.
 
 The design to build from:
@@ -103,7 +103,7 @@ The design to build from:
   as the user's other clones do.
 * **skills.sh**, `npx skills add`, clones with the local `git` as well.
 
-Demi's server is not the user's machine, so the user picks which of their
+Jush's server is not the user's machine, so the user picks which of their
 machines clones, and the server keeps the result for every Host.
 
 ## Alternatives

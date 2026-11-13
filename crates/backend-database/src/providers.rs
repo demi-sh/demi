@@ -11,9 +11,9 @@
 //! Sealing and opening belong to the vault; these operations store and read the
 //! sealed bytes.
 
-use demi_shared_types::{CacheTtl, CatalogRecord, QuotaSnapshot, Timestamp};
-use demi_web_api_protocol::ids::{CredentialId, DeviceId, ProviderId, UserId};
-use demi_web_api_protocol::providers::{CredentialKind, Rotation};
+use jush_shared_types::{CacheTtl, CatalogRecord, QuotaSnapshot, Timestamp};
+use jush_web_api_protocol::ids::{CredentialId, DeviceId, ProviderId, UserId};
+use jush_web_api_protocol::providers::{CredentialKind, Rotation};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::StorageError;

@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use demi_command_protocol::{
+use jush_command_protocol::{
     ARTIFACTS_PATH, CONVERSATION_PATH, ConversationRequest, INFO_PATH, INVOKE_PATH,
     MAX_METADATA_BYTES, MAX_RECORD_BYTES, MESSAGES_PATH, Metadata, NUMBERS_PATH, ProtocolError, Record,
     RecordDecoder, SHUTDOWN_PATH, ResidentInfo, StreamOpen, encode_input,
@@ -134,7 +134,7 @@ impl Client {
 fn request(method: Method, path: &str) -> Request<()> {
     Request::builder()
         .method(method)
-        .uri(format!("http://demi{path}"))
+        .uri(format!("http://jush{path}"))
         .body(())
         .expect("constant resident endpoint")
 }

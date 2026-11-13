@@ -69,35 +69,35 @@
 use std::rc::{Rc, Weak};
 
 use axum::extract::ws::close_code;
-use demi_agent_server::{ContentError, ContentResolver, FileReference, Outgoing, ResolvedFiles};
-use demi_agent_store::media::HeldMedia;
-use demi_backend_database::StorageError;
-use demi_backend_database::conversation_index::ConversationRecord;
-use demi_backend_page_sync::Part;
-use demi_backend_permissions::Stops;
-use demi_backend_database::conversation_attachments::uploaded_after;
-use demi_conversation_lane_protocol::{
+use jush_agent_server::{ContentError, ContentResolver, FileReference, Outgoing, ResolvedFiles};
+use jush_agent_store::media::HeldMedia;
+use jush_backend_database::StorageError;
+use jush_backend_database::conversation_index::ConversationRecord;
+use jush_backend_page_sync::Part;
+use jush_backend_permissions::Stops;
+use jush_backend_database::conversation_attachments::uploaded_after;
+use jush_conversation_lane_protocol::{
     SteerOutcome, Follow, Followed,
     ClientContent, ClientFrame, ClientFrameKind, EditOutcome, FrameError, Refusal,
     RemoveOutcome, SavedDelivery, SendMessage, ServerFrame, TranscriptPatch, Version, decode_client_frame,
 };
-use demi_shared_gates::Purpose;
-use demi_shared_types::{Block, BlockId, NodeId, TurnId, UserContentBlock};
-use demi_web_api_protocol::conversations::{ConversationFrame, FirstMessageAnswer};
-use demi_web_api_protocol::drafts::{ATTACHMENT_MARK, DraftFile};
-use demi_web_api_protocol::saved::SavedMessage;
-use demi_web_api_protocol::error::ErrorCode;
-use demi_web_api_protocol::ids::{ConversationId, ProviderId};
-use demi_web_api_protocol::permissions::PermissionRequestId;
+use jush_shared_gates::Purpose;
+use jush_shared_types::{Block, BlockId, NodeId, TurnId, UserContentBlock};
+use jush_web_api_protocol::conversations::{ConversationFrame, FirstMessageAnswer};
+use jush_web_api_protocol::drafts::{ATTACHMENT_MARK, DraftFile};
+use jush_web_api_protocol::saved::SavedMessage;
+use jush_web_api_protocol::error::ErrorCode;
+use jush_web_api_protocol::ids::{ConversationId, ProviderId};
+use jush_web_api_protocol::permissions::PermissionRequestId;
 use futures_util::future::LocalBoxFuture;
 
 use super::attachment_facts::StreamedText;
 use super::failure_facts;
 use crate::sync::etag_of;
 use crate::shard::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader, Shard};
-use demi_backend_device_access::remote_files::{RemoteFile, RemoteFileRefusal};
-use demi_backend_device_access::root_of;
-use demi_backend_device_access::DeviceShard;
+use jush_backend_device_access::remote_files::{RemoteFile, RemoteFileRefusal};
+use jush_backend_device_access::root_of;
+use jush_backend_device_access::DeviceShard;
 
 /// The close code of a lane whose page fell a full outbox behind; the page
 /// reconnects and adopts the running tree.
@@ -217,9 +217,9 @@ impl Shown {
         }
         for Follow { value, holds } in own.follow {
             let tag = match holds {
-                demi_conversation_lane_protocol::Held::Tag { tag } => tag,
+                jush_conversation_lane_protocol::Held::Tag { tag } => tag,
                 // A version names no whole value: the page holds none of it.
-                demi_conversation_lane_protocol::Held::Version { .. } => String::new(),
+                jush_conversation_lane_protocol::Held::Version { .. } => String::new(),
             };
             if let Some(slot) = self.slot(&value) {
                 *slot = Some(tag);
@@ -522,7 +522,7 @@ impl Shard {
     async fn handle_message(
         &self,
         conversation: &ConversationId,
-        connection: &demi_agent_server::Connection<super::ShardDevices>,
+        connection: &jush_agent_server::Connection<super::ShardDevices>,
         text: &str,
     ) -> Handled {
         match decode_client_frame(text) {
@@ -567,7 +567,7 @@ impl Shard {
     async fn handle_frame(
         &self,
         conversation: &ConversationId,
-        connection: &demi_agent_server::Connection<super::ShardDevices>,
+        connection: &jush_agent_server::Connection<super::ShardDevices>,
         frame: ClientFrame,
     ) -> Handled {
         let started = std::time::Instant::now();
@@ -797,7 +797,7 @@ impl Shard {
         let Some(tree) = self.agent().tree(&root) else {
             return Vec::new();
         };
-        let held = |stops| demi_backend_permissions::held_requests(self.permission_shard(), conversation, &stops);
+        let held = |stops| jush_backend_permissions::held_requests(self.permission_shard(), conversation, &stops);
         // The agents below `top`, itself included, which a stop closes with it.
         let below = |top: &NodeId| {
             let parents: Vec<_> = tree.nodes().iter().map(|node| (node.id().clone(), node.record().parent)).collect();
@@ -842,7 +842,7 @@ impl Shard {
         if requests.is_empty() {
             return;
         }
-        if let Err(error) = demi_backend_permissions::deny(self.permission_shard(), conversation, requests).await {
+        if let Err(error) = jush_backend_permissions::deny(self.permission_shard(), conversation, requests).await {
             tracing::warn!(event = "permission_requests.deny_failed", %conversation, %error, "the requests that hold an agent's calls were not denied");
         }
     }
@@ -1289,7 +1289,7 @@ fn to_text(frame: &ServerFrame) -> String {
 /// A send writes nothing to the device: most files are only for the model to read,
 /// which it does from the blob, so a device that is slow to reach, offline or a
 /// stopped Cloud never holds a message. A command that needs the file fetches it
-/// with `demi attachment download`.
+/// with `jush attachment download`.
 pub(super) struct ConversationFiles {
     /// Weak: the shard owns the agent server that holds this resolver.
     shard: Weak<Shard>,

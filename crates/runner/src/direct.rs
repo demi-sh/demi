@@ -3,7 +3,7 @@
 //! channels the backend introduces and authorizes.
 //!
 //! The runner carries out each channel's operation as it carries out the
-//! backend's request for the same thing (`demi_runner_device`), with the same
+//! backend's request for the same thing (`jush_runner_device`), with the same
 //! functions, limits, atomic writes and file watches. It opens a `stream` as a
 //! `resident_open`, with a `user` caller in the conversation the header names.
 //!
@@ -26,21 +26,21 @@ use std::{
 
 
 use bytes::Bytes;
-use demi_command_protocol::{CommandCaller, CommandContext, EDIT_FILE_BYTES, TextRefusal, text_of};
-use demi_command_sdk::{InputSource, paths::resolve};
-use demi_runner_direct::{
+use jush_command_protocol::{CommandCaller, CommandContext, EDIT_FILE_BYTES, TextRefusal, text_of};
+use jush_command_sdk::{InputSource, paths::resolve};
+use jush_runner_direct::{
     Answer, ByteStream, FileRange, FileText, Listing, Operations, Scope, StreamActivity,
     StreamRequest, WatchStream,
 };
-use demi_runner_device::{
+use jush_runner_device::{
     files::{open_read, write_file},
     fs,
     search::Search,
     subscriptions::{Report, Subscriptions},
     watches::Watches,
 };
-use demi_runner_jobs::commands::streams::{StreamOpener, StreamRefusal, StreamStart};
-use demi_runner_protocol::{
+use jush_runner_jobs::commands::streams::{StreamOpener, StreamRefusal, StreamStart};
+use jush_runner_protocol::{
     direct::{ChannelError, ChannelErrorCode},
     search::SearchQuery,
     files::{
@@ -139,7 +139,7 @@ impl Operations for DeviceOperations {
         Box::pin(async move {
             let target = resolve(&scope.cwd, &path);
             // Taken before the read, as every read of what a subscription covers.
-            let read_at = demi_runner_device::numbers::read_at();
+            let read_at = jush_runner_device::numbers::read_at();
             let read = open_read(target, offset, length, None, &cancel)
                 .await
                 .map_err(|error| match error.kind() {
@@ -192,7 +192,7 @@ impl Operations for DeviceOperations {
         let cancel = self.closed.clone();
         Box::pin(async move {
             // Before anything is read (`crates/runner-device/src/subscriptions.rs`).
-            let read_at = demi_runner_device::numbers::read_at();
+            let read_at = jush_runner_device::numbers::read_at();
             let target = resolve(&scope.cwd, &path);
             // One byte more than the limit, so a file past it is refused
             // once that byte arrives.
@@ -237,7 +237,7 @@ impl Operations for DeviceOperations {
         let home = self.home.clone();
         Box::pin(async move {
             // Before anything is read (`crates/runner-device/src/subscriptions.rs`).
-            let read_at = demi_runner_device::numbers::read_at();
+            let read_at = jush_runner_device::numbers::read_at();
             let path = path.unwrap_or_else(|| scope.cwd.clone());
             let request = Inbound::FsReaddir {
                 id: String::new(),
@@ -426,7 +426,7 @@ impl Operations for DeviceOperations {
         })
     }
 
-    fn forward(&self, forward: String, from: String) -> Answer<demi_runner_direct::Forwarded> {
+    fn forward(&self, forward: String, from: String) -> Answer<jush_runner_direct::Forwarded> {
         let target = crate::forward::connect_target_of(&self.forwards, &forward, &from);
         Box::pin(async move {
             let (address, ended) = target.ok_or_else(|| {
@@ -436,14 +436,14 @@ impl Operations for DeviceOperations {
                     "This device connects no such forward",
                 )
             })?;
-            let tcp = demi_runner_direct::connect_target(&address, &ended)
+            let tcp = jush_runner_direct::connect_target(&address, &ended)
                 .await
                 .map_err(|error| ChannelError::new(ChannelErrorCode::DeviceOperationFailed, 502, error.to_string()))?;
-            Ok(demi_runner_direct::Forwarded { tcp, ended })
+            Ok(jush_runner_direct::Forwarded { tcp, ended })
         })
     }
 
-    fn pipe(&self, from: String, pipe: String, at: u64, channel: demi_runner_direct::PairChannel) {
+    fn pipe(&self, from: String, pipe: String, at: u64, channel: jush_runner_direct::PairChannel) {
         self.pipes.arrived(from, pipe, at, channel, &self.control);
     }
 }
@@ -465,7 +465,7 @@ impl InputSource for PageSource {
                 None => return Ok(None),
             }
         }
-        let limit = self.pending.len().min(demi_command_protocol::MAX_RECORD_BYTES);
+        let limit = self.pending.len().min(jush_command_protocol::MAX_RECORD_BYTES);
         Ok(Some(self.pending.split_to(limit)))
     }
 }
@@ -508,7 +508,7 @@ impl PageWatchTask {
                     };
                     match report {
                         Report::Live { id, since } => match held.subject(&id) {
-                            Some(subject) => page.live(&subject, since, demi_runner_device::numbers::epoch()),
+                            Some(subject) => page.live(&subject, since, jush_runner_device::numbers::epoch()),
                             None => Vec::new(),
                         },
                         Report::Failed { id, reason } => match held.forget(&id) {

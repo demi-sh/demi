@@ -17,7 +17,7 @@ pub enum WorkflowChoice {
     Default,
     /// Subagents are off for this conversation.
     None,
-    /// The workflow whose file is `.demi/workflows/<id>.yaml`: the
+    /// The workflow whose file is `.jush/workflows/<id>.yaml`: the
     /// project's, or with `worktree` the one of the linked worktree the
     /// conversation works in (`crates/backend-database/src/selection.rs`
     /// § Worktrees). A conversation in no worktree reads its own directory's

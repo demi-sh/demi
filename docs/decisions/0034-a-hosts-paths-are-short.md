@@ -2,18 +2,18 @@
 status: accepted, superseded in part by 0043
 ---
 
-# A Host's Demi paths are short
+# A Host's Jush paths are short
 
 ## Context and Problem Statement
 
-A runner installs into `~/.demi/instances/<id>`, where the id is the SHA-256
+A runner installs into `~/.jush/instances/<id>`, where the id is the SHA-256
 of its backend's URL, 64 hex digits. A conversation's scratch directory is
 `scratch/<conversation id>`, the whole 36-character UUID, and a subagent's is
 `agent-<number>` inside it. So an agent's scratch path is about 150
 characters:
 
 ```text
-/Users/alex/.demi/instances/3f9a1c7e5b2d8046a1e9c3b7d5f20864ce1a3b5d7f9e2c4a6b8d0f1e3a5c7b9d/scratch/5b2c9e41-7a3d-4f08-9c6e-1d8b3a7f2e90/agent-12
+/Users/alex/.jush/instances/3f9a1c7e5b2d8046a1e9c3b7d5f20864ce1a3b5d7f9e2c4a6b8d0f1e3a5c7b9d/scratch/5b2c9e41-7a3d-4f08-9c6e-1d8b3a7f2e90/agent-12
 ```
 
 Every command, report and link that names a file there carries it, so a
@@ -34,12 +34,12 @@ Chosen option: the backend's host and a short id, because a person reads
 which backend an installation belongs to from its name, and twelve
 characters tell a user's conversations apart.
 
-* An installation's directory is `~/.demi/runner/<backend>-<hash>`: the
+* An installation's directory is `~/.jush/runner/<backend>-<hash>`: the
   backend's host, then its port when it is not the scheme's default, then
   its path's segments, each joined by `-`, and last the first four hex
   digits of the SHA-256 of the backend's whole URL, such as
-  `~/.demi/runner/demi.example.com-3f9a` or
-  `~/.demi/runner/127.0.0.1-3310-b27e`. The part before the hash is cut
+  `~/.jush/runner/jush.example.com-3f9a` or
+  `~/.jush/runner/127.0.0.1-3310-b27e`. The part before the hash is cut
   where the whole name would not fit a file name on every system. One
   function names it, for the installer's script and the runner alike.
 * The hash keeps apart backends whose readable parts are the same, such as
@@ -51,7 +51,7 @@ characters tell a user's conversations apart.
   id>`; a subagent's stays `agent-<number>` inside it.
 
 ```text
-/Users/alex/.demi/runner/demi.example.com-3f9a/scratch/5b2c9e417a3d/agent-12
+/Users/alex/.jush/runner/jush.example.com-3f9a/scratch/5b2c9e417a3d/agent-12
 ```
 
 * An installation made before keeps its directory: its launcher names it.

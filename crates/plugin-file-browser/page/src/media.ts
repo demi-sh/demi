@@ -5,7 +5,7 @@
 import { defineComponent, h } from 'vue'
 import { z } from 'zod'
 import { Image, Images } from '@lucide/vue'
-import { ICON_PX, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
+import { ICON_PX, type TabKind, type WindowKind } from '@jush-ai/plugin-sdk'
 import { t } from './locales/text'
 import MediaTab from './MediaTab.vue'
 

@@ -1,5 +1,5 @@
 import { ref, type Ref } from 'vue'
-import { FRAME_INPUT, USER_ACTION_EVENTS } from '@demicodes/web-ui/ui/user-input'
+import { FRAME_INPUT, USER_ACTION_EVENTS } from '@jush-ai/web-ui/ui/user-input'
 
 /**
  * Whether the user attends the page: from their first action on it while it

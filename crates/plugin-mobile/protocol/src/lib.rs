@@ -1,4 +1,4 @@
-//! The `demi.mobile` package's contract.
+//! The `jush.mobile` package's contract.
 //!
 //! The crate holds:
 //!
@@ -8,19 +8,19 @@
 //! - the live view's protocol for a simulator.
 //!
 //! It holds types and their checks only; the operations, the drivers and their
-//! IO live in `demi-mobile`.
+//! IO live in `jush-mobile`.
 
 #[macro_use]
-extern crate demi_shared_types;
+extern crate jush_shared_types;
 
 pub mod live;
 pub mod mobile;
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 
 /// The package's id, which its release descriptor names and the agent's
-/// `demi mobile` commands and the `mobile` user stream bind to.
-pub const PACKAGE: &str = "demi.mobile";
+/// `jush mobile` commands and the `mobile` user stream bind to.
+pub const PACKAGE: &str = "jush.mobile";
 
 /// An invocation of the package: the operation its name names, with the
 /// operation's checked arguments.
@@ -46,7 +46,7 @@ impl Operation {
     /// Decodes the operation `name` and its arguments.
     pub fn parse(name: &str, args: serde_json::Value) -> Result<Self, OperationError> {
         if name == live::OPERATION {
-            return demi_shared_types::decode_value::<live::LiveInput>(args)
+            return jush_shared_types::decode_value::<live::LiveInput>(args)
                 .map(|_| Self::Live)
                 .map_err(OperationError::Invalid);
         }

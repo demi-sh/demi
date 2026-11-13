@@ -4,7 +4,7 @@ import type { OpaqueBlock } from '../block-types'
 import { t } from '../locales/text'
 
 /**
- * The line of a vendor's step of a kind Demi does not know: the step's name
+ * The line of a vendor's step of a kind Jush does not know: the step's name
  * and its vendor, with no tense, since it reads the same while the step runs
  * and once it ended; marked Failed when it failed.
  */

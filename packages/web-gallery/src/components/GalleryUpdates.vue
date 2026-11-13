@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsUpdates from '@demicodes/web-ui/settings/SettingsUpdates.vue'
-import type { OfferedRelease, UpgradeChannel, ServerUpgrade, UpgradePreparation, UpgradeStep, UpgradeStepKind } from '@demicodes/web-ui/settings/server-upgrade'
-import type { StepState } from '@demicodes/web-ui/ui/update-steps'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsUpdates from '@jush-ai/web-ui/settings/SettingsUpdates.vue'
+import type { OfferedRelease, UpgradeChannel, ServerUpgrade, UpgradePreparation, UpgradeStep, UpgradeStepKind } from '@jush-ai/web-ui/settings/server-upgrade'
+import type { StepState } from '@jush-ai/web-ui/ui/update-steps'
 import { slow } from '../fixtures/slow'
 import { productWould } from '../product-would'
 
@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<{ moment?: UpdatesMoment }>(), { moment: 
 const RUNNING = '0.1.5469'
 const NEWER = '0.1.5500'
 /** The page of `version`'s release, with its notes. */
-const notesOf = (version: string) => `https://github.com/example/demi/releases/tag/v${version}`
+const notesOf = (version: string) => `https://github.com/example/jush/releases/tag/v${version}`
 const NOTES = notesOf(NEWER)
 const MB = 1024 * 1024
 const AT = '2026-10-25T09:00:00Z'
@@ -116,8 +116,8 @@ function startingAt(moment: UpdatesMoment): ServerUpgrade {
         run: {
           state: 'failed',
           to: NEWER,
-          reason: 'DEMI_MANAGED_SUBNET overlaps host route 10.0.0.0/8',
-          steps: stepsAt('checkConfiguration', { state: 'failed', reason: 'DEMI_MANAGED_SUBNET overlaps host route 10.0.0.0/8' }),
+          reason: 'JUSH_MANAGED_SUBNET overlaps host route 10.0.0.0/8',
+          steps: stepsAt('checkConfiguration', { state: 'failed', reason: 'JUSH_MANAGED_SUBNET overlaps host route 10.0.0.0/8' }),
         },
       }
     case 'checkFailed':

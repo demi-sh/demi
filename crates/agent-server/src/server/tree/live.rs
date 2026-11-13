@@ -43,9 +43,9 @@ use std::{
     time::Duration,
 };
 
-use demi_agent_tools::shell_output;
-use demi_device_interface::{CommandRecord, PageFeed};
-use demi_shared_types::{CommandId, NodeId};
+use jush_agent_tools::shell_output;
+use jush_device_interface::{CommandRecord, PageFeed};
+use jush_shared_types::{CommandId, NodeId};
 use tokio::{
     sync::{Notify, watch},
     time::Instant,
@@ -174,7 +174,7 @@ impl LiveOutput {
 
     /// Sends `view`, of a command of the node `subagent`, the root when
     /// none, to the connections that follow the node.
-    fn emit(&self, subagent: Option<NodeId>, view: demi_device_interface::PageView) {
+    fn emit(&self, subagent: Option<NodeId>, view: jush_device_interface::PageView) {
         let node = subagent.unwrap_or_else(|| self.root.clone());
         self.sink.emit_to(&node, shell_output(node.clone(), view));
     }

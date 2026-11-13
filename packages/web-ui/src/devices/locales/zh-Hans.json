@@ -66,8 +66,8 @@
   },
   "page": {
     "cloud": "云端",
-    "startSentence": "在设备上启动 Demi：",
-    "noAutostart": "此设备重新启动后不会自动启动 Demi。",
+    "startSentence": "在设备上启动 Jush：",
+    "noAutostart": "此设备重新启动后不会自动启动 Jush。",
     "connection": "连接",
     "route": "连接路径",
     "p2p": "P2P",
@@ -133,7 +133,7 @@
     "pair": "配对设备",
     "invalidCode": "此代码不可用。请粘贴运行器的最新代码。",
     "rateLimited": "尝试次数过多。请等待一分钟后重试。",
-    "unavailable": "无法连接到 Demi。请检查网络连接后重试。"
+    "unavailable": "无法连接到 Jush。请检查网络连接后重试。"
   },
   "revoke": {
     "title": "撤销此设备？",
@@ -153,7 +153,7 @@
   "autostart": {
     "noSystemd": "此系统未运行 systemd。",
     "noUserManager": "systemd 用户管理器没有响应：{error}",
-    "notWritten": "Demi 无法保存 {path}：{error}",
+    "notWritten": "Jush 无法保存 {path}：{error}",
     "lingerOff": "只有在 {user} 登录后才会启动。若要在电脑启动时启动，请运行：",
     "refused": "Windows 拒绝了计划任务和启动项：{error}",
     "unusableName": "安装文件夹的名称“{name}”无法用作启动项的名称。",

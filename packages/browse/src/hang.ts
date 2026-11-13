@@ -1,4 +1,4 @@
-// A browser that stops answering (browse.md § What `demi` adds): while a call runs,
+// A browser that stops answering (browse.md § What `jush` adds): while a call runs,
 // the browser is asked a question of its own every so often, which it answers at once
 // unless its process hangs.
 //

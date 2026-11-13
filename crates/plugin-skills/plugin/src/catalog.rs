@@ -2,7 +2,7 @@
 //! the format other agents and the Agent Skills guide use, in at most
 //! 8,000 characters.
 
-use demi_shared_types::xml_escaped;
+use jush_shared_types::xml_escaped;
 
 /// The most characters of a catalog block: it is part of the prompt of every
 /// request, which the model's finite window pays for each time.

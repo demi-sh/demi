@@ -2,7 +2,7 @@
 //!
 //! Each family says how its entries authenticate and builds the provider of one
 //! entry and account from the entry's decoded configuration. The backend starts
-//! with its built-in families (`demi_backend::families`). A test registers
+//! with its built-in families (`jush_backend::families`). A test registers
 //! scripted ones beside them.
 //!
 //! The terms:
@@ -29,15 +29,15 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use demi_provider_common::credentials::{CredentialPool, SubscriptionAccounts};
-use demi_provider_common::{ModelWires, Searches};
-use demi_provider_common::models_dev::ModelsDevClient;
-use demi_provider_common::media::MediaModelInfo;
-use demi_provider_common::audio::AudioMaker;
-use demi_provider_common::quota::QuotaSnapshotStore;
-use demi_provider_common::{Provider, Secret};
-use demi_shared_types::{AudioShape, CacheTtl, Clock, ImageShape, VideoShape, WireApi};
-use demi_web_api_protocol::providers::CredentialKind;
+use jush_provider_common::credentials::{CredentialPool, SubscriptionAccounts};
+use jush_provider_common::{ModelWires, Searches};
+use jush_provider_common::models_dev::ModelsDevClient;
+use jush_provider_common::media::MediaModelInfo;
+use jush_provider_common::audio::AudioMaker;
+use jush_provider_common::quota::QuotaSnapshotStore;
+use jush_provider_common::{Provider, Secret};
+use jush_shared_types::{AudioShape, CacheTtl, Clock, ImageShape, VideoShape, WireApi};
+use jush_web_api_protocol::providers::CredentialKind;
 use url::Url;
 
 /// A provider family: `anthropic`, `codex`, or a test's scripted one.
@@ -158,7 +158,7 @@ pub struct FamilyArgs {
     /// provider's own requests such as its directory and quota probes
     /// (`crates/provider-common/src/client.rs`). A runtime gets the entry's
     /// client on the shard it runs on instead.
-    pub http: demi_provider_common::ProviderHttp,
+    pub http: jush_provider_common::ProviderHttp,
     /// The shared services' client itself, for what a family reads that is
     /// no entry's, such as the newest Codex release.
     pub services_http: reqwest::Client,

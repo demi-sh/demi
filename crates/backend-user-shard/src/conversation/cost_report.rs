@@ -1,4 +1,4 @@
-//! What a conversation's calls cost, as `demi conversation cost` and `demi
+//! What a conversation's calls cost, as `jush conversation cost` and `jush
 //! conversation history cost` print it, from the usage ledger
 //! (`crates/backend-database/src/usage.rs` § A cost report).
 //!
@@ -17,17 +17,17 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use demi_backend_database::tree;
-use demi_backend_database::usage::{LedgerCall, add_call, turn_hit_rate, window_ms};
-use demi_backend_device_access::device_commands::conversation_of;
-use demi_backend_providers::vault::accounts as vault_accounts;
-use demi_backend_providers::vault::entries::Vault;
-use demi_conversation_lane_protocol::{AgentCost, CacheMiss};
-use demi_device_interface::{Call, RpcError, RpcPort};
-use demi_shared_types::output::{self, Cell, Fields, Table};
-use demi_shared_types::{Currency, Timestamp};
-use demi_web_api_protocol::conversations::CostWindow;
-use demi_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId};
+use jush_backend_database::tree;
+use jush_backend_database::usage::{LedgerCall, add_call, turn_hit_rate, window_ms};
+use jush_backend_device_access::device_commands::conversation_of;
+use jush_backend_providers::vault::accounts as vault_accounts;
+use jush_backend_providers::vault::entries::Vault;
+use jush_conversation_lane_protocol::{AgentCost, CacheMiss};
+use jush_device_interface::{Call, RpcError, RpcPort};
+use jush_shared_types::output::{self, Cell, Fields, Table};
+use jush_shared_types::{Currency, Timestamp};
+use jush_web_api_protocol::conversations::CostWindow;
+use jush_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
@@ -43,12 +43,12 @@ const MEDIA: [&str; 3] = ["image", "video", "audio"];
 /// the context card offers them.
 const WINDOWS: [CostWindow; 2] = [CostWindow::Day, CostWindow::Hour];
 
-/// The input of `demi conversation cost`.
+/// The input of `jush conversation cost`.
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub(super) struct CostArgs {
     /// Another conversation of the user, by its id; this conversation when absent
-    #[schemars(extend("patternDescription" = "a conversation's id, as demi conversation list shows it"))]
+    #[schemars(extend("patternDescription" = "a conversation's id, as jush conversation list shows it"))]
     conversation: Option<ConversationId>,
 }
 
@@ -299,7 +299,7 @@ impl Labels {
     }
 }
 
-/// `demi conversation cost`.
+/// `jush conversation cost`.
 pub(super) async fn cost(shard: Rc<Shard>, call: Call<CostArgs>, port: RpcPort) -> Result<u8, RpcError> {
     let services = shard.services();
     let id = match &call.args.conversation {
@@ -335,7 +335,7 @@ pub(super) async fn cost(shard: Rc<Shard>, call: Call<CostArgs>, port: RpcPort) 
     let unpriced = |call: &LedgerCall| call.usage.is_some() && call.price.is_none() && !MEDIA.contains(&call.purpose.as_str());
     if report.sum.tokens.price.is_some() && calls.iter().any(unpriced) {
         let note = "the price leaves out the calls of a model with no catalog price";
-        port.stderr(output::note("demi conversation cost", note)).await?;
+        port.stderr(output::note("jush conversation cost", note)).await?;
     }
     port.stdout(render(&report)).await?;
     Ok(0)

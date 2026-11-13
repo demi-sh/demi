@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import ChatSession from '@demicodes/web-ui/agent/ChatSession.vue'
-import Button from '@demicodes/web-ui/ui/Button.vue'
+import ChatSession from '@jush-ai/web-ui/agent/ChatSession.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
 import { demoModel, transcriptDemoBlocks } from '../fixtures/blocks'
 import { PROJECT_ROOT } from '../fixtures/project'
 import { productWould } from '../product-would'

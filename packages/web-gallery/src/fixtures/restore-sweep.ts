@@ -1,4 +1,4 @@
-import { delay } from '@demicodes/utils'
+import { delay } from '@jush-ai/utils'
 
 export const PROTOTYPE_RESTORE_MS = 900
 

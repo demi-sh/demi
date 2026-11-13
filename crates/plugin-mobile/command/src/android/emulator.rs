@@ -61,7 +61,7 @@ pub struct Discovery {
 
 impl Discovery {
     /// The file `text` of the emulator with process `pid`; none for one
-    /// that names no AVD or no gRPC port, which Demi cannot drive.
+    /// that names no AVD or no gRPC port, which Jush cannot drive.
     pub fn parse(pid: u32, text: &str) -> Option<Self> {
         let value = |key: &str| {
             text.lines()
@@ -173,7 +173,7 @@ impl Signer {
         aws_lc_rs::rand::fill(&mut id).map_err(|_| failed())?;
         Ok(Self {
             key,
-            id: format!("demi-{}", id.iter().map(|byte| format!("{byte:02x}")).collect::<String>()),
+            id: format!("jush-{}", id.iter().map(|byte| format!("{byte:02x}")).collect::<String>()),
             random,
             token: Mutex::default(),
         })
@@ -244,7 +244,7 @@ impl Signer {
         match tokio::time::timeout(KEY_TAKEN, taken).await {
             Ok(true) => Ok(registered),
             _ => Err(DriverError::Failed(
-                "the emulator did not take Demi's key for its gRPC interface".into(),
+                "the emulator did not take Jush's key for its gRPC interface".into(),
             )),
         }
     }

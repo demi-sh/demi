@@ -10,8 +10,8 @@
 //! conversation lets go of its widgets, and a widget that belongs to none is
 //! removed, its page's blob with it.
 
-use demi_plugin_interface::{PluginError, PluginPort, PortFailure, PortRefusal, Scope};
-use demi_shared_types::{B64Bytes, BlobRef};
+use jush_plugin_interface::{PluginError, PluginPort, PortFailure, PortRefusal, Scope};
+use jush_shared_types::{B64Bytes, BlobRef};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};

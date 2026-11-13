@@ -2,7 +2,7 @@
 import { keptComputed } from '../../infra/keep-same'
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { MessageCircleQuestionMark, MessageSquarePlus } from '@lucide/vue'
-import type { MediaSource } from '@demicodes/protocol'
+import type { MediaSource } from '@jush-ai/protocol'
 import { usePhone } from '../../ui/phone'
 import { selectedText, type ContextMenuEntry, type ResolvedSelection, type SelectionFieldActions } from '../../ui/context-menu'
 import { chooseWay, openPictureField } from './selection-field'

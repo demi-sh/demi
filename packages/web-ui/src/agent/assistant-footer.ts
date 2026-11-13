@@ -1,4 +1,4 @@
-import type { Block, SessionPhase } from '@demicodes/protocol'
+import type { Block, SessionPhase } from '@jush-ai/protocol'
 import { isCompactionDivider } from './visible-blocks'
 
 /** What `replyEndIds` reads of a block. */

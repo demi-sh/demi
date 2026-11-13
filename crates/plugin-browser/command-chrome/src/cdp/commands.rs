@@ -8,7 +8,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::driver::operation::{BrowserError, Result, after_cleanup};
 use crate::tabs::{debug::Query, environment::BrowserEnvironment, tab::BrowserTab};
-use demi_command_sdk::InvocationContext;
+use jush_command_sdk::InvocationContext;
 
 use crate::cdp::protocol::{
     BrowserErrorCode, BrowserOperation, Capability, CdpDetachResult, CdpSendResult, CdpTarget,
@@ -32,7 +32,7 @@ pub(crate) fn capability() -> Capability {
         available: true,
         reason: None,
         schema: Some(
-            json!({"deniedDomains": DENIED_DOMAINS, "deniedMethods": DENIED_METHODS, "help": "demi browser cdp --help"}),
+            json!({"deniedDomains": DENIED_DOMAINS, "deniedMethods": DENIED_METHODS, "help": "jush browser cdp --help"}),
         ),
     }
 }

@@ -1,5 +1,5 @@
 [package]
-name = "demi-device-paths"
+name = "jush-device-paths"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

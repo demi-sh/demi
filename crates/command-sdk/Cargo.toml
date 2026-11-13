@@ -1,5 +1,5 @@
 [package]
-name = "demi-command-sdk"
+name = "jush-command-sdk"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -14,9 +14,9 @@ bench = false
 [dependencies]
 bytes.workspace = true
 clap = { version = "4", default-features = false, features = ["derive", "error-context", "std", "usage"] }
-demi-shared-artifacts = { path = "../shared-artifacts" }
-demi-command-protocol = { path = "../command-protocol" }
-demi-shared-types = { path = "../shared-types", features = ["tracing"] }
+jush-shared-artifacts = { path = "../shared-artifacts" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-shared-types = { path = "../shared-types", features = ["tracing"] }
 futures-util.workspace = true
 h2.workspace = true
 http.workspace = true

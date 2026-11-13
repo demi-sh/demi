@@ -85,6 +85,15 @@ pub async fn main_routes(handle: &Handle) -> Result<Vec<(Ipv4Net, Option<String>
     Ok(routes)
 }
 
+/// The names of the links whose name starts with `prefix`.
+pub async fn links_named(handle: &Handle, prefix: &str) -> Result<Vec<String>, NetlinkError> {
+    Ok(link_names(handle)
+        .await?
+        .into_values()
+        .filter(|name| name.starts_with(prefix))
+        .collect())
+}
+
 async fn link_names(handle: &Handle) -> Result<HashMap<u32, String>, NetlinkError> {
     let mut names = HashMap::new();
     let mut dump = handle.link().get().execute();

@@ -4,7 +4,7 @@ import { formatDecimal } from '../ui/numbers'
 import { t as uiText } from '../locales/text'
 import { t } from '../devices/locales/text'
 import { computed, ref } from 'vue'
-import { upperFirst } from '@demicodes/utils'
+import { upperFirst } from '@jush-ai/utils'
 import { Cable, Server, WandSparkles } from '@lucide/vue'
 import type { Component } from 'vue'
 import Button from '../ui/Button.vue'
@@ -175,7 +175,7 @@ const directSentence = computed<SentenceText | null>(() => {
 /** Try Again is there only while the page has no connected peer; one that stands but is slower needs no new attempt. */
 const canTryAgain = computed(() => !direct.value?.peer)
 const tryAgain = useAsked(() => direct.value?.trying ?? false, () => emit('tryNow'))
-/** Measure shows loading only for the measurement the user asked for, never one Demi runs by itself. */
+/** Measure shows loading only for the measurement the user asked for, never one Jush runs by itself. */
 const measure = useAsked(() => direct.value?.measuring ?? false, () => emit('measure'))
 
 /** How long an attempt took, as a person reads it. */
@@ -200,7 +200,7 @@ function permission(seen: DirectPermission | null): string | string[] {
   return seen === 'denied' ? [t('permission.denied'), t('permission.allowInSite')] : t(`permission.${seen}`)
 }
 
-/** The last attempt's diagnostics, as the Details sheet lists them, ending with when Demi tries next. */
+/** The last attempt's diagnostics, as the Details sheet lists them, ending with when Jush tries next. */
 const details = computed(() => {
   const seen = attempt.value
   if (!seen) {

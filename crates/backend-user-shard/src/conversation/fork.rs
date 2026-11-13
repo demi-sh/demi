@@ -52,22 +52,22 @@
 //! stood, so the context blocks its copied transcript holds are older than any
 //! announced later, its first switch included.
 
-use demi_backend_database::Selection;
-use demi_agent_session::ForkError;
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::conversation_index::{AttachedDevice, ConversationRecord};
-use demi_backend_database::conversations::ConversationStores;
-use demi_backend_database::forks::{ForkMetadata, ForkOperation};
-use demi_backend_database::tree;
-use demi_backend_database::{command_outputs, conversation_attachments, sequences};
-use demi_backend_page_sync::Part;
-use demi_shared_types::BlockId;
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_database::Selection;
+use jush_agent_session::ForkError;
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::conversation_index::{AttachedDevice, ConversationRecord};
+use jush_backend_database::conversations::ConversationStores;
+use jush_backend_database::forks::{ForkMetadata, ForkOperation};
+use jush_backend_database::tree;
+use jush_backend_database::{command_outputs, conversation_attachments, sequences};
+use jush_backend_page_sync::Part;
+use jush_shared_types::BlockId;
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_web_api_protocol::ids::ConversationId;
 
 use crate::shard::Shard;
-use demi_backend_device_access::root_of;
+use jush_backend_device_access::root_of;
 
 /// A Fork's destination, and whether this request created it.
 pub struct Forked {
@@ -205,7 +205,7 @@ impl Shard {
         // The destination's blocks reference the same blobs as the source's,
         // media and edit copies alike, so no bytes are copied.
         //
-        // The outputs of the commands its history names are its too, which `demi
+        // The outputs of the commands its history names are its too, which `jush
         // shell output` reads there as in the source; a retry copies them again.
         // The commands of the rows the seed names are read where they are, in the
         // source's database, as the rows are copied there.

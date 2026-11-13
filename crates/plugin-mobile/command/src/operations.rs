@@ -3,7 +3,7 @@
 //! return once the device took them; `screenshot` and `inspect` first wait
 //! for a settled picture.
 
-use demi_shared_types::output::warning;
+use jush_shared_types::output::warning;
 use std::{sync::Arc, time::Duration};
 
 use bytes::Bytes;
@@ -12,16 +12,16 @@ use serde_json::Value;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
-use demi_command_package_mobile_protocol::mobile::{
+use jush_command_package_mobile_protocol::mobile::{
     Appearance, AppearanceChoice, ElementSummary, AppearanceResult, CloseResult, Direction, ElementRef, EraseResult,
     FLAT_DEGREES, FoldResult, FoldTo, InstallResult, LaunchResult, Posture,
     InspectResult, Key, KeyResult, MobileOperation, OpenResult, Orientation,
     MobilePlatform, RecordAction, RecordInput, RecordTarget, Rotation, RotateResult,
     FIND_SECONDS, ScreenshotResult, SwipeResult, TapResult, TypeResult, TypedField, WAIT_SECONDS, WaitResult,
 };
-use demi_live_view_protocol::LivePoint;
-use demi_shared_recording::{Answer, Library, Reading, started};
-use demi_shared_recording_protocol::{Input, InputBy};
+use jush_live_view_protocol::LivePoint;
+use jush_shared_recording::{Answer, Library, Reading, started};
+use jush_shared_recording_protocol::{Input, InputBy};
 
 use crate::{
     devices::{Devices, OpenDevice},
@@ -60,7 +60,7 @@ const SWIPE_SPAN: f64 = 0.6;
 /// The invocation an operation serves.
 pub struct Call<'a> {
     pub conversation: &'a str,
-    /// The command's path, such as `demi mobile screenshot`, which a note
+    /// The command's path, such as `jush mobile screenshot`, which a note
     /// on standard error starts with.
     pub command: &'a str,
     pub cwd: &'a str,
@@ -138,10 +138,10 @@ pub async fn run(
         Some(open) if call.agent && LISTED.contains(&operation.name()) => {
             Some((
                 open.command_begins(),
-                demi_shared_recording_protocol::text::command(
+                jush_shared_recording_protocol::text::command(
                     operation.name(),
                     &operation.arguments(),
-                    demi_command_package_mobile_protocol::mobile::positionals(operation.name()),
+                    jush_command_package_mobile_protocol::mobile::positionals(operation.name()),
                 ),
                 operation.name(),
             ))
@@ -157,7 +157,7 @@ pub async fn run(
                 outcome.notes = listed
                     .unavailable
                     .iter()
-                    .map(|unavailable| warning("demi mobile list", &unavailable.reason).trim_end().to_owned())
+                    .map(|unavailable| warning("jush mobile list", &unavailable.reason).trim_end().to_owned())
                     .collect();
                 Ok(outcome)
             }
@@ -570,7 +570,7 @@ pub async fn run(
     };
     if let Some((under_way, text, name)) = listed {
         let failed = outcome.as_ref().err().map(|error| {
-            if demi_shared_recording_protocol::text::keeps_failure(name) {
+            if jush_shared_recording_protocol::text::keeps_failure(name) {
                 error.to_string()
             } else {
                 "its message names the text it typed, which a recording does not keep".to_owned()
@@ -595,7 +595,7 @@ enum Queue {
     Read,
     /// It ends the device: it waits for both.
     Both,
-    /// It reads what Demi keeps of the device, and waits for neither.
+    /// It reads what Jush keeps of the device, and waits for neither.
     Free,
 }
 
@@ -786,8 +786,8 @@ fn listed(open: &OpenDevice, reference: ElementRef) -> Result<(ElementRef, Liste
     }
 }
 
-fn summary(reference: ElementRef, listed: &Listed) -> demi_command_package_mobile_protocol::mobile::ElementSummary {
-    demi_command_package_mobile_protocol::mobile::ElementSummary {
+fn summary(reference: ElementRef, listed: &Listed) -> jush_command_package_mobile_protocol::mobile::ElementSummary {
+    jush_command_package_mobile_protocol::mobile::ElementSummary {
         r#ref: reference,
         role: listed.role.clone(),
         label: listed.label.clone(),
@@ -946,7 +946,7 @@ async fn press(open: &OpenDevice, key: Key, by: InputBy) -> Result<(), MobileErr
 
 async fn wait(
     open: &OpenDevice,
-    input: demi_command_package_mobile_protocol::mobile::WaitInput,
+    input: jush_command_package_mobile_protocol::mobile::WaitInput,
 ) -> Result<Outcome, MobileError> {
     let started = Instant::now();
     let seconds = input.timeout.unwrap_or(WAIT_SECONDS);
@@ -1095,25 +1095,25 @@ pub(crate) async fn discard(file: &std::path::Path) {
 /// Saves the file `from` at `output`, resolved against the call's
 /// directory, a piece at a time; answers the path.
 
-fn publication(overwrite: bool) -> demi_shared_artifacts::Publication {
-    demi_shared_artifacts::Publication {
+fn publication(overwrite: bool) -> jush_shared_artifacts::Publication {
+    jush_shared_artifacts::Publication {
         mode: if overwrite {
-            demi_shared_artifacts::Mode::Replace
+            jush_shared_artifacts::Mode::Replace
         } else {
-            demi_shared_artifacts::Mode::CreateNew
+            jush_shared_artifacts::Mode::CreateNew
         },
-        permissions: demi_shared_artifacts::Permissions::Default,
+        permissions: jush_shared_artifacts::Permissions::Default,
         durable: false,
     }
 }
 
 /// Saves `bytes` at `output`, resolved against `cwd`; answers the path.
 async fn save(cwd: &str, output: &str, overwrite: bool, bytes: &[u8]) -> Result<String, MobileError> {
-    let path = demi_command_sdk::paths::resolve(cwd, output).map_err(|error| MobileError::Usage(error.to_string()))?;
+    let path = jush_command_sdk::paths::resolve(cwd, output).map_err(|error| MobileError::Usage(error.to_string()))?;
     let shown = path.display().to_string();
-    match demi_shared_artifacts::publish_bytes(&path, bytes, publication(overwrite)).await {
+    match jush_shared_artifacts::publish_bytes(&path, bytes, publication(overwrite)).await {
         Ok(()) => Ok(shown),
-        Err(demi_shared_artifacts::Error::Io(error)) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+        Err(jush_shared_artifacts::Error::Io(error)) if error.kind() == std::io::ErrorKind::AlreadyExists => {
             Err(MobileError::OutputExists(shown))
         }
         Err(error) => Err(MobileError::Io(format!("{shown}: {error}"))),
@@ -1128,7 +1128,7 @@ async fn record(call: &Call<'_>, open: Option<Arc<OpenDevice>>, input: RecordInp
     }
     let output = match &input.output {
         Some(output) => Some(
-            demi_command_sdk::paths::resolve(call.cwd, output).map_err(|error| MobileError::Usage(error.to_string()))?,
+            jush_command_sdk::paths::resolve(call.cwd, output).map_err(|error| MobileError::Usage(error.to_string()))?,
         ),
         None => None,
     };
@@ -1158,7 +1158,7 @@ async fn record(call: &Call<'_>, open: Option<Arc<OpenDevice>>, input: RecordInp
         }
         (RecordAction::Start, RecordTarget::Recording(_) | RecordTarget::Recordings(_)) => {
             return Err(MobileError::Usage(
-                "start records a device, such as demi mobile record m1 start".into(),
+                "start records a device, such as jush mobile record m1 start".into(),
             ));
         }
         (RecordAction::Stop, RecordTarget::Device(_)) => {
@@ -1188,7 +1188,7 @@ async fn record(call: &Call<'_>, open: Option<Arc<OpenDevice>>, input: RecordInp
                     match call.library.export(std::slice::from_ref(&id), &reading).await {
                         Ok(answer) => answer,
                         // A recording that kept no frame has no video to save.
-                        Err(demi_shared_recording::Error::BadRequest(_)) => stopped,
+                        Err(jush_shared_recording::Error::BadRequest(_)) => stopped,
                         Err(error) => return Err(error.into()),
                     }
                 }
@@ -1210,11 +1210,11 @@ async fn record(call: &Call<'_>, open: Option<Arc<OpenDevice>>, input: RecordInp
         }
         (RecordAction::List, RecordTarget::Device(device)) => call.library.listing(&device.to_string()).await?,
         (RecordAction::List, RecordTarget::Recording(_) | RecordTarget::Recordings(_)) => {
-            return Err(MobileError::Usage("list names a device, such as demi mobile record m1 list".into()));
+            return Err(MobileError::Usage("list names a device, such as jush mobile record m1 list".into()));
         }
         (_, RecordTarget::Device(_)) => {
             return Err(MobileError::Usage(format!(
-                "{} works on a recording, such as demi mobile record r1 {}; start returns its ID",
+                "{} works on a recording, such as jush mobile record r1 {}; start returns its ID",
                 input.action, input.action
             )));
         }

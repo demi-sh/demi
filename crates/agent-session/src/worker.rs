@@ -6,13 +6,13 @@
 
 use std::rc::{Rc, Weak};
 
-use demi_agent_transcript::{opens_input_turn, resume_point, resume_point_within, rewind, unwind};
-use demi_provider_common::{Ahead, ErrorCode};
-use demi_shared_types::{Block, TurnId};
+use jush_agent_transcript::{opens_input_turn, resume_point, resume_point_within, rewind, unwind};
+use jush_provider_common::{Ahead, ErrorCode};
+use jush_shared_types::{Block, TurnId};
 use tokio::sync::Notify;
 use tracing::Instrument as _;
 
-use demi_conversation_lane_protocol::AgentCode;
+use jush_conversation_lane_protocol::AgentCode;
 
 use super::{
     ActionReply,

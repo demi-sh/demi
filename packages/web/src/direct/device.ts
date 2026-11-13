@@ -21,7 +21,7 @@
  * gets none, and loses its peer, until the route allows one again. Each attempt
  * leaves what it saw for the device's page.
  */
-import type { DeviceRoute, DirectAttempt } from '@demicodes/web-ui/devices/direct'
+import type { DeviceRoute, DirectAttempt } from '@jush-ai/web-ui/devices/direct'
 import { AttemptFailed, type DirectPeer } from './peer'
 
 export type Choice = 'relay' | 'direct'

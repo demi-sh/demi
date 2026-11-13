@@ -2,57 +2,57 @@
 import { GALLERY_MARKS, shownAmong } from '../fixtures/device-marks'
 import { Archive, Brain, Copy, Cpu, Feather, Folder, Pencil, Layers, Pin, Play, Plus, Server, Settings, Trash2, Zap } from '@lucide/vue'
 import type { Component } from 'vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { showToast } from '@demicodes/web-ui/infra/toast'
-import { showArchived } from '@demicodes/web-ui/sidebar/archived-toast'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { showToast } from '@jush-ai/web-ui/infra/toast'
+import { showArchived } from '@jush-ai/web-ui/sidebar/archived-toast'
 import { productWould } from '../product-would'
-import Button from '@demicodes/web-ui/ui/Button.vue'
-import Toast from '@demicodes/web-ui/ui/Toast.vue'
-import UpdateFailedScreen from '@demicodes/web-ui/ui/UpdateFailedScreen.vue'
-import UpdatingScreen from '@demicodes/web-ui/ui/UpdatingScreen.vue'
+import Button from '@jush-ai/web-ui/ui/Button.vue'
+import Toast from '@jush-ai/web-ui/ui/Toast.vue'
+import UpdateFailedScreen from '@jush-ai/web-ui/ui/UpdateFailedScreen.vue'
+import UpdatingScreen from '@jush-ai/web-ui/ui/UpdatingScreen.vue'
 import { updatingMoments } from '../fixtures/updating'
 import GalleryContextMenus from '../components/GalleryContextMenus.vue'
-import Dialog from '@demicodes/web-ui/ui/Dialog.vue'
-import FloatingWindow from '@demicodes/web-ui/ui/FloatingWindow.vue'
-import HelpPopover from '@demicodes/web-ui/ui/HelpPopover.vue'
-import TextInput from '@demicodes/web-ui/ui/TextInput.vue'
-import type { WindowRect } from '@demicodes/web-ui/ui/floating-window'
-import { KEEPS_WINDOWS } from '@demicodes/web-ui/ui/window-stack'
-import { useMediaViewer, type ShownMedium } from '@demicodes/web-ui/files/media-viewer'
+import Dialog from '@jush-ai/web-ui/ui/Dialog.vue'
+import FloatingWindow from '@jush-ai/web-ui/ui/FloatingWindow.vue'
+import HelpPopover from '@jush-ai/web-ui/ui/HelpPopover.vue'
+import TextInput from '@jush-ai/web-ui/ui/TextInput.vue'
+import type { WindowRect } from '@jush-ai/web-ui/ui/floating-window'
+import { KEEPS_WINDOWS } from '@jush-ai/web-ui/ui/window-stack'
+import { useMediaViewer, type ShownMedium } from '@jush-ai/web-ui/files/media-viewer'
 import { galleryBlobSize, galleryBlobUrl, galleryBlobs } from '../fixtures/blobs'
 import { simulatedRequestId } from '../fixtures/request-failures'
-import Dropdown from '@demicodes/web-ui/ui/Dropdown.vue'
-import DropdownTrigger from '@demicodes/web-ui/ui/DropdownTrigger.vue'
-import IconButton from '@demicodes/web-ui/ui/IconButton.vue'
-import Menu from '@demicodes/web-ui/ui/Menu.vue'
-import MenuItem from '@demicodes/web-ui/ui/MenuItem.vue'
-import MenuDivider from '@demicodes/web-ui/ui/MenuDivider.vue'
-import MenuGroup from '@demicodes/web-ui/ui/MenuGroup.vue'
-import Segmented from '@demicodes/web-ui/ui/Segmented.vue'
-import Switch from '@demicodes/web-ui/ui/Switch.vue'
-import SettingsGroup from '@demicodes/web-ui/settings/SettingsGroup.vue'
-import SettingsRow from '@demicodes/web-ui/settings/SettingsRow.vue'
-import Tooltip from '@demicodes/web-ui/ui/Tooltip.vue'
-import PicturePreview from '@demicodes/web-ui/ui/PicturePreview.vue'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
+import Dropdown from '@jush-ai/web-ui/ui/Dropdown.vue'
+import DropdownTrigger from '@jush-ai/web-ui/ui/DropdownTrigger.vue'
+import IconButton from '@jush-ai/web-ui/ui/IconButton.vue'
+import Menu from '@jush-ai/web-ui/ui/Menu.vue'
+import MenuItem from '@jush-ai/web-ui/ui/MenuItem.vue'
+import MenuDivider from '@jush-ai/web-ui/ui/MenuDivider.vue'
+import MenuGroup from '@jush-ai/web-ui/ui/MenuGroup.vue'
+import Segmented from '@jush-ai/web-ui/ui/Segmented.vue'
+import Switch from '@jush-ai/web-ui/ui/Switch.vue'
+import SettingsGroup from '@jush-ai/web-ui/settings/SettingsGroup.vue'
+import SettingsRow from '@jush-ai/web-ui/settings/SettingsRow.vue'
+import Tooltip from '@jush-ai/web-ui/ui/Tooltip.vue'
+import PicturePreview from '@jush-ai/web-ui/ui/PicturePreview.vue'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
 import { computed, reactive, ref } from 'vue'
-import { effortIcon } from '@demicodes/web-ui/agent/reasoning'
-import { THINKING_OFF } from '@demicodes/web-ui/agent/model-selection'
-import type { DeviceOption } from '@demicodes/web-ui/targets/types'
-import MoveConversationDialog from '@demicodes/web-ui/targets/MoveConversationDialog.vue'
-import { useMoveQuestion } from '@demicodes/web-ui/targets/move-question'
+import { effortIcon } from '@jush-ai/web-ui/agent/reasoning'
+import { THINKING_OFF } from '@jush-ai/web-ui/agent/model-selection'
+import type { DeviceOption } from '@jush-ai/web-ui/targets/types'
+import MoveConversationDialog from '@jush-ai/web-ui/targets/MoveConversationDialog.vue'
+import { useMoveQuestion } from '@jush-ai/web-ui/targets/move-question'
 import GalleryDeviceMenu from '../components/GalleryDeviceMenu.vue'
 import GalleryOverlayWell from '../components/GalleryOverlayWell.vue'
 import GallerySection from '../components/GallerySection.vue'
 import GallerySpecimen from '../components/GallerySpecimen.vue'
 import { useGalleryView } from '../gallery-views'
-import type { TitleText } from '@demicodes/web-ui/ui/ui-text'
-import { DEVICE_STATE_LABEL, DEVICE_STATE_TONE, deviceStatusLabel } from '@demicodes/web-ui/devices/state'
-import { targetGlyph } from '@demicodes/web-ui/devices/device-glyphs'
-import type { MenuDevice } from '@demicodes/web-ui/targets/types'
-import { vendorGlyph } from '@demicodes/web-ui/ui/vendor-glyphs'
-import { providerLogo } from '@demicodes/web-ui/settings/vendor-logos'
-import { namedKeyCap, shortcutFor } from '@demicodes/web-ui/ui/shortcut'
+import type { TitleText } from '@jush-ai/web-ui/ui/ui-text'
+import { DEVICE_STATE_LABEL, DEVICE_STATE_TONE, deviceStatusLabel } from '@jush-ai/web-ui/devices/state'
+import { targetGlyph } from '@jush-ai/web-ui/devices/device-glyphs'
+import type { MenuDevice } from '@jush-ai/web-ui/targets/types'
+import { vendorGlyph } from '@jush-ai/web-ui/ui/vendor-glyphs'
+import { providerLogo } from '@jush-ai/web-ui/settings/vendor-logos'
+import { namedKeyCap, shortcutFor } from '@jush-ai/web-ui/ui/shortcut'
 
 /** A hint far longer than any screen: a change named by its whole script. */
 const longScript = Array.from({ length: 120 }, (_, index) => `sed -i 's/legacyAccountFlag/accountFlag/g' src/main/java/com/example/storefront/account/Settings${index + 1}.kt`).join('\n')
@@ -218,21 +218,21 @@ const columnsEffort = ref('medium')
 const columnsModel = ref('sonnet')
 const columnsLonger = ref(true)
 // The directory each width specimen shows; its menu switches it, as the header's directory menu does.
-const widthDirectories = ['a-rather-long-directory-name', 'demi']
+const widthDirectories = ['a-rather-long-directory-name', 'jush']
 /** The alignment specimen's two panes, each with a menu at its start and one at its end. */
 const alignmentPanes = [
   { id: 'conversation', label: 'Conversation', grow: 'flex-[3]' },
   { id: 'panel', label: 'Docked window', grow: 'flex-[2]' },
 ] as const
-const alignmentDirectories = ['photo-album', 'demi', 'renderfarm-render-pipeline']
+const alignmentDirectories = ['photo-album', 'jush', 'renderfarm-render-pipeline']
 const alignmentDirectory = reactive<Record<string, string>>({
-  'conversation-start': 'demi',
+  'conversation-start': 'jush',
   'conversation-end': 'photo-album',
-  'panel-start': 'demi',
+  'panel-start': 'jush',
   'panel-end': 'photo-album',
 })
 /** The pinned-start specimen's two triggers, one by the inward rule and one lined up with its start edge. */
-const startAlignment = reactive<Record<string, string>>({ inward: 'demi', start: 'demi' })
+const startAlignment = reactive<Record<string, string>>({ inward: 'jush', start: 'jush' })
 const widthDirectory = reactive({
   content: widthDirectories[0]!,
   shrink: widthDirectories[0]!,
@@ -1289,7 +1289,7 @@ function itemLabel(id: string, list: MenuChoice[] = items): TitleText {
               <Toast
                 v-if="pinNeutralToast"
                 title="Not in This Project"
-                message="The tree shows /Users/alex/.demi/acceptance-project only."
+                message="The tree shows /Users/alex/.jush/acceptance-project only."
                 tone="neutral"
                 @dismiss="pinNeutralToast = false"
               />
@@ -1378,7 +1378,7 @@ function itemLabel(id: string, list: MenuChoice[] = items): TitleText {
 
       <GallerySection
         title="Page Could Not Be Updated"
-        note="Over the whole app once a page that loaded itself for the build the backend serves still got another one, as when a cache in front of Demi keeps an earlier page. It says so and offers Reload."
+        note="Over the whole app once a page that loaded itself for the build the backend serves still got another one, as when a cache in front of Jush keeps an earlier page. It says so and offers Reload."
       >
         <div class="specimen-row specimen-row-wide items-start">
           <GalleryOverlayWell size="wide">
@@ -1390,8 +1390,8 @@ function itemLabel(id: string, list: MenuChoice[] = items): TitleText {
       </GallerySection>
 
       <GallerySection
-        title="Updating Demi"
-        note="Over the whole app from the moment Demi restarts for an update until the user opens Demi again, for everyone, signed in or not. It lists every step of the rest of the update, the same eight in every update: stop Demi, save the running Clouds (or keep them running, in an update whose Cloud manager takes them over), keep a copy of the databases, switch, start the Cloud manager, start Demi, update the accounts and settings, update the conversations. A done step says how long it took, the running one how far it is (Clouds saved, bytes copied, conversations and bytes with the time left), a step the update does not need says so; a bar shows the whole, each step's share of it the time the step usually takes, so kept Clouds count as little as stopping Demi. It shows counts and sizes, never a name. When the new version does not start, the failed step says so and the title says Demi returns to the version it left. Until Demi first says how far it is the bar moves and the list's room stays empty; while Demi cannot be reached the screen keeps what it last read. Once the update ended, every step done or the server back on the version it left, Open Demi loads the page; nothing loads it by itself, so every step is seen to end. The line under the list and the button keep their room in every state."
+        title="Updating Jush"
+        note="Over the whole app from the moment Jush restarts for an update until the user opens Jush again, for everyone, signed in or not. It lists every step of the rest of the update, the same eight in every update: stop Jush, save the running Clouds (or keep them running, in an update whose Cloud manager takes them over), keep a copy of the databases, switch, start the Cloud manager, start Jush, update the accounts and settings, update the conversations. A done step says how long it took, the running one how far it is (Clouds saved, bytes copied, conversations and bytes with the time left), a step the update does not need says so; a bar shows the whole, each step's share of it the time the step usually takes, so kept Clouds count as little as stopping Jush. It shows counts and sizes, never a name. When the new version does not start, the failed step says so and the title says Jush returns to the version it left. Until Jush first says how far it is the bar moves and the list's room stays empty; while Jush cannot be reached the screen keeps what it last read. Once the update ended, every step done or the server back on the version it left, Open Jush loads the page; nothing loads it by itself, so every step is seen to end. The line under the list and the button keep their room in every state."
       >
         <div class="specimen-row specimen-row-wide items-start">
           <GalleryOverlayWell size="tall" style="min-width: 42rem">
@@ -1431,14 +1431,14 @@ function itemLabel(id: string, list: MenuChoice[] = items): TitleText {
         <div class="specimen-row specimen-row-wide items-start">
           <GalleryOverlayWell size="tall" style="min-width: 42rem">
             <GallerySpecimen variant="updated">
-              <UpdatingScreen :progress="updatingMoments.updated" ended="updated" @open="productWould('Open Demi')" />
+              <UpdatingScreen :progress="updatingMoments.updated" ended="updated" @open="productWould('Open Jush')" />
             </GallerySpecimen>
           </GalleryOverlayWell>
         </div>
         <div class="specimen-row specimen-row-wide items-start">
           <GalleryOverlayWell size="tall" style="min-width: 42rem">
             <GallerySpecimen variant="returned to the version it left">
-              <UpdatingScreen :progress="updatingMoments.returning" ended="returned" @open="productWould('Open Demi')" />
+              <UpdatingScreen :progress="updatingMoments.returning" ended="returned" @open="productWould('Open Jush')" />
             </GallerySpecimen>
           </GalleryOverlayWell>
         </div>
@@ -1451,7 +1451,7 @@ function itemLabel(id: string, list: MenuChoice[] = items): TitleText {
         </div>
         <div class="specimen-row specimen-row-wide items-start">
           <GalleryOverlayWell size="tall" style="min-width: 42rem">
-            <GallerySpecimen variant="before Demi says">
+            <GallerySpecimen variant="before Jush says">
               <UpdatingScreen :progress="null" />
             </GallerySpecimen>
           </GalleryOverlayWell>

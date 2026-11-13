@@ -12,14 +12,14 @@
 use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap};
 
-use demi_backend_database::Worktree;
-use demi_backend_page_sync::Part;
-use demi_runner_protocol::wire::LinkedWorktree;
-use demi_web_api_protocol::ids::DeviceId;
+use jush_backend_database::Worktree;
+use jush_backend_page_sync::Part;
+use jush_runner_protocol::wire::LinkedWorktree;
+use jush_web_api_protocol::ids::DeviceId;
 use futures_util::FutureExt as _;
 use futures_util::future::{LocalBoxFuture, Shared};
 
-use demi_backend_device_access::root_of;
+use jush_backend_device_access::root_of;
 use crate::shard::Shard;
 
 /// The shard's part.

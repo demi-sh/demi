@@ -7,7 +7,7 @@
 //! Each registration has its own credentials, artifact cache, local endpoint
 //! and selected runner release, keyed by the normalized backend URL under an OS
 //! lock, so separate registrations share no authorization context
-//! (`DEMI_ARTIFACTS` can name a cache they share).
+//! (`JUSH_ARTIFACTS` can name a cache they share).
 //!
 //! # Reconnecting
 //!
@@ -21,22 +21,22 @@
 
 use crate::autostart::Supervision;
 use crate::connection::{self, Connected, End, Kept, Registered, Transport};
-use demi_runner_protocol::console::HANDED_OVER;
+use jush_runner_protocol::console::HANDED_OVER;
 use crate::update::{Installed, Managed, Successor};
 use crate::{
     device_log::DeviceLogFollower,
     management::{Endpoint, Management, Phase, Revocation},
     state::{ActiveRunner, RunnerConfig, RunnerState},
 };
-use demi_runner_command_packages::ResidentRegistry;
-use demi_runner_jobs::scratch::Scratch;
-use demi_runner_jobs::commands::{
+use jush_runner_command_packages::ResidentRegistry;
+use jush_runner_jobs::scratch::Scratch;
+use jush_runner_jobs::commands::{
     contexts::{ContextPaths, Contexts},
     dispatch::Dispatcher,
     local::Server,
 };
-use demi_runner_process::{backend::Backend, job_shell::JobShell, pipes::PipeClient};
-use demi_runner_protocol::{
+use jush_runner_process::{backend::Backend, job_shell::JobShell, pipes::PipeClient};
+use jush_runner_protocol::{
     image::ARTIFACTS_PATH,
     values::DeviceToken,
     wire,
@@ -161,6 +161,11 @@ pub async fn run(options: Options, stop: CancellationToken) -> io::Result<Ending
         }
     }
     runner.autostart_unavailable = supervision.and_then(Result::err);
+    // The runner that keeps the installation ends a move from the names of
+    // before the rename (`crates/runner/src/renamed.rs`).
+    if let Some(registration) = &options.autostart {
+        crate::renamed::finish(&options.directory, registration.home()).await;
+    }
     let unstartable = |reason: &'static str, error: Option<String>| {
         tracing::error!(
             event = "runner.start_blocked",
@@ -203,8 +208,8 @@ pub async fn run(options: Options, stop: CancellationToken) -> io::Result<Ending
     // looks on every device, and a paired device has nothing there; Cloud
     // images are Linux only, so a Windows runner does not look.
     let image = cfg!(unix).then(|| PathBuf::from(ARTIFACTS_PATH));
-    // A resident finds the installation, as a job does, by DEMI_HOME and
-    // DEMI_SCRATCH_ROOT (`crates/runner/src/environment.rs`), whoever called
+    // A resident finds the installation, as a job does, by JUSH_HOME and
+    // JUSH_SCRATCH_ROOT (`crates/runner/src/environment.rs`), whoever called
     // it.
     let scratch = Scratch::new(options.scratch.clone());
     let mut residents_env = options.env.clone();
@@ -396,7 +401,7 @@ async fn reconnect(registered: &Registered, kept: &mut Kept) -> io::Result<Endin
                 }
                 tracing::info!(event = "runner.updating", release = update.release.as_str(), "the runner is updating to its backend's release");
                 let updating = std::time::Instant::now();
-                let _placing = demi_runner_process::steps::step("update_place", update.release.as_str());
+                let _placing = jush_runner_process::steps::step("update_place", update.release.as_str());
                 let token = registered.token.borrow().clone();
                 let placed = match (&registered.installed, &registered.managed) {
                     (Some(installed), _) => {
@@ -523,7 +528,7 @@ async fn revocation_window(registered: &Registered) -> Infallible {
 enum Attempt {
     Ended(End),
     /// The backend opens no socket for this runner's release.
-    Update(demi_runner_protocol::release::RunnerUpdate),
+    Update(jush_runner_protocol::release::RunnerUpdate),
 }
 
 /// Opens one backend connection and serves it until it ends; the kept jobs

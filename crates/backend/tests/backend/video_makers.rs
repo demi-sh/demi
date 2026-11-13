@@ -16,17 +16,17 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_provider_bytedance::{Ark, ArkConfig, ArkProvider};
-use demi_provider_common::{
+use jush_provider_bytedance::{Ark, ArkConfig, ArkProvider};
+use jush_provider_common::{
     ModelWires, Provider, ProviderHttp, Secret,
     images::{Aspect, InputImage},
     media_catalog::{Catalog, MediaKind, VideoCapabilities},
     videos::{VideoRequest, untaken},
 };
-use demi_provider_google::{GoogleConfig, GoogleProvider};
-use demi_provider_minimax::{MinimaxConfig, MinimaxProvider, Region};
-use demi_provider_openai_api::{OpenAiConfig, OpenAiProvider};
-use demi_shared_types::{Clock, SystemClock, VideoResolution, WireApi};
+use jush_provider_google::{GoogleConfig, GoogleProvider};
+use jush_provider_minimax::{MinimaxConfig, MinimaxProvider, Region};
+use jush_provider_openai_api::{OpenAiConfig, OpenAiProvider};
+use jush_shared_types::{Clock, SystemClock, VideoResolution, WireApi};
 
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},

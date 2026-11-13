@@ -4,8 +4,8 @@
 
 use std::borrow::Cow;
 
-use demi_provider_common::{MediaBytes, Medium, ToolDefinition};
-use demi_shared_types::{
+use jush_provider_common::{MediaBytes, Medium, ToolDefinition};
+use jush_shared_types::{
     MessageComment,
     B64Bytes, Block, DocumentSource, KeptMessage, Model, ModelMediaKind, ResponseBlock,
     ToolResultContentBlock, UserContentBlock, comments_content, sent_whole,
@@ -25,7 +25,7 @@ const IMAGE_BYTES_PER_TOKEN: u64 = 1_000;
 /// Bytes per token of a document.
 const DOCUMENT_BYTES_PER_TOKEN: u64 = 4;
 
-pub use demi_shared_types::text_tokens;
+pub use jush_shared_types::text_tokens;
 
 /// What a provider charges for a tool call beyond its arguments: its
 /// framing, the call's name and id, which it counts and never streams.

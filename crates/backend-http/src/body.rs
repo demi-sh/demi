@@ -16,7 +16,7 @@ use axum::extract::rejection::{BytesRejection, FailedToBufferBody};
 use axum::extract::{FromRequest, Request};
 use axum::http::StatusCode;
 use axum::http::header::CONTENT_LENGTH;
-use demi_web_api_protocol::error::{ErrorCode, problems};
+use jush_web_api_protocol::error::{ErrorCode, problems};
 use futures_util::StreamExt as _;
 use garde::Validate;
 use serde::de::DeserializeOwned;

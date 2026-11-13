@@ -13,14 +13,14 @@ use std::{
     sync::Arc,
 };
 
-use demi_runner_command_packages::{ProgramsKept, ResidentHandle};
-use demi_runner_direct::{Addresses, Direct};
-use demi_runner_device::{
+use jush_runner_command_packages::{ProgramsKept, ResidentHandle};
+use jush_runner_direct::{Addresses, Direct};
+use jush_runner_device::{
     files,
     device::DeviceServer,
     volumes::Volumes,
 };
-use demi_runner_jobs::{
+use jush_runner_jobs::{
     commands::{
         contexts::{ContextIndex, ContextPaths, Installed, Manifests},
         artifacts::ProgramArtifacts,
@@ -32,12 +32,12 @@ use demi_runner_jobs::{
     scratch::Scratch,
     tasks::{TaskCommand, TaskSpec, WorkId, failure_exit},
 };
-use demi_runner_process::{
+use jush_runner_process::{
     backend::Backend,
     job_shell::JobShell,
     pipes::{PipeClient, report_pipe, report_queued},
 };
-use demi_runner_protocol::{
+use jush_runner_protocol::{
     values::DeviceToken,
     wire::{self, Inbound},
 };
@@ -86,11 +86,11 @@ pub struct Registered {
     /// (`crates/runner-command-packages/src/cache.rs`).
     pub cached: watch::Receiver<Vec<wire::DeviceArtifact>>,
     /// What the artifact cache is downloading.
-    pub downloading: watch::Receiver<Vec<demi_runner_command_packages::cache::Downloading>>,
+    pub downloading: watch::Receiver<Vec<jush_runner_command_packages::cache::Downloading>>,
     /// How busy the machine is, as its last reading says
     /// (`crates/runner/src/machine.rs`); none before the first.
     pub usage: watch::Receiver<Option<wire::Usage>>,
-    /// What Demi keeps on the device (`crates/runner/src/storage.rs`).
+    /// What Jush keeps on the device (`crates/runner/src/storage.rs`).
     pub storage: crate::storage::Storage,
     pub dispatcher: Arc<Dispatcher>,
     /// Where the current connection publishes its live contexts.
@@ -121,13 +121,13 @@ pub struct Registered {
 }
 
 /// The variables that tell every program the runner starts where its
-/// installation is: `DEMI_HOME`, its directory, and its scratch root
+/// installation is: `JUSH_HOME`, its directory, and its scratch root
 /// (`crates/runner-jobs/src/scratch.rs`).
 pub(crate) fn installation_env(directory: &Path, scratch: &Scratch) -> [(String, String); 2] {
     [
-        ("DEMI_HOME".to_owned(), directory.to_string_lossy().into_owned()),
+        ("JUSH_HOME".to_owned(), directory.to_string_lossy().into_owned()),
         (
-            demi_command_protocol::SCRATCH_ROOT_ENV.to_owned(),
+            jush_command_protocol::SCRATCH_ROOT_ENV.to_owned(),
             scratch.root().to_string_lossy().into_owned(),
         ),
     ]
@@ -182,7 +182,7 @@ struct Owner<'r> {
     /// What the artifact cache holds.
     cached: watch::Receiver<Vec<wire::DeviceArtifact>>,
     /// What the artifact cache is downloading.
-    downloading: watch::Receiver<Vec<demi_runner_command_packages::cache::Downloading>>,
+    downloading: watch::Receiver<Vec<jush_runner_command_packages::cache::Downloading>>,
     usage: watch::Receiver<Option<wire::Usage>>,
     /// The storage keeper's latest report.
     storage: watch::Receiver<Option<wire::StorageReport>>,
@@ -245,7 +245,7 @@ pub async fn serve(
         backend: transport.control.clone(),
         closed: transport.cancellation(),
     };
-    let (direct, driver) = demi_runner_direct::direct(Arc::new(operations), Addresses::Interfaces);
+    let (direct, driver) = jush_runner_direct::direct(Arc::new(operations), Addresses::Interfaces);
     // The peers' thread ends once the connection lets go of `direct`.
     driver.spawn()?;
     let own = Arc::new(std::sync::OnceLock::new());
@@ -406,7 +406,7 @@ impl Owner<'_> {
         self.send(frame)
     }
 
-    /// Reports what Demi keeps on the device, when it has been measured.
+    /// Reports what Jush keeps on the device, when it has been measured.
     fn report_storage(&mut self) -> io::Result<()> {
         let Some(report) = self.storage.borrow_and_update().clone() else {
             return Ok(());
@@ -503,7 +503,7 @@ impl Owner<'_> {
                 // Before any job of this connection starts, so a
                 // conversation made since the backend listed them keeps the
                 // directory its first job makes.
-                let _hello = demi_runner_process::steps::step("hello", "backend");
+                let _hello = jush_runner_process::steps::step("hello", "backend");
                 // The pairs settle a glare by it (`crate::pairs`).
                 let _ = self.own.set(device_id.clone());
                 // The residents let go first: a conversation's browser runs on
@@ -572,7 +572,7 @@ impl Owner<'_> {
                     && let Some(removal) = &registered.removal
                 {
                     crate::console::line(format_args!(
-                        "demi-runner: this device is no longer paired with {}; to remove this runner, run: {removal}",
+                        "jush-runner: this device is no longer paired with {}; to remove this runner, run: {removal}",
                         registered.backend.url()
                     ));
                 }
@@ -606,7 +606,7 @@ impl Owner<'_> {
     /// the artifact cache, in the background, so that no command or view
     /// waits for its download; a connection that ends stops it, and the next
     /// one sends the packages again.
-    fn keep_programs(&mut self, packages: Vec<demi_command_protocol::PackageDescriptor>) {
+    fn keep_programs(&mut self, packages: Vec<jush_command_protocol::PackageDescriptor>) {
         let residents = self.registered.residents.clone();
         let programs = Arc::new(ProgramArtifacts::new(self.kept.handle.clone(), false));
         let closed = self.live.closed.clone();
@@ -627,8 +627,8 @@ impl Owner<'_> {
     fn prefetch(
         &mut self,
         release: String,
-        expected: demi_shared_artifacts::Digest,
-        packages: Vec<demi_command_protocol::PackageDescriptor>,
+        expected: jush_shared_artifacts::Digest,
+        packages: Vec<jush_command_protocol::PackageDescriptor>,
     ) {
         // The download that runs answers for the release it downloads; one
         // of an earlier release stops, since a newer one replaces it.
@@ -726,7 +726,7 @@ impl Owner<'_> {
             .iter()
             .filter(|conversation| {
                 !held.contains(conversation.as_str())
-                    && (directories.contains(&demi_command_protocol::scratch_name(conversation)) || told.contains(*conversation))
+                    && (directories.contains(&jush_command_protocol::scratch_name(conversation)) || told.contains(*conversation))
             })
             .cloned()
             .collect();
@@ -816,7 +816,7 @@ impl Owner<'_> {
                 sha256,
                 size,
                 packages,
-            } => self.prefetch(release, demi_shared_artifacts::Digest { size, sha256 }, packages),
+            } => self.prefetch(release, jush_shared_artifacts::Digest { size, sha256 }, packages),
             Inbound::Programs { packages } => self.keep_programs(packages),
             Inbound::StorageRules { rules } => self.registered.storage.set_rules(rules),
             Inbound::Storage { id, action } => self.storage(id, action),
@@ -894,8 +894,8 @@ impl Owner<'_> {
                     // this runner's own peer with it stands
                     // (`crates/runner-direct/src/pairs.rs`).
                     let runner = match &introduction {
-                        demi_runner_protocol::direct::Introduced::Runner { device, route } => Some((device.clone(), *route)),
-                        demi_runner_protocol::direct::Introduced::Page { .. } => None,
+                        jush_runner_protocol::direct::Introduced::Runner { device, route } => Some((device.clone(), *route)),
+                        jush_runner_protocol::direct::Introduced::Page { .. } => None,
                     };
                     let answers = match (&runner, &pairing) {
                         (Some((device, _)), Some(pairing)) => pairing.answers(device).await,
@@ -904,8 +904,8 @@ impl Owner<'_> {
                     let answered = if answers {
                         direct.offer(peer.clone(), sdp, introduction, stun).await
                     } else {
-                        Err(demi_runner_direct::Refused {
-                            code: demi_runner_protocol::direct::OfferRefusal::Busy,
+                        Err(jush_runner_direct::Refused {
+                            code: jush_runner_protocol::direct::OfferRefusal::Busy,
                             message: "this runner's own peer with that runner stands".into(),
                         })
                     };

@@ -1,7 +1,7 @@
 //! The journal of a move between releases: which move, and the step it reached,
 //! written durably before each step.
 //!
-//! A `demi-server` that finds it finishes the move. The release a move goes to
+//! A `jush-server` that finds it finishes the move. The release a move goes to
 //! writes and reads its journal, so its format is that release's own.
 //!
 //! Every step can be taken twice:
@@ -25,7 +25,7 @@
 
 use std::{io, path::Path};
 
-use demi_shared_artifacts::{Mode, Permissions, Publication};
+use jush_shared_artifacts::{Mode, Permissions, Publication};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
@@ -82,7 +82,7 @@ impl Journal {
         self.step = step;
         let bytes = serde_json::to_vec_pretty(self).map_err(io::Error::other)?;
         std::fs::create_dir_all(path.parent().expect("the journal lies in a directory"))?;
-        demi_shared_artifacts::publish_bytes_blocking(
+        jush_shared_artifacts::publish_bytes_blocking(
             path,
             &bytes,
             Publication {

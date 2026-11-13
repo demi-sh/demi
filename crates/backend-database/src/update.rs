@@ -4,18 +4,18 @@
 //! bytes of their files.
 //!
 //! - A backend that serves says so, or, once it heard that the server
-//!   restarts for an update, the steps `demi-server` told it.
-//! - A backend that starts reads the steps `demi-server` took before it
+//!   restarts for an update, the steps `jush-server` told it.
+//! - A backend that starts reads the steps `jush-server` took before it
 //!   (`UPDATE_RECORD`), takes its own start as done, and adds how far its
 //!   data is: how many conversations of how many, how many bytes, and, once
 //!   a rate is known, how long the rest takes. A start without that record,
 //!   as one that only migrates, lists only its own two steps.
-//! - The update screen that `demi-server` runs while no backend does reads
+//! - The update screen that `jush-server` runs while no backend does reads
 //!   the record anew at every question.
 //! - A backend that serves says which release it runs, and after an update
 //!   or a migration every step of it done, with what each did, until it
 //!   stops: a page that followed the update shows them until the user opens
-//!   Demi.
+//!   Jush.
 //!
 //! It names no conversation, Cloud or device.
 
@@ -25,10 +25,10 @@ use std::time::{Duration, Instant};
 
 use std::path::PathBuf;
 
-use demi_runner_protocol::release::{
+use jush_runner_protocol::release::{
     RestartStep, RestartStepKind, SkipReason, StepProgress, StepState, StepSummary, UpdateRecord,
 };
-use demi_web_api_protocol::state::UpdateState;
+use jush_web_api_protocol::state::UpdateState;
 
 use super::{DatabaseKind, SchemaFit, StorageError, schema_fit};
 
@@ -85,7 +85,7 @@ struct State {
     done: u64,
     began: Option<Instant>,
     phase: Phase,
-    /// The steps `demi-server` took before this start, its own taken as done.
+    /// The steps `jush-server` took before this start, its own taken as done.
     record: Option<UpdateRecord>,
     /// The update screen's record, read at every question; the last read
     /// answers when the file cannot be read for a moment.
@@ -156,9 +156,9 @@ impl Update {
         update
     }
 
-    /// The steps `demi-server` took before this start, which took until now.
+    /// The steps `jush-server` took before this start, which took until now.
     pub fn recorded(&self, mut record: UpdateRecord) {
-        let start = record.restart_step(RestartStepKind::StartDemi);
+        let start = record.restart_step(RestartStepKind::StartJush);
         *start = start.done(StepSummary::None);
         self.locked().record = Some(record);
     }
@@ -220,7 +220,7 @@ impl Update {
         match (&state.phase, report) {
             (Phase::Restarting(record), _) => updating(record.clone(), record_steps),
             (_, UpdateReport::Ready | UpdateReport::Restarting) => UpdateState::None {
-                version: demi_shared_artifacts::BUILD_VERSION.to_owned(),
+                version: jush_shared_artifacts::BUILD_VERSION.to_owned(),
                 updated: state.updated.as_ref().map(|record| record.restart.clone()),
             },
             (_, UpdateReport::Starting) => match &state.record {
@@ -236,7 +236,7 @@ impl Update {
                     steps
                 }),
                 None => UpdateState::None {
-                    version: demi_shared_artifacts::BUILD_VERSION.to_owned(),
+                    version: jush_shared_artifacts::BUILD_VERSION.to_owned(),
                     updated: None,
                 },
             },
@@ -245,7 +245,7 @@ impl Update {
                 let record = state
                     .record
                     .clone()
-                    .unwrap_or_else(|| UpdateRecord::new("", demi_shared_artifacts::BUILD_VERSION));
+                    .unwrap_or_else(|| UpdateRecord::new("", jush_shared_artifacts::BUILD_VERSION));
                 let only_own = state.record.is_none();
                 let began = state.began.map_or_else(now, |began| ago(began.elapsed()));
                 updating(record, |record| {
@@ -295,7 +295,7 @@ fn own_steps(
     record: &UpdateRecord,
     progress: Progress,
     due: Option<Due>,
-    began: demi_shared_types::Timestamp,
+    began: jush_shared_types::Timestamp,
     control_took: Option<Duration>,
 ) -> Vec<RestartStep> {
     let mut steps = record.restart.clone();
@@ -324,7 +324,7 @@ fn own_steps(
             },
             RestartStepKind::UpdateConversations if progress.control => StepState::Waiting,
             RestartStepKind::UpdateConversations => StepState::Running {
-                started: demi_shared_types::Timestamp::truncate(
+                started: jush_shared_types::Timestamp::truncate(
                     jiff::Timestamp::from(began) + jiff::SignedDuration::try_from(took).unwrap_or_default(),
                 ),
                 progress: Some(StepProgress::Conversations {
@@ -351,7 +351,7 @@ fn updated(state: &State) -> Option<UpdateRecord> {
         (Some(record), _) => record.clone(),
         // A start that only migrates moves to its own version.
         (None, Some(_)) => {
-            let mut record = UpdateRecord::new("", demi_shared_artifacts::BUILD_VERSION);
+            let mut record = UpdateRecord::new("", jush_shared_artifacts::BUILD_VERSION);
             record
                 .restart
                 .retain(|step| matches!(step.kind, RestartStepKind::UpdateControl | RestartStepKind::UpdateConversations));
@@ -383,13 +383,13 @@ fn updated(state: &State) -> Option<UpdateRecord> {
 }
 
 /// The time `elapsed` before now.
-fn ago(elapsed: Duration) -> demi_shared_types::Timestamp {
+fn ago(elapsed: Duration) -> jush_shared_types::Timestamp {
     let elapsed = jiff::SignedDuration::try_from(elapsed).unwrap_or_default();
-    demi_shared_types::Timestamp::truncate(jiff::Timestamp::now() - elapsed)
+    jush_shared_types::Timestamp::truncate(jiff::Timestamp::now() - elapsed)
 }
 
-fn now() -> demi_shared_types::Timestamp {
-    demi_shared_types::Timestamp::truncate(jiff::Timestamp::now())
+fn now() -> jush_shared_types::Timestamp {
+    jush_shared_types::Timestamp::truncate(jiff::Timestamp::now())
 }
 
 /// The databases a start migrates.

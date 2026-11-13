@@ -1,5 +1,5 @@
 //! The runner release record (`crates/xtask/src/native/package.rs`): one
-//! release of `demi-runner`, the wire and command protocol versions it speaks,
+//! release of `jush-runner`, the wire and command protocol versions it speaks,
 //! and the executable of each target it carries.
 //!
 //! The record appears in these places:
@@ -32,8 +32,8 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use demi_command_protocol::{PackageArtifact, digest, target_artifacts};
-use demi_shared_types::{MAX_SAFE_INTEGER, Timestamp};
+use jush_command_protocol::{PackageArtifact, digest, target_artifacts};
+use jush_shared_types::{MAX_SAFE_INTEGER, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -67,7 +67,7 @@ pub enum ReleaseError {
     #[error(
         "the runner release speaks wire {wire} and command protocol {command_protocol}, this build wire {} and command protocol {}",
         wire::VERSION,
-        demi_command_protocol::VERSION
+        jush_command_protocol::VERSION
     )]
     Incompatible { wire: u32, command_protocol: u64 },
 }
@@ -100,7 +100,7 @@ impl RunnerRelease {
     /// Checks that the release speaks this build's wire and command
     /// protocol versions.
     pub fn compatible(&self) -> Result<(), ReleaseError> {
-        if self.wire == wire::VERSION && self.command_protocol == demi_command_protocol::VERSION {
+        if self.wire == wire::VERSION && self.command_protocol == jush_command_protocol::VERSION {
             return Ok(());
         }
         Err(ReleaseError::Incompatible {
@@ -121,11 +121,11 @@ pub const FILES: &str = "files";
 pub const COMMANDS: &str = "commands";
 
 /// The runner's executable, as a release's files name it.
-pub const RUNNER: &str = "demi-runner";
+pub const RUNNER: &str = "jush-runner";
 
 /// The name of `executable`'s file for `target` among a release's files,
-/// such as `demi-runner-aarch64-apple-darwin` or
-/// `demi-file-x86_64-pc-windows-msvc.exe`.
+/// such as `jush-runner-aarch64-apple-darwin` or
+/// `jush-file-x86_64-pc-windows-msvc.exe`.
 pub fn release_file(executable: &str, target: &str) -> String {
     let suffix = if target.contains("windows") {
         ".exe"
@@ -147,17 +147,17 @@ pub fn compressed_file(executable: &str, target: &str) -> String {
 /// The variable that names the release a runner was installed from: an
 /// installer's launcher sets it, and so does the machine manager for a
 /// Cloud's runner.
-pub const RELEASE_ENV: &str = "DEMI_RELEASE_ID";
+pub const RELEASE_ENV: &str = "JUSH_RELEASE_ID";
 
 /// The request header that names the release a runner was installed from.
-pub const RELEASE_HEADER: &str = "demi-runner-release";
+pub const RELEASE_HEADER: &str = "jush-runner-release";
 
 /// The request header that names a runner's target.
-pub const TARGET_HEADER: &str = "demi-runner-target";
+pub const TARGET_HEADER: &str = "jush-runner-target";
 
 /// The request header that carries a paired runner's device token, by which
 /// the backend knows which device a 409 sends to an update.
-pub const TOKEN_HEADER: &str = "demi-runner-token";
+pub const TOKEN_HEADER: &str = "jush-runner-token";
 
 /// The backend's 409 answer to a runner of another release than its own:
 /// the backend's runner release and, when it carries one for the runner's
@@ -194,29 +194,29 @@ impl RunnerUpdate {
 
 /// The variable that names the backend's management socket, and its
 /// default (`crates/server/src/main.rs`): only root may open it.
-pub const MANAGE_SOCKET_ENV: &str = "DEMI_BACKEND_MANAGE_SOCKET";
-pub const MANAGE_SOCKET: &str = "/run/demi-backend-manage/manage.sock";
+pub const MANAGE_SOCKET_ENV: &str = "JUSH_BACKEND_MANAGE_SOCKET";
+pub const MANAGE_SOCKET: &str = "/run/jush-backend-manage/manage.sock";
 
 /// The variable that names the file an administrator's Update Now writes
 /// the version to, and that file on a server: the backend's unit names it,
-/// a path unit starts `demi-server upgrade --requested` when it appears, and
+/// a path unit starts `jush-server upgrade --requested` when it appears, and
 /// a backend without it offers no update.
-pub const UPGRADE_REQUEST_ENV: &str = "DEMI_UPGRADE_REQUEST";
-pub const UPGRADE_REQUEST: &str = "/run/demi-upgrade/version";
+pub const UPGRADE_REQUEST_ENV: &str = "JUSH_UPGRADE_REQUEST";
+pub const UPGRADE_REQUEST: &str = "/run/jush-upgrade/version";
 
 /// The file, beside [`UPGRADE_REQUEST`], the backend writes the newest
 /// release's version to after a check finds it, which a path unit answers
-/// with `demi-server prepare --requested`: the server gets the release ready
+/// with `jush-server prepare --requested`: the server gets the release ready
 /// ahead of Update Now.
 pub const PREPARE_REQUEST_NAME: &str = "prepare";
 
-/// A line `demi-server` writes on the management socket while it upgrades
+/// A line `jush-server` writes on the management socket while it upgrades
 /// the server, its own connection each: how far the upgrade is. The
 /// backend shows it to the administrators, and answers a line of its own,
 /// any line, once it has acted on it: for one whose restart runs, once every
 /// page has heard that the backend stops.
 ///
-/// A line is written by the running release's `demi-server` while it
+/// A line is written by the running release's `jush-server` while it
 /// downloads, and by the next release's from its preparation on, to a
 /// backend of the running release. A backend answers a line it cannot read,
 /// as one of another release's form, as it answers any, which the writer
@@ -239,8 +239,8 @@ pub enum UpgradeNotice {
     Preparing { update: UpdateRecord },
 }
 
-/// A server update's steps, which `demi-server` keeps in the backend's data
-/// directory as [`UPDATE_RECORD`] while it runs: the next `demi-server` of
+/// A server update's steps, which `jush-server` keeps in the backend's data
+/// directory as [`UPDATE_RECORD`] while it runs: the next `jush-server` of
 /// the move goes on from it, the update screen reads it while no backend
 /// runs, and the new backend reads it as it starts, then removes it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -341,27 +341,34 @@ impl UpgradeStepKind {
 }
 
 /// The steps of an update from its restart on, in order.
+///
+/// Stopping and starting the backend keep the values they had before the
+/// product took the name Jush: the page a release of then shows during the
+/// update that brings the rename reads them, and refuses an answer with a
+/// step it does not know.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum RestartStepKind {
-    StopDemi,
+    #[serde(rename = "stopDemi")]
+    StopJush,
     SaveClouds,
     KeepDatabases,
     Switch,
     StartManager,
-    StartDemi,
+    #[serde(rename = "startDemi")]
+    StartJush,
     UpdateControl,
     UpdateConversations,
 }
 
 impl RestartStepKind {
     pub const ALL: [Self; 8] = [
-        Self::StopDemi,
+        Self::StopJush,
         Self::SaveClouds,
         Self::KeepDatabases,
         Self::Switch,
         Self::StartManager,
-        Self::StartDemi,
+        Self::StartJush,
         Self::UpdateControl,
         Self::UpdateConversations,
     ];
@@ -501,7 +508,7 @@ impl UpgradeNotice {
 /// ahead and answers a [`PrefetchProgress`] line each time one of them moves
 /// on, until none is downloading.
 ///
-/// The request is written by the next release's `demi-server` and read by the
+/// The request is written by the next release's `jush-server` and read by the
 /// running release's backend, so fields may be added but never changed or
 /// removed, and a reader ignores the fields it does not know.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, garde::Validate)]

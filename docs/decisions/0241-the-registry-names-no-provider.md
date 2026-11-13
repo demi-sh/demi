@@ -43,7 +43,7 @@ Nothing the user sees changes.
   ```rust
   pub struct Capabilities {
       /// The command package whose CLI its requests run on a machine, such
-      /// as `demi.claude-code`; none for a provider whose requests are HTTP.
+      /// as `jush.claude-code`; none for a provider whose requests are HTTP.
       pub cli_package: Option<&'static str>,
   }
   ```

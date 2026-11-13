@@ -35,14 +35,14 @@
  *   awake for it, and shown again it watches at once on the same connection,
  *   over the tab's last picture.
  */
-import { clientPlatform } from '@demicodes/utils'
+import { clientPlatform } from '@jush-ai/utils'
 import { useDocumentVisibility, useDebounceFn } from '@vueuse/core'
 import { computed, shallowReactive, shallowRef, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 import { z } from 'zod'
 import { controlReasonSchema, type BrowserTabs, type LiveDownload, type LiveTab, type ControlReason, type TabOpened } from '../generated/plugin'
 import { viewerClipboard } from './clipboard'
-import { picturesSupported } from '@demicodes/plugin-sdk'
-import type { DeviceDownload, OpenUserStream, PageContext, SentenceText } from '@demicodes/plugin-sdk'
+import { picturesSupported } from '@jush-ai/plugin-sdk'
+import type { DeviceDownload, OpenUserStream, PageContext, SentenceText } from '@jush-ai/plugin-sdk'
 import { LiveSession, stalled, type LiveStream, type PanelReport } from './session'
 import { t } from '../locales/text'
 
@@ -180,7 +180,7 @@ const FINAL_REASONS: ReadonlySet<ControlReason | null> = new Set<ControlReason>(
 export type PictureSupport = 'checking' | 'supported' | 'unsupported'
 
 /**
- * What Demi does before the browser has a tab, one the user opens or one a
+ * What Jush does before the browser has a tab, one the user opens or one a
  * browser starting again opens anew: reads what the device is doing, starts
  * the Cloud, downloads the browser or its program to the device, starts the
  * browser on the device, or has the browser open the tab.
@@ -476,7 +476,7 @@ export class BrowserTabsController {
   /**
    * Whether the work tab with `data` is blank: on the blank page, with no
    * request of the user's under way. It loads nothing, so it shows a blank
-   * page, not what Demi waits for; only the browser's own word that its page
+   * page, not what Jush waits for; only the browser's own word that its page
    * loads shows it loading.
    */
   private blank(data: BrowserTabData): boolean {
@@ -498,7 +498,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * What Demi does for the work tab with `data` while the browser does not
+   * What Jush does for the work tab with `data` while the browser does not
    * name its browser tab, as while a browser that starts again opens the
    * tabs of the one before. Null once it names it, and for a blank tab,
    * which waits for nothing the user asked for.
@@ -512,7 +512,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * What Demi does for the latest tab the user opens, while one opens; a
+   * What Jush does for the latest tab the user opens, while one opens; a
    * blank one the browser opens says nothing, as it shows a blank page.
    */
   openingPhase(): StartingPhase | null {
@@ -525,7 +525,7 @@ export class BrowserTabsController {
   }
 
   /**
-   * What Demi does before the browser has a tab, as the conversation's
+   * What Jush does before the browser has a tab, as the conversation's
    * browser holds `tabs`, in order:
    *
    * 1. The Cloud starting, which the product state says.

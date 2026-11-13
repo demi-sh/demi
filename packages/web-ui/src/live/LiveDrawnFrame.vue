@@ -27,7 +27,7 @@ const props = defineProps<{
 
 const shape = computed(() => drawnFrame(props.screen, props.corners, props.buttons))
 
-/** Xcode's frames' colors, sampled from the frame of an iPhone 17 Pro as Demi draws it. */
+/** Xcode's frames' colors, sampled from the frame of an iPhone 17 Pro as Jush draws it. */
 const BODY = '#000000'
 const METAL = '#2c2c2c'
 const LIT = '#787878'

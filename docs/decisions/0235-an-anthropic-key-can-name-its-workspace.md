@@ -98,7 +98,7 @@ One key not scoped to a workspace, against `api.anthropic.com`, with
   key's scope.
 - opencode and the [Vercel AI SDK](https://github.com/vercel/ai/blob/main/packages/anthropic/src/anthropic-provider.ts)
   have no such setting: their Anthropic provider takes any extra headers,
-  which Demi keeps to compatible entries.
+  which Jush keeps to compatible entries.
 - Claude Code reads `ANTHROPIC_WORKSPACE_ID` only for workload identity
   federation, not for API keys.
 
@@ -124,5 +124,5 @@ One key not scoped to a workspace, against `api.anthropic.com`, with
 ## Open questions
 
 None. The row is named *Workspace ID*, as Anthropic's Console and docs name
-it: it sits inside the Anthropic entry, which tells it from Demi's own
+it: it sits inside the Anthropic entry, which tells it from Jush's own
 workspaces.

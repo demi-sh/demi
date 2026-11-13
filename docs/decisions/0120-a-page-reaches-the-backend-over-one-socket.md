@@ -267,7 +267,7 @@ fails before it opens asks `/auth/me`, as the synchronization channel does
 today, and an ended session ends the page. A direct channel's file watch
 keeps its heartbeat and silence watch, since no lane carries it.
 
-`@demicodes/conversation-client` keeps its transport over anything shaped as
+`@jush-ai/conversation-client` keeps its transport over anything shaped as
 a WebSocket, which a lane is. The product-check tool tells the connection's
 frames by their lane (`docs/delivery/browse.md`).
 
@@ -312,14 +312,14 @@ which is what a lane's open costs.
   over one socket. A channel's join is answered `ok` or `error`, each join
   has a reference and messages of an outdated join are dropped, and every
   channel rejoins when the socket reconnects; the socket alone has the
-  heartbeat. Demi's lanes follow this.
+  heartbeat. Jush's lanes follow this.
 - [home-assistant-js-websocket](https://github.com/home-assistant/home-assistant-js-websocket)
   (`lib/connection.ts`) keeps every subscription on one socket and
   subscribes each again after a reconnect.
 - HTTP/2 ([RFC 9113](https://www.rfc-editor.org/rfc/rfc9113) §5) and SSH
   channels ([RFC 4254](https://www.rfc-editor.org/rfc/rfc4254) §5.2) bound
   what a receiver holds of each stream with a window the receiver extends,
-  and interleave frames of several streams on one connection. Demi counts
+  and interleave frames of several streams on one connection. Jush counts
   messages instead of bytes, since a lane's messages are bounded already and
   the owner takes them whole.
 - 0067's runner link numbers its messages and resends what the other end

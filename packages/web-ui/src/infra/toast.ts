@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { createId } from '@demicodes/utils'
+import { createId } from '@jush-ai/utils'
 import type { HeadlineText, SentenceText, TitleText } from '../ui/ui-text'
 
 /**

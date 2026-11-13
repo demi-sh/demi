@@ -1,19 +1,19 @@
-//! Demi's releases on GitHub, which `demi-server` downloads and the backend
+//! Jush's releases on GitHub, which `jush-server` downloads and the backend
 //! offers an administrator: the newest of a channel, and a release's assets.
 //!
 //! Every release is tagged `v<version>`. A published one is GitHub's
-//! *latest* in turn; a pre-release, a Canary, never is. Demi has no stable
+//! *latest* in turn; a pre-release, a Canary, never is. Jush has no stable
 //! channel yet: what it publishes is a beta.
 
 use semver::Version;
 
-/// The repository whose GitHub releases are Demi's.
-pub const REPOSITORY: &str = "demi-sh/demi";
+/// The repository whose GitHub releases are Jush's.
+pub const REPOSITORY: &str = "jush-ai/jush";
 
 /// Which releases count as the newest.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Channel {
-    /// The releases Demi publishes: GitHub's latest.
+    /// The releases Jush publishes: GitHub's latest.
     Beta,
     /// Every release, the Canary pre-releases included, the newest builds
     /// first.
@@ -38,13 +38,13 @@ struct Release {
 }
 
 impl Release {
-    /// The Demi version its tag names: none for a tag that is no
+    /// The Jush version its tag names: none for a tag that is no
     /// `v<version>`, such as the gVisor build's `runsc-release-*`.
     fn version(&self) -> Option<Version> {
         Version::parse(self.tag_name.strip_prefix('v')?).ok()
     }
 
-    /// The release as one of Demi's, or why it is none.
+    /// The release as one of Jush's, or why it is none.
     fn published(self) -> std::io::Result<Published> {
         let version = self
             .version()
@@ -58,7 +58,7 @@ impl Release {
     }
 }
 
-/// One of Demi's published releases.
+/// One of Jush's published releases.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Published {
     pub version: Version,
@@ -67,7 +67,7 @@ pub struct Published {
 }
 
 /// The channel whose releases include `version`: Canary for a pre-release,
-/// Beta for one Demi published.
+/// Beta for one Jush published.
 pub async fn channel_of(version: &Version) -> std::io::Result<Channel> {
     let release = github::<Release>(&format!("releases/tags/v{version}"))
         .await?
@@ -98,7 +98,7 @@ pub async fn asset_size(version: &Version, name: &str) -> std::io::Result<u64> {
     let client = crate::download_client().map_err(std::io::Error::other)?;
     let mut url = reqwest::Url::parse(&asset_url(version, name)).map_err(std::io::Error::other)?;
     for _ in 0..=REDIRECTS {
-        let response = client.head(url.clone()).header("user-agent", "demi").send().await.map_err(failed)?;
+        let response = client.head(url.clone()).header("user-agent", "jush").send().await.map_err(failed)?;
         if response.status().is_redirection() {
             let location = response
                 .headers()
@@ -129,14 +129,14 @@ pub fn page_url(version: &Version) -> String {
     format!("https://github.com/{REPOSITORY}/releases/tag/v{version}")
 }
 
-/// The highest Demi release among the entries of the repository's releases
+/// The highest Jush release among the entries of the repository's releases
 /// feed, with when it was published.
 ///
 /// The feed lists the ten releases GitHub published last, newest first, each
 /// with its tag at the end of its `id` and its publication as `updated`.
 /// The release workflow refuses a version below the highest published one
 /// (`.github/workflows/release.yml`), so the highest is among them. A tag that is no `v<version>`, such as the gVisor build's, is
-/// no Demi release.
+/// no Jush release.
 fn highest_in_feed(feed: &str) -> std::io::Result<Option<Published>> {
     let document = roxmltree::Document::parse(feed).map_err(std::io::Error::other)?;
     let child = |entry: roxmltree::Node<'_, '_>, name: &str| {
@@ -192,7 +192,7 @@ async fn get(url: &str, accept: &str) -> std::io::Result<Option<bytes::Bytes>> {
         .map_err(|error| std::io::Error::other(error.without_url().to_string()))?;
     let response = client
         .get(url)
-        .header("user-agent", "demi")
+        .header("user-agent", "jush")
         .header("accept", accept)
         .send()
         .await

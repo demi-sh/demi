@@ -1,5 +1,5 @@
 [package]
-name = "demi-runner-shell"
+name = "jush-runner-shell"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -14,10 +14,10 @@ bench = false
 [dependencies]
 brush-core = "0.5"
 brush-builtins = "0.2"
-demi-command-protocol = { path = "../command-protocol" }
-demi-command-sdk = { path = "../command-sdk" }
-demi-runner-process = { path = "../runner-process" }
-demi-runner-protocol = { path = "../runner-protocol" }
+jush-command-protocol = { path = "../command-protocol" }
+jush-command-sdk = { path = "../command-sdk" }
+jush-runner-process = { path = "../runner-process" }
+jush-runner-protocol = { path = "../runner-protocol" }
 bytes.workspace = true
 clap = { version = "4", features = ["derive"] }
 futures-util.workspace = true

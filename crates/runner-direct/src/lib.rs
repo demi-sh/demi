@@ -62,7 +62,7 @@
 //! was not told about, and everything a peer then does is the device owner's
 //! work on their own device, for any of their conversations on it.
 //!
-//! Demi adds no gate per conversation or per operation. The page names the
+//! Jush adds no gate per conversation or per operation. The page names the
 //! conversation in each operation so the runner acts in that conversation's
 //! directory. The channel is encrypted end to end with DTLS, the fingerprints
 //! travelling in the offer and the answer.
@@ -115,8 +115,8 @@ mod peer;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use demi_runner_protocol::direct::{CONNECT_TIMEOUT, Introduced, MAX_PEERS, OfferRefusal, StunUrl};
-use demi_runner_protocol::pairs::{PairHeader, PairReason};
+use jush_runner_protocol::direct::{CONNECT_TIMEOUT, Introduced, MAX_PEERS, OfferRefusal, StunUrl};
+use jush_runner_protocol::pairs::{PairHeader, PairReason};
 use tokio::sync::{mpsc, oneshot, watch};
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;

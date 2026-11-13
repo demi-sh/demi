@@ -2,7 +2,7 @@
 //!
 //! # Retention
 //!
-//! Demi keeps everything a conversation made for as long as the conversation
+//! Jush keeps everything a conversation made for as long as the conversation
 //! exists: its messages, the files the user sent in it, a tool result's images and
 //! videos, a command's whole output and its media, edit copies and every other
 //! blob. Nothing expires.
@@ -38,7 +38,7 @@
 //!   blob namespace, `blobs/<userId>/`, which nothing else removes. A Cloud's
 //!   disks stay the machine manager's.
 
-use demi_web_api_protocol::ids::{ConversationId, UserId, WorkspaceId};
+use jush_web_api_protocol::ids::{ConversationId, UserId, WorkspaceId};
 use rusqlite::params;
 
 use super::StorageError;

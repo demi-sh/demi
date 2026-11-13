@@ -10,7 +10,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use demi_command_protocol::{ArtifactAsk, ArtifactReply, PackageArtifact};
+use jush_command_protocol::{ArtifactAsk, ArtifactReply, PackageArtifact};
 use futures_util::future::BoxFuture;
 use tokio_util::sync::CancellationToken;
 

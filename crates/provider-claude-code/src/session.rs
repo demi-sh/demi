@@ -2,7 +2,7 @@
 //! blocks, in their order, into the process's own directory before it starts.
 //!
 //! A block gives the entries the CLI wrote for it, as they were. What no entry
-//! of a block stands for, such as another provider's turn or input Demi wrote,
+//! of a block stands for, such as another provider's turn or input Jush wrote,
 //! is written in the CLI's format.
 //!
 //! The file opens with the CLI's `environment` entry, written by the provider:
@@ -37,10 +37,10 @@ use std::collections::HashMap;
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceItem, MediaBytes, Medium, RequestBlock, ResultPart, UserPart, wire::messages,
 };
-use demi_shared_types::{B64Bytes, BlobRef};
+use jush_shared_types::{B64Bytes, BlobRef};
 use serde_json::{Map, Value, json};
 use sha2::{Digest as _, Sha256};
 use uuid::Uuid;
@@ -50,7 +50,8 @@ use crate::{RECORD_OWNER, WEB_SEARCH, mcp};
 use crate::placement::CliSystem;
 
 /// The key of a reference to a block's medium in an entry kept on the
-/// block, in place of the medium's base64.
+/// block, in place of the medium's base64. Kept blocks hold it, so it keeps
+/// the product's name of when it was chosen.
 const BLOB: &str = "demiBlob";
 
 /// What the `environment` entry renders: the CLI refuses an empty text and
@@ -152,7 +153,7 @@ impl SessionFile {
     }
 }
 
-/// The CLI's session id for Demi's session `session`: the same id when it
+/// The CLI's session id for Jush's session `session`: the same id when it
 /// is a UUID, which the CLI requires, else one derived from it.
 pub(crate) fn session_id(session: &str) -> Uuid {
     Uuid::parse_str(session).unwrap_or_else(|_| derived(session.as_bytes()))
@@ -193,7 +194,8 @@ fn snapshot(system: &CliSystem) -> Value {
 /// it did not repeat (`crates/provider-claude-code/src/mcp.rs`).
 ///
 /// It stands for every item of its block no entry of the CLI's stands for, so
-/// those give nothing, and it is never written to a session.
+/// those give nothing, and it is never written to a session. Kept blocks hold
+/// it, so it keeps the product's name of when it was chosen.
 const LEFT_OUT: &str = "demi_left_out";
 
 /// The entry that keeps a block out of the session.
@@ -305,7 +307,7 @@ fn message_id(written: &[Value], pending: &[Value]) -> String {
         Some(entry) => entry["message"]["id"].as_str().map(str::to_owned),
         None => None,
     }
-    .unwrap_or_else(|| format!("msg_demi_{}", written.len() + pending.len()))
+    .unwrap_or_else(|| format!("msg_jush_{}", written.len() + pending.len()))
 }
 
 /// `blocks` without the CLI's own web searches, their call's line and their
@@ -313,7 +315,7 @@ fn message_id(written: &[Value], pending: &[Value]) -> String {
 /// call of a tool it was not given. The search's step then gives the session
 /// nothing, as another vendor's step does.
 pub(crate) fn without_web_searches(blocks: &[RequestBlock]) -> Vec<RequestBlock> {
-    let decoded = |entry: &demi_shared_types::Entry| entry.decode::<Value>().ok();
+    let decoded = |entry: &jush_shared_types::Entry| entry.decode::<Value>().ok();
     let searches: std::collections::HashSet<String> = blocks
         .iter()
         .flat_map(|block| &block.entries)
@@ -324,7 +326,7 @@ pub(crate) fn without_web_searches(blocks: &[RequestBlock]) -> Vec<RequestBlock>
         .filter(|part| part["type"] == "tool_use" && part["name"] == WEB_SEARCH)
         .filter_map(|part| part["id"].as_str().map(str::to_owned))
         .collect();
-    let of_search = |entry: &demi_shared_types::Entry| {
+    let of_search = |entry: &jush_shared_types::Entry| {
         entry.owner() == RECORD_OWNER
             && decoded(entry).is_some_and(|entry| {
                 entry["message"]["content"].as_array().into_iter().flatten().any(|part| {
@@ -525,7 +527,7 @@ fn covered<'a>(
 /// `item` as an entry in the CLI's format, as the CLI would have written it had
 /// the item come from it.
 ///
-/// - Input is a `user` entry with the message Demi writes to a process, with
+/// - Input is a `user` entry with the message Jush writes to a process, with
 ///   the marks the CLI gives such a message: it hands the text on as written,
 ///   as it does to a process (`crate::input::Input::User`).
 /// - Text and tool calls are `assistant` entries of one message, with the
@@ -612,7 +614,7 @@ fn written_as(item: &InferenceItem, written: &[Value], pending: &[Value]) -> Opt
     }
 }
 
-/// A tool's result as the CLI gives the vendor one Demi sent it over MCP:
+/// A tool's result as the CLI gives the vendor one Jush sent it over MCP:
 /// text, images with their base64, and a video or a document named in text.
 fn result_content(output: &[ResultPart]) -> Vec<Value> {
     output

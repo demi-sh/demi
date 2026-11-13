@@ -4,7 +4,7 @@
 
 use std::borrow::Cow;
 
-use demi_provider_common::{
+use jush_provider_common::{
     InferenceRequest, json_body,
     openai_request::{
         AssistantReplay, ChatMessage, ChatTool, InputItem, Reasoning,
@@ -12,7 +12,7 @@ use demi_provider_common::{
         PromptCacheOptions, prompt_cache_key, reasoning_effort, responses_input, responses_reasoning,
     },
 };
-use demi_shared_types::is_blank;
+use jush_shared_types::is_blank;
 use serde::Serialize;
 
 /// The JSON body of a Responses request.
@@ -38,7 +38,7 @@ pub(crate) fn responses(
     // once.
     //
     // Newer models take an explicit breakpoint (`prompt_cache_breakpoint`) that
-    // would read it exactly. Demi does not send it, because the API documents
+    // would read it exactly. Jush does not send it, because the API documents
     // it as unsupported on earlier models without saying they ignore it, and
     // sending it only to the models that take it would need a list of model
     // ids.

@@ -1,8 +1,8 @@
-//! An update's steps (`demi_runner_protocol::release::UpdateRecord`): what
+//! An update's steps (`jush_runner_protocol::release::UpdateRecord`): what
 //! the move did and how far it is, which this module keeps and tells.
 //!
 //! - It keeps them in the backend's data directory, so the next
-//!   `demi-server` of the move goes on from them, the update screen shows
+//!   `jush-server` of the move goes on from them, the update screen shows
 //!   them while no backend runs, and the new backend adds its own as it
 //!   starts.
 //! - It tells them to the running backend over its management socket, for
@@ -25,7 +25,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use demi_runner_protocol::release::{
+use jush_runner_protocol::release::{
     RestartStepKind, StepProgress, StepState, StepSummary, UPDATE_RECORD, UpdateRecord, UpgradeNotice,
     UpgradeStepKind,
 };
@@ -47,7 +47,7 @@ const DOWNLOAD_EVERY: Duration = Duration::from_secs(1);
 /// read does not swing it, short enough that it follows a changed link.
 const RATE_OVER: Duration = Duration::from_secs(5);
 
-/// The steps of one `demi-server` run's update, and their notices.
+/// The steps of one `jush-server` run's update, and their notices.
 pub struct Notices {
     socket: PathBuf,
     /// The record's file; none without a configuration that names the
@@ -137,7 +137,7 @@ impl Notices {
 
     /// The step `kind` of the preparation, while no run took it, is not
     /// needed, for `why`.
-    pub fn skip_waiting(&mut self, kind: UpgradeStepKind, why: demi_runner_protocol::release::SkipReason) {
+    pub fn skip_waiting(&mut self, kind: UpgradeStepKind, why: jush_runner_protocol::release::SkipReason) {
         if let Some(record) = &mut self.record
             && *record.upgrade_step(kind) == StepState::Waiting
         {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { ArrowUpRight, ChevronDown, ChevronUp, MessageCircleQuestionMark, Square, Trash2 } from '@lucide/vue'
-import type { Block, ProviderFailureFacts } from '@demicodes/protocol'
+import type { Block, ProviderFailureFacts } from '@jush-ai/protocol'
 import Button from '../../ui/Button.vue'
 import { ICON_PX } from '../../ui/icon-metrics'
 import IconButton from '../../ui/IconButton.vue'

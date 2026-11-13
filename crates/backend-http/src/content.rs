@@ -33,13 +33,13 @@ pub(super) fn content_headers(
     let mut headers = HeaderMap::new();
     headers.insert(X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff"));
     let in_place =
-        media_type.filter(|media_type| !download && demi_shared_types::shows_in_place(media_type));
+        media_type.filter(|media_type| !download && jush_shared_types::shows_in_place(media_type));
     match in_place {
         Some(media_type) => {
             if media_type.starts_with("image/") {
                 headers.insert(
                     CONTENT_SECURITY_POLICY,
-                    HeaderValue::from_static(demi_shared_types::IMAGE_CONTENT_POLICY),
+                    HeaderValue::from_static(jush_shared_types::IMAGE_CONTENT_POLICY),
                 );
             }
             let value = HeaderValue::from_str(media_type)

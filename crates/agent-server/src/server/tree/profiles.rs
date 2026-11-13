@@ -1,7 +1,7 @@
 //! The user's subagent settings as a tree reads them.
 //!
 //! This module holds the checks a spawn makes against the settings and the
-//! conversation's Workflow menu choice as they are at that moment, and `demi
+//! conversation's Workflow menu choice as they are at that moment, and `jush
 //! agent profiles`.
 //!
 //! Nothing is kept between two reads, so a change in settings, in the choice or
@@ -9,7 +9,7 @@
 //! included. A child keeps what it was spawned with, so a profile changed or
 //! deleted afterwards changes no child.
 //!
-//! A profile never replaces the product's prompt (the child is always Demi) and
+//! A profile never replaces the product's prompt (the child is always Jush) and
 //! never changes the commands. With the user's profiles, a spawn without
 //! `--profile` takes the inherit profile, which exists whether or not the user
 //! has profiles. A project's workflow has no inherit profile: a spawn names
@@ -50,11 +50,11 @@
 
 use std::{num::NonZeroU32, rc::Rc};
 
-use demi_agent_tools::{
+use jush_agent_tools::{
     ChosenWorkflow, ConversationProfiles, EFFORT_OFF, DeviceResolver, NewProfileDraft, Profile,
     ProfileEdit, SubagentSettings, Unavailable, WorkflowChild, WorkflowListing,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     ModelSelection, THINKING_OFF, WorkflowChoice, context_word, offers_context,
     output::{Cell, Fields, Table},
 };
@@ -70,7 +70,7 @@ const SUBAGENTS_OFF: &str = "subagents are turned off in settings; do this work 
 
 /// Why a spawn fails in a conversation whose Workflow menu says No
 /// Subagents.
-const OFF_HERE: &str = "subagents are turned off for this conversation; do this work in this session, or have Global Workflow or a workflow picked: the user picks one in the composer's Workflow menu, or you pick one with demi agent workflows use global or use <id> once the user allows it.";
+const OFF_HERE: &str = "subagents are turned off for this conversation; do this work in this session, or have Global Workflow or a workflow picked: the user picks one in the composer's Workflow menu, or you pick one with jush agent workflows use global or use <id> once the user allows it.";
 
 /// What a setup is for.
 ///
@@ -128,7 +128,7 @@ impl Limits {
     }
 }
 
-/// `demi agent profiles list --json`: whether this conversation's agents
+/// `jush agent profiles list --json`: whether this conversation's agents
 /// may spawn, its Workflow menu choice, and the profiles they may spawn
 /// with: the chosen workflow's, and each enabled profile of the user's that
 /// it offers.
@@ -152,7 +152,7 @@ pub(crate) struct ProfileListing {
     profiles: Vec<ListedProfile>,
 }
 
-/// One profile of `demi agent profiles list --json`.
+/// One profile of `jush agent profiles list --json`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 pub(crate) struct ListedProfile {
     name: String,
@@ -172,7 +172,7 @@ pub(crate) struct ListedProfile {
     unavailable: Option<String>,
 }
 
-/// An effort as `profiles` prints it: Demi's word for thinking off.
+/// An effort as `profiles` prints it: Jush's word for thinking off.
 fn effort_word(effort: &str) -> String {
     if effort == THINKING_OFF { EFFORT_OFF } else { effort }.to_owned()
 }
@@ -236,7 +236,7 @@ impl<H: DeviceResolver> Tree<H> {
         match profiles {
             ConversationProfiles::Off => unreachable!("an Off choice is a spawn's refusal or the user's settings"),
             ConversationProfiles::Unavailable { id, reason, .. } => Err(format!(
-                "this conversation's workflow \"{id}\" is unavailable: {reason}; do this work in this session, or have another picked: the user picks one in the composer's Workflow menu, or you pick one with demi agent workflows use <id> once the user allows it."
+                "this conversation's workflow \"{id}\" is unavailable: {reason}; do this work in this session, or have another picked: the user picks one in the composer's Workflow menu, or you pick one with jush agent workflows use <id> once the user allows it."
             )),
             ConversationProfiles::Workflow(workflow) => {
                 let Some(name) = name else {
@@ -289,14 +289,14 @@ impl<H: DeviceResolver> Tree<H> {
         }
     }
 
-    /// `demi agent workflows list`: the workflows of the conversation's
+    /// `jush agent workflows list`: the workflows of the conversation's
     /// working directory, as the product holds them, and its choice.
     pub(crate) async fn workflows(&self) -> Result<WorkflowListing, String> {
         let server = self.server.upgrade().ok_or("the agent server is gone")?;
         server.deps.subagents.workflows(self.root.id()).await
     }
 
-    /// `demi agent workflows use`: makes `choice` the conversation's
+    /// `jush agent workflows use`: makes `choice` the conversation's
     /// Workflow menu choice; answers the choice made and the chosen
     /// workflow's name.
     pub(crate) async fn choose_workflow(&self, choice: WorkflowChoice) -> Result<(WorkflowChoice, Option<String>), String> {
@@ -305,7 +305,7 @@ impl<H: DeviceResolver> Tree<H> {
     }
 
     /// The text of the file `path`, read against `directory`, the invoking
-    /// shell's, which `demi agent workflows check` parses.
+    /// shell's, which `jush agent workflows check` parses.
     pub(crate) async fn workflow_file(&self, directory: &str, path: &str) -> Result<String, String> {
         let server = self.server.upgrade().ok_or("the agent server is gone")?;
         server
@@ -333,7 +333,7 @@ impl<H: DeviceResolver> Tree<H> {
             .map_err(|error| format!("the conversation's workflow cannot be read: {error}"))
     }
 
-    /// `demi agent profiles list`, from the user's settings and the
+    /// `jush agent profiles list`, from the user's settings and the
     /// conversation's choice now.
     ///
     /// It lists:
@@ -418,7 +418,7 @@ impl<H: DeviceResolver> Tree<H> {
     }
 }
 
-/// `demi agent profiles show --json` and the answer of a profile change:
+/// `jush agent profiles show --json` and the answer of a profile change:
 /// every field of one profile, enabled or not.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -461,7 +461,7 @@ struct ShownModel {
     tier: Option<String>,
 }
 
-/// `demi agent profiles delete --json`.
+/// `jush agent profiles delete --json`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 pub(crate) struct Deleted {
     name: String,
@@ -475,7 +475,7 @@ impl Deleted {
 }
 
 impl<H: DeviceResolver> Tree<H> {
-    /// `demi agent profiles show`: the user's profile `name`, enabled or
+    /// `jush agent profiles show`: the user's profile `name`, enabled or
     /// not, checked now.
     pub(crate) async fn profile(&self, name: &str) -> Result<ProfileAnswer, String> {
         let server = self.server.upgrade().ok_or("the agent server is gone")?;
@@ -497,7 +497,7 @@ impl<H: DeviceResolver> Tree<H> {
         Ok(answer(&server, profile).await)
     }
 
-    /// `demi agent profiles create`: the profile as stored.
+    /// `jush agent profiles create`: the profile as stored.
     ///
     /// While this conversation runs a workflow that keeps the user's profiles
     /// out, it also answers why a spawn here cannot use the profile
@@ -518,13 +518,13 @@ impl<H: DeviceResolver> Tree<H> {
         };
         let created = server.deps.subagents.create_profile(draft).await?;
         let warning = workflow.map(|workflow| format!(
-            "this conversation runs workflow {workflow}, so demi agent spawn here takes only its profiles; \"{}\" is for the user's other conversations",
+            "this conversation runs workflow {workflow}, so jush agent spawn here takes only its profiles; \"{}\" is for the user's other conversations",
             created.name
         ));
         Ok((answer(&server, &created).await, warning))
     }
 
-    /// `demi agent profiles edit`: the profile as stored.
+    /// `jush agent profiles edit`: the profile as stored.
     pub(crate) async fn edit_profile(
         &self,
         name: &str,
@@ -535,7 +535,7 @@ impl<H: DeviceResolver> Tree<H> {
         Ok(answer(&server, &changed).await)
     }
 
-    /// `demi agent profiles delete`.
+    /// `jush agent profiles delete`.
     pub(crate) async fn delete_profile(&self, name: &str) -> Result<Deleted, String> {
         let server = self.server.upgrade().ok_or("the agent server is gone")?;
         server.deps.subagents.delete_profile(name).await?;
@@ -672,26 +672,26 @@ impl ProfileListing {
     pub(crate) fn note(&self) -> Option<String> {
         match &self.choice {
             WorkflowChoice::Default if !self.enabled => Some(
-                "subagents are turned off in settings; demi agent spawn fails until the user turns them on".to_owned(),
+                "subagents are turned off in settings; jush agent spawn fails until the user turns them on".to_owned(),
             ),
             WorkflowChoice::None => Some(
-                "subagents are turned off for this conversation; demi agent spawn fails until Global Workflow or a workflow is picked in the composer's Workflow menu, or with demi agent workflows use global or use <id> once the user allows it".to_owned(),
+                "subagents are turned off for this conversation; jush agent spawn fails until Global Workflow or a workflow is picked in the composer's Workflow menu, or with jush agent workflows use global or use <id> once the user allows it".to_owned(),
             ),
             WorkflowChoice::Workflow { id, .. } if !self.enabled => Some(format!(
-                "this conversation's workflow \"{id}\" is unavailable: {}; demi agent spawn fails until another is picked in the composer's Workflow menu, or with demi agent workflows use <id> once the user allows it",
+                "this conversation's workflow \"{id}\" is unavailable: {}; jush agent spawn fails until another is picked in the composer's Workflow menu, or with jush agent workflows use <id> once the user allows it",
                 self.unavailable.as_deref().unwrap_or_default()
             )),
             WorkflowChoice::Workflow { .. } if self.users_off => Some(format!(
                 "subagents are turned off in settings, so the user's profiles are not offered here; {}",
                 if self.profiles.is_empty() {
-                    "demi agent spawn fails until the user turns them on"
+                    "jush agent spawn fails until the user turns them on"
                 } else {
                     "the workflow's are"
                 }
             )),
             _ if self.profiles.is_empty() => Some(match &self.workflow {
-                None => "the user has no enabled subagent profile; demi agent spawn without --profile inherits the parent".to_owned(),
-                Some(name) => format!("workflow {name} offers no profiles; demi agent spawn fails, so do the work in this session"),
+                None => "the user has no enabled subagent profile; jush agent spawn without --profile inherits the parent".to_owned(),
+                Some(name) => format!("workflow {name} offers no profiles; jush agent spawn fails, so do the work in this session"),
             }),
             WorkflowChoice::Default | WorkflowChoice::Workflow { .. } => None,
         }
@@ -702,7 +702,7 @@ impl ProfileListing {
         &self.profiles
     }
 
-    /// The table `demi agent profiles list` prints: where each profile
+    /// The table `jush agent profiles list` prints: where each profile
     /// comes from, the workflow's name or `user`, and the model and effort
     /// its children run, so a caller choosing one sees what each runs.
     pub(crate) fn render(&self) -> String {
@@ -819,7 +819,7 @@ async fn read<H: DeviceResolver>(server: &AgentServer<H>) -> Result<SubagentSett
         .map_err(|error| format!("the subagent settings cannot be read: {error}"))
 }
 
-/// An enabled profile as `demi agent profiles list` lists it, checked now.
+/// An enabled profile as `jush agent profiles list` lists it, checked now.
 async fn listed<H: DeviceResolver>(server: &Rc<AgentServer<H>>, profile: &Profile) -> ListedProfile {
     let missing = match &profile.model {
         Some(model) => server.deps.providers.profile_selection(model).await.err(),
@@ -853,7 +853,7 @@ fn unknown(name: &str, settings: &SubagentSettings, omitting: &str) -> String {
         );
     }
     format!(
-        "unknown profile \"{name}\"; the user's profiles are {}. Run `demi agent profiles list` for when to use each, or omit --profile to {omitting}.",
+        "unknown profile \"{name}\"; the user's profiles are {}. Run `jush agent profiles list` for when to use each, or omit --profile to {omitting}.",
         names.join(", ")
     )
 }
@@ -891,7 +891,7 @@ fn unknown_in(
         );
     }
     format!(
-        "unknown profile \"{name}\"; this conversation's workflow {} takes {}. Run `demi agent profiles list` for when to use each.{omit}",
+        "unknown profile \"{name}\"; this conversation's workflow {} takes {}. Run `jush agent profiles list` for when to use each.{omit}",
         workflow.name,
         names.join(", ")
     )

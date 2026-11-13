@@ -1,4 +1,4 @@
-# The base: what Demi needs in every Cloud and what nearly every task needs, on
+# The base: what Jush needs in every Cloud and what nearly every task needs, on
 # top of Ubuntu's container image, which is minimized: its dpkg configuration
 # leaves out man pages and translations, for the packages installed later too.
 #
@@ -10,19 +10,19 @@
 # - `git` is what nearly every task uses.
 #
 # The shell, the utilities that write files or start programs (`cp`, `sed`,
-# `find` and the like) and the tools Demi's own commands use are Demi's
+# `find` and the like) and the tools Jush's own commands use are Jush's
 # executables, not the image's; the other utilities, `grep` and `ls` among them,
 # are Ubuntu's own, and a tool the base lacks, such as `rg` or `jq`, is
 # installed on demand like the rest. Compilers, language runtimes such as Node.js and
 # Python, and tools such as `gh` are installed on demand, by the agent or the
 # user: with `apt` into the system layer, which a system reset empties, or with
 # a version manager into the home, which every reset keeps (the base preinstalls
-# no nvm, rustup, Go, JDK or Docker). It holds no browser: `demi browser
+# no nvm, rustup, Go, JDK or Docker). It holds no browser: `jush browser
 # install` brings Chrome with its libraries and fonts into the home.
 #
 # The locale is `C.UTF-8`, the one the container image carries, and the manifest
 # records the resolved package versions rather than a second list in
-# documentation. With Demi's programs the base is about 260 MB unpacked and 80
+# documentation. With Jush's programs the base is about 260 MB unpacked and 80
 # MB compressed. Ubuntu packages only; nothing here keeps state in the user's
 # home.
 sudo

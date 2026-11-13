@@ -4,9 +4,9 @@
 //! It holds each command's `shell_output`, and the commands a node's transcript
 //! last saw running. A page reads a node's live commands with its latest page.
 
-use demi_conversation_lane_protocol::{CommandView, ServerFrame, ShellStatus};
-use demi_device_interface::{PageState, PageView};
-use demi_shared_types::{Block, CommandId, NodeId, ShellViewStatus, ToolView};
+use jush_conversation_lane_protocol::{CommandView, ServerFrame, ShellStatus};
+use jush_device_interface::{PageState, PageView};
+use jush_shared_types::{Block, CommandId, NodeId, ShellViewStatus, ToolView};
 
 /// The `shell_output` frame of `view`, a command of the node `node`.
 pub fn shell_output(node: NodeId, view: PageView) -> ServerFrame {

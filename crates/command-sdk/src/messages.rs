@@ -7,7 +7,7 @@ use tokio::sync::mpsc;
 
 use crate::ResidentError;
 use crate::asking::{Answered, Asked, Asker, Pending};
-use demi_command_protocol::{MessageAnswer, PluginMessage, ProtocolError};
+use jush_command_protocol::{MessageAnswer, PluginMessage, ProtocolError};
 
 /// The messages stream's kind of request.
 pub struct MessagesAsk;

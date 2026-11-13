@@ -1,7 +1,7 @@
 //! A root's turn a graceful shutdown interrupted, resumed once the backend is
 //! back.
 //!
-//! The restart was Demi's doing, not the turn's, so the turn goes on by itself,
+//! The restart was Jush's doing, not the turn's, so the turn goes on by itself,
 //! as the user's Resume would, unless the user's `resumeAfterRestart`
 //! preference is off.
 //!
@@ -33,26 +33,26 @@
 //! conversation's device to come back and its running commands to be taken
 //! up. Meanwhile the conversation's status is `resuming`, from the moment its
 //! mark is taken with the preference on until its resume settles, so no page
-//! shows as failed a turn Demi is about to run. The shard holds the set in
+//! shows as failed a turn Jush is about to run. The shard holds the set in
 //! memory alone, since it lasts no longer than the process.
 
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
 
-use demi_agent_transcript::INTERRUPTED_CODE;
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_device_access::{conversation_of, root_of};
-use demi_backend_page_sync::Part;
-use demi_shared_types::{ErrorBlock, SessionPhase};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_agent_transcript::INTERRUPTED_CODE;
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_device_access::{conversation_of, root_of};
+use jush_backend_page_sync::Part;
+use jush_shared_types::{ErrorBlock, SessionPhase};
+use jush_web_api_protocol::ids::ConversationId;
 use futures_util::future::join_all;
 
 use crate::shard::{Shard, Shards};
 
 /// What the resume tells the model.
-pub const RESTART_REASON: &str = "Demi resumed this turn after the backend restarted.";
+pub const RESTART_REASON: &str = "Jush resumed this turn after the backend restarted.";
 
 /// The conversations whose interrupted turn the shard is resuming.
 #[derive(Default)]

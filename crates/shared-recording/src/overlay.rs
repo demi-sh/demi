@@ -16,7 +16,7 @@
 //! code frames between the recording's own to show it move.
 
 use ab_glyph::{Font as _, FontRef, PxScale, ScaleFont as _};
-use demi_shared_recording_protocol::{Input, InputPhase, InputRow, InputButton};
+use jush_shared_recording_protocol::{Input, InputPhase, InputRow, InputButton};
 use tiny_skia::{Color, FillRule, LineCap, LineJoin, Paint, PathBuilder, PixmapMut, Stroke, Transform};
 
 /// The one font a drawn export uses: the glyphs of key names and of the

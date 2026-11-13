@@ -7,7 +7,7 @@
 //!
 //! A crash writes no mark. A mark goes with its conversation.
 
-use demi_web_api_protocol::ids::{ConversationId, UserId};
+use jush_web_api_protocol::ids::{ConversationId, UserId};
 
 use super::StorageError;
 use super::columns::decode;

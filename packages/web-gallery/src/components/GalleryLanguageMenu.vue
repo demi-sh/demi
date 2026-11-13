@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { Languages } from '@lucide/vue'
-import { LANGUAGES, LANGUAGE_NAMES, type LanguageChoice } from '@demicodes/web-ui/i18n/languages'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import Dropdown from '@demicodes/web-ui/ui/Dropdown.vue'
-import IconButton from '@demicodes/web-ui/ui/IconButton.vue'
-import Menu from '@demicodes/web-ui/ui/Menu.vue'
-import MenuDivider from '@demicodes/web-ui/ui/MenuDivider.vue'
-import MenuItem from '@demicodes/web-ui/ui/MenuItem.vue'
-import { t as ui } from '@demicodes/web-ui/locales/text'
+import { LANGUAGES, LANGUAGE_NAMES, type LanguageChoice } from '@jush-ai/web-ui/i18n/languages'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import Dropdown from '@jush-ai/web-ui/ui/Dropdown.vue'
+import IconButton from '@jush-ai/web-ui/ui/IconButton.vue'
+import Menu from '@jush-ai/web-ui/ui/Menu.vue'
+import MenuDivider from '@jush-ai/web-ui/ui/MenuDivider.vue'
+import MenuItem from '@jush-ai/web-ui/ui/MenuItem.vue'
+import { t as ui } from '@jush-ai/web-ui/locales/text'
 import { galleryState } from '../gallery-state'
 
 /**
- * The language the gallery speaks: System, the browser's, or one Demi
+ * The language the gallery speaks: System, the browser's, or one Jush
  * speaks, as the product's Settings › General chooses it; the specimen of
  * that page changes the same choice.
  */

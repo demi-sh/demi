@@ -18,8 +18,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use bytes::Bytes;
-use demi_command_protocol::PackageDescriptor;
-use demi_runner_protocol::release::RunnerRelease;
+use jush_command_protocol::PackageDescriptor;
+use jush_runner_protocol::release::RunnerRelease;
 use futures_util::{StreamExt as _, TryStreamExt as _};
 use object_store::path::Path;
 use object_store::{

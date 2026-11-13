@@ -1,17 +1,17 @@
-//! The `demi.fetch` package's contract: the arguments and the `--json` result
+//! The `jush.fetch` package's contract: the arguments and the `--json` result
 //! of its one operation, `fetch.get`, with their limits. It holds types and
-//! their checks only; the fetch lives in `demi-fetch`.
+//! their checks only; the fetch lives in `jush-fetch`.
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
 
-/// The package's id, which its release descriptor names and `demi fetch`
+/// The package's id, which its release descriptor names and `jush fetch`
 /// binds to.
-pub const PACKAGE: &str = "demi.fetch";
+pub const PACKAGE: &str = "jush.fetch";
 
-/// The one operation, `demi fetch`.
+/// The one operation, `jush fetch`.
 pub const GET: &str = "fetch.get";
 
 /// The package's operations, as its descriptor lists them.
@@ -114,7 +114,7 @@ impl FetchArgs {
     }
 }
 
-/// What `demi fetch --json` prints: a page read as text, or a file saved.
+/// What `jush fetch --json` prints: a page read as text, or a file saved.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum Fetched {
@@ -174,7 +174,7 @@ impl Operation {
     /// Decodes the arguments of the operation named `operation`.
     pub fn parse(operation: &str, args: serde_json::Value) -> Result<Self, OperationError> {
         match operation {
-            GET => Ok(Self::Get(demi_shared_types::decode_value(args)?)),
+            GET => Ok(Self::Get(jush_shared_types::decode_value(args)?)),
             _ => Err(OperationError::Unknown(operation.to_owned())),
         }
     }

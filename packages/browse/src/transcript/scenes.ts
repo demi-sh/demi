@@ -1,4 +1,4 @@
-// The scenes `demi.transcript.run` plays (browse.md § The transcript's ruler): each
+// The scenes `jush.transcript.run` plays (browse.md § The transcript's ruler): each
 // is a conversation the scripted model writes and what its reader does
 // meanwhile, in the running product. A scene says nothing of what the list
 // should do: the rules judge every frame of it.
@@ -6,19 +6,19 @@
 // A scene waits for what the list shows, such as its growth by so many
 // pixels, never for time to pass, so the reader acts at the same point of
 // the transcript however fast the machine is.
-import type { Lab, Scene } from '../demi/transcript'
+import type { Lab, Scene } from '../jush/transcript'
 import type { Answer } from '../model'
 
 /** A conversation whose first turn has ended: a message and an answer of `parts` parts, drawn at once. */
 export async function answered(lab: Lab, parts: number): Promise<void> {
-  await lab.demi.model.answers([[{ say: lab.text.answer(parts) }]])
-  await lab.demi.message(lab.text.sentence())
+  await lab.jush.model.answers([[{ say: lab.text.answer(parts) }]])
+  await lab.jush.message(lab.text.sentence())
 }
 
 /** Queues `answers` and sends a message that starts their turn, without waiting for it. */
 async function ask(lab: Lab, answers: Answer[]): Promise<void> {
-  await lab.demi.model.answers(answers)
-  await lab.demi.message(lab.text.sentence(), { wait: false })
+  await lab.jush.model.answers(answers)
+  await lab.jush.message(lab.text.sentence(), { wait: false })
 }
 
 /** A turn of `steps` commands with thinking before each, then an answer of `parts` parts streamed over `ms`. */
@@ -51,7 +51,7 @@ export const SCENES: Scene[] = [
       await answered(lab, 10)
       const seen = await lab.watch()
       await ask(lab, [[{ think: lab.text.paragraph(3), ms: 600 }, { say: lab.text.answer(18), ms: 8000 }]])
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -63,7 +63,7 @@ export const SCENES: Scene[] = [
       await answered(lab, 10)
       const seen = await lab.watch()
       await ask(lab, work(lab, 8, 8, 3000))
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -76,7 +76,7 @@ export const SCENES: Scene[] = [
       const seen = await lab.watch()
       await lab.cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 })
       await ask(lab, [[{ say: lab.text.answer(18), ms: 8000 }]])
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -90,7 +90,7 @@ export const SCENES: Scene[] = [
       await ask(lab, [[{ think: lab.text.paragraph(3), ms: 600 }, { say: lab.text.answer(16), ms: 7000 }]])
       await seen.grown(200)
       await wheel(lab, -700)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -104,7 +104,7 @@ export const SCENES: Scene[] = [
       await ask(lab, [[{ say: lab.text.answer(20), ms: 9000 }]])
       await seen.grown(900)
       await wheel(lab, -300)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -118,7 +118,7 @@ export const SCENES: Scene[] = [
       await ask(lab, work(lab, 6, 6, 3000))
       await seen.grown(60)
       await wheel(lab, -600)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -134,7 +134,7 @@ export const SCENES: Scene[] = [
         await seen.grown(250)
         await wheel(lab, -5)
       }
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -150,7 +150,7 @@ export const SCENES: Scene[] = [
       // Between two lots, once the list has reached its end.
       await seen.still(100)
       await wheel(lab, 120)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -170,7 +170,7 @@ export const SCENES: Scene[] = [
       // The key comes once the list glides again after the click, not in the moment it rests for it.
       await seen.grown(120)
       await lab.page.keyboard.press('ArrowUp')
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -186,7 +186,7 @@ export const SCENES: Scene[] = [
       await wheel(lab, -500)
       await seen.grown(400)
       await wheel(lab, 5000)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -200,7 +200,7 @@ export const SCENES: Scene[] = [
       await wheel(lab, -700)
       await seen.still(300)
       await ask(lab, [[{ think: lab.text.paragraph(2), ms: 500 }, { say: lab.text.answer(12), ms: 5000 }]])
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -221,7 +221,7 @@ export const SCENES: Scene[] = [
       await row.click()
       await seen.grown(200)
       await row.click()
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -239,7 +239,7 @@ export const SCENES: Scene[] = [
         await lab.page.mouse.down()
         await lab.page.mouse.up()
       }
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -258,7 +258,7 @@ export const SCENES: Scene[] = [
       await lab.page.mouse.move(box.x + box.width / 2 + 100, box.y + box.height / 3 + 60, { steps: 8 })
       await seen.grown(200)
       await lab.page.mouse.up()
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -270,7 +270,7 @@ export const SCENES: Scene[] = [
       await answered(lab, 10)
       const seen = await lab.watch()
       await ask(lab, [bursts(lab, 12, 350)])
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -284,7 +284,7 @@ export const SCENES: Scene[] = [
       await ask(lab, [bursts(lab, 12, 350)])
       await seen.grown(150)
       await wheel(lab, -600)
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -294,8 +294,8 @@ export const SCENES: Scene[] = [
     about: 'The reader scrolls up to a long message of theirs that the list folded, opens it, and folds it again from its end.',
     play: async (lab) => {
       await answered(lab, 8)
-      await lab.demi.model.answers([[{ say: lab.text.answer(5) }]])
-      await lab.demi.message(Array.from({ length: 70 }, () => lab.text.sentence()).join('\n'))
+      await lab.jush.model.answers([[{ say: lab.text.answer(5) }]])
+      await lab.jush.message(Array.from({ length: 70 }, () => lab.text.sentence()).join('\n'))
       const seen = await lab.watch()
       // The control of the reader's folded message, which opens it and folds it.
       const fold = lab.page.locator('[data-transcript] [data-row-key^="message:"] [aria-expanded]').last()
@@ -320,8 +320,8 @@ export const SCENES: Scene[] = [
       const seen = await lab.watch()
       await ask(lab, [[{ say: lab.text.answer(20), ms: 8000 }]])
       await seen.grown(300)
-      await lab.demi.net.cut('/api/connect')
-      await lab.demi.turn()
+      await lab.jush.net.cut('/api/connect')
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -336,8 +336,8 @@ export const SCENES: Scene[] = [
       await seen.grown(200)
       await wheel(lab, -600)
       await seen.grown(200)
-      await lab.demi.net.cut('/api/connect')
-      await lab.demi.turn()
+      await lab.jush.net.cut('/api/connect')
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -351,7 +351,7 @@ export const SCENES: Scene[] = [
       await ask(lab, [[{ say: lab.text.answer(14), ms: 6000 }]])
       await seen.grown(300)
       await ask(lab, [[{ say: lab.text.answer(8), ms: 3000 }]])
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -365,7 +365,7 @@ export const SCENES: Scene[] = [
       await seen.shown()
       await seen.grown(60)
       await ask(lab, [[{ say: lab.text.prose(2), ms: 1500 }]])
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -384,7 +384,7 @@ export const SCENES: Scene[] = [
         await wheel(lab, -10)
         await seen.still(300)
       }
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -393,8 +393,8 @@ export const SCENES: Scene[] = [
     name: 'cold-open-at-end',
     about: 'A conversation of formulas, code and tables is opened by its address, and shows its end.',
     play: async (lab) => {
-      await lab.demi.model.answers([[{ say: Array.from({ length: 8 }, () => `${lab.text.paragraph()}\n\n${lab.text.formula()}\n\n${lab.text.code()}\n\n${lab.text.table()}`).join('\n\n') }]])
-      await lab.demi.message(lab.text.sentence())
+      await lab.jush.model.answers([[{ say: Array.from({ length: 8 }, () => `${lab.text.paragraph()}\n\n${lab.text.formula()}\n\n${lab.text.code()}\n\n${lab.text.table()}`).join('\n\n') }]])
+      await lab.jush.message(lab.text.sentence())
       const seen = await lab.cold()
       await seen.shown()
       await seen.still(1000)
@@ -425,7 +425,7 @@ export const SCENES: Scene[] = [
     name: 'phone-swipe-while-streaming',
     about: 'On a phone, the reader swipes up into the earlier answer with a finger while a new one streams, and flicks back down.',
     play: async (lab) => {
-      await lab.demi.emulate({ device: 'iPhone 15' })
+      await lab.jush.emulate({ device: 'iPhone 15' })
       // The page reads its system as it starts: the phone's list is the one a phone gets.
       await lab.page.reload()
       await answered(lab, 12)
@@ -438,7 +438,7 @@ export const SCENES: Scene[] = [
       await lab.cdp.send('Input.synthesizeScrollGesture', { ...at, yDistance: 400, speed: 900, gestureSourceType: 'touch' })
       await seen.grown(300)
       await lab.cdp.send('Input.synthesizeScrollGesture', { ...at, yDistance: -2400, speed: 4000, gestureSourceType: 'touch' })
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -447,7 +447,7 @@ export const SCENES: Scene[] = [
     name: 'phone-touch-streaming-text',
     about: 'On a phone, the reader puts a finger on the text that streams, holds it while more text comes, and lifts it.',
     play: async (lab) => {
-      await lab.demi.emulate({ device: 'iPhone 15' })
+      await lab.jush.emulate({ device: 'iPhone 15' })
       await lab.page.reload()
       await answered(lab, 6)
       const seen = await lab.watch()
@@ -464,7 +464,7 @@ export const SCENES: Scene[] = [
       await lab.cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [text] })
       await seen.grown(120)
       await lab.cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -477,9 +477,9 @@ export const SCENES: Scene[] = [
       const seen = await lab.watch()
       await wheel(lab, -800)
       await seen.still(300)
-      await lab.demi.emulate({ viewport: { width: 980, height: 860 } })
+      await lab.jush.emulate({ viewport: { width: 980, height: 860 } })
       await seen.still(300)
-      await lab.demi.emulate({ viewport: { width: 1280, height: 860 } })
+      await lab.jush.emulate({ viewport: { width: 1280, height: 860 } })
       await seen.still()
       return seen.stop()
     },
@@ -492,10 +492,10 @@ export const SCENES: Scene[] = [
       const seen = await lab.watch()
       await ask(lab, [[{ say: lab.text.answer(22), ms: 9000 }]])
       await seen.grown(400)
-      await lab.demi.emulate({ viewport: { width: 980, height: 860 } })
+      await lab.jush.emulate({ viewport: { width: 980, height: 860 } })
       await seen.grown(400)
-      await lab.demi.emulate({ viewport: { width: 1280, height: 860 } })
-      await lab.demi.turn()
+      await lab.jush.emulate({ viewport: { width: 1280, height: 860 } })
+      await lab.jush.turn()
       await seen.still()
       return seen.stop()
     },
@@ -513,7 +513,7 @@ export const SCENES: Scene[] = [
         await composer.pressSequentially(lab.text.sentence().slice(0, 20))
         await composer.press('Shift+Enter')
       }
-      await lab.demi.turn()
+      await lab.jush.turn()
       await seen.still()
       // The draft is the scene's own: the next conversation starts without it.
       await composer.fill('')
@@ -528,9 +528,9 @@ export const SCENES: Scene[] = [
       const seen = await lab.watch()
       await ask(lab, [[{ say: lab.text.answer(16), ms: 5000 }]])
       await seen.grown(300)
-      await lab.demi.hide()
-      await lab.demi.turn()
-      await lab.demi.show()
+      await lab.jush.hide()
+      await lab.jush.turn()
+      await lab.jush.show()
       await seen.still()
       return seen.stop()
     },

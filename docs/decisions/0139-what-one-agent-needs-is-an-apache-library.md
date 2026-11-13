@@ -8,12 +8,12 @@ status: proposed, superseded in part by 0267
 
 Alex wants a small agent for one person, like a coding CLI: it talks to a
 model Alex configured, works on Alex's laptop or on a build machine that runs
-a Demi runner, follows the project's `AGENTS.md`, and uses Demi's plugins.
+a Jush runner, follows the project's `AGENTS.md`, and uses Jush's plugins.
 
 Much of it is already Apache-licensed: the agent runtime (`agent-*`), every
 model provider (`provider-*`), the contracts (`host-interface`,
 `plugin-interface`) and the wires (`runner-protocol`, `command-*`). But four
-pieces Alex cannot do without live in `crates/backend-*`, under the Demi
+pieces Alex cannot do without live in `crates/backend-*`, under the Jush
 License, though none of them needs a server:
 
 *   **Driving a runner.** The connection engine, `RemoteHost` and
@@ -43,7 +43,7 @@ The line between the two licenses is drawn by what a part is for:
     conversation: the agent runtime, providers and their registry, the
     plugins and their host, the runner and the end that drives it, the
     contracts and the wires.
-*   **Demi License (`backend-*`):** what serving many users over the web
+*   **Jush License (`backend-*`):** what serving many users over the web
     needs: accounts and sessions, the HTTP edge, page synchronization, the
     Cloud and the machine manager, pairing, installers and package
     publication, the server's stores (control database, blobs, search), the
@@ -95,7 +95,7 @@ wrong layer:
 | Name | Precedent |
 | --- | --- |
 | `runner-client` | Codex's `exec-server`, the counterpart of the runner, is driven by `ExecServerClient`; Docker's Go library is `client`, Kubernetes' `client-go`. |
-| `provider-registry` | Goose's `providers/provider_registry.rs`, with a `ProviderEntry` as Demi's; the Vercel AI SDK's `createProviderRegistry`. |
+| `provider-registry` | Goose's `providers/provider_registry.rs`, with a `ProviderEntry` as Jush's; the Vercel AI SDK's `createProviderRegistry`. |
 | `plugin-host` | Zed's `extension_host`, VS Code's Extension Host, Codex's `plugin-host`; the code already calls this part the plugin host. |
 | `agent-server::instructions` | Codex keeps `agents_md.rs` in its core, Gemini CLI `memoryDiscovery.ts` in its core, Goose `hints/` in its core. No project gives it a package, so it joins the agent runtime rather than becoming `agent-context`. |
 
@@ -112,12 +112,12 @@ under it.
 Moving code out of `crates/backend-` relicenses it under Apache-2.0 alone,
 which cannot be taken back for what is released: about 10,800 lines of
 `runner-client`, 2,500 of `provider-registry`, 3,100 of `plugin-host` and
-300 of the instructions. `LICENSE-DEMI` keeps its text: it names the
+300 of the instructions. `LICENSE-JUSH` keeps its text: it names the
 `crates/backend-` prefix, which the moved code leaves. The READMEs' lists of
 Apache parts, in every language, add the library that drives a runner, the
 provider registry and the plugin host.
 
-No Apache library depends on a Demi License crate, before or after. The one
+No Apache library depends on a Jush License crate, before or after. The one
 Apache crate that links one, `xtask`, the repository's developer tool, links
 the backend only to run it in development, and no release ships it.
 
@@ -155,18 +155,18 @@ that turns out wider than these names comes back to this record.
 *   **matrix-rust-sdk**: `matrix-sdk-base` defines the store traits and
     `matrix-sdk-sqlite` realizes them.
 
-Demi departs in that its line also decides a license: Codex and Goose are
+Jush departs in that its line also decides a license: Codex and Goose are
 Apache throughout. Like Grafana, whose `LICENSING.md` lists the Apache
-directories of an AGPL repository, Demi draws it by directory.
+directories of an AGPL repository, Jush draws it by directory.
 
 ## Alternatives
 
-*   **List exceptions in LICENSE-DEMI.** The license would need a list to
+*   **List exceptions in LICENSE-JUSH.** The license would need a list to
     read, and the names would still say the parts need the server.
 *   **One `agent-sdk` crate holding all four, as Goose's library does.** It
-    would mix the runner's wire, providers and plugins, which Demi's crates
+    would mix the runner's wire, providers and plugins, which Jush's crates
     keep apart by owner, and rebuild them all for a change to one.
-*   **`runner-sdk`.** In Demi `-sdk` is what a program is written with
+*   **`runner-sdk`.** In Jush `-sdk` is what a program is written with
     (`command-sdk`, `plugin-sdk`), so it would read as the kit for writing a
     runner.
 

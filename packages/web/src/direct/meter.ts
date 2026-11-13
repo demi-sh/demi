@@ -6,7 +6,7 @@
  * taken, are the device page's until the next one replaces them, in this
  * page and the next ones of this browser, and Automatic decides from them.
  */
-import type { DeviceRoute, PathFigures } from '@demicodes/web-ui/devices/direct'
+import type { DeviceRoute, PathFigures } from '@jush-ai/web-ui/devices/direct'
 import { directWorse, measurePaths, type MeasureClock } from './measure'
 import type { DirectPeer } from './peer'
 import type { DeviceSignaling } from './signaling'

@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fs, sync::LazyLock};
 
-use demi_command_sdk::paths;
+use jush_command_sdk::paths;
 use regex::Regex;
 use tokio_util::sync::CancellationToken;
 
@@ -101,7 +101,7 @@ pub fn apply(
     cwd: &str,
     diff: &str,
     cancellation: &CancellationToken,
-    recording: Option<&mut demi_command_sdk::edits::Recording>,
+    recording: Option<&mut jush_command_sdk::edits::Recording>,
 ) -> Result<String, FileError> {
     let patches = parse(diff, cancellation)?;
     let mut changes = Vec::new();

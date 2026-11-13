@@ -31,7 +31,7 @@
 //! - Waits never use network-idle as completion, which breaks on pages with
 //!   long-lived sockets.
 
-use demi_command_package_browser_protocol::browser as protocol;
+use jush_command_package_browser_protocol::browser as protocol;
 
 pub mod actions;
 pub mod assets;

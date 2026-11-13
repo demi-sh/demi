@@ -12,11 +12,11 @@ import {
   versionsSchema,
   type ProviderFailureFacts,
   type Version,
-} from '@demicodes/protocol'
-import { reportError } from '@demicodes/web-ui/infra/errors'
-import { pageLog } from '@demicodes/web-ui/infra/log'
-import { viewSupplied } from '@demicodes/web-ui/infra/view-timing'
-import { heldTranscript, type HeldBlock, type HeldTranscript, type TranscriptWindow } from '@demicodes/web-ui/transport/protocol'
+} from '@jush-ai/protocol'
+import { reportError } from '@jush-ai/web-ui/infra/errors'
+import { pageLog } from '@jush-ai/web-ui/infra/log'
+import { viewSupplied } from '@jush-ai/web-ui/infra/view-timing'
+import { heldTranscript, type HeldBlock, type HeldTranscript, type TranscriptWindow } from '@jush-ai/web-ui/transport/protocol'
 import { heldAccount, holds } from './account-owner'
 import { pageBuild } from './product'
 import {
@@ -25,7 +25,7 @@ import {
   type UserDto,
 } from '../api/generated/web-api'
 import { readStateSchema, type PageState, type ReadState } from './lists'
-import { IndexedDatabase } from '@demicodes/web-ui/infra/indexed-db'
+import { IndexedDatabase } from '@jush-ai/web-ui/infra/indexed-db'
 import { t } from './locales/text'
 
 /**
@@ -88,7 +88,7 @@ const NODE_INDEXES = ['viewedAt', 'conversation']
  * field whose unit changes, takes a new version, which drops every store of
  * the one before, records and all.
  */
-const database = new IndexedDatabase('demi-offline', 3, (request) => {
+const database = new IndexedDatabase('jush-offline', 3, (request) => {
   const db = request.result
   for (const name of [...db.objectStoreNames]) {
     db.deleteObjectStore(name)

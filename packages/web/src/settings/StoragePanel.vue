@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef } from 'vue'
-import { systemName } from '@demicodes/web-ui/devices/report'
-import { errorMessage, reportError } from '@demicodes/web-ui/infra/errors'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import SettingsStorage from '@demicodes/web-ui/settings/SettingsStorage.vue'
-import type { LogRetention, StorageAction, StorageDevice, StorageRules } from '@demicodes/web-ui/settings/storage'
+import { systemName } from '@jush-ai/web-ui/devices/report'
+import { errorMessage, reportError } from '@jush-ai/web-ui/infra/errors'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import SettingsStorage from '@jush-ai/web-ui/settings/SettingsStorage.vue'
+import type { LogRetention, StorageAction, StorageDevice, StorageRules } from '@jush-ai/web-ui/settings/storage'
 import { apiRequest, jsonBody, readResponse } from '../api/client'
 import {
   deviceStorageReportSchema,

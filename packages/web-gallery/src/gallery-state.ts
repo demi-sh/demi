@@ -5,15 +5,15 @@ import {
   PRODUCT_ACCENTS,
   productAppearance,
   type ProductAccent
-} from '@demicodes/web-ui/theme/productAppearance'
+} from '@jush-ai/web-ui/theme/productAppearance'
 import {
   appThemeStore,
   setTheme,
   themeModeSchema,
   type ThemeMode,
-} from '@demicodes/web-ui/theme/appTheme'
-import { LANGUAGES, type LanguageChoice } from '@demicodes/web-ui/i18n/languages'
-import type { SentenceText } from '@demicodes/web-ui/ui/ui-text'
+} from '@jush-ai/web-ui/theme/appTheme'
+import { LANGUAGES, type LanguageChoice } from '@jush-ai/web-ui/i18n/languages'
+import type { SentenceText } from '@jush-ai/web-ui/ui/ui-text'
 
 const paradigmIdSchema = z.enum(['ink', 'warm', 'flat'])
 /** The faces on trial for the product, beside the system's. */
@@ -70,7 +70,7 @@ export const PARADIGMS: readonly Paradigm[] = [
   },
 ]
 
-const STORAGE_KEY = 'demi-gallery-style'
+const STORAGE_KEY = 'jush-gallery-style'
 
 export interface GalleryState {
   paradigm: ParadigmId

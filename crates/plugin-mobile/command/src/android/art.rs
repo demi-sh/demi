@@ -91,12 +91,12 @@ fn folders(folder: &Path) -> Option<Folders> {
 /// each of `files` matches its SHA-256.
 async fn download(skins: &Path, device: &str, files: &[(&str, &str)]) -> Result<(), String> {
     let url = format!("{REPOSITORY}/+archive/{COMMIT}/{ROOT}/{device}.tar.gz");
-    let client = demi_shared_artifacts::download_client().map_err(|error| error.to_string())?;
-    let request = demi_shared_artifacts::Download {
+    let client = jush_shared_artifacts::download_client().map_err(|error| error.to_string())?;
+    let request = jush_shared_artifacts::Download {
         limit: ARCHIVE_BYTES,
-        ..demi_shared_artifacts::Download::new(&url)
+        ..jush_shared_artifacts::Download::new(&url)
     };
-    let (received, archive) = demi_shared_artifacts::download_bytes(&client, request, &CancellationToken::new())
+    let (received, archive) = jush_shared_artifacts::download_bytes(&client, request, &CancellationToken::new())
         .await
         .map_err(|error| format!("{url}: {error}"))?;
     received.plain().map_err(|error| format!("{url}: {error}"))?;

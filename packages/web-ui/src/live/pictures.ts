@@ -5,7 +5,7 @@
  * picture as soon as it is decoded. Whatever the source, a browser tab or a
  * simulator, its pictures come so.
  */
-import { LIVE_VIDEO_CODEC } from '@demicodes/protocol'
+import { LIVE_VIDEO_CODEC } from '@jush-ai/protocol'
 import type { LiveVideoFrame } from './frames'
 
 /** The live protocol's codec, as every source encodes it, decoded with the least delay. */

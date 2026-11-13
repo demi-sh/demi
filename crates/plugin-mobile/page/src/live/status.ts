@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { downloadProgress, formatByteRatio, type DeviceDownload } from '@demicodes/plugin-sdk'
+import { downloadProgress, formatByteRatio, type DeviceDownload } from '@jush-ai/plugin-sdk'
 import type { DeviceWait, LiveConnection, PicturelessReason } from './session'
 import { t } from '../locales/text'
 

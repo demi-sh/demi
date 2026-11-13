@@ -19,31 +19,31 @@
       "@/*": [
         "./src/*"
       ],
-      "@demicodes/web-ui/*": [
+      "@jush-ai/web-ui/*": [
         "../web-ui/src/*"
       ],
-      "@demicodes/web-gallery/*": [
+      "@jush-ai/web-gallery/*": [
         "../web-gallery/src/*"
       ],
-      "@demicodes/plugin-browser/*": [
+      "@jush-ai/plugin-browser/*": [
         "../../crates/plugin-browser/page/src/*"
       ],
-      "@demicodes/plugin-mobile/*": [
+      "@jush-ai/plugin-mobile/*": [
         "../../crates/plugin-mobile/page/src/*"
       ],
-      "@demicodes/plugin-changes/*": [
+      "@jush-ai/plugin-changes/*": [
         "../../crates/plugin-changes/page/src/*"
       ],
-      "@demicodes/plugin-file-browser/*": [
+      "@jush-ai/plugin-file-browser/*": [
         "../../crates/plugin-file-browser/page/src/*"
       ],
-      "@demicodes/plugin-skills/*": [
+      "@jush-ai/plugin-skills/*": [
         "../../crates/plugin-skills/page/src/*"
       ],
-      "@demicodes/plugin-web/*": [
+      "@jush-ai/plugin-web/*": [
         "../../crates/plugin-web/page/src/*"
       ],
-      "@demicodes/*": [
+      "@jush-ai/*": [
         "../*/src/index.ts",
         "../../crates/*/page/src/index.ts"
       ]

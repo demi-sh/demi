@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { FileView, PaneReading, treeLayout, usePage, usePaneReady, type TabUpdate } from '@demicodes/plugin-sdk'
+import { FileView, PaneReading, treeLayout, usePage, usePaneReady, type TabUpdate } from '@jush-ai/plugin-sdk'
 import { fileView, locateFolder, searchShown, shownPath, showDirectory, showFile, showMode, treeShown, type FileData } from './data'
 
 /**

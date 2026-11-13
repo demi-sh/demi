@@ -1,4 +1,4 @@
-//! What Demi keeps on the device: the runner measures it, applies the rules
+//! What Jush keeps on the device: the runner measures it, applies the rules
 //! the user set for it, and removes what the user asks it to.
 //!
 //! ```text
@@ -24,7 +24,7 @@
 //! The walk stays on the scratch root's file system and never follows a
 //! link: a link is an entry of its own, which goes as a link, and an entry
 //! that holds another file system, such as a disk image an agent mounted, is
-//! neither counted past it nor removed, since its files are not Demi's.
+//! neither counted past it nor removed, since its files are not Jush's.
 //!
 //! # The rules
 //!
@@ -54,8 +54,8 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use demi_runner_command_packages::ResidentHandle;
-use demi_runner_protocol::wire::{
+use jush_runner_command_packages::ResidentHandle;
+use jush_runner_protocol::wire::{
     self, CleanupCause, ConversationStorage, StorageAction, StorageCleanup, StorageReport, StorageRule,
     StorageRules,
 };
@@ -116,7 +116,7 @@ pub struct Storage {
 }
 
 impl Storage {
-    /// Starts the keeper of what Demi keeps in `places`. It waits for the
+    /// Starts the keeper of what Jush keeps in `places`. It waits for the
     /// rules before it applies any, and measures for requests meanwhile.
     pub fn start(places: Places, residents: ResidentHandle, usage: watch::Receiver<Option<wire::Usage>>) -> Self {
         let (rules, rules_receiver) = watch::channel(None);
@@ -265,7 +265,7 @@ impl Keeper {
                 Pass::Rules(cause) => cause,
                 Pass::Asked(_) => CleanupCause::User,
             };
-            tracing::info!(event = "storage.cleaned", cause = ?cause, removed_bytes = removed, "Demi's files on the device were cleaned up");
+            tracing::info!(event = "storage.cleaned", cause = ?cause, removed_bytes = removed, "Jush's files on the device were cleaned up");
             let cleanup = StorageCleanup { at: report.measured_at, cause, removed_bytes: removed };
             let kept = serde_json::to_vec(&cleanup).map_err(io::Error::other).and_then(|bytes| fs::write(self.places.last_cleanup(), bytes));
             if let Err(error) = kept {
@@ -343,7 +343,7 @@ fn walk_and_clean(places: &Places, rules: Option<StorageRules>, pass: &Pass, now
                     StorageAction::CleanUpTemporary {} => entry.kind == Kind::Temporary && old(entry),
                     StorageAction::ClearCache {} => entry.kind == Kind::Cache && !entry.busy,
                     StorageAction::Conversation { conversation, empty } => {
-                        entry.conversation == demi_command_protocol::scratch_name(conversation)
+                        entry.conversation == jush_command_protocol::scratch_name(conversation)
                             && if *empty { !entry.busy } else { old(entry) }
                     }
                 };
@@ -420,7 +420,7 @@ fn entries(root: &Path) -> Vec<Entry> {
                 }
             } else if name == RECORDINGS && walked(&path) {
                 for (_, recording) in children(&path) {
-                    let busy = demi_shared_recording_protocol::written(&recording);
+                    let busy = jush_shared_recording_protocol::written(&recording);
                     entries.push(entry(&recording, &conversation, Kind::Cache, busy, false, device));
                 }
             } else if is_agent_folder(&name) && walked(&path) {
@@ -459,7 +459,7 @@ fn directory_on(path: &Path, device: u64) -> bool {
 }
 
 /// A subagent's folder in a conversation's scratch directory, `agent-<n>`
-/// (`demi_command_protocol::CommandCaller::scratch_folder`).
+/// (`jush_command_protocol::CommandCaller::scratch_folder`).
 fn is_agent_folder(name: &str) -> bool {
     name.strip_prefix("agent-").is_some_and(|number| !number.is_empty() && number.bytes().all(|byte| byte.is_ascii_digit()))
 }
@@ -587,7 +587,7 @@ fn remove(entry: &Entry) -> bool {
         Ok(()) => true,
         Err(error) => {
             // The next pass tries again.
-            tracing::warn!(event = "storage.remove_failed", path = %entry.path.display(), %error, "a file of Demi's on the device could not be removed");
+            tracing::warn!(event = "storage.remove_failed", path = %entry.path.display(), %error, "a file of Jush's on the device could not be removed");
             false
         }
     }

@@ -49,21 +49,21 @@ use tokio_util::{
     task::{AbortOnDropHandle, TaskTracker},
 };
 
-use demi_command_package_mobile_protocol::{
+use jush_command_package_mobile_protocol::{
     live::{INPUT_FAILED, LiveCorners, LiveDevice, LiveFold, LivePoints, NO_FOCUSED_FIELD, LiveModuleMessage, LiveViewerMessage},
     mobile::{FoldDisplay, Orientation},
 };
-use demi_command_protocol::{CommandError, Completion};
-use demi_command_sdk::{InvocationContext, ResidentError};
-use demi_shared_recording_protocol::{Input as RecordedInput, InputBy, InputPhase};
-use demi_live_view::{
+use jush_command_protocol::{CommandError, Completion};
+use jush_command_sdk::{InvocationContext, ResidentError};
+use jush_shared_recording_protocol::{Input as RecordedInput, InputBy, InputPhase};
+use jush_live_view::{
     delivery::Delivery,
     frames::Reader,
     input::{self, Deliver, Input, Item},
     stream::{Capture, CaptureEvent, Change, Event, Source, StartError, StreamHandle, StreamView},
     writer::Writer,
 };
-use demi_live_view_protocol::{
+use jush_live_view_protocol::{
     ACK_FRAME, CONTROL_FRAME, ChunkAck, KeyAction, LiveInputs, LiveKeyframe, LiveRelease, PointerAction,
     PointerKind, SourceId, TouchAction, ViewerInput,
 };
@@ -579,7 +579,7 @@ struct Watched {
     /// The viewer's place in the device's capture; none while its views show
     /// none of the pictures (`LiveViewerMessage::Unshown`).
     joined: Option<Joined>,
-    activity: watch::Receiver<demi_live_view_protocol::LiveActivity>,
+    activity: watch::Receiver<jush_live_view_protocol::LiveActivity>,
     /// The device's screen, whose turns turn its frame.
     screen: watch::Receiver<crate::driver::Screen>,
     /// Whether the device's screen is on, which the view tells the page.
@@ -723,7 +723,7 @@ async fn next(reader: &mut Reader) -> Result<Option<FromPage>, String> {
         return Ok(None);
     };
     match frame.kind {
-        CONTROL_FRAME => demi_shared_types::decode_slice(&frame.payload)
+        CONTROL_FRAME => jush_shared_types::decode_slice(&frame.payload)
             .map(|message| Some(FromPage::Message(message)))
             .map_err(|error| error.to_string()),
         ACK_FRAME => ChunkAck::split(&frame.payload)
@@ -1076,12 +1076,12 @@ async fn state(open: &OpenDevice, writer: &Writer<LiveModuleMessage>) {
 
 /// The agent's activity as the page shows it: its point, the screen's, where
 /// it shows on the device as it is held.
-fn held_activity(activity: demi_live_view_protocol::LiveActivity, screen: &Screen) -> demi_live_view_protocol::LiveActivity {
+fn held_activity(activity: jush_live_view_protocol::LiveActivity, screen: &Screen) -> jush_live_view_protocol::LiveActivity {
     let point = activity.point.map(|point| {
         let at = screen.to_held(Points { x: point.x, y: point.y });
-        demi_live_view_protocol::LivePoint { x: at.x, y: at.y }
+        jush_live_view_protocol::LivePoint { x: at.x, y: at.y }
     });
-    demi_live_view_protocol::LiveActivity { point, ..activity }
+    jush_live_view_protocol::LiveActivity { point, ..activity }
 }
 
 /// How the page hears of a fold.
@@ -1257,12 +1257,12 @@ async fn picture(
         Event::Frame(frame) => delivery.frame(&watched.source, &frame, joined_stream_of(watched)),
         Event::Unavailable(reason) => {
             writer
-                .notice(demi_command_package_mobile_protocol::live::CAPTURE_UNAVAILABLE, &reason)
+                .notice(jush_command_package_mobile_protocol::live::CAPTURE_UNAVAILABLE, &reason)
                 .await;
         }
         Event::Failed(reason) | Event::Stopped(reason) => {
             writer
-                .notice(demi_command_package_mobile_protocol::live::CAPTURE_FAILED, &reason)
+                .notice(jush_command_package_mobile_protocol::live::CAPTURE_FAILED, &reason)
                 .await;
         }
     }

@@ -6,10 +6,10 @@ use std::sync::Arc;
 use argon2::Argon2;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::{self, PasswordHasher as _, PasswordVerifier as _, SaltString};
-use demi_web_api_protocol::auth::Password;
+use jush_web_api_protocol::auth::Password;
 use tokio::sync::Semaphore;
 
-use demi_backend_database::accounts::PasswordHash;
+use jush_backend_database::accounts::PasswordHash;
 
 /// Why hashing or verifying failed.
 #[derive(Debug, thiserror::Error)]

@@ -69,7 +69,7 @@ room. With the row standing at mount, the switch moves nothing.
 
 - [Open WebUI](https://docs.openwebui.com/features/chat-conversations/chat-features/follow-up-prompts)
   shows its follow-up prompts under the answer once they are generated.
-  Demi keeps their room from the start instead, as its rule that a change of
+  Jush keeps their room from the start instead, as its rule that a change of
   state never moves the layout asks.
 
 ## Alternatives

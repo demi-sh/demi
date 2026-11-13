@@ -119,7 +119,7 @@ None.
   keeps it fresh like any other
   ([docs](https://tanstack.com/query/latest/docs/framework/react/guides/prefetching)).
 
-Demi departs from both in following what it prefetched: a subagent changes
+Jush departs from both in following what it prefetched: a subagent changes
 while it runs, so a page read ahead without its changes would be stale.
 
 ## Alternatives

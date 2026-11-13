@@ -14,7 +14,7 @@ use std::marker::PhantomData;
 
 use serde::de::{self, MapAccess, Visitor};
 use serde::ser::SerializeStruct;
-use demi_shared_types::ReadAt;
+use jush_shared_types::ReadAt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use super::{

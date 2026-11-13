@@ -1,14 +1,14 @@
 //! Files on a device: directory listings, file text, and a conversation's
 //! working tree.
 
-pub use demi_runner_protocol::files::{
+pub use jush_runner_protocol::files::{
     DirectoryEntry, FileWatchMessage, FileWatchRequest, MAX_OUTSIDE_SUBSCRIPTIONS,
     MAX_PAGE_SUBSCRIPTIONS, PageSubscription, RefusedReason, SubscriptionKind,
 };
-pub use demi_runner_protocol::search::{FoundLine, SearchLine, SearchQuery, TextRange};
-pub use demi_runner_protocol::wire::{GitBranches, GitCommit, GitLog, GitRepositories};
-use demi_runner_protocol::wire::GitChanges;
-use demi_shared_types::Nullable;
+pub use jush_runner_protocol::search::{FoundLine, SearchLine, SearchQuery, TextRange};
+pub use jush_runner_protocol::wire::{GitBranches, GitCommit, GitLog, GitRepositories};
+use jush_runner_protocol::wire::GitChanges;
+use jush_shared_types::Nullable;
 use garde::Validate;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -28,9 +28,9 @@ pub struct ConversationSubscription {
     pub key: String,
     #[garde(skip)]
     pub kind: SubscriptionKind,
-    #[garde(length(chars, min = 1), custom(demi_command_protocol::without_nul))]
+    #[garde(length(chars, min = 1), custom(jush_command_protocol::without_nul))]
     pub path: String,
-    /// See [`demi_runner_protocol::files::Subject::suffix`].
+    /// See [`jush_runner_protocol::files::Subject::suffix`].
     #[serde(default, skip_serializing_if = "Option::is_none", with = "unwrap_or_skip")]
     #[schemars(with = "String")]
     #[garde(skip)]
@@ -116,12 +116,12 @@ pub struct Directory {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct DirectoryLists {
-    #[garde(length(min = 1), inner(length(chars, min = 1), custom(demi_command_protocol::without_nul)))]
+    #[garde(length(min = 1), inner(length(chars, min = 1), custom(jush_command_protocol::without_nul)))]
     pub paths: Vec<String>,
 }
 
 /// What the device answered for one of the directories of a [`DirectoryLists`]:
-/// the listing, as `GET .../fs` answers it with its header `X-Demi-Read-At`, or
+/// the listing, as `GET .../fs` answers it with its header `X-Jush-Read-At`, or
 /// the refusal that route would have answered with.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "type", rename_all = "snake_case", rename_all_fields = "camelCase")]
@@ -362,7 +362,7 @@ pub struct UploadQuery {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct RepositoriesRequest {
-    #[garde(inner(length(chars, min = 1), custom(demi_command_protocol::without_nul)))]
+    #[garde(inner(length(chars, min = 1), custom(jush_command_protocol::without_nul)))]
     pub paths: Vec<String>,
 }
 

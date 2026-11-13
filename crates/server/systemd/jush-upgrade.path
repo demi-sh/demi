@@ -1,0 +1,10 @@
+# Starts jush-upgrade.service when the backend writes an administrator's
+# request for an update (crates/server/src/main.rs).
+[Unit]
+Description=Jush update requests
+
+[Path]
+PathExists=/run/jush-upgrade/version
+
+[Install]
+WantedBy=multi-user.target

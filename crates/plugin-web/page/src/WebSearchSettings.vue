@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { z } from 'zod'
-import { PluginCallError, usePage, type HeadlineText } from '@demicodes/plugin-sdk'
+import { PluginCallError, usePage, type HeadlineText } from '@jush-ai/plugin-sdk'
 import SettingsWebSearch from './SettingsWebSearch.vue'
 import {
   FEATURES,

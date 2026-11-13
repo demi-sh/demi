@@ -1,5 +1,5 @@
 import { onBeforeUnmount } from 'vue'
-import { followLiveOutput, type TerminalRecord } from '@demicodes/web-ui/agent/terminals'
+import { followLiveOutput, type TerminalRecord } from '@jush-ai/web-ui/agent/terminals'
 import { DEMO_WATCH_BURST, DEMO_WATCH_LINES } from './fixtures/terminal-output'
 import { LIVE_TERMINAL_ID } from './fixtures/terminals'
 

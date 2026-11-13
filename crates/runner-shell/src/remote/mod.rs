@@ -6,7 +6,7 @@
 //! runner                                  shell process (one per job)
 //! +------------------------------+        +------------------------------+
 //! | RemoteShell, RemoteJob       | socket | serve: the job in brush,     |
-//! | (the job shell contract)     |<------>| Demi's utilities, programs   |
+//! | (the job shell contract)     |<------>| Jush's utilities, programs   |
 //! +------------------------------+        +------------------------------+
 //!          ^                                  |
 //!          +-- local endpoint <-- declared ---+
@@ -15,7 +15,7 @@
 //!
 //! # The process
 //!
-//! The runner starts its own executable as `demi-runner shell --job <id>`. The
+//! The runner starts its own executable as `jush-runner shell --job <id>`. The
 //! process listens on a private local socket of its own, writes its address on
 //! its standard output, and runs one job, which the runner sends it. On Unix
 //! it forks first and the process the runner started ends, so the shell is in

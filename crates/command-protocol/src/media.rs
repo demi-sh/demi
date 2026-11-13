@@ -1,5 +1,5 @@
 //! The media a declared command returns (`crates/runner-jobs/src/commands/command_output.rs`):
-//! images, videos and PDF documents that `demi file view` hands to its job,
+//! images, videos and PDF documents that `jush file view` hands to its job,
 //! their bound, how their bytes are recognized, and the facts a medium
 //! record carries of one.
 

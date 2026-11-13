@@ -1,5 +1,5 @@
 import { Text } from '@codemirror/state'
-import { diffChunks } from '@demicodes/web-ui/editor/unifiedDiff'
+import { diffChunks } from '@jush-ai/web-ui/editor/unifiedDiff'
 
 /**
  * The lines a diff from `original` to `modified` adds and removes, for the

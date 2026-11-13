@@ -30,7 +30,7 @@ const SIGNATURE_TAG: &str = "grok-build:";
 
 use std::sync::Arc;
 
-use demi_provider_common::{
+use jush_provider_common::{
     Capabilities, CatalogError, InferenceRequest, Provider, ProviderRun, ProviderRuntime,
     RequestLimits, Searches, ToolResultKinds, RuntimeEnv, RuntimeError,
     credentials::{Accounts, CredentialPool, SubscriptionAccounts},
@@ -40,7 +40,7 @@ use demi_provider_common::{
     quota::{ProviderQuota, QuotaSnapshotStore},
     read_http_failure,
 };
-use demi_shared_types::{
+use jush_shared_types::{
     AuthState, Clock, Model, ProviderErrorDiagnostics, ProviderFailureFacts, ProviderModelList,
     RuntimeState, Timestamp,
 };
@@ -114,7 +114,7 @@ struct Shared {
     releases: GrokReleases,
     /// The client of the provider's own requests: catalogs, probes,
     /// refreshes outside a run and logins.
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
     clock: Arc<dyn Clock>,
 }
 
@@ -125,7 +125,7 @@ impl GrokProvider {
         config: GrokConfig,
         pool: Arc<dyn CredentialPool>,
         snapshots: Arc<dyn QuotaSnapshotStore>,
-        http: demi_provider_common::ProviderHttp,
+        http: jush_provider_common::ProviderHttp,
         clock: Arc<dyn Clock>,
     ) -> Self {
         let auth = Arc::new(GrokAuth::new(pool.clone(), config.account, clock.clone()));
@@ -233,7 +233,7 @@ impl Provider for GrokProvider {
 /// A session's runtime: it holds nothing between runs.
 struct GrokRuntime {
     shared: Arc<Shared>,
-    http: demi_provider_common::ProviderHttp,
+    http: jush_provider_common::ProviderHttp,
 }
 
 impl ProviderRuntime for GrokRuntime {

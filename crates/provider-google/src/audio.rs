@@ -14,7 +14,7 @@
 //! - The models are those Google lists for the key whose ID names TTS or Lyria.
 //! - The voices are `GET …/voices`, every page.
 
-use demi_provider_common::{
+use jush_provider_common::{
     audio::{AudioFormatAsk, AudioMaker, AudioOption, AudioRequest, MadeAudio, Voice, unsent_of},
     endpoint_url,
     media::{
@@ -23,8 +23,8 @@ use demi_provider_common::{
     },
     media_catalog::Catalog,
 };
-use demi_shared_types::audio::Pcm;
-use demi_shared_types::{AudioKind, VendorTrace};
+use jush_shared_types::audio::Pcm;
+use jush_shared_types::{AudioKind, VendorTrace};
 use futures_util::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 
@@ -64,14 +64,14 @@ impl MediaMaker for KeyAudio {
 
     fn models<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(async move {
             let models = self.0.list(http, makes_audio).await?;
             Ok(models
                 .into_iter()
-                .map(|model| MediaModelInfo { kinds: kinds_of(&demi_provider_common::model_words(&model.id)), ..model })
+                .map(|model| MediaModelInfo { kinds: kinds_of(&jush_provider_common::model_words(&model.id)), ..model })
                 .collect())
         })
     }
@@ -98,7 +98,7 @@ impl AudioMaker for KeyAudio {
 
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         request: AudioRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeAudio>> {
@@ -114,7 +114,7 @@ impl AudioMaker for KeyAudio {
 
     fn voices<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
         _model: &'a str,
         search: Option<&'a str>,
@@ -149,11 +149,11 @@ impl AudioMaker for KeyAudio {
 }
 
 impl Jobs<AudioRequest, MadeAudio> for KeyAudio {
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, _: &'a Catalog, request: AudioRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, _: &'a Catalog, request: AudioRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(interactions::create(&self.0, http, encode(&request)))
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeAudio>>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeAudio>>> {
         Box::pin(async move {
             interactions::get(&self.0, http, job.id).await.and_then(|interaction| match interaction.standing() {
                 Standing::Pending { running: false } => Ok(JobState::Queued),

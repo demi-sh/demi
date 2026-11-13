@@ -38,7 +38,7 @@ pub(crate) struct TargetElement {
     pub remote_object_id: RemoteObjectId,
 }
 
-pub(crate) const OBJECT_GROUP: &str = "demi-browser-command";
+pub(crate) const OBJECT_GROUP: &str = "jush-browser-command";
 
 impl TargetElement {
     /// Resolve an observed browser node in one CDP request without another DOM scan.

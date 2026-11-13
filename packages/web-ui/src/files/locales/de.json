@@ -192,7 +192,7 @@
     "selectFile": "Wähle eine geänderte Datei aus",
     "previousNotKept": "Der vorherige Inhalt wurde nicht aufbewahrt.",
     "changeNotKept": "Der Inhalt dieser Änderung wurde nicht aufbewahrt.",
-    "binaryNotKept": "Demi bewahrt den Text der Änderungen eines Chats auf, keine Bilder oder anderen Binärdateien.",
+    "binaryNotKept": "Jush bewahrt den Text der Änderungen eines Chats auf, keine Bilder oder anderen Binärdateien.",
     "onNoBranch": "Auf keinem Branch",
     "committed": "Committet",
     "workingTree": "Arbeitsverzeichnis",

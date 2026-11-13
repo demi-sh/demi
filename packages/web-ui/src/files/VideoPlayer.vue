@@ -121,7 +121,7 @@ const timeWidth = computed(() => `${lengthText.value.length}ch`)
 const heard = computed(() => (muted.value ? 0 : volume.value))
 
 /** Where the browser keeps the volume every video starts at. */
-const VOLUME_KEY = 'demi-video-volume'
+const VOLUME_KEY = 'jush-video-volume'
 
 function storedVolume(): number {
   if (typeof localStorage === 'undefined')

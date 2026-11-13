@@ -1,7 +1,7 @@
 //! Finding a conversation, `GET /search?q=`, and finding in one,
 //! `GET /conversations/{id}/search?q=`, and what each answers.
 
-use demi_shared_types::{BlockId, Nullable, Timestamp, trim};
+use jush_shared_types::{BlockId, Nullable, Timestamp, trim};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

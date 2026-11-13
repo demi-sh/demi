@@ -7,11 +7,11 @@
 //!
 //! Notes, such as an entry whose models could not be listed, go to stderr.
 
-use demi_device_interface::RpcInvocation;
-use demi_plugin_interface::{EntryStatus, MediaModel, PluginError, PluginPort};
-use demi_shared_types::MediaKind;
-use demi_shared_types::thousands;
-use demi_shared_types::output::{Cell, Fields, Table, instant, note, warning};
+use jush_device_interface::RpcInvocation;
+use jush_plugin_interface::{EntryStatus, MediaModel, PluginError, PluginPort};
+use jush_shared_types::MediaKind;
+use jush_shared_types::thousands;
+use jush_shared_types::output::{Cell, Fields, Table, instant, note, warning};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -36,13 +36,13 @@ pub struct ListedModel {
     pub entry: Option<String>,
 }
 
-/// `demi <kind> models [<model>]`.
+/// `jush <kind> models [<model>]`.
 pub async fn models(invocation: &RpcInvocation, port: &PluginPort, kind: MediaKind, shown: Option<String>) -> Result<u8, PluginError> {
     let listing = port
         .media_models(kind)
         .await
         .map_err(|failure| refused(kind, failure, None, invocation))?;
-    let command = format!("demi {}", invocation.path.join(" "));
+    let command = format!("jush {}", invocation.path.join(" "));
     let mut notes = String::new();
     for unlisted in &listing.unlisted {
         notes.push_str(&warning(
@@ -73,7 +73,7 @@ pub async fn models(invocation: &RpcInvocation, port: &PluginPort, kind: MediaKi
             .into_iter()
             .find(|model| model.model.id == id || model.model.aliases.iter().any(|alias| *alias == id))
         else {
-            return Err(PluginError::failed(format!("no provider makes \"{id}\"; demi {kind} models lists them")));
+            return Err(PluginError::failed(format!("no provider makes \"{id}\"; jush {kind} models lists them")));
         };
         unconfirmed(&mut notes, &command, std::slice::from_ref(&model));
         let text = if invocation.json {
@@ -273,7 +273,7 @@ fn audio_facts(fields: &mut Fields, model: &MediaModel) {
     let kinds: Vec<String> = audio.kinds.iter().map(|kind| kind.to_string()).collect();
     let voices = match (&audio.voices, audio.voices_listed) {
         (Some(voices), _) if !voices.is_empty() => Some(voices.join(", ")),
-        (_, Some(true)) => Some(format!("listed by demi audio voices --model {}", model.id)),
+        (_, Some(true)) => Some(format!("listed by jush audio voices --model {}", model.id)),
         _ => None,
     };
     let durations = durations(audio.durations.as_deref(), audio.min_duration, audio.max_duration);

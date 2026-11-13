@@ -7,13 +7,13 @@ use crate::{
     commands::rpc,
 };
 use bytes::Bytes;
-use demi_command_declarations::{MAX_STDIN_BODY, UsageError};
-use demi_command_protocol::{Completion, Invocation, LocalInvocation};
-use demi_command_sdk::{
+use jush_command_declarations::{MAX_STDIN_BODY, UsageError};
+use jush_command_protocol::{Completion, Invocation, LocalInvocation};
+use jush_command_sdk::{
     Exchange, ExchangeError, Handler, Input, InvocationContext, Output, ResidentError,
 };
-use demi_runner_command_packages::ResidentHandle;
-use demi_runner_process::{
+use jush_runner_command_packages::ResidentHandle;
+use jush_runner_process::{
     command_client::{RAW, RawCommand},
     pipes::PipeClient,
 };
@@ -21,7 +21,7 @@ use futures_util::FutureExt;
 use std::{future::Future, pin::Pin, sync::Arc};
 
 /// The program's name, which a failure that names no command begins with.
-pub const RUNNER: &str = "demi-runner";
+pub const RUNNER: &str = "jush-runner";
 
 /// Runs the declared commands of live contexts, for the local endpoint and
 /// for declared builtins alike.
@@ -324,8 +324,8 @@ enum Failed {
 /// the resident reports is told after the command's `path`, its code left
 /// to `--json` callers of the package.
 async fn native_exchange(
-    sender: demi_command_sdk::CommandInput,
-    response: demi_command_sdk::CommandOutput,
+    sender: jush_command_sdk::CommandInput,
+    response: jush_command_sdk::CommandOutput,
     input: &mut Input,
     output: &mut CommandOutput<'_>,
     path: &str,

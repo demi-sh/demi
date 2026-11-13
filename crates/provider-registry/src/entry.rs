@@ -1,14 +1,14 @@
 //! A provider entry, read and decoded: what its family builds its provider
 //! from, and how it authenticates.
 
-use demi_provider_common::{Searches, Secret};
-use demi_shared_types::{AudioShape, CacheTtl, MediaKind, MediaShapes, Timestamp, WireApi};
-use demi_web_api_protocol::ids::{CredentialId, DeviceId, ProviderId, UserId};
-use demi_web_api_protocol::providers::{
+use jush_provider_common::{Searches, Secret};
+use jush_shared_types::{AudioShape, CacheTtl, MediaKind, MediaShapes, Timestamp, WireApi};
+use jush_web_api_protocol::ids::{CredentialId, DeviceId, ProviderId, UserId};
+use jush_web_api_protocol::providers::{
     AudioMedia, ConfiguredModels, CredentialKind, EntryMedia, EntrySearch, ImageMedia, ProviderDto, ProviderHeader, Rotation,
     SetupPart, VideoMedia,
 };
-use demi_web_api_protocol::text::EndpointUrl;
+use jush_web_api_protocol::text::EndpointUrl;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;

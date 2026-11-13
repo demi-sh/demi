@@ -1,4 +1,4 @@
-import type { FoundMessages, SearchRow } from '@demicodes/web-ui/search/search'
+import type { FoundMessages, SearchRow } from '@jush-ai/web-ui/search/search'
 import { apiRequest, readResponse } from './client'
 import { messageResultsSchema, searchResultsSchema } from './generated/web-api'
 

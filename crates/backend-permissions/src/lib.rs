@@ -18,9 +18,9 @@
 //! the agent runtime's alike, so the check belongs to none of them. What it
 //! needs of its user's shard it reaches through [`PermissionShard`].
 //!
-//! Demi has no general permission system. An agent runs commands on its device,
+//! Jush has no general permission system. An agent runs commands on its device,
 //! edits files and opens pages without asking, because the user chose the device
-//! and the directory. It asks only before acting on Demi itself, on what the
+//! and the directory. It asks only before acting on Jush itself, on what the
 //! user owns beyond the conversation. Each such power is one broad category,
 //! which the user judges once for a conversation and which covers every object
 //! and every step of it, such as every credential. A device is the exception:
@@ -28,7 +28,7 @@
 //! device a conversation brings in, and the call that brings it in attaches it.
 //!
 //! ```text
-//! demi skills add ... -> dispatch: the check -- grant? -- yes --> handler
+//! jush skills add ... -> dispatch: the check -- grant? -- yes --> handler
 //!                                      | no
 //!                          request recorded, call held (a running command)
 //!                                      | the user: Allow / Deny
@@ -81,25 +81,25 @@ use std::future::Future;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::credentials::{CredentialSeal, StoredCredential};
-use demi_backend_database::permissions::{
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::credentials::{CredentialSeal, StoredCredential};
+use jush_backend_database::permissions::{
     AnswerProblem, Answered, Asked, AskingAgent, Checked, CredentialAsk, CredentialRead,
     Needed, PermissionRefusal, SavedByAgent, StoredAsk, StoredRequest, Undecided,
 };
-use demi_backend_page_sync::{Part, Revisions, UserMarks};
-use demi_command_declarations::Category;
-use demi_device_interface::{PortError, RpcError, RpcInvocation, RpcPort};
-use demi_shared_types::{AgentMessage, AgentMessageEvent, BlockId, NodeId, PermissionOutcome};
-use demi_web_api_protocol::credentials::{CredentialField, Keep, RequestedValues};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId};
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::permissions::{
+use jush_backend_page_sync::{Part, Revisions, UserMarks};
+use jush_command_declarations::Category;
+use jush_device_interface::{PortError, RpcError, RpcInvocation, RpcPort};
+use jush_shared_types::{AgentMessage, AgentMessageEvent, BlockId, NodeId, PermissionOutcome};
+use jush_web_api_protocol::credentials::{CredentialField, Keep, RequestedValues};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::permissions::{
     ConversationPermissions, PermissionCategory, PermissionDecision, PermissionRequest,
     PermissionRequestId, RequestedDevice,
 };
-use demi_web_api_protocol::push::PushAsk;
+use jush_web_api_protocol::push::PushAsk;
 use futures_util::future::LocalBoxFuture;
 use tokio::sync::oneshot;
 
@@ -633,7 +633,7 @@ pub async fn read_credential(
             Ok(value)
         }
         CredentialRead::NoCredential => Err(RpcError::Failed(format!(
-            "\u{201c}{name}\u{201d}: the user has no credential of that name; `demi credentials list` lists them"
+            "\u{201c}{name}\u{201d}: the user has no credential of that name; `jush credentials list` lists them"
         ))),
         CredentialRead::Missing => Err(RpcError::Failed(format!(
             "\u{201c}{name}\u{201d}: the field \u{201c}{field}\u{201d} has no value yet; the user fills it in Settings \u{203a} Credentials"

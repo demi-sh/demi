@@ -10,10 +10,10 @@
 //!
 //! Only a conversation's watch takes a subscription that names a device.
 
-use demi_backend_device_access::file_watch::{FileWatchChannel, OpenedWatch};
-use demi_backend_user_shard::shard::lane::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader};
-use demi_web_api_protocol::files::{ConversationWatchRequest, FileWatchMessage, FileWatchRequest};
-use demi_web_api_protocol::ids::UserId;
+use jush_backend_device_access::file_watch::{FileWatchChannel, OpenedWatch};
+use jush_backend_user_shard::shard::lane::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader};
+use jush_web_api_protocol::files::{ConversationWatchRequest, FileWatchMessage, FileWatchRequest};
+use jush_web_api_protocol::ids::UserId;
 use garde::Validate;
 
 use super::AppState;
@@ -73,7 +73,7 @@ pub(super) async fn open_device(state: &AppState, user: &UserId, id: &str) -> Re
 /// goes in as many as it takes.
 ///
 /// Bounded by the page's own limit on a message
-/// ([`demi_web_api_protocol::MAX_PAGE_MESSAGE_BYTES`]).
+/// ([`jush_web_api_protocol::MAX_PAGE_MESSAGE_BYTES`]).
 const MESSAGE_BYTES: usize = 1024 * 1024;
 
 /// How a watch ended, which its lane closes with.

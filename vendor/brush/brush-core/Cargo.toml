@@ -295,8 +295,8 @@ priority = 0
 level = "deny"
 priority = -1
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "fancy-regex 0.19, the version the runner links, in place of 0.17",
     "Embedding hooks (src/execution_host.rs, added): opening files, creating pipes and temporary files, starting external commands and forwarding their redirected output go through the runner's job, which records edits, waits out a lack of open files and stops the work when the job is cancelled",

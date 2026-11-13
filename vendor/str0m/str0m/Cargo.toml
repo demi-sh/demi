@@ -183,8 +183,8 @@ optional = true
 version = "0.8.1"
 optional = true
 
-[package.metadata.demi]
-maintainer = "demi-runner-direct"
+[package.metadata.jush]
+maintainer = "jush-runner-direct"
 patches = [
     "RtcConfig takes the SCTP association's retransmission timeouts and a floor for its congestion window (set_sctp_rto, set_sctp_congestion_window_floor), passed to sctp-proto's TransportConfig, so a live view's peer runs without SCTP's congestion window (upstream through 0.24.1 fixes the transport config)",
     "The release's tests, examples, CI files and logo are left out",

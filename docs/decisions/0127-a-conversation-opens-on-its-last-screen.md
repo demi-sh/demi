@@ -73,7 +73,7 @@ held as today.
 * Mattermost loads 60 posts at a time (`POST_CHUNK_SIZE` in
   [constants.tsx](https://github.com/mattermost/mattermost/blob/master/webapp/channels/src/utils/constants.tsx)).
 
-Demi counts blocks rather than messages, since a reply is many blocks, and
+Jush counts blocks rather than messages, since a reply is many blocks, and
 reads the page before at once in the background, as Zulip does, rather than
 when the reader reaches it.
 

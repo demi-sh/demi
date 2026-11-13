@@ -14,7 +14,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::layout::{Layout, sync_directory};
 
-use demi_shared_artifacts::releases::{self, Channel};
+use jush_shared_artifacts::releases::{self, Channel};
 
 /// The file of the assets' SHA-256 sums.
 const SUMS: &str = "SHA256SUMS";
@@ -39,16 +39,16 @@ pub fn architecture() -> io::Result<&'static str> {
     match std::env::consts::ARCH {
         "x86_64" => Ok("amd64"),
         "aarch64" => Ok("arm64"),
-        other => Err(io::Error::other(format!("Demi runs on no {other} server"))),
+        other => Err(io::Error::other(format!("Jush runs on no {other} server"))),
     }
 }
 
 fn server_asset(version: &Version, architecture: &str) -> String {
-    format!("demi-{version}-server-linux-{architecture}.tar.zst")
+    format!("jush-{version}-server-linux-{architecture}.tar.zst")
 }
 
 fn image_asset(version: &Version, architecture: &str) -> String {
-    format!("demi-{version}-image-linux-{architecture}.tar")
+    format!("jush-{version}-image-linux-{architecture}.tar")
 }
 
 /// The newest release of `channel` that `source` offers (`upgrades.md` §
@@ -58,8 +58,8 @@ pub async fn newest(source: &Source, channel: Channel) -> io::Result<Version> {
     match source {
         Source::GitHub => releases::newest(channel).await?.map(|newest| newest.version).ok_or_else(|| {
             io::Error::other(match channel {
-                Channel::Beta => "Demi has published no beta release yet: --canary takes the newest build",
-                Channel::Canary => "Demi has no release yet",
+                Channel::Beta => "Jush has published no beta release yet: --canary takes the newest build",
+                Channel::Canary => "Jush has no release yet",
             })
         }),
         Source::Directory(directory) => {
@@ -68,7 +68,7 @@ pub async fn newest(source: &Source, channel: Channel) -> io::Result<Version> {
             let mut versions = Vec::new();
             for entry in std::fs::read_dir(directory)? {
                 let name = entry?.file_name().to_string_lossy().into_owned();
-                if let Some(version) = name.strip_prefix("demi-").and_then(|name| name.strip_suffix(&suffix)) {
+                if let Some(version) = name.strip_prefix("jush-").and_then(|name| name.strip_suffix(&suffix)) {
                     versions.push(Version::parse(version).map_err(io::Error::other)?);
                 }
             }
@@ -149,7 +149,7 @@ pub async fn fetch(
             .find(|(name, _)| name == asset)
             .map(|(_, sha256)| sha256.as_str())
             .ok_or_else(|| io::Error::other(format!("{SUMS} names no {asset}")))?;
-        let found = demi_shared_artifacts::digest(path, LARGEST, cancel)
+        let found = jush_shared_artifacts::digest(path, LARGEST, cancel)
             .await
             .map_err(io::Error::other)?;
         if found.sha256 != expected {
@@ -213,16 +213,16 @@ async fn obtain(
         Source::GitHub => {
             let url = releases::asset_url(version, name);
             let path = stage.join(name);
-            let client = demi_shared_artifacts::download_client().map_err(io::Error::other)?;
+            let client = jush_shared_artifacts::download_client().map_err(io::Error::other)?;
             // GitHub serves a release's assets through a redirect to
             // short-lived storage; the sums check what arrives.
-            let request = demi_shared_artifacts::Download {
+            let request = jush_shared_artifacts::Download {
                 limit: LARGEST,
                 redirects: releases::REDIRECTS,
-                ..demi_shared_artifacts::Download::new(&url)
+                ..jush_shared_artifacts::Download::new(&url)
             };
             let (before, bytes) = (downloads.done, downloads.bytes);
-            demi_shared_artifacts::download(&client, request, &path, cancel, |received, _| {
+            jush_shared_artifacts::download(&client, request, &path, cancel, |received, _| {
                 progress(before + received, bytes);
             })
             .await

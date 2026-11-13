@@ -18,7 +18,7 @@
 //! version exists: a missing one reports it unavailable and nothing stands in.
 //! An update is a release change; running environments keep their executable.
 
-use demi_command_package_browser_protocol::browser as protocol;
+use jush_command_package_browser_protocol::browser as protocol;
 
 pub mod capture;
 pub mod frames;

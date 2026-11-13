@@ -6,17 +6,17 @@ status: proposed
 
 ## Problem
 
-Alex clicks **Deploy on Render** to run Demi without a VPS. Render runs Demi's
+Alex clicks **Deploy on Render** to run Jush without a VPS. Render runs Jush's
 container image as root, but with six capabilities only: `chown`,
 `dac_override`, `fowner`, `setgid`, `setuid` and `sys_chroot`, with
-`NoNewPrivs` set. On a free Render service with Demi 0.2.6017's image:
+`NoNewPrivs` set. On a free Render service with Jush 0.2.6017's image:
 
-- The backend never starts: `demi-backend.service did not start: Operation not
+- The backend never starts: `jush-backend.service did not start: Operation not
   permitted`. Its unit narrows the capability bounding set, which takes
   `CAP_SETPCAP`, and raises `CAP_NET_BIND_SERVICE`, which the container doesn't
   grant. Both fail.
 - Without `CAP_KILL`, root may not signal another user's process. The
-  supervisor stops the backend, which runs as `demi`, by a signal, and the
+  supervisor stops the backend, which runs as `jush`, by a signal, and the
   machine manager stops a Simple Isolation Cloud by signaling the processes of
   the Cloud's own user. Both signals fail, so a redeploy leaves them running
   until Render kills the container 30 seconds later, without saving a Cloud.
@@ -27,7 +27,7 @@ would.
 
 ## Decision
 
-Demi runs where the container lets it switch users, whatever else the container
+Jush runs where the container lets it switch users, whatever else the container
 withholds, and Render becomes a fourth setup. Nothing changes where the
 capabilities are granted.
 
@@ -39,7 +39,7 @@ The supervisor reads what it holds before it starts a process:
   supervisor holds. The container's log names the rest:
 
   ```text
-  demi-server supervise: /opt/demi/current/bin/demi-backend runs without
+  jush-server supervise: /opt/jush/current/bin/jush-backend runs without
   NET_BIND_SERVICE, which this container does not grant
   ```
 
@@ -57,7 +57,7 @@ user first, which the kernel always allows:
 
 ```text
 supervisor (root, no CAP_KILL) -- kill(backend) --> EPERM
-supervisor --fork--> child: setuid(demi) -- kill(backend) --> delivered
+supervisor --fork--> child: setuid(jush) -- kill(backend) --> delivered
 ```
 
 A new crate, `shared-processes`, owns this for both programs, along with the
@@ -74,18 +74,18 @@ the group's members in `/proc` and sends once as each. The supervisor needs no
 record of who runs what, which a process it took over from an earlier
 supervisor wouldn't have.
 
-A container that can't switch users can't run Demi: the start stops with
-`demi-backend.service did not start: Operation not permitted`.
+A container that can't switch users can't run Jush: the start stops with
+`jush-backend.service did not start: Operation not permitted`.
 
 ### Render
 
 `render.yaml`, at the repository's root because Render's button reads it there,
-describes one web service from `ghcr.io/demi-sh/demi:latest`:
+describes one web service from `ghcr.io/jush-ai/jush:latest`:
 
-- a disk at `/opt/demi`, 5 GB, which also holds attachments, since Render has no
+- a disk at `/opt/jush`, 5 GB, which also holds attachments, since Render has no
   object storage;
-- `DEMI_BACKEND_PUBLIC_URL` from the service's own `RENDER_EXTERNAL_URL`, so
-  Demi reads no Render name;
+- `JUSH_BACKEND_PUBLIC_URL` from the service's own `RENDER_EXTERNAL_URL`, so
+  Jush reads no Render name;
 - `PORT=3271`, a health check on `/api/update`, and `autoDeployTrigger: off`,
   as Render advises for a button's Blueprint;
 - the Starter plan, about $8.25 a month with the disk.
@@ -99,13 +99,13 @@ it 30 seconds after `SIGTERM`.
 ## Spike
 
 On November 6, 2026, a free Render service (no disk) in Singapore, with a probe
-image and Demi 0.2.6017's image:
+image and Jush 0.2.6017's image:
 
 - Root, capabilities `0x400cb`, `NoNewPrivs: 1`, no seccomp filter, cgroup v2 at
   the root, 512 MB.
 - `setpriv --reuid=991` works; root's `SIGTERM` to a uid 991 process fails and
   the process runs on; a uid 991 process signals another uid 991 process.
-- `unshare -m` fails, `unshare -U` works. Demi's Cloud check passed on Simple
+- `unshare -m` fails, `unshare -U` works. Jush's Cloud check passed on Simple
   Isolation, with gVisor unavailable and the manager's reason.
 
 With this design built, on 0.2.6043's release:
@@ -129,19 +129,19 @@ and heavy work on 512 MB.
 
 - [systemd](https://github.com/systemd/systemd/blob/main/src/basic/capability-util.c):
   `capability_ambient_set_apply` suppresses an ambient capability that's missing
-  from the bounding set, with a debug message. Demi does the same and says it
+  from the bounding set, with a debug message. Jush does the same and says it
   where an operator reads. `capability_bounding_set_drop` tolerates a failed
-  drop only for a capability the set doesn't hold, and otherwise fails. Demi
+  drop only for a capability the set doesn't hold, and otherwise fails. Jush
   departs here: no service could start in such a container, and `no_new_privs`
   keeps what the set would have promised.
 - `su` and `sudo -u` followed by `kill` are how an administrator without
-  `CAP_KILL` signals another user. Demi forks instead of running a program, so
+  `CAP_KILL` signals another user. Jush forks instead of running a program, so
   an image needs no such program.
 
 ## Alternatives
 
 - **Run the services as root where `CAP_KILL` is missing.** Simpler, but the
-  backend would hold every file of every Cloud, which the `demi` user exists to
+  backend would hold every file of every Cloud, which the `jush` user exists to
   prevent.
 - **Ask the backend to stop through its manage socket.** It covers the backend
   only, not a Cloud's processes.

@@ -1,5 +1,5 @@
-//! The iOS driver: the device's iOS simulators through `demi-ios-sim`, the helper
-//! `demi-mobile` carries.
+//! The iOS driver: the device's iOS simulators through `jush-ios-sim`, the helper
+//! `jush-mobile` carries.
 //!
 //! A one-shot helper lists, boots and shuts down simulators. Each conversation
 //! that opens an iOS device gets a helper of its own, which its devices share
@@ -22,12 +22,12 @@ use serde_json::{Value, json};
 use tokio::sync::{mpsc, watch};
 use tokio_util::sync::CancellationToken;
 
-use demi_command_package_mobile_protocol::{
+use jush_command_package_mobile_protocol::{
     live::{LiveCorner, LiveCornerPoint, LiveCorners},
     mobile::{Appearance, FoldDisplay, Orientation, MobilePlatform, PowerState, SCREENSHOT_LONG_SIDE},
 };
-use demi_live_view::stream::CaptureEvent;
-use demi_shared_recording::Sink;
+use jush_live_view::stream::CaptureEvent;
+use jush_shared_recording::Sink;
 
 use crate::{
     driver::{
@@ -41,15 +41,15 @@ use crate::{
 pub use helper::{BLOB, CONTROL, Connection, HEADER_BYTES, PICTURE, PICTURE_HEADER_BYTES, VIDEO};
 use helper::{Event, Helper};
 
-/// How the driver reaches `demi-ios-sim`: one-shot runs for listing,
+/// How the driver reaches `jush-ios-sim`: one-shot runs for listing,
 /// booting and shutting down, a serving connection per conversation, and
 /// what the device says of its simulators' boots. A test gives its own.
 pub trait Launch: Send + Sync + 'static {
     /// Why this device cannot run the helper, or none.
     fn unavailable(&self) -> Option<String>;
-    /// Runs `demi-ios-sim <args>` and answers what it printed.
+    /// Runs `jush-ios-sim <args>` and answers what it printed.
     fn once<'a>(&'a self, args: &'a [&'a str]) -> BoxFuture<'a, Result<Vec<u8>>>;
-    /// Starts `demi-ios-sim serve`.
+    /// Starts `jush-ios-sim serve`.
     fn serve(&self) -> BoxFuture<'_, Result<Connection>>;
     /// Each booted simulator's boot mark, by its simctl id.
     fn boots(&self) -> HashMap<String, u64>;
@@ -59,7 +59,7 @@ pub trait Launch: Send + Sync + 'static {
 pub struct Ios {
     launch: Arc<dyn Launch>,
     sessions: Mutex<HashMap<String, Weak<Session>>>,
-    /// The apps Demi launched on each simulator, by its simctl id, which
+    /// The apps Jush launched on each simulator, by its simctl id, which
     /// outlast the device's connections.
     launches: Mutex<HashMap<String, Arc<simctl::Launches>>>,
 }
@@ -80,11 +80,11 @@ impl Ios {
         }
     }
 
-    /// Runs the one-shot `demi-ios-sim <args>` and decodes what it prints.
+    /// Runs the one-shot `jush-ios-sim <args>` and decodes what it prints.
     async fn once<T: serde::de::DeserializeOwned>(&self, args: &[&str]) -> Result<T> {
         let printed = self.launch.once(args).await?;
         serde_json::from_slice(&printed).map_err(|error| {
-            DriverError::Failed(format!("the iOS helper printed what Demi cannot read: {error}"))
+            DriverError::Failed(format!("the iOS helper printed what Jush cannot read: {error}"))
         })
     }
 
@@ -155,10 +155,10 @@ impl Launch for Installed {
         // idb's libraries, which the helper links, are built for macOS 15 on
         // Apple silicon.
         if cfg!(target_arch = "x86_64") {
-            return Some("iOS simulators need a Mac with Apple silicon in this version of Demi".into());
+            return Some("iOS simulators need a Mac with Apple silicon in this version of Jush".into());
         }
         if !install::carried() {
-            return Some("iOS simulators need a build of Demi made with Xcode on a Mac".into());
+            return Some("iOS simulators need a build of Jush made with Xcode on a Mac".into());
         }
         let major = sysinfo::System::os_version()
             .and_then(|version| version.split('.').next()?.parse::<u32>().ok());
@@ -354,7 +354,7 @@ struct DeviceState {
     /// the lit one's; none for a device that does not fold.
     displays: Option<[watch::Sender<Screen>; 2]>,
     drawn: watch::Sender<u64>,
-    /// Whether the screen is on, as the input Demi sent says: a simulator
+    /// Whether the screen is on, as the input Jush sent says: a simulator
     /// reports nothing of it.
     awake: watch::Sender<bool>,
     ended: CancellationToken,
@@ -608,7 +608,7 @@ struct IosDevice {
 /// How long a launch waits for the app's first screen once its process
 /// runs: as long as a command waits for an element.
 const FIRST_SCREEN: std::time::Duration =
-    std::time::Duration::from_secs(demi_command_package_mobile_protocol::mobile::FIND_SECONDS);
+    std::time::Duration::from_secs(jush_command_package_mobile_protocol::mobile::FIND_SECONDS);
 /// How often a launch reads the tree for the first screen.
 const FIRST_SCREEN_POLL: std::time::Duration = std::time::Duration::from_millis(250);
 
@@ -897,7 +897,7 @@ impl Device for IosDevice {
             let recording = helper.next_capture();
             helper.pictures(recording, sink.clone());
             let started = self
-                .done("recordStart", json!({ "recording": recording, "keyInterval": demi_shared_recording::KEY_INTERVAL }))
+                .done("recordStart", json!({ "recording": recording, "keyInterval": jush_shared_recording::KEY_INTERVAL }))
                 .await;
             if let Err(error) = started {
                 helper.forget_pictures(recording);

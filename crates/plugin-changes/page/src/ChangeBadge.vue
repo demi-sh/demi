@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { LineCounts, usePage } from '@demicodes/plugin-sdk'
+import { LineCounts, usePage } from '@jush-ai/plugin-sdk'
 import type { ChangeData } from './data'
 import { useShownDirectory } from './shown'
 

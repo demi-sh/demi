@@ -220,8 +220,8 @@ check-cfg = [
     "cfg(wasi_runner)",
 ]
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "Its thread pool's threads start through uucore::context, so they belong to the job and inherit its context",
     "The compression program starts through uucore::context, and parallelism is the context's",

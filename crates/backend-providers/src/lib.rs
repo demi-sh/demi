@@ -1,4 +1,4 @@
-//! Providers: the server's side of Demi's inference services.
+//! Providers: the server's side of Jush's inference services.
 //!
 //! The crate has two parts:
 //!
@@ -7,7 +7,7 @@
 //!   registry's store (`crates/provider-registry/src/store.rs`).
 //! - `usage`: usage metering.
 //!
-//! A provider connects Demi's agent to one inference service: the Anthropic
+//! A provider connects Jush's agent to one inference service: the Anthropic
 //! API, an OpenAI-compatible API, Gemini, a Codex or Grok Build subscription,
 //! or Claude Code. The provider registry (`crates/provider-registry`) builds
 //! each entry's provider and keeps its catalog and its accounts' rotation;

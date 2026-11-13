@@ -1,4 +1,4 @@
-import type { HeldBlock } from '@demicodes/conversation-client'
+import type { HeldBlock } from '@jush-ai/conversation-client'
 import type { StepsNotSharedRow } from '../agent/pending-steers'
 
 /**

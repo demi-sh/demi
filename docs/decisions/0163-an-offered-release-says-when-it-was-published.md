@@ -6,8 +6,8 @@ status: accepted
 
 ## Problem
 
-Alex runs a Demi server on the Canary channel. Settings › Updates says
-"Demi 0.1.5500 is available", and Alex cannot tell whether that build came
+Alex runs a Jush server on the Canary channel. Settings › Updates says
+"Jush 0.1.5500 is available", and Alex cannot tell whether that build came
 out an hour ago, and may still be followed by a fix, or a week ago, and has
 been run by everyone since. The page does not say.
 
@@ -23,7 +23,7 @@ Settings › Updates, while it offers a newer release:
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
-│ Demi 0.1.5500 is available  3 days ago                [Update Now]   │
+│ Jush 0.1.5500 is available  3 days ago                [Update Now]   │
 │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━──────────  88 MB of 214 MB  │
 │ Release Notes ↗                                                      │
 └──────────────────────────────────────────────────────────────────────┘
@@ -50,7 +50,7 @@ Settings › Updates, while it offers a newer release:
   found, and otherwise, while the server is up to date or checks, the notes
   of the release it runs.
 
-The sidebar's "Demi 0.1.5500 is available" stays as it is.
+The sidebar's "Jush 0.1.5500 is available" stays as it is.
 
 ### Design
 

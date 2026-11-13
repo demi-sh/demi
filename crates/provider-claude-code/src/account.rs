@@ -30,12 +30,12 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::Secret;
-use demi_provider_common::credentials::{
+use jush_provider_common::Secret;
+use jush_provider_common::credentials::{
     AccountError, AccountLabel, AccountMeta, AuthFailure, AuthReason, CredentialPool,
     SecretDocument, read_secret, sign_out_account,
 };
-use demi_shared_types::Timestamp;
+use jush_shared_types::Timestamp;
 use serde::{Deserialize, Serialize};
 
 use crate::FAMILY;

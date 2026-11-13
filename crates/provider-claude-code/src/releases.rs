@@ -8,8 +8,8 @@
 //! - A start that has a version to run never waits for one, and reads in the
 //!   background instead.
 //!
-//! Demi always follows the vendor's newest release. Provider entries store no
-//! CLI version and expose no version-selection or update-disable setting. Demi
+//! Jush always follows the vendor's newest release. Provider entries store no
+//! CLI version and expose no version-selection or update-disable setting. Jush
 //! keeps no list of versions it was tested with, because such a list would be
 //! out of date with each release and a version it does not name would still
 //! run. The Claude Code scenario suite checks whichever CLI it is given against
@@ -19,9 +19,9 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
-use demi_command_package_claude_code_protocol::{Artifact, Release, is_version};
-use demi_provider_common::kept::KeptRead;
-use demi_shared_types::Clock;
+use jush_command_package_claude_code_protocol::{Artifact, Release, is_version};
+use jush_provider_common::kept::KeptRead;
+use jush_shared_types::Clock;
 use jiff::SignedDuration;
 use serde::Deserialize;
 use tokio::runtime::Handle;
@@ -43,7 +43,7 @@ const READ_TIMEOUT: Duration = Duration::from_secs(15);
 pub struct ReleaseError(String);
 
 /// A version's `manifest.json`: each platform's executable name, SHA-256
-/// and byte size. Fields Demi does not read are ignored.
+/// and byte size. Fields Jush does not read are ignored.
 #[derive(Deserialize)]
 struct Manifest {
     version: String,

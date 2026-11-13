@@ -14,14 +14,14 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     Secret, endpoint_url, request_id_in,
     images::{ImageMaker, ImageRequest, MadeImage, nearest_size},
     json_body,
     media::{Answered, Ask, Holding, MediaAnswer, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor, catalog_models, unreadable},
     media_catalog::{Catalog, MediaKind},
 };
-use demi_shared_types::{B64Bytes, Clock, VendorTrace};
+use jush_shared_types::{B64Bytes, Clock, VendorTrace};
 use futures_util::future::BoxFuture;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
@@ -45,7 +45,7 @@ impl ArkImages {
         self.vendor.name()
     }
 
-    async fn send(&self, http: &demi_provider_common::ProviderHttp, body: Vec<u8>) -> MediaAnswer<Answered> {
+    async fn send(&self, http: &jush_provider_common::ProviderHttp, body: Vec<u8>) -> MediaAnswer<Answered> {
         let headers = ark::headers(&self.key);
         ark::call(&*self.clock)
             .send(http, Ask::post_json(&self.generations, Bytes::from(body)), Holding::Json, |_| std::future::ready(Ok((headers.clone(), None))))
@@ -74,7 +74,7 @@ impl MediaMaker for ArkImages {
 
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(catalog_models(catalog, self.vendor, MediaKind::Image))))
@@ -82,7 +82,7 @@ impl MediaMaker for ArkImages {
 
     fn check_key<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(async move {
@@ -97,7 +97,7 @@ impl MediaMaker for ArkImages {
 impl ImageMaker for ArkImages {
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         request: ImageRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeImage>> {

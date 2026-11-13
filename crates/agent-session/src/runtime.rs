@@ -12,9 +12,9 @@ use std::{
     time::Duration,
 };
 
-use demi_provider_common::{RequestLimits, ResultPart, ToolDefinition};
-use demi_shared_gates::{GateLease, Reservation};
-use demi_shared_types::{
+use jush_provider_common::{RequestLimits, ResultPart, ToolDefinition};
+use jush_shared_gates::{GateLease, Reservation};
+use jush_shared_types::{
     CommandId, CommandReport, InstructionEntry, ModelSelection, NodeId, ShellToolView,
     ToolView, TurnId,
 };
@@ -256,7 +256,7 @@ pub trait SessionRuntime {
         Box::pin(async { None })
     }
 
-    /// Whether a look showed the node `command`'s end: a `demi shell status` or
+    /// Whether a look showed the node `command`'s end: a `jush shell status` or
     /// a `shell` result that reported it
     /// (`crates/agent-session/src/reports.rs`). None by default.
     fn end_seen(&self, command: &CommandId) -> bool {

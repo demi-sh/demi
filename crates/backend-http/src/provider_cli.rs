@@ -14,18 +14,18 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use demi_provider_registry::entry::ProviderEntry;
-use demi_web_api_protocol::auth::UserDto;
-use demi_web_api_protocol::providers::{NewestVersion, ProviderCli};
-use demi_web_api_protocol::query::Refresh;
+use jush_provider_registry::entry::ProviderEntry;
+use jush_web_api_protocol::auth::UserDto;
+use jush_web_api_protocol::providers::{NewestVersion, ProviderCli};
+use jush_web_api_protocol::query::Refresh;
 
 use super::error::ApiError;
 use super::gate::AuthUser;
 use super::providers::scoped;
 use super::query::QueryParams;
-use demi_backend_user_shard::conversation::claude_cli::start_install;
-use demi_backend_user_shard::services::Services;
-use demi_backend_user_shard::shard::Shards;
+use jush_backend_user_shard::conversation::claude_cli::start_install;
+use jush_backend_user_shard::services::Services;
+use jush_backend_user_shard::shard::Shards;
 
 /// The entry the path names, when its provider runs a process; an entry
 /// whose provider runs none has no tool to read or install.

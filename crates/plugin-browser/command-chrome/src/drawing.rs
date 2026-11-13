@@ -42,7 +42,7 @@ use crate::driver::installation::Installation;
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Result, after_cleanup};
 use crate::driver::process::ChromeProcess;
 use crate::tabs::environment::{DirectoryBases, EnvironmentDirectories, REQUEST_TIMEOUT};
-use demi_command_package_browser_protocol::browser::{DRAW_MAX_HEIGHT, DRAWING_KEPT, DrawInput, DrawResult};
+use jush_command_package_browser_protocol::browser::{DRAW_MAX_HEIGHT, DRAWING_KEPT, DrawInput, DrawResult};
 
 /// The picture's pixels per CSS pixel: a Retina screen's.
 const SCALE: f64 = 2.0;
@@ -55,7 +55,7 @@ const MEASURE_HEIGHT: u32 = 800;
 const SETTLE_WITHIN: Duration = Duration::from_secs(15);
 
 /// The name each picture's directory in the profiles' base starts with.
-const DRAWING_PREFIX: &str = "demi-drawing-";
+const DRAWING_PREFIX: &str = "jush-drawing-";
 
 /// Resolves once the document has loaded, its fonts are ready, two frames
 /// have drawn and 300 ms more have passed, answering its content's height.

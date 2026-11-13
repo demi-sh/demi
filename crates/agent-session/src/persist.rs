@@ -39,9 +39,9 @@ use std::{
     time::Duration,
 };
 
-use demi_agent_store::StoreError;
-use demi_agent_transcript::DirtyRows;
-use demi_shared_types::{Block, SessionPhase};
+use jush_agent_store::StoreError;
+use jush_agent_transcript::DirtyRows;
+use jush_shared_types::{Block, SessionPhase};
 use tokio::sync::Notify;
 
 use super::{SessionEvent, SessionShared};

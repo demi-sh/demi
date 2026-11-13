@@ -43,7 +43,7 @@ use tokio_util::{
     task::{AbortOnDropHandle, TaskTracker},
 };
 
-use demi_shared_types::buffer::Buffer;
+use jush_shared_types::buffer::Buffer;
 
 use crate::driver::{
     operation::{BrowserError, CONTROL_TIMEOUT, Result, after_cleanup},

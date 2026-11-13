@@ -18,9 +18,9 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path as FilePath, PathBuf};
 
 use bytes::Bytes;
-use demi_backend_blobs::store::Objects;
-use demi_command_protocol::{PackageArtifact, PackageDescriptor};
-use demi_runner_protocol::release::{RunnerRelease, compressed_file};
+use jush_backend_blobs::store::Objects;
+use jush_command_protocol::{PackageArtifact, PackageDescriptor};
+use jush_runner_protocol::release::{RunnerRelease, compressed_file};
 use object_store::path::Path;
 use object_store::{
     Attribute, Attributes, GetOptions, ObjectStore, PutMode, PutOptions, PutPayload,

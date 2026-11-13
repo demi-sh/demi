@@ -14,7 +14,7 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     ErrorCode, ProviderFailure, Secret, endpoint_url,
     images::{ImageMaker, ImageRequest, MadeImage, openai, read_data_answer, xai},
     media::{
@@ -25,7 +25,7 @@ use demi_provider_common::{
     media_catalog::Catalog,
     json_body, read_http_failure, videos,
 };
-use demi_shared_types::Clock;
+use jush_shared_types::Clock;
 use futures_util::future::BoxFuture;
 use reqwest::{
     StatusCode, Url,
@@ -90,7 +90,7 @@ impl KeyImages {
         headers
     }
 
-    async fn list(&self, http: &demi_provider_common::ProviderHttp) -> Result<Vec<MediaModelInfo>, MediaFailure> {
+    async fn list(&self, http: &jush_provider_common::ProviderHttp) -> Result<Vec<MediaModelInfo>, MediaFailure> {
         match self.flavor {
             Flavor::Xai => xai_listing(&self.call().get(http, &self.models, self.headers()).await?),
             Flavor::OpenAi => {
@@ -157,7 +157,7 @@ impl MediaMaker for KeyImages {
 
     fn models<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         _: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(self.list(http))
@@ -169,7 +169,7 @@ impl MediaMaker for KeyImages {
 impl ImageMaker for KeyImages {
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         request: ImageRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeImage>> {
@@ -194,7 +194,7 @@ impl ImageMaker for KeyImages {
 
 /// An xAI key's deferred images.
 impl Jobs<ImageRequest, MadeImage> for KeyImages {
-    fn ask<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, catalog: &'a Catalog, request: ImageRequest) -> BoxFuture<'a, MediaAnswer<String>> {
+    fn ask<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, catalog: &'a Catalog, request: ImageRequest) -> BoxFuture<'a, MediaAnswer<String>> {
         Box::pin(async move {
             let url = if request.images.is_empty() { &self.generations } else { &self.edits };
             let headers = self.headers();
@@ -208,7 +208,7 @@ impl Jobs<ImageRequest, MadeImage> for KeyImages {
         })
     }
 
-    fn state<'a>(&'a self, http: &'a demi_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeImage>>> {
+    fn state<'a>(&'a self, http: &'a jush_provider_common::ProviderHttp, job: JobRef<'a>) -> BoxFuture<'a, MediaAnswer<JobState<MadeImage>>> {
         Box::pin(async move {
             let url = endpoint_url(&self.base, &format!("/images/{}", job.id));
             let read = self.call().get(http, &url, self.headers()).await.and_then(|body| xai::read_state(&body));
@@ -336,7 +336,7 @@ struct XaiImage {
 /// own models.
 pub(crate) async fn openai_models(
     call: &MediaCall<'_>,
-    http: &demi_provider_common::ProviderHttp,
+    http: &jush_provider_common::ProviderHttp,
     url: &Url,
     headers: HeaderMap,
 ) -> Result<Vec<MediaModelInfo>, MediaFailure> {
@@ -411,7 +411,7 @@ fn with_usage_limit(mut failure: ProviderFailure, used_up: impl Fn(&serde_json::
     let refusal = failure
         .diagnostics
         .as_deref()
-        .and_then(demi_provider_common::HttpFailureRecord::read)
+        .and_then(jush_provider_common::HttpFailureRecord::read)
         .and_then(|record| serde_json::from_str::<Refusal>(&record.body).ok());
     if refusal.is_some_and(|refusal| used_up(&refusal.error)) {
         failure.code = Some(ErrorCode::UsageLimit);

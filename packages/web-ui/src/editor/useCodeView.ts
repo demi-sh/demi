@@ -1,7 +1,7 @@
 import { onBeforeUnmount, onMounted, shallowRef, watch, type Ref, type ShallowRef } from 'vue'
 import { EditorState, type Extension, type StateEffect, type Text, type TransactionSpec } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import { loadFileLanguage } from './language'
 import { t } from './locales/text'
 import { editorTheme, trackEditorView, untrackEditorView } from './theme/cmTheme'

@@ -1,7 +1,7 @@
-// The slot's network (browse.md § What `demi` adds): the browser reaches the
+// The slot's network (browse.md § What `jush` adds): the browser reaches the
 // web app through this forwarder, which passes each of the page's
 // connections, requests and sockets alike, on to the web server, and adds
-// what `demi.net` sets:
+// what `jush.net` sets:
 //
 // - latency;
 // - a bandwidth limit;

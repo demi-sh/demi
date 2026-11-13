@@ -7,23 +7,24 @@
 //! example, 0.1.3 for x86_64:
 //!
 //! ```text
-//! /opt/demi/releases/0.1.3/
-//!   bin/demi-backend              the target's backend
-//!   bin/demi-machine-manager      the target's machine manager
-//!   bin/demi-server               the server's installer and upgrader
+//! /opt/jush/releases/0.1.3/
+//!   bin/jush-backend              the target's backend
+//!   bin/jush-machine-manager      the target's machine manager
+//!   bin/jush-server               the server's installer and upgrader
+//!   bin/demi-server               a link to it, for a server of before Jush
 //!   bin/proot                     what runs Simple Isolation Clouds
 //!   sources/                      proot's and talloc's source archives
 //!   systemd/                      the units of the services and the update
 //!   web/                          the built web app, with its build.json
 //!   runners/                      the runner release's manifests
-//!   commands/demi-file/           one command package release per directory,
-//!   commands/demi-browser/        its descriptor
+//!   commands/jush-file/           one command package release per directory,
+//!   commands/jush-browser/        its descriptor
 //!   ...
 //!   image/                        the Cloud image release of the architecture
 //!   files/                        the release's files:
-//!     demi-runner-x86_64-unknown-linux-musl.zst   a runner executable's
-//!     demi-runner-x86_64-pc-windows-msvc.exe.zst  compressed copy, per target
-//!     demi-file-x86_64-unknown-linux-musl.zst     a command program's
+//!     jush-runner-x86_64-unknown-linux-musl.zst   a runner executable's
+//!     jush-runner-x86_64-pc-windows-msvc.exe.zst  compressed copy, per target
+//!     jush-file-x86_64-unknown-linux-musl.zst     a command program's
 //!     ...                                         compressed copy, per target
 //! ```
 //!
@@ -62,7 +63,7 @@
 
 use std::path::{Path, PathBuf};
 
-use demi_runner_protocol::release::FILES;
+use jush_runner_protocol::release::FILES;
 use tokio_util::sync::CancellationToken;
 
 use crate::native::{self, Caches, Executable, Spec, Versioning};
@@ -85,28 +86,28 @@ const NOTICES: &str = "THIRD-PARTY-NOTICES";
 /// program's crate keeps and a server release carries (`crates/server/src/main.rs`).
 const UNITS: [(&str, &str); 6] = [
     (
-        "demi-backend.service",
-        include_str!("../../backend/systemd/demi-backend.service"),
+        "jush-backend.service",
+        include_str!("../../backend/systemd/jush-backend.service"),
     ),
     (
-        "demi-machine-manager.service",
-        include_str!("../../machine-manager/systemd/demi-machine-manager.service"),
+        "jush-machine-manager.service",
+        include_str!("../../machine-manager/systemd/jush-machine-manager.service"),
     ),
     (
-        "demi-upgrade.path",
-        include_str!("../../server/systemd/demi-upgrade.path"),
+        "jush-upgrade.path",
+        include_str!("../../server/systemd/jush-upgrade.path"),
     ),
     (
-        "demi-upgrade.service",
-        include_str!("../../server/systemd/demi-upgrade.service"),
+        "jush-upgrade.service",
+        include_str!("../../server/systemd/jush-upgrade.service"),
     ),
     (
-        "demi-prepare.path",
-        include_str!("../../server/systemd/demi-prepare.path"),
+        "jush-prepare.path",
+        include_str!("../../server/systemd/jush-prepare.path"),
     ),
     (
-        "demi-prepare.service",
-        include_str!("../../server/systemd/demi-prepare.service"),
+        "jush-prepare.service",
+        include_str!("../../server/systemd/jush-prepare.service"),
     ),
 ];
 
@@ -226,7 +227,7 @@ pub(crate) async fn assemble(options: &Options, cancel: &CancellationToken) -> R
             output: &release,
             caches: &options.caches,
             versioning,
-            version: demi_shared_artifacts::BUILD_VERSION,
+            version: jush_shared_artifacts::BUILD_VERSION,
         };
         println!("{}", native::package(&spec, cancel).await?);
         native::split(&release, executable, stage.path(), &files, cancel).await?;
@@ -250,6 +251,11 @@ pub(crate) async fn assemble(options: &Options, cancel: &CancellationToken) -> R
             // `copy` keeps the executable's permissions.
             tokio::fs::copy(&built, bin.join(executable.name())).await?;
         }
+        // A `demi-server` of before the rename hands its move over to the
+        // release's program under that name, which moves the installation
+        // to Jush's names (`crates/server/src/renamed.rs`).
+        #[cfg(unix)]
+        tokio::fs::symlink(Executable::Server.name(), bin.join("demi-server")).await?;
         // proot, built beside the executables
         // (`crates/machine-manager/proot/build.sh`), and the sources it was
         // built from, which its license asks to accompany it.
@@ -270,7 +276,7 @@ pub(crate) async fn assemble(options: &Options, cancel: &CancellationToken) -> R
         copy_directory(web, stage.path().join("web")).await?;
     }
     if cancel.is_cancelled() {
-        return Err(native::Error::Artifact(demi_shared_artifacts::Error::Cancelled).into());
+        return Err(native::Error::Artifact(jush_shared_artifacts::Error::Cancelled).into());
     }
     let staged = stage.keep();
     if let Err(error) = tokio::fs::rename(&staged, &output).await {

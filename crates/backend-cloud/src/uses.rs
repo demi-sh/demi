@@ -47,8 +47,8 @@
 
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_database::StorageError;
+use jush_web_api_protocol::ids::ConversationId;
 
 use crate::machine::CloudError;
 use crate::{CloudShard, ConversationHold};

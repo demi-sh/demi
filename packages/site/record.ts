@@ -1,6 +1,6 @@
 // `bun run record` in this package: the demos' recordings in `public/demos/`.
 //
-// Each demo is Demi's own app (`src/demo`, from `web-ui` and the gallery's
+// Each demo is Jush's own app (`src/demo`, from `web-ui` and the gallery's
 // fixtures) playing a scripted conversation. Vite builds that app on its
 // own, a browser plays each demo on each screen while `record/recorder.ts`
 // writes down the page, and the site's frames play the recordings back

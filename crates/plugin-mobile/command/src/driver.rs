@@ -16,12 +16,12 @@ use futures_util::future::BoxFuture;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
-use demi_command_package_mobile_protocol::{
+use jush_command_package_mobile_protocol::{
     live::LiveCorners,
     mobile::{Appearance, FoldDisplay, Orientation, MobilePlatform, Posture, PowerState},
 };
-use demi_live_view::stream::CaptureEvent;
-use demi_shared_recording::Sink;
+use jush_live_view::stream::CaptureEvent;
+use jush_shared_recording::Sink;
 
 use crate::log::{AppEntries, Log};
 
@@ -115,7 +115,7 @@ pub struct Screen {
     pub points: Points,
     pub pixels: (u32, u32),
     /// The screenshot's size: the pixels fitted into
-    /// [`SCREENSHOT_LONG_SIDE`](demi_command_package_mobile_protocol::mobile::SCREENSHOT_LONG_SIDE)
+    /// [`SCREENSHOT_LONG_SIDE`](jush_command_package_mobile_protocol::mobile::SCREENSHOT_LONG_SIDE)
     /// by the rule of the platform that draws it.
     pub screenshot: (u32, u32),
     /// How a foldable is folded, whose lit display the screen is; none for
@@ -360,19 +360,19 @@ pub struct Framed {
 pub trait DeviceCapture: Send + 'static {
     fn next(&mut self) -> BoxFuture<'_, Option<CaptureEvent>>;
     /// The viewers' windows have room for `window` more frames past
-    /// `sequence` (`demi_live_view::stream::Capture::ack`): the newest
+    /// `sequence` (`jush_live_view::stream::Capture::ack`): the newest
     /// picture waits until then.
     fn ack(&self, sequence: u32, window: u32);
     fn key_frame(&self);
     fn encoding(&self, bitrate: u32, fps: u32);
     /// Codes the screen as it is once more, as a delta frame
-    /// (`demi_live_view::stream::Capture::repeat`).
+    /// (`jush_live_view::stream::Capture::repeat`).
     fn repeat(&self);
 }
 
 /// What a driver tells of a boot it starts, which the device table records
-/// (`crates/plugin-mobile/command/src/devices.rs`): the simulator is Demi's from the moment its
-/// boot begins, so one whose boot fails halfway is still Demi's to shut
+/// (`crates/plugin-mobile/command/src/devices.rs`): the simulator is Jush's from the moment its
+/// boot begins, so one whose boot fails halfway is still Jush's to shut
 /// down.
 pub trait Booting: Send + Sync {
     /// The boot began, with this mark (`Simulator::boot`).

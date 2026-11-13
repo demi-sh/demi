@@ -13,13 +13,13 @@
 //!   runners installed from them.
 //! - The backend's and the machine manager's `release.json` names the
 //!   executable, its version and each target's SHA-256 and size, the same entry
-//!   as a descriptor's `targets`. No Demi program reads it: it tells whoever
+//!   as a descriptor's `targets`. No Jush program reads it: it tells whoever
 //!   copies the executable to a server what to check the copy against.
 //!
 //! A command package and a runner release carry each executable's
 //! zstd-compressed copy beside it, kept by the executable's SHA-256 so that
 //! packaging an unchanged program again compresses nothing. A release carries
-//! only the program: software it installs, such as `demi-browser`'s Chrome for
+//! only the program: software it installs, such as `jush-browser`'s Chrome for
 //! Testing, is the program's own.
 //!
 //! # Versions
@@ -52,11 +52,11 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use demi_command_protocol::{PackageArtifact, PackageDescriptor, canonical_digest};
-use demi_runner_protocol::release::{
+use jush_command_protocol::{PackageArtifact, PackageDescriptor, canonical_digest};
+use jush_runner_protocol::release::{
     COMPRESSED_SUFFIX, RUNNER, RunnerRelease, compressed_file,
 };
-use demi_shared_artifacts::{Mode, Permissions, Publication, ReleaseFile, ReleaseRecord};
+use jush_shared_artifacts::{Mode, Permissions, Publication, ReleaseFile, ReleaseRecord};
 use serde::Serialize;
 use tokio_util::sync::CancellationToken;
 
@@ -148,7 +148,7 @@ pub fn run(options: Options) -> Result<(), Error> {
             output: &output,
             caches: &options.caches,
             versioning: Versioning::Development,
-            version: demi_shared_artifacts::BUILD_VERSION,
+            version: jush_shared_artifacts::BUILD_VERSION,
         };
         package(&spec, &cancel).await
     })??;
@@ -180,34 +180,34 @@ impl Release {
         Ok(match executable {
             Executable::Runner => Self::Runner,
             Executable::File => Self::Package {
-                id: demi_command_package_file_protocol::PACKAGE,
-                operations: demi_command_package_file_protocol::OPERATIONS
+                id: jush_command_package_file_protocol::PACKAGE,
+                operations: jush_command_package_file_protocol::OPERATIONS
                     .iter()
                     .map(|&name| name.to_owned())
                     .collect(),
             },
             Executable::Fetch => Self::Package {
-                id: demi_command_package_fetch_protocol::PACKAGE,
-                operations: demi_command_package_fetch_protocol::OPERATIONS
+                id: jush_command_package_fetch_protocol::PACKAGE,
+                operations: jush_command_package_fetch_protocol::OPERATIONS
                     .iter()
                     .map(|&name| name.to_owned())
                     .collect(),
             },
             Executable::Browser => Self::Package {
-                id: demi_command_package_browser_protocol::PACKAGE,
-                operations: demi_command_package_browser_protocol::Operation::names()
+                id: jush_command_package_browser_protocol::PACKAGE,
+                operations: jush_command_package_browser_protocol::Operation::names()
                     .map(String::from)
                     .collect(),
             },
             Executable::Mobile => Self::Package {
-                id: demi_command_package_mobile_protocol::PACKAGE,
-                operations: demi_command_package_mobile_protocol::Operation::names()
+                id: jush_command_package_mobile_protocol::PACKAGE,
+                operations: jush_command_package_mobile_protocol::Operation::names()
                     .map(String::from)
                     .collect(),
             },
             Executable::Claude => Self::Package {
-                id: demi_command_package_claude_code_protocol::PACKAGE,
-                operations: demi_command_package_claude_code_protocol::Operation::ALL
+                id: jush_command_package_claude_code_protocol::PACKAGE,
+                operations: jush_command_package_claude_code_protocol::Operation::ALL
                     .map(|operation| operation.name().to_owned())
                     .to_vec(),
             },
@@ -232,9 +232,9 @@ impl Built {
         source: PathBuf,
         cancel: &CancellationToken,
     ) -> Result<(), Error> {
-        let digest = match demi_shared_artifacts::digest(&source, u64::MAX, cancel).await {
+        let digest = match jush_shared_artifacts::digest(&source, u64::MAX, cancel).await {
             Ok(digest) => digest,
-            Err(demi_shared_artifacts::Error::Io(error))
+            Err(jush_shared_artifacts::Error::Io(error))
                 if error.kind() == std::io::ErrorKind::NotFound =>
             {
                 return Err(Error::NotBuilt {
@@ -267,7 +267,7 @@ impl Built {
     async fn add_compressed(
         &mut self,
         cache: &Path,
-        effort: demi_shared_artifacts::Effort,
+        effort: jush_shared_artifacts::Effort,
         cancel: &CancellationToken,
     ) -> Result<(), Error> {
         let executables: Vec<ReleaseFile> = self
@@ -281,7 +281,7 @@ impl Built {
             if !tokio::fs::try_exists(&source).await? {
                 compress(&executable.source, &source, effort).await?;
             }
-            let digest = demi_shared_artifacts::digest(&source, u64::MAX, cancel).await?;
+            let digest = jush_shared_artifacts::digest(&source, u64::MAX, cancel).await?;
             let mut name = executable.path.clone().into_os_string();
             name.push(COMPRESSED_SUFFIX);
             self.files.push(ReleaseFile {
@@ -315,7 +315,7 @@ impl Built {
 async fn compress(
     executable: &Path,
     destination: &Path,
-    effort: demi_shared_artifacts::Effort,
+    effort: jush_shared_artifacts::Effort,
 ) -> Result<(), Error> {
     if let Some(parent) = destination.parent() {
         tokio::fs::create_dir_all(parent).await?;
@@ -323,7 +323,7 @@ async fn compress(
     eprintln!("Compressing {}", executable.display());
     let bytes = tokio::fs::read(executable).await?;
     let encoded = tokio::task::spawn_blocking(move || {
-        demi_shared_artifacts::encode_blocking(&bytes, effort)
+        jush_shared_artifacts::encode_blocking(&bytes, effort)
     })
     .await
     .map_err(std::io::Error::other)??;
@@ -332,7 +332,7 @@ async fn compress(
         permissions: Permissions::Default,
         durable: true,
     };
-    demi_shared_artifacts::publish_bytes(destination, &encoded, publication).await?;
+    jush_shared_artifacts::publish_bytes(destination, &encoded, publication).await?;
     Ok(())
 }
 
@@ -387,8 +387,8 @@ pub async fn split(
 /// already; a file of other bytes there is refused.
 async fn place(source: &Path, file: &Path, cancel: &CancellationToken) -> Result<(), Error> {
     if tokio::fs::try_exists(file).await? {
-        let wanted = demi_shared_artifacts::digest(source, u64::MAX, cancel).await?;
-        let found = demi_shared_artifacts::digest(file, u64::MAX, cancel).await?;
+        let wanted = jush_shared_artifacts::digest(source, u64::MAX, cancel).await?;
+        let found = jush_shared_artifacts::digest(file, u64::MAX, cancel).await?;
         if found != wanted {
             return Err(Error::OtherFile(file.to_owned()));
         }
@@ -400,7 +400,7 @@ async fn place(source: &Path, file: &Path, cancel: &CancellationToken) -> Result
         durable: true,
     };
     let mut input = tokio::fs::File::open(source).await?;
-    demi_shared_artifacts::publish(file, &mut input, publication, cancel).await?;
+    jush_shared_artifacts::publish(file, &mut input, publication, cancel).await?;
     Ok(())
 }
 
@@ -416,14 +416,14 @@ pub async fn package(spec: &Spec<'_>, cancel: &CancellationToken) -> Result<Stri
         Release::Runner => {
             let compressed = Caches::directory(spec.caches.compressed.as_deref(), COMPRESSED)?;
             built
-                .add_compressed(&compressed, demi_shared_artifacts::Effort::Published, cancel)
+                .add_compressed(&compressed, jush_shared_artifacts::Effort::Published, cancel)
                 .await?;
             runner(spec.output, built, cancel).await
         }
         Release::Package { id, operations } => {
             let compressed = Caches::directory(spec.caches.compressed.as_deref(), COMPRESSED)?;
             built
-                .add_compressed(&compressed, demi_shared_artifacts::Effort::Published, cancel)
+                .add_compressed(&compressed, jush_shared_artifacts::Effort::Published, cancel)
                 .await?;
             let version = built.version(spec.versioning, spec.version)?;
             command_package(spec.output, id, &version, operations, built, cancel).await
@@ -452,7 +452,7 @@ pub async fn development_package(
     built
         .add(
             command,
-            demi_command_protocol::host_target(),
+            jush_command_protocol::host_target(),
             program,
             cancel,
         )
@@ -460,11 +460,11 @@ pub async fn development_package(
     built
         .add_compressed(
             &crate::repository().join(COMPRESSED_FAST),
-            demi_shared_artifacts::Effort::Fast,
+            jush_shared_artifacts::Effort::Fast,
             cancel,
         )
         .await?;
-    let version = built.version(Versioning::Development, demi_shared_artifacts::BUILD_VERSION)?;
+    let version = built.version(Versioning::Development, jush_shared_artifacts::BUILD_VERSION)?;
     command_package(output, id, &version, operations, built, cancel).await?;
     Ok(())
 }
@@ -482,7 +482,7 @@ async fn command_package(
     let descriptor = PackageDescriptor {
         id: id.to_owned(),
         version: version.to_owned(),
-        protocol_version: demi_command_protocol::VERSION,
+        protocol_version: jush_command_protocol::VERSION,
         operations,
         targets: built.targets,
     };
@@ -494,7 +494,7 @@ async fn command_package(
         name: DESCRIPTOR,
         bytes: &bytes,
     };
-    demi_shared_artifacts::publish_release(output, record, &built.files, cancel).await?;
+    jush_shared_artifacts::publish_release(output, record, &built.files, cancel).await?;
     Ok(format!(
         "Command package {id}@{version}: {digest}\n{}",
         output.join(DESCRIPTOR).display()
@@ -528,7 +528,7 @@ async fn executable_release(
         name: RELEASE,
         bytes: &bytes,
     };
-    demi_shared_artifacts::publish_release(output, record, &built.files, cancel).await?;
+    jush_shared_artifacts::publish_release(output, record, &built.files, cancel).await?;
     Ok(format!(
         "Release {}@{version}\n{}",
         executable.name(),
@@ -549,8 +549,8 @@ struct RunnerContents<'a> {
 /// Publishes a runner release in its own directory of `output`, then points
 /// `output`'s manifest at it.
 async fn runner(output: &Path, built: Built, cancel: &CancellationToken) -> Result<String, Error> {
-    let wire = demi_runner_protocol::wire::VERSION;
-    let command_protocol = demi_command_protocol::VERSION;
+    let wire = jush_runner_protocol::wire::VERSION;
+    let command_protocol = jush_command_protocol::VERSION;
     let contents = RunnerContents {
         wire,
         command_protocol,
@@ -571,14 +571,14 @@ async fn runner(output: &Path, built: Built, cancel: &CancellationToken) -> Resu
         name: MANIFEST,
         bytes: &bytes,
     };
-    demi_shared_artifacts::publish_release(&directory, manifest, &built.files, cancel).await?;
+    jush_shared_artifacts::publish_release(&directory, manifest, &built.files, cancel).await?;
     // The pointer moves only once the release it names is in place.
     let pointer = Publication {
         mode: Mode::Replace,
         permissions: Permissions::Default,
         durable: true,
     };
-    demi_shared_artifacts::publish_bytes(&output.join(MANIFEST), &bytes, pointer).await?;
+    jush_shared_artifacts::publish_bytes(&output.join(MANIFEST), &bytes, pointer).await?;
     Ok(format!("Runner release: {}", directory.display()))
 }
 

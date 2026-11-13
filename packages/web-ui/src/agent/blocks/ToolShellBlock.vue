@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ICON_PX } from '@demicodes/web-ui/ui/icon-metrics'
-import CodeText from '@demicodes/web-ui/ui/CodeText.vue'
+import { ICON_PX } from '@jush-ai/web-ui/ui/icon-metrics'
+import CodeText from '@jush-ai/web-ui/ui/CodeText.vue'
 import AnsiText from './AnsiText.vue'
 import ShellEditPills from './ShellEditPills.vue'
 import FunctionalBlock from './FunctionalBlock.vue'

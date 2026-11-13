@@ -5,7 +5,7 @@
 
 use std::{io, path::Path};
 
-use demi_shared_artifacts::{Mode, Permissions, Publication};
+use jush_shared_artifacts::{Mode, Permissions, Publication};
 use serde::Serialize;
 
 use crate::blocking::OffLoop;
@@ -19,9 +19,9 @@ pub fn write_json(_: &OffLoop, path: &Path, value: &impl Serialize) -> io::Resul
         permissions: Permissions::Default,
         durable: true,
     };
-    demi_shared_artifacts::publish_bytes_blocking(path, &bytes, publication).map_err(|error| {
+    jush_shared_artifacts::publish_bytes_blocking(path, &bytes, publication).map_err(|error| {
         let kind = match &error {
-            demi_shared_artifacts::Error::Io(error) => error.kind(),
+            jush_shared_artifacts::Error::Io(error) => error.kind(),
             _ => io::ErrorKind::Other,
         };
         io::Error::new(kind, format!("failed to write {}: {error}", path.display()))

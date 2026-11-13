@@ -99,16 +99,16 @@ use std::{
     time::Duration,
 };
 
-use demi_agent_store::{
+use jush_agent_store::{
     Checkpoint, CheckpointUpdate, Kind, RunningCommand, SessionStore, StoreError, Watch, media::HeldMedia,
 };
-use demi_agent_transcript::{
+use jush_agent_transcript::{
     Earlier, ForkEnd, IdSource, TranscriptLog, last_answer, last_failure,
 };
-use demi_conversation_lane_protocol::{AbortResult, AgentCode, Refusal, RequestOutput, TranscriptPatch, Version};
-use demi_provider_common::{Ahead, ProviderFailure, ProviderRuntime};
-use demi_shared_gates::SerialGate;
-use demi_shared_types::{
+use jush_conversation_lane_protocol::{AbortResult, AgentCode, Refusal, RequestOutput, TranscriptPatch, Version};
+use jush_provider_common::{Ahead, ProviderFailure, ProviderRuntime};
+use jush_shared_gates::SerialGate;
+use jush_shared_types::{
     MessageComment,
     AgentMessage, ScheduleMark, Block, BlockId, Clock, ContextUsage, ErrorBlock, ModelSelection, NodeId, PendingCall,
     PendingSteer, PictureCopy, ProviderErrorDiagnostics, QueuedMessage, SessionPhase, ShellToolView, ShellViewStatus,
@@ -229,7 +229,7 @@ pub struct TranscriptSnapshot {
     pub blocks: Vec<Block>,
     pub version: Version,
     /// The versions at each place that holds more than one.
-    pub versions: std::collections::BTreeMap<usize, demi_conversation_lane_protocol::Versions>,
+    pub versions: std::collections::BTreeMap<usize, jush_conversation_lane_protocol::Versions>,
 }
 
 /// How an action ended when it did not fail.
@@ -684,7 +684,7 @@ impl AgentSession {
     /// name files on the conversation's device
     /// (`crates/agent-server/src/node/reply_files.rs`): once, and only while
     /// the window holds the text.
-    pub fn keep_code_files(&self, id: &BlockId, files: Vec<demi_shared_types::CodeFile>) {
+    pub fn keep_code_files(&self, id: &BlockId, files: Vec<jush_shared_types::CodeFile>) {
         self.shared.update(|core| core.keep_code_files(id, files));
     }
 
@@ -983,7 +983,7 @@ impl AgentSession {
     /// read from the store: for a reading of the whole history, which holds
     /// it no longer than it needs it.
     pub async fn history(&self) -> Result<TranscriptSnapshot, StoreError> {
-        let snapshot = |core: &SessionCore, earlier: demi_agent_store::Rows| {
+        let snapshot = |core: &SessionCore, earlier: jush_agent_store::Rows| {
             let mut blocks = earlier.blocks;
             blocks.extend_from_slice(core.transcript.blocks());
             let mut versions = earlier.versions;
@@ -1066,14 +1066,14 @@ impl AgentSession {
     /// summary names: what a turn that ends later is told apart from.
     pub fn ended_turn(&self) -> Option<BlockId> {
         self.shared
-            .read(|core| demi_agent_transcript::ended_turn(core.transcript.blocks()).map(|block| block.id().clone()))
+            .read(|core| jush_agent_transcript::ended_turn(core.transcript.blocks()).map(|block| block.id().clone()))
     }
 
     /// The latest ended turn as it ended: the block that ended it, how, and
     /// the Markdown of its last text that is not blank.
     pub fn ended_turn_result(&self) -> Option<EndedTurn> {
         self.shared.read(|core| {
-            let (end, answer) = demi_agent_transcript::ended_turn_answer(core.transcript.blocks())?;
+            let (end, answer) = jush_agent_transcript::ended_turn_answer(core.transcript.blocks())?;
             let outcome = match end {
                 Block::Response(_) => TurnOutcome::Answered,
                 Block::Error(_) => TurnOutcome::Failed,
@@ -1154,7 +1154,7 @@ impl AgentSession {
 
     /// Unwinds the unfinished turn to its resume point and continues it.
     ///
-    /// `reason`, when given, is what the model reads before it goes on: Demi's
+    /// `reason`, when given, is what the model reads before it goes on: Jush's
     /// own for a resume of its own, such as a subagent's after a backend
     /// restart.
     pub fn resume(&self, reason: Option<&str>) -> Result<ActionHandle, AdmissionError> {
@@ -1302,7 +1302,7 @@ impl AgentSession {
     /// resolved, so that a repeated request writes no file.
     pub fn check_edit(
         &self,
-        operation: &demi_shared_types::OperationId,
+        operation: &jush_shared_types::OperationId,
         digest: &str,
         version: &Version,
         target: &BlockId,
@@ -1321,7 +1321,7 @@ impl AgentSession {
     pub async fn edit_and_send(
         &self,
         mut submission: EditSubmission,
-    ) -> Result<demi_agent_store::EditReceipt, EditError> {
+    ) -> Result<jush_agent_store::EditReceipt, EditError> {
         if let Some(cancel) = self.shared.update(|core| core.stop_for_edit(&submission.target)) {
             cancel.recorded().await;
             // The stopped turn's closing save ends before an edit is admitted.
@@ -1440,12 +1440,12 @@ impl AgentSession {
     }
 
     /// The latest call still executing: the one a command it runs, such as
-    /// `demi agent`, acts for, so a child it starts belongs to that call's
+    /// `jush agent`, acts for, so a child it starts belongs to that call's
     /// branch.
     pub fn executing_call(&self) -> Option<BlockId> {
         self.shared.read(|core| {
             core.transcript.blocks().iter().rev().find_map(|block| match block {
-                Block::ToolCall(call) if call.status == demi_shared_types::ToolCallStatus::Executing => {
+                Block::ToolCall(call) if call.status == jush_shared_types::ToolCallStatus::Executing => {
                     Some(call.id.clone())
                 }
                 _ => None,
@@ -1463,7 +1463,7 @@ impl AgentSession {
     /// and the naming.
     pub async fn prepare_fork(&self, end: ForkEnd<'_>) -> Result<ForkSeed, ForkError> {
         let capture = |core: &SessionCore| {
-            let state = demi_agent_store::CheckpointState {
+            let state = jush_agent_store::CheckpointState {
                 model: core.latest_selection().clone(),
                 ..core.checkpoint_state()
             };
@@ -1689,7 +1689,7 @@ impl AgentSession {
 
     /// The commands the session's calls left running whose end it waits for,
     /// each until its end's report is in (`crates/agent-session/src/reports.rs`).
-    pub fn awaited_commands(&self) -> Vec<demi_shared_types::CommandId> {
+    pub fn awaited_commands(&self) -> Vec<jush_shared_types::CommandId> {
         self.shared.read(|core| core.watched.awaited())
     }
 
@@ -1711,7 +1711,7 @@ impl AgentSession {
 fn check_restored_input(
     node: &NodeId,
     blocks: &[Block],
-    agent_inputs: &[demi_agent_store::PendingAgentInput],
+    agent_inputs: &[jush_agent_store::PendingAgentInput],
 ) -> Result<(), RestoreError> {
     let mut ids = HashSet::new();
     for input in agent_inputs {

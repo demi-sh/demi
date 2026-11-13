@@ -2,7 +2,7 @@
 //! group per provider entry and model, in the order each pair was first
 //! used, with the number of requests and the sum of each token count.
 
-use demi_shared_types::MAX_SAFE_INTEGER;
+use jush_shared_types::MAX_SAFE_INTEGER;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

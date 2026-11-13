@@ -1,5 +1,5 @@
-import type { RestartStep, RestartStepKind, UpdateProgress } from '@demicodes/web-ui/ui/UpdatingScreen.vue'
-import type { StepState } from '@demicodes/web-ui/ui/update-steps'
+import type { RestartStep, RestartStepKind, UpdateProgress } from '@jush-ai/web-ui/ui/UpdatingScreen.vue'
+import type { StepState } from '@jush-ai/web-ui/ui/update-steps'
 
 const MB = 1024 * 1024
 const KINDS: readonly RestartStepKind[] = ['stopDemi', 'saveClouds', 'keepDatabases', 'switch', 'startManager', 'startDemi', 'updateControl', 'updateConversations']
@@ -18,7 +18,7 @@ function done(kind: RestartStepKind): StepState {
 }
 
 /**
- * The Updating Demi screen's progress with the steps before `kind` done, `kind` as `state`, and the rest waiting;
+ * The Updating Jush screen's progress with the steps before `kind` done, `kind` as `state`, and the rest waiting;
  * `kept` when the update keeps the running Clouds running rather than saving them.
  */
 export function updatingAt(kind: RestartStepKind, state: StepState, returning = false, kept = false): UpdateProgress {
@@ -41,7 +41,7 @@ export const updatingMoments = {
   copying: updatingAt('keepDatabases', { state: 'running', started: ago(3), progress: { kind: 'bytes', done: 1229 * MB, total: 2048 * MB } }),
   keeping: updatingAt('startManager', { state: 'running', started: ago(2) }, false, true),
   conversations: updatingAt('updateConversations', { state: 'running', started: ago(70), progress: { kind: 'conversations', done: 41, total: 73, bytesDone: 2765 * MB, bytes: 6760 * MB, leftSeconds: 185 } }),
-  returning: updatingAt('startDemi', { state: 'failed', reason: 'Demi 0.1.5500 did not start' }, true),
+  returning: updatingAt('startDemi', { state: 'failed', reason: 'Jush 0.1.5500 did not start' }, true),
   failed: updatingAt('switch', { state: 'failed', reason: 'No space left on device (os error 28)' }),
   updated: {
     to: '0.1.5500',

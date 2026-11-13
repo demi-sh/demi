@@ -30,7 +30,7 @@
 //! A program can leave the job's groups (`setsid`, as a daemon does), so each
 //! signal also goes to:
 //!
-//! - every process that carries the job's `DEMI_JOB_ID` in its environment, as
+//! - every process that carries the job's `JUSH_JOB_ID` in its environment, as
 //!   GitHub's runner finds a job's processes by `RUNNER_TRACKING_ID`;
 //! - on macOS, which shows the environment only of programs that are not
 //!   Apple's, the descendants of every process the signal reaches.
@@ -62,14 +62,14 @@ use crate::{
 };
 use bytes::Bytes;
 #[cfg(unix)]
-use demi_runner_process::process::{JOB_ID_ENV, Stray};
-use demi_runner_process::{
+use jush_runner_process::process::{JOB_ID_ENV, Stray};
+use jush_runner_process::{
     job_shell::ShellJob,
     process::{OutputChunk, ProcessExit, ProcessInput},
 };
 #[cfg(unix)]
 use tokio_util::task::AbortOnDropHandle;
-use demi_runner_protocol::wire::{OutputStream, Signal};
+use jush_runner_protocol::wire::{OutputStream, Signal};
 use futures_util::future::BoxFuture;
 use std::{
     collections::BTreeMap,
@@ -527,7 +527,7 @@ async fn stop_strays(
         }
     }
     let strays = find(known).await;
-    demi_runner_process::process::strays_ended(reach(&job, strays, number(Signal::Kill))).await;
+    jush_runner_process::process::strays_ended(reach(&job, strays, number(Signal::Kill))).await;
 }
 
 /// Kills every process of job `job` the system finds by the job's id in its
@@ -537,11 +537,11 @@ async fn stop_strays(
 pub(crate) async fn kill_lost(job: String) {
     let found = job.clone();
     let strays = tokio::task::spawn_blocking(move || {
-        demi_runner_process::process::job_strays(&found, &std::collections::HashSet::new(), &[])
+        jush_runner_process::process::job_strays(&found, &std::collections::HashSet::new(), &[])
     })
     .await
     .unwrap_or_default();
-    demi_runner_process::process::strays_ended(reach(&job, strays, number(Signal::Kill))).await;
+    jush_runner_process::process::strays_ended(reach(&job, strays, number(Signal::Kill))).await;
 }
 
 /// Sends `signal` to each of `strays`; answers those it was sent to.
@@ -549,7 +549,7 @@ pub(crate) async fn kill_lost(job: String) {
 fn reach(job: &str, strays: Vec<Stray>, signal: i32) -> Vec<Stray> {
     strays
         .into_iter()
-        .filter(|stray| match demi_runner_process::process::signal_process(stray.pid, signal) {
+        .filter(|stray| match jush_runner_process::process::signal_process(stray.pid, signal) {
             Ok(()) => true,
             Err(failure) => {
                 tracing::warn!(event = "job_strays.stop_failed", job_id = job, step = "signal_process", pid = stray.pid, error = %failure, "a process outside a job's groups was not signalled");
@@ -562,7 +562,7 @@ fn reach(job: &str, strays: Vec<Stray>, signal: i32) -> Vec<Stray> {
 /// The number of a signal that ends a job.
 fn number(signal: Signal) -> i32 {
     #[cfg(unix)]
-    return demi_runner_process::process::number(signal).as_raw();
+    return jush_runner_process::process::number(signal).as_raw();
     // Windows has no signals; any ends the job's work at once.
     #[cfg(windows)]
     {

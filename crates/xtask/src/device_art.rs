@@ -77,7 +77,7 @@ pub fn run(options: Options) -> Result<(), Error> {
 
 /// The pin's source for `commit`, or the branch's head.
 async fn pin(commit: Option<String>) -> Result<String, Error> {
-    let client = demi_shared_artifacts::download_client().map_err(|error| Error::Fetch {
+    let client = jush_shared_artifacts::download_client().map_err(|error| Error::Fetch {
         url: REPOSITORY.into(),
         message: error.to_string(),
     })?;
@@ -155,14 +155,14 @@ async fn json<T: serde::de::DeserializeOwned>(client: &reqwest::Client, url: &st
 /// The body Gitiles answers at `url`. Gitiles answers 429 to a client that
 /// asks often, so a refusal waits and asks again, a few times.
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<Vec<u8>, Error> {
-    let failed = |error: demi_shared_artifacts::Error| Error::Fetch {
+    let failed = |error: jush_shared_artifacts::Error| Error::Fetch {
         url: url.into(),
         message: error.to_string(),
     };
     let mut attempt = 0;
     loop {
-        let download = demi_shared_artifacts::Download::new(url);
-        match demi_shared_artifacts::download_bytes(client, download, &CancellationToken::new()).await {
+        let download = jush_shared_artifacts::Download::new(url);
+        match jush_shared_artifacts::download_bytes(client, download, &CancellationToken::new()).await {
             Ok((received, bytes)) => {
                 received.plain().map_err(failed)?;
                 return Ok(bytes);

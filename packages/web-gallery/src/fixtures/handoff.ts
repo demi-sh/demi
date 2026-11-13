@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import type { HandoffCodeView, HandoffHost } from '@demicodes/web-ui/auth/handoff'
-import type { VerificationHost } from '@demicodes/web-ui/auth/verification'
+import type { HandoffCodeView, HandoffHost } from '@jush-ai/web-ui/auth/handoff'
+import type { VerificationHost } from '@jush-ai/web-ui/auth/verification'
 import { productWould } from '../product-would'
 
 /**
@@ -59,7 +59,7 @@ export function galleryHandoff(start: HandoffSpecimenStart): { host: HandoffHost
     const id = `handoff-${codes}`
     return {
       id,
-      url: `https://demi.example/handoff#gallery-code-${codes}-not-a-real-one`,
+      url: `https://jush.example/handoff#gallery-code-${codes}-not-a-real-one`,
       deadline: Date.now() + lifetimeMs,
     }
   }

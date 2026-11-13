@@ -40,16 +40,16 @@ use std::{
     time::Duration,
 };
 
-use demi_agent_session::{Continuation, LatestPage, ModelSwitch, SessionEvent, Settle, Status, Subscription};
-use demi_agent_store::{AgentTreeStore, NodeRecord, StoreError};
-use demi_agent_tools::{DeviceResolver, shell_status};
-use demi_agent_transcript::IdSource;
-use demi_conversation_lane_protocol::{
+use jush_agent_session::{Continuation, LatestPage, ModelSwitch, SessionEvent, Settle, Status, Subscription};
+use jush_agent_store::{AgentTreeStore, NodeRecord, StoreError};
+use jush_agent_tools::{DeviceResolver, shell_status};
+use jush_agent_transcript::IdSource;
+use jush_conversation_lane_protocol::{
     AgentCost, AgentCode, AgentRole, CacheChart, RequestOutput, STORED_EPOCH, ServerFrame, ShellStatus, TranscriptPatch, Version,
 };
-use demi_device_interface::{CommandSet, PageState, PageView, RegisterError, ShellEnvironment};
-use demi_shared_gates::{ActivityGate, KeyedSerialGate, Reservation};
-use demi_shared_types::{Clock, CommandId, ModelSelection, NodeId, SessionPhase};
+use jush_device_interface::{CommandSet, PageState, PageView, RegisterError, ShellEnvironment};
+use jush_shared_gates::{ActivityGate, KeyedSerialGate, Reservation};
+use jush_shared_types::{Clock, CommandId, ModelSelection, NodeId, SessionPhase};
 use futures_util::future::join_all;
 use tokio::sync::watch;
 use tokio_util::task::{AbortOnDropHandle, TaskTracker};
@@ -378,8 +378,8 @@ pub(crate) enum OpenError {
     Resolve(#[from] ResolveError),
     #[error(transparent)]
     Assemble(#[from] AssembleError),
-    /// The product's commands cannot take the `demi agent` group.
-    #[error("the demi agent commands cannot be added: {0}")]
+    /// The product's commands cannot take the `jush agent` group.
+    #[error("the jush agent commands cannot be added: {0}")]
     Commands(#[from] RegisterError),
     /// The product could not say what the tree opens with.
     #[error("the commands the conversation opens with cannot be read: {0}")]
@@ -659,7 +659,7 @@ impl<H: DeviceResolver> Tree<H> {
     /// they are at.
     /// Each live agent's wait is how long it has waited now, which the page
     /// counts from the answer.
-    pub fn agents(&self) -> (Version, Vec<demi_conversation_lane_protocol::AgentEntry>) {
+    pub fn agents(&self) -> (Version, Vec<jush_conversation_lane_protocol::AgentEntry>) {
         let waits = |id: &NodeId| self.node(id).and_then(|node| node.session().waited_ms());
         (self.agents.version(), self.agents.all(waits))
     }
@@ -1270,13 +1270,13 @@ async fn evict_when_idle<H: DeviceResolver>(
 /// collection no live session runs keeps.
 pub(super) fn stored_agents(
     root: &NodeId,
-    subagents: Vec<(demi_agent_store::StoredSubagent, demi_conversation_lane_protocol::JobModel)>,
+    subagents: Vec<(jush_agent_store::StoredSubagent, jush_conversation_lane_protocol::JobModel)>,
     sides: Vec<NodeRecord>,
-    placement: Option<demi_agent_store::Placement>,
+    placement: Option<jush_agent_store::Placement>,
     kept: KeptAgents,
     resuming: bool,
     saved: u64,
-) -> (Version, Vec<demi_conversation_lane_protocol::AgentEntry>) {
+) -> (Version, Vec<jush_conversation_lane_protocol::AgentEntry>) {
     // No connection is attached to the sink, so the puts announce nothing.
     let agents = Agents::new(STORED_EPOCH.to_owned(), Rc::new(FrameSink::new()));
     agents.set_placement(placement.clone());

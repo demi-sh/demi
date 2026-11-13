@@ -33,7 +33,7 @@ use std::{
     time::SystemTime,
 };
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     DeviceId, MachineImageState, Volume,
     image::PROGRAMS_PATH,
 };

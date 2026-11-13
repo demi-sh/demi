@@ -6,7 +6,7 @@
 
 use std::path::Path;
 
-use demi_machine_manager_protocol::STATE_FORMAT;
+use jush_machine_manager_protocol::STATE_FORMAT;
 
 use crate::blocking;
 

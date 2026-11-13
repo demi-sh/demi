@@ -106,7 +106,7 @@ A phone's return key sends, so a phone writes no list; it is left as is.
 - **Obsidian** continues lists and quotes, ends them on an empty item, and
   indents on Tab.
 
-Demi's Return sends, so the key that starts a line, Shift-Return, is the
+Jush's Return sends, so the key that starts a line, Shift-Return, is the
 one that continues.
 
 ## Alternatives
@@ -116,7 +116,7 @@ one that continues.
   send on Return, and ending a list would take Return twice before the
   send.
 - **A second key for a plain line inside a list**, as GitHub's
-  Shift-Return. Demi has no key left beside Return and Shift-Return;
+  Shift-Return. Jush has no key left beside Return and Shift-Return;
   Backspace after the marker gives the plain line.
 - **Leave numbers as typed.** Inserting an item would leave two items with
   the same number for the user to fix.

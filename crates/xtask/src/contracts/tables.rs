@@ -7,8 +7,8 @@
 
 use std::fmt::Write as _;
 
-use demi_runner_protocol::direct;
-use demi_shared_types::{
+use jush_runner_protocol::direct;
+use jush_shared_types::{
     ATTACHMENT_FILE_EXTENSIONS, CONTEXT_LIMIT_STEPS, HTML_SANDBOX, IDLE_COMPACTION_CONTEXT,
     IDLE_COMPACTION_CONTEXT_FLOOR, IMAGE_CONTENT_POLICY, PREVIEW_TYPES, VIDEO_FILE_EXTENSIONS,
 };
@@ -85,7 +85,7 @@ pub fn module(header: &str) -> String {
     push_doc(
         &mut source,
         Some(
-            "The limits a user may set on the context window Demi uses for a model, largest\n\
+            "The limits a user may set on the context window Jush uses for a model, largest\n\
              first, each with the smallest window that offers it (`crates/shared-types/src/context_limit.rs`).",
         ),
         0,
@@ -115,7 +115,7 @@ pub fn module(header: &str) -> String {
         Some("How long a session stays in use after the last input to one of its pages,\nin minutes."),
         0,
     );
-    writeln!(source, "export const IN_USE_MINUTES = {}", demi_web_api_protocol::push::IN_USE_MINUTES)
+    writeln!(source, "export const IN_USE_MINUTES = {}", jush_web_api_protocol::push::IN_USE_MINUTES)
         .expect("writing to a string");
 
     source.push('\n');
@@ -129,12 +129,12 @@ pub fn module(header: &str) -> String {
     writeln!(
         source,
         "export const MAX_PAGE_MESSAGE_BYTES = {}",
-        count(demi_web_api_protocol::MAX_PAGE_MESSAGE_BYTES)
+        count(jush_web_api_protocol::MAX_PAGE_MESSAGE_BYTES)
     )
     .expect("writing to a string");
 
     {
-        use demi_shared_lanes as connection;
+        use jush_shared_lanes as connection;
         for (name, description, value) in [
             ("CONNECTION_FRAME", "A page connection frame's kind: JSON of the connection's own message.", connection::CONNECTION_FRAME),
             ("OPEN_FRAME", "A page connection frame's kind: a lane's open.", connection::OPEN_FRAME),
@@ -156,37 +156,37 @@ pub fn module(header: &str) -> String {
         (
             "LANE_PIECE_BYTES",
             "The most bytes of a lane's message one data piece carries (`crates/shared-lanes/src/lib.rs`).",
-            count(demi_shared_lanes::LANE_PIECE_BYTES),
+            count(jush_shared_lanes::LANE_PIECE_BYTES),
         ),
         (
             "LANE_CREDIT",
             "How many of a lane's messages the page may send that the backend has not taken.",
-            u64::from(demi_web_api_protocol::connection::LANE_CREDIT),
+            u64::from(jush_web_api_protocol::connection::LANE_CREDIT),
         ),
         (
             "MAX_LANES",
             "The most lanes open on one page connection.",
-            count(demi_web_api_protocol::connection::MAX_LANES),
+            count(jush_web_api_protocol::connection::MAX_LANES),
         ),
         (
             "PAGE_BLOCKS",
             "How many blocks a page of a transcript holds, the one size the page's window and its local copy's reads take (`crates/conversation-lane-protocol/src/transcript.rs`).",
-            count(demi_conversation_lane_protocol::PAGE_BLOCKS),
+            count(jush_conversation_lane_protocol::PAGE_BLOCKS),
         ),
         (
             "FIRST_BLOCKS",
             "How many of its latest blocks a page reads of a root it holds nothing of, before it shows the conversation.",
-            count(demi_conversation_lane_protocol::FIRST_BLOCKS),
+            count(jush_conversation_lane_protocol::FIRST_BLOCKS),
         ),
         (
             "REPLY_BLOCKS_PER_READ",
             "The most reply blocks one read of their facts names (`POST /api/reply-blocks`).",
-            count(demi_web_api_protocol::plugins::REPLY_BLOCKS_PER_READ),
+            count(jush_web_api_protocol::plugins::REPLY_BLOCKS_PER_READ),
         ),
         (
             "TEXT_FILE_BYTES",
             "The most bytes of a file the text route reads; a larger text file shows its first this many.",
-            count(demi_command_protocol::EDIT_FILE_BYTES),
+            count(jush_command_protocol::EDIT_FILE_BYTES),
         ),
         (
             "DIRECT_MESSAGE_BYTES",
@@ -239,7 +239,7 @@ pub fn module(header: &str) -> String {
         writeln!(source, "export const {name} = {value}").expect("writing to a string");
     }
     {
-        use demi_live_view_protocol as live;
+        use jush_live_view_protocol as live;
         for (name, description, value) in [
             (
                 "LIVE_CONTROL_FRAME",

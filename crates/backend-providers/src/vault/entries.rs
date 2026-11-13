@@ -37,26 +37,26 @@
 
 use std::sync::Arc;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::control::ControlService;
-use demi_backend_database::providers::{
+use jush_backend_database::StorageError;
+use jush_backend_database::control::ControlService;
+use jush_backend_database::providers::{
     CredentialRow, CredentialWrite, EntrySwitches, NewProvider, ProviderRow, ResealSealed,
 };
-use demi_backend_page_sync::{Part, SyncRegistry};
-use demi_provider_common::credentials::{
+use jush_backend_page_sync::{Part, SyncRegistry};
+use jush_provider_common::credentials::{
     AccountMeta, CredentialPool, MemoryCredentialPool, NewAccount, RefreshGates,
     credential_id_for, decode_secret,
 };
-use demi_shared_types::{CacheTtl, Timestamp};
-use demi_web_api_protocol::ids::{CredentialId, DeviceId, ProviderId, UserId};
-use demi_web_api_protocol::providers::{CredentialKind, Rotation};
-use demi_web_api_protocol::settings::InstanceMode;
-use demi_web_api_protocol::text::EndpointUrl;
-use demi_web_api_protocol::state::ManagedKinds;
+use jush_shared_types::{CacheTtl, Timestamp};
+use jush_web_api_protocol::ids::{CredentialId, DeviceId, ProviderId, UserId};
+use jush_web_api_protocol::providers::{CredentialKind, Rotation};
+use jush_web_api_protocol::settings::InstanceMode;
+use jush_web_api_protocol::text::EndpointUrl;
+use jush_web_api_protocol::state::ManagedKinds;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 
-use demi_provider_registry::entry::{ApiKeyConfig, EntryCredential, ProviderEntry};
+use jush_provider_registry::entry::{ApiKeyConfig, EntryCredential, ProviderEntry};
 
 use super::pool::VaultCredentialPool;
 use super::seal::{self, VaultKey};
@@ -71,7 +71,7 @@ struct Shared {
     /// The mode the control store holds, which `set_mode` writes after it.
     mode: std::sync::RwLock<InstanceMode>,
     /// Whether a shared instance's users infer with the master's
-    /// subscriptions rather than their own (`DEMI_SHARED_SUBSCRIPTIONS`).
+    /// subscriptions rather than their own (`JUSH_SHARED_SUBSCRIPTIONS`).
     shared_subscriptions: bool,
     /// The master, whose entries a shared instance's users infer with; setup
     /// creates it once and it never changes.
@@ -304,7 +304,7 @@ impl Vault {
 
     /// Whose entries `user` infers with: their own on an isolated instance;
     /// on a shared one the master's API keys, and their own subscriptions,
-    /// or the master's when `DEMI_SHARED_SUBSCRIPTIONS` shares them.
+    /// or the master's when `JUSH_SHARED_SUBSCRIPTIONS` shares them.
     pub async fn owners(&self, user: &UserId) -> Result<Owners, StorageError> {
         if self.mode() == InstanceMode::Isolated {
             return Ok(Owners {

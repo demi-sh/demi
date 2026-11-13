@@ -9,16 +9,16 @@
 //!
 //! Project skills are always available: they come with the project, their files
 //! stay where they are, and the catalog names each `SKILL.md` at its own path.
-//! Demi does not check them first: the user chose the directory, and the agent
+//! Jush does not check them first: the user chose the directory, and the agent
 //! runs its code in any case.
 //!
 //! Only these two directories of the project's own directory are read, never
 //! one above it, a subagent's own working directory, the user's home or another
 //! agent's configuration.
 
-use demi_device_paths::DevicePaths;
-use demi_plugin_interface::{PluginPort, PortFailure, SubscriptionKind, WatchSubject};
-use demi_device_interface::{EntryKind, DeviceFile, DeviceRead};
+use jush_device_paths::DevicePaths;
+use jush_plugin_interface::{PluginPort, PortFailure, SubscriptionKind, WatchSubject};
+use jush_device_interface::{EntryKind, DeviceFile, DeviceRead};
 use serde::{Deserialize, Serialize};
 
 use crate::skill::{self, SKILL_MD_MAX_BYTES};

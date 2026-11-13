@@ -27,8 +27,8 @@
 //! The files:
 //!
 //! ```text
-//! /run/demi-machine-manager/mount-namespace              the handle: a bind of /proc/<pid>/ns/mnt
-//! /run/demi-machine-manager/mount-namespace-owner.json   {"dataDir": ...}: whose state it holds
+//! /run/jush-machine-manager/mount-namespace              the handle: a bind of /proc/<pid>/ns/mnt
+//! /run/jush-machine-manager/mount-namespace-owner.json   {"dataDir": ...}: whose state it holds
 //! ```
 
 use std::{

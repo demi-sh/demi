@@ -18,7 +18,7 @@
 //! - the CLI's nonessential traffic off, so its start waits on no request of
 //!   its own, and its feature flags read from the account's disk cache;
 //! - the `initialize` request read before anything else, with the handshake of
-//!   Demi's MCP server already made, so the first turn has its tools;
+//!   Jush's MCP server already made, so the first turn has its tools;
 //! - the input a session ends with answered at once.
 //!
 //! A sign-in runs the CLI's own login in a new directory, and a usage probe a
@@ -26,10 +26,10 @@
 
 use std::collections::BTreeMap;
 
-use demi_device_interface::{SpawnEnv, SpawnRequest};
-use demi_provider_common::{InferenceRequest, Searches};
-use demi_provider_common::openai_request::reasoning_effort;
-use demi_shared_types::ThinkingConfig;
+use jush_device_interface::{SpawnEnv, SpawnRequest};
+use jush_provider_common::{InferenceRequest, Searches};
+use jush_provider_common::openai_request::reasoning_effort;
+use jush_shared_types::ThinkingConfig;
 
 use crate::placement::{CliSite, CliStart};
 use crate::session::SessionFile;
@@ -185,7 +185,7 @@ pub(crate) fn args(request: &InferenceRequest, session: &str, searches: Searches
         args.extend(["--thinking-display".into(), "summarized".into()]);
     }
     // The CLI reads `initialize` before it resumes the session's input, and
-    // the request declares Demi's MCP server with its handshake made
+    // the request declares Jush's MCP server with its handshake made
     // (`crates/provider-claude-code/src/live.rs`). Without the flag the CLI
     // answers that input meanwhile, and its first request offers no tools
     // (Claude Code 2.1.296).
@@ -199,21 +199,21 @@ pub(crate) fn args(request: &InferenceRequest, session: &str, searches: Searches
 ///   directory's sign-in.
 /// - The account's directory is the configuration directory, and the process's
 ///   own directory of sessions is there.
-/// - The CLI's updater is off, since Demi alone changes its version.
-/// - Its automatic compaction is off, since Demi compacts the conversation
+/// - The CLI's updater is off, since Jush alone changes its version.
+/// - Its automatic compaction is off, since Jush compacts the conversation
 ///   itself.
 /// - An MCP tool-output limit of one million tokens means the CLI never cuts a
-///   result Demi sends.
+///   result Jush sends.
 /// - The CLI's reminder after several turns without text to the user is off:
-///   the user of Demi watches every command as it runs, and the reminder,
+///   the user of Jush watches every command as it runs, and the reminder,
 ///   whose wording the vendor sets remotely, has the model stop its work to
 ///   report.
-/// - What the CLI adds of its own to what Demi sends is off where it can be:
+/// - What the CLI adds of its own to what Jush sends is off where it can be:
 ///   the file an `@path` in a message names, which any file the CLI can read
 ///   on a machine every account shares would be; its reminder to sign commits
 ///   as Claude Code; the count of tokens left it appends to results; another
 ///   model answering in the place of one that refused; and the `advisor` and
-///   tool-search tools it would offer beside Demi's.
+///   tool-search tools it would offer beside Jush's.
 /// - `CLAUDECODE` is removed, so the CLI never takes itself for a session
 ///   inside another Claude Code.
 /// - The input the session ends with is answered at once.

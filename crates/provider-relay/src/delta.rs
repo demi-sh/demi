@@ -12,7 +12,7 @@
 
 use std::sync::Arc;
 
-use demi_provider_common::{InferenceItem, InferenceRequest, RequestBlock, ToolDefinition};
+use jush_provider_common::{InferenceItem, InferenceRequest, RequestBlock, ToolDefinition};
 use serde::{Deserialize, Serialize};
 use tokio_util::sync::CancellationToken;
 

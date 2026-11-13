@@ -1,5 +1,5 @@
 //! A viewer's input to the tab it watches: the live view's input task
-//! (`demi_live_view::input`) orders it beside the agent's commands, and this
+//! (`jush_live_view::input`) orders it beside the agent's commands, and this
 //! turns it into CDP events. Keys and buttons held down are this viewer's own:
 //! its end releases only them.
 //!
@@ -37,10 +37,10 @@ use chromiumoxide::cdp::browser_protocol::input::{
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Result};
 use crate::page::keyboard;
 use crate::tabs::{dialog::InputRelease, tab::BrowserTab};
-use demi_command_package_browser_protocol::live::{LiveModuleMessage, LiveViewerMessage};
-use demi_live_view::input::{self, Deliver};
-use demi_live_view_protocol::{KeyAction, PointerAction, PointerButton, PointerKind, ViewerInput};
-use demi_shared_recording_protocol::{InputBy, InputPhase};
+use jush_command_package_browser_protocol::live::{LiveModuleMessage, LiveViewerMessage};
+use jush_live_view::input::{self, Deliver};
+use jush_live_view_protocol::{KeyAction, PointerAction, PointerButton, PointerKind, ViewerInput};
+use jush_shared_recording_protocol::{InputBy, InputPhase};
 
 use crate::live::protocol::{TabId, ViewportMode};
 use crate::live::{observers, writer::Writer};

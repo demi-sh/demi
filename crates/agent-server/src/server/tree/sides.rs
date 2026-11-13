@@ -20,14 +20,14 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use demi_agent_session::{SessionEvent, Settle, Subscription};
-use demi_agent_store::media::HeldMedia;
-use demi_agent_store::{ClosePhase, NodeClose, NodeRecord, SideOf};
-use demi_agent_tools::DeviceResolver;
-use demi_agent_transcript::ForkEnd;
-use demi_provider_common::ProviderRuntime;
-use demi_shared_gates::Purpose;
-use demi_shared_types::{Attachment, NodeId, QueuedMessage, SessionPhase, TurnId, UserContentBlock, markdown_quote};
+use jush_agent_session::{SessionEvent, Settle, Subscription};
+use jush_agent_store::media::HeldMedia;
+use jush_agent_store::{ClosePhase, NodeClose, NodeRecord, SideOf};
+use jush_agent_tools::DeviceResolver;
+use jush_agent_transcript::ForkEnd;
+use jush_provider_common::ProviderRuntime;
+use jush_shared_gates::Purpose;
+use jush_shared_types::{Attachment, NodeId, QueuedMessage, SessionPhase, TurnId, UserContentBlock, markdown_quote};
 use futures_util::future::LocalBoxFuture;
 use tokio::sync::{Notify, watch};
 use tokio_util::task::AbortOnDropHandle;
@@ -89,7 +89,7 @@ impl ClosedSide {
     /// Of the side question `id`, whose transcript holds `blocks` from the
     /// position `offset` on, a session's window or a load's, and `earlier`
     /// before them ([`Asked::earlier`]).
-    fn of(id: &NodeId, earlier: &[demi_shared_types::Block], blocks: &[demi_shared_types::Block], of: Option<SideOf>) -> Self {
+    fn of(id: &NodeId, earlier: &[jush_shared_types::Block], blocks: &[jush_shared_types::Block], of: Option<SideOf>) -> Self {
         Self {
             asked: of.map(|of| Asked::of(id, of, earlier, blocks, true)),
         }
@@ -315,7 +315,7 @@ impl<H: DeviceResolver> Tree<H> {
         if self.disposing.get() {
             return Err(AskError::Failed(OWNER_CLOSING.to_owned()));
         }
-        let failed = |error: demi_agent_store::StoreError| AskError::Failed(error.to_string());
+        let failed = |error: jush_agent_store::StoreError| AskError::Failed(error.to_string());
         let record = self
             .store
             .node(id)
@@ -345,7 +345,7 @@ impl<H: DeviceResolver> Tree<H> {
     async fn side_runtime(
         &self,
         server: &AgentServer<H>,
-        model: &demi_shared_types::ModelSelection,
+        model: &jush_shared_types::ModelSelection,
     ) -> Result<Box<dyn ProviderRuntime>, AskError> {
         server
             .deps
@@ -393,7 +393,7 @@ impl<H: DeviceResolver> Tree<H> {
                         };
                         let holds = Asked::opens(&record.id, &checkpoint.transcript);
                         let earlier = Asked::earlier(&*store, &record.id, checkpoint.start, holds).await?;
-                        Ok::<_, demi_agent_store::StoreError>(Some((checkpoint, earlier)))
+                        Ok::<_, jush_agent_store::StoreError>(Some((checkpoint, earlier)))
                     };
                     match read.await {
                         Ok(Some((checkpoint, earlier))) => {
@@ -552,7 +552,7 @@ impl<H: DeviceResolver> Tree<H> {
     /// heard of them, about replies still in its history, in the order asked.
     /// The root's path holds a reply before its window too, which its store
     /// finds.
-    pub async fn side_questions_context(&self, node: &NodeId, seen: &[&str]) -> Result<Option<String>, demi_agent_store::StoreError> {
+    pub async fn side_questions_context(&self, node: &NodeId, seen: &[&str]) -> Result<Option<String>, jush_agent_store::StoreError> {
         if node != self.root.id() {
             return Ok(None);
         }
@@ -599,7 +599,7 @@ impl<H: DeviceResolver> Tree<H> {
         let stopped = self.lifecycle.spawn_local(async move {
             let _turn = tree.starts.acquire(id.clone()).await;
             let Some(side) = tree.live_side(&id).await else {
-                let failed = |error: demi_agent_store::StoreError| AskError::Failed(error.to_string());
+                let failed = |error: jush_agent_store::StoreError| AskError::Failed(error.to_string());
                 let known = tree.store.node(&id).await.map_err(failed)?.is_some_and(|record| record.side.is_some());
                 return if known { Ok(()) } else { Err(AskError::Unknown) };
             };
@@ -631,7 +631,7 @@ impl<H: DeviceResolver> Tree<H> {
         let tree = self.clone();
         let deleted = self.lifecycle.spawn_local(async move {
             let _turn = tree.starts.acquire(id.clone()).await;
-            let failed = |error: demi_agent_store::StoreError| AskError::Failed(error.to_string());
+            let failed = |error: jush_agent_store::StoreError| AskError::Failed(error.to_string());
             if !tree.store.node(&id).await.map_err(failed)?.is_some_and(|record| record.side.is_some()) {
                 return Err(AskError::Unknown);
             }

@@ -4,7 +4,7 @@
 // subagent's branch.
 import { defineComponent, h } from 'vue'
 import { FileDiff, GitCompare } from '@lucide/vue'
-import { ICON_PX, definePage, type TabKind, type WindowKind } from '@demicodes/plugin-sdk'
+import { ICON_PX, definePage, type TabKind, type WindowKind } from '@jush-ai/plugin-sdk'
 import { PLUGIN } from './generated/plugin'
 import { t } from './locales/text'
 import ChangeBadge from './ChangeBadge.vue'

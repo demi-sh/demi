@@ -1,5 +1,5 @@
 //! The DevTools socket's bytes as tungstenite reads them, with every message
-//! over the connection's limit taken out (Demi patch).
+//! over the connection's limit taken out (Jush patch).
 //!
 //! tungstenite rejects a frame over its limit from the frame's header and
 //! leaves the payload unread, so the stream is out of step and the

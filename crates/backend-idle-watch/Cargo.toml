@@ -1,5 +1,5 @@
 [package]
-name = "demi-backend-idle-watch"
+name = "jush-backend-idle-watch"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,7 +12,7 @@ doctest = false
 bench = false
 
 [dependencies]
-demi-shared-gates = { path = "../shared-gates" }
+jush-shared-gates = { path = "../shared-gates" }
 futures-util.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true

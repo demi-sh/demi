@@ -27,7 +27,7 @@ Every agent has its own placement: a Host and a working directory there.
 * The root agent's placement is the conversation's. Moving the conversation
   moves the root.
 * A subagent's placement is its parent's when it is spawned, or the
-  directory `--cwd` names on its parent's Host. Only its own `demi agent cwd`
+  directory `--cwd` names on its parent's Host. Only its own `jush agent cwd`
   changes it afterwards, on the same Host.
 * Moving the conversation leaves every subagent where it is. A subagent
   spawned after the move starts at its parent's new placement.
@@ -59,10 +59,10 @@ linked.
 * A subagent's working-directory context names its Host when it is not the
   conversation's: "Your working directory is `~/src/shop` on alex-laptop."
   A move of the conversation that changes whether it is sends a new one.
-* `demi agent list` and `demi agent show` name that Host beside the
+* `jush agent list` and `jush agent show` name that Host beside the
   directory.
-* `demi host list` lists a Host only a subagent works on with the role
-  `subagent`; `demi host detach` refuses it, since it is not attached.
+* `jush host list` lists a Host only a subagent works on with the role
+  `subagent`; `jush host detach` refuses it, since it is not attached.
 * A subagent's instructions are read from its own directory on its own Host;
   its skills are the conversation's, installed on its Host at its first
   command there, as on any Host.
@@ -70,7 +70,7 @@ linked.
 **The design.**
 
 * `NodeRecord` holds each subagent's `placement`, a `Placement` (device and
-  directory), written at its spawn and by `demi agent cwd`.
+  directory), written at its spawn and by `jush agent cwd`.
   `ChildDirectory` and its rule that a moved conversation overrides a
   child's directory are deleted. The conversation database keeps it in
   `placement_device` and `placement_directory`; a stored subagent keeps the
@@ -93,7 +93,7 @@ None.
 * [Claude Code subagents](https://code.claude.com/docs/en/sub-agents) work
   in the parent's working directory, and a subagent with worktree isolation
   keeps its own working copy for its whole life, whatever the parent does
-  afterwards. Demi does the same across Hosts.
+  afterwards. Jush does the same across Hosts.
 
 ## Alternatives
 

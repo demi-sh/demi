@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import AssistantTextBlock from '@demicodes/web-ui/agent/blocks/AssistantTextBlock.vue'
+import AssistantTextBlock from '@jush-ai/web-ui/agent/blocks/AssistantTextBlock.vue'
 import GalleryReceipts from './GalleryReceipts.vue'
 import { agentLinksMarkdown, gallerySubagents } from '../fixtures/subagents'
 

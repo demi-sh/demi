@@ -1,5 +1,5 @@
 // The browser's client of the conversation lane. It validates every frame it
-// receives with the schemas of `@demicodes/protocol`, and imports no user
+// receives with the schemas of `@jush-ai/protocol`, and imports no user
 // interface package.
 //
 // `applyTranscriptPatches` is the one transcript patch applier. The agent's

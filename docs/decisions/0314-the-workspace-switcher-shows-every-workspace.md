@@ -144,7 +144,7 @@ None.
 * **Slack** and **Discord** show every workspace or server as a tile in a
   rail, with the tile of one that has news marked, and a click switches.
 
-Demi departs from Slack's and Discord's rail by keeping the switcher in
+Jush departs from Slack's and Discord's rail by keeping the switcher in
 the sidebar's width instead of adding a column; from Zen and Arc by
 keeping it at the top, beside what it switches, and by naming the
 workspaces while there are only two.

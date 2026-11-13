@@ -14,7 +14,7 @@ Alex's team keeps about 300 skills in one repository. Their directories hold
 about 50 MiB of files, much of it the same reference files copied under two
 skills. Settings › Skills adds the repository, fetched on Alex's laptop, and
 shows it as Failed: *The skills' files are larger than 16 MB.* Not one of
-its skills reaches Alex's conversations, and nothing Alex can do in Demi
+its skills reaches Alex's conversations, and nothing Alex can do in Jush
 gets them there.
 
 The limits are there because a fetch holds every file of a source in the
@@ -87,7 +87,7 @@ The design to build from:
   blocking pool.
 * **Memory.** The backend holds at most one run's objects, or a few files
   on their way from the server's clone to the blobs, as a blob is stored
-  whole. A file's size is the repository's own, not a limit of Demi's.
+  whole. A file's size is the repository's own, not a limit of Jush's.
 * **Time.** A device's `git` is still killed when it stops, but no longer
   after a total time a size was measured by. Each run of a fetch is killed
   after five minutes in which `git` wrote nothing, with the helpers it
@@ -110,7 +110,7 @@ The design to build from:
   ten minutes while it runs, so a later fetch, which removes the fetches'
   directories an hour old, never removes one in use, however long it runs.
   Age, not the backend's memory, tells them apart, since every runner on a
-  machine shares `~/.demi/tmp`.
+  machine shares `~/.jush/tmp`.
 * **Removal.** Removing a source stops its fetch, which saves nothing, and
   takes a device's `git` with it.
 * **Stored data.** A migration turns a stored failure whose problem is
@@ -170,7 +170,7 @@ The design to build from:
   through simple-git is killed after five minutes without output, which
   is the rule this design takes for a device's `git`.
 
-Demi departs in where the clone runs: the server or a paired device, not the
+Jush departs in where the clone runs: the server or a paired device, not the
 machine that uses the skills, so the files reach the devices as blobs.
 
 ## Alternatives

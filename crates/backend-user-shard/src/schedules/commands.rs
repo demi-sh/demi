@@ -1,4 +1,4 @@
-//! The product's `demi schedule` group.
+//! The product's `jush schedule` group.
 //!
 //! The agent lists, shows, creates, changes and deletes the schedules of the
 //! conversation it works in, and runs one now. It acts on this conversation's
@@ -8,23 +8,23 @@
 
 use std::rc::{Rc, Weak};
 
-use demi_backend_device_access::device_commands::conversation_of;
-use demi_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
-use demi_shared_types::{
+use jush_backend_device_access::device_commands::conversation_of;
+use jush_device_interface::{Call, GroupBuilder, LeafBuilder, RpcError, RpcPort, TypedRpc};
+use jush_shared_types::{
     ScheduleId, Timestamp,
     output::{Cell, Fields, Table, warning},
 };
-use demi_web_api_protocol::schedules::{
+use jush_web_api_protocol::schedules::{
     FirstOrLast, HolidayPlace, IfBusy, MonthDay, Repeat, RepeatUnit, RunState, ScheduleDto,
     SchedulePatch, Task, Timing, Trigger, WeekOfMonth, Weekday,
 };
-use demi_web_api_protocol::text::Trimmed;
+use jush_web_api_protocol::text::Trimmed;
 use garde::Validate;
 use jiff::civil::DateTime;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use demi_backend_database::schedules::StoredSchedule;
+use jush_backend_database::schedules::StoredSchedule;
 
 use super::ScheduleError;
 use crate::conversation::organize::{failed, verb};
@@ -605,7 +605,7 @@ async fn patch(
     };
     patch
         .validate()
-        .map_err(|report| failed(demi_web_api_protocol::error::problems(&report)))?;
+        .map_err(|report| failed(jush_web_api_protocol::error::problems(&report)))?;
     Ok(patch)
 }
 
@@ -738,7 +738,7 @@ fn if_busy(text: &str) -> Result<IfBusy, RpcError> {
 }
 
 async fn user_zone(shard: &Shard) -> Result<String, RpcError> {
-    let reported = demi_backend_runners::command_context::reported(&shard.services().control, shard.user())
+    let reported = jush_backend_runners::command_context::reported(&shard.services().control, shard.user())
         .await
         .map_err(failed)?;
     Ok(reported.locale.time_zone)

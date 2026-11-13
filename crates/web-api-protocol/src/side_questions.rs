@@ -4,8 +4,8 @@
 //! and whose answers are its transcript, which a page reads and follows as any
 //! agent's.
 
-use demi_conversation_lane_protocol::{ClientContent, SideQuestion};
-use demi_shared_types::{BlockId, CommentPart, MAX_SAFE_INTEGER, MediaSource, NodeId};
+use jush_conversation_lane_protocol::{ClientContent, SideQuestion};
+use jush_shared_types::{BlockId, CommentPart, MAX_SAFE_INTEGER, MediaSource, NodeId};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

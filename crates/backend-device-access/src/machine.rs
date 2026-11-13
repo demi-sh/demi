@@ -1,11 +1,11 @@
-//! A device's machine as `demi device list` and `demi device show` tell it:
+//! A device's machine as `jush device list` and `jush device show` tell it:
 //! what it is, which the backend keeps from its runner's hello, and how busy
 //! it is, which the connection holds from the runner's latest report and
 //! which goes with the connection.
 
-use demi_backend_database::devices::DeviceRecord;
-use demi_runner_client::Link;
-use demi_shared_types::Timestamp;
+use jush_backend_database::devices::DeviceRecord;
+use jush_runner_client::Link;
+use jush_shared_types::Timestamp;
 use schemars::JsonSchema;
 use serde::Serialize;
 

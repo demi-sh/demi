@@ -3,8 +3,8 @@
 //! and no comments: they point at the replies of the conversation it was written in, so
 //! saving the composer's message leaves them waiting in the draft.
 
-use demi_conversation_lane_protocol::ClientContent;
-use demi_shared_types::{MAX_SAFE_INTEGER, Timestamp};
+use jush_conversation_lane_protocol::ClientContent;
+use jush_shared_types::{MAX_SAFE_INTEGER, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

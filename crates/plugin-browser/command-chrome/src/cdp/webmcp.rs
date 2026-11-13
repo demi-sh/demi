@@ -10,7 +10,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::driver::operation::{BrowserError, CONTROL_TIMEOUT, Result, after_cleanup};
 use crate::tabs::{environment::BrowserEnvironment, session::ToolSet, tab::BrowserTab};
-use demi_command_sdk::InvocationContext;
+use jush_command_sdk::InvocationContext;
 
 use crate::cdp::protocol::{
     BrowserOperation, Capability, WebmcpCallResult, WebmcpListResult, WebmcpTool,
@@ -26,7 +26,7 @@ pub(crate) async fn capability(page: &Page) -> Result<Capability> {
         reason: (!available).then(|| {
             "this browser release or document does not expose document.modelContext".into()
         }),
-        schema: available.then(|| json!({"help": "demi browser webmcp --help"})),
+        schema: available.then(|| json!({"help": "jush browser webmcp --help"})),
     })
 }
 

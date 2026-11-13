@@ -24,7 +24,7 @@
 //! - A move to a device whose home was never reported is refused: a move needs the
 //!   device online, which reports it.
 //! - The home is kept with the device's record, so which directory is its home is
-//!   known while it is offline. The Cloud's is `/home/demi` until its runner first
+//!   known while it is offline. The Cloud's is `/home/jush` until its runner first
 //!   reports.
 //! - When a report changes what an execution context said, the context advances,
 //!   so a node's next inference names the directory its shells really start in and
@@ -60,11 +60,11 @@
 //!   worktree, and deletes it, as a second spelling of a project's directory
 //!   goes into the project (`ControlService::name_directory`).
 
-use demi_device_paths::DevicePaths;
-use demi_shared_types::Timestamp;
-use demi_web_api_protocol::conversations::ConversationTarget;
-use demi_web_api_protocol::devices::DeviceKind;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId, UserId, WorkspaceId};
+use jush_device_paths::DevicePaths;
+use jush_shared_types::Timestamp;
+use jush_web_api_protocol::conversations::ConversationTarget;
+use jush_web_api_protocol::devices::DeviceKind;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId, UserId, WorkspaceId};
 use rusqlite::{Connection, OptionalExtension, params};
 
 use super::StorageError;
@@ -73,7 +73,7 @@ use super::devices::{DeviceRecord, cloud_device_in, device_in, managed_device_in
 use super::projects::{ProjectRecord, new_project_id, project_at};
 
 /// The Cloud's home directory, before its runner reports one.
-pub const CLOUD_HOME: &str = "/home/demi";
+pub const CLOUD_HOME: &str = "/home/jush";
 
 /// A conversation's selection.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -348,7 +348,7 @@ pub(crate) fn directory(paths: DevicePaths, path: &str) -> String {
 
 /// What `owner`'s conversation `conversation` with `selection` resolves
 /// to: its device and the directory its work starts in. The Cloud's home is
-/// the one its runner last reported, `/home/demi` before it did.
+/// the one its runner last reported, `/home/jush` before it did.
 pub(crate) fn execution_target(
     connection: &Connection,
     owner: &UserId,

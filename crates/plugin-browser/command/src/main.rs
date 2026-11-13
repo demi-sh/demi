@@ -9,18 +9,18 @@ use std::sync::Arc;
 async fn main() {
     // A panic leaves its report on standard error
     // (`crates/xtask/src/native/build.rs`).
-    demi_shared_cli::install_panic_hook();
-    demi_command_sdk::Launch::from_process();
+    jush_shared_cli::install_panic_hook();
+    jush_command_sdk::Launch::from_process();
     // Events go to standard error as lines of the log, which the runner keeps
     // as they are.
-    demi_command_sdk::log_to_stderr("browser");
-    let browser = Arc::new(demi_browser::DemiBrowser::new());
+    jush_command_sdk::log_to_stderr("browser");
+    let browser = Arc::new(jush_browser::JushBrowser::new());
     let chrome = browser.chrome().clone();
-    let resident = demi_command_sdk::serve_stdio(browser);
+    let resident = jush_command_sdk::serve_stdio(browser);
     // What a resident that ended without retiring its browsers left is swept
     // beside serving, and every browser starts after it; a sweep still under
     // way when serving ends is given up.
-    let sweep = demi_command_package_browser_chrome::tabs::environment::sweep_orphans(&chrome);
+    let sweep = jush_command_package_browser_chrome::tabs::environment::sweep_orphans(&chrome);
     tokio::pin!(resident, sweep);
     let result = tokio::select! {
         result = &mut resident => result,

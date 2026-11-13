@@ -16,15 +16,15 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_backend_database::schedules::{RunCause, StoredSchedule, WatchOutput};
-use demi_backend_page_sync::Part;
-use demi_runner_client::{ContextSource, EnvironmentOptions, RemoteDevice, RemoteShellEnvironment};
-use demi_command_protocol::{CommandCaller, CommandContext, Viewable};
-use demi_device_interface::{
+use jush_backend_database::schedules::{RunCause, StoredSchedule, WatchOutput};
+use jush_backend_page_sync::Part;
+use jush_runner_client::{ContextSource, EnvironmentOptions, RemoteDevice, RemoteShellEnvironment};
+use jush_command_protocol::{CommandCaller, CommandContext, Viewable};
+use jush_device_interface::{
     CommandRecord, Ending, ExecRequest, DeviceError, JobCaller, Numbers, OutputRecord, PageFeed, ShellEnvironment,
 };
-use demi_shared_types::{NodeId, Sequence, StreamKind, Timestamp};
-use demi_web_api_protocol::schedules::{RunNote, RunState, Trigger};
+use jush_shared_types::{NodeId, Sequence, StreamKind, Timestamp};
+use jush_web_api_protocol::schedules::{RunNote, RunState, Trigger};
 use futures_util::future::LocalBoxFuture;
 use sha2::{Digest, Sha256};
 use tokio::sync::watch;
@@ -161,7 +161,7 @@ async fn run_command(
 impl Shard {
     /// Whether the watch's check runs now, which the scheduler does not
     /// start again.
-    pub(crate) fn schedule_checking(&self, id: &demi_shared_types::ScheduleId) -> bool {
+    pub(crate) fn schedule_checking(&self, id: &jush_shared_types::ScheduleId) -> bool {
         self.schedules()
             .pending
             .borrow()
@@ -250,7 +250,7 @@ impl Shard {
         digest: Vec<u8>,
         generation: u64,
         now: Timestamp,
-    ) -> Result<(), demi_backend_database::StorageError> {
+    ) -> Result<(), jush_backend_database::StorageError> {
         let control = &self.services().control;
         let record = WatchOutput {
             stdout: output.stdout.clone(),
@@ -296,7 +296,7 @@ impl Shard {
             return Checked::Unrunnable(unrunnable);
         }
         let failed = |error: &dyn std::fmt::Display| Checked::Failed(error.to_string());
-        let context = match demi_backend_runners::command_context::command_context(
+        let context = match jush_backend_runners::command_context::command_context(
             control,
             self.user(),
             &schedule.conversation,

@@ -14,14 +14,14 @@
 use std::rc::Rc;
 use std::sync::Arc;
 
-use demi_backend_database::control::ControlService;
-use demi_backend_database::usage::{ApiPrice, ObservedWindow, UsageRow, merge_windows};
-use demi_provider_common::{
+use jush_backend_database::control::ControlService;
+use jush_backend_database::usage::{ApiPrice, ObservedWindow, UsageRow, merge_windows};
+use jush_provider_common::{
     Ahead, CallEvent, CallOutcome, ErrorCode, InferenceRequest, ProviderEvent, ProviderRun,
     ProviderRuntime, RequestLimits, RequestPurpose, VendorCall,
 };
-use demi_shared_types::{Clock, Model, ModelCost, QuotaWindow, Timestamp, TokenUsage};
-use demi_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
+use jush_shared_types::{Clock, Model, ModelCost, QuotaWindow, Timestamp, TokenUsage};
+use jush_web_api_protocol::ids::{ConversationId, CredentialId, ProviderId, UserId};
 use futures_util::future::LocalBoxFuture;
 use futures_util::{Stream, StreamExt, stream};
 

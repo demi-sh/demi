@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/lockup-dark.svg">
-    <img alt="Demi" src="docs/assets/brand/lockup-light.svg" height="72">
+    <img alt="Jush" src="docs/assets/brand/lockup-light.svg" height="72">
   </picture>
 </p>
 
@@ -12,8 +12,8 @@
 
 <p align="center">
   <a href="#许可证"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue"></a>
-  <a href="https://github.com/demi-sh/demi/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/demi-sh/demi"></a>
-  <a href="https://github.com/demi-sh/demi/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/demi-sh/demi/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/jush-ai/jush/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/jush-ai/jush"></a>
+  <a href="https://github.com/jush-ai/jush/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/jush-ai/jush/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 <p align="center">
@@ -21,21 +21,21 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/product.webp" alt="浏览器里的 Demi：智能体为一个 iPhone App 做了双栏布局，回复上有一条评论和一个追问，下面是回复建议；侧边面板里是半折叠的 iPhone Duo 上运行的 App，手机上是同一个对话。" width="800">
+  <img src="docs/assets/product.webp" alt="浏览器里的 Jush：智能体为一个 iPhone App 做了双栏布局，回复上有一条评论和一个追问，下面是回复建议；侧边面板里是半折叠的 iPhone Duo 上运行的 App，手机上是同一个对话。" width="800">
 </p>
 
-Demi 是部署在你自己服务器上的网页版 AI Agent，在任何浏览器中都能打开，什么事都可以交给它：查资料、操作网站、处理文件、写代码。对话都保存在你的服务器上，工作在云端沙箱或你自己的机器上运行，关掉网页也照常进行。
+Jush 是部署在你自己服务器上的网页版 AI Agent，在任何浏览器中都能打开，什么事都可以交给它：查资料、操作网站、处理文件、写代码。对话都保存在你的服务器上，工作在云端沙箱或你自己的机器上运行，关掉网页也照常进行。
 
 > [!NOTE]
-> Demi 目前处于早期开发阶段，版本之间可能存在不兼容的变更。
+> Jush 目前处于早期开发阶段，版本之间可能存在不兼容的变更。
 
 ## 快速开始
 
-点几下即可部署 Demi：
+点几下即可部署 Jush：
 
 <p>
   <a href="docs/delivery/railway.md"><img alt="Deploy on Railway" src="https://railway.com/button.svg" height="36"></a>
-  <a href="https://render.com/deploy?repo=https://github.com/demi-sh/demi"><img alt="Deploy on Render" src="docs/assets/deploy/deploy-on-render.svg" height="36"></a>
+  <a href="https://render.com/deploy?repo=https://github.com/jush-ai/jush"><img alt="Deploy on Render" src="docs/assets/deploy/deploy-on-render.svg" height="36"></a>
   <a href="docs/delivery/fly.md"><img alt="Deploy on Fly.io" src="docs/assets/deploy/deploy-on-fly.svg" height="36"></a>
   <a href="docs/delivery/docker-compose.md"><img alt="Run with Docker Compose" src="docs/assets/deploy/run-with-docker-compose.svg" height="36"></a>
 </p>
@@ -43,19 +43,19 @@ Demi 是部署在你自己服务器上的网页版 AI Agent，在任何浏览器
 或者安装到你自己的 Linux 服务器上（需要一个域名）：
 
 ```sh
-curl -fsSL https://demi.sh/install.sh | sudo bash
+curl -fsSL https://jush.ai/install.sh | sudo bash
 ```
 
 或者让 Claude Code、Codex 等编程 Agent 帮你安装：
 
 ```text
-按照 https://raw.githubusercontent.com/demi-sh/demi/main/docs/delivery/install-with-an-agent.md 在我的服务器上安装 Demi
+按照 https://raw.githubusercontent.com/jush-ai/jush/main/docs/delivery/install-with-an-agent.md 在我的服务器上安装 Jush
 ```
 
-装好后打开 Demi，创建管理员账号，在 **Settings › Providers** 中添加模型。支持的系统、HTTPS、Canary 渠道和各方案的费用见[安装指南](docs/delivery/installation.md)。
+装好后打开 Jush，创建管理员账号，在 **Settings › Providers** 中添加模型。支持的系统、HTTPS、Canary 渠道和各方案的费用见[安装指南](docs/delivery/installation.md)。
 
 <p align="center">
-  <img src="docs/assets/concept.webp" alt="在电脑或手机上连到同一台 Demi 服务器，所有对话都保存在这里；它通过笔记本、台式机、HomeLab、VPS 上的 Runner 或云端沙箱完成工作。" width="800">
+  <img src="docs/assets/concept.webp" alt="在电脑或手机上连到同一台 Jush 服务器，所有对话都保存在这里；它通过笔记本、台式机、HomeLab、VPS 上的 Runner 或云端沙箱完成工作。" width="800">
 </p>
 
 ## 核心特性
@@ -65,7 +65,7 @@ curl -fsSL https://demi.sh/install.sh | sudo bash
 - **一个对话搞定所有事**：简单问题和多步骤任务都在这里。
 - **编程**：修改代码仓库，运行构建和测试，每处改动都能以 diff 查看。
 - **调研**：搜索网页，阅读网页、PDF 和各类文档。
-- **真实浏览器**：Demi 会操作 Chrome，你可以实时观看，随时接手。
+- **真实浏览器**：Jush 会操作 Chrome，你可以实时观看，随时接手。
 - **手机应用**：在 iOS 模拟器和 Android 模拟器上安装、测试应用。
 - **文件与数据**：处理文档、表格和图片，结果以附件发回。
 - **图片、视频与音频**：通过你添加的模型服务生成。
@@ -90,7 +90,7 @@ curl -fsSL https://demi.sh/install.sh | sudo bash
 - **Agent Profile 与工作流**：各司其职的专家 Agent，可随仓库共享。
 - **定时任务**：按时间、cron 或在出现变化时唤醒对话。
 - **对话协作**：一个对话可以给另一个对话发消息，或读取它的记录。
-- **Skills**：教 Demi 学会新任务。
+- **Skills**：教 Jush 学会新任务。
 - **安全的凭据管理**：密钥通过表单索取，不会出现在对话中。
 
 ### 模型与团队
@@ -103,12 +103,12 @@ curl -fsSL https://demi.sh/install.sh | sudo bash
 
 ## 基于 Shell 的 Agent
 
-Demi 不套壳 Claude Code 或 Codex，而是由自己的运行时驱动所有模型。大多数 Agent 会给模型一长串工具，Demi 只给一个：Shell。浏览器、其他机器、子 Agent 都是这个 Shell 里的 `demi` 命令：
+Jush 不套壳 Claude Code 或 Codex，而是由自己的运行时驱动所有模型。大多数 Agent 会给模型一长串工具，Jush 只给一个：Shell。浏览器、其他机器、子 Agent 都是这个 Shell 里的 `jush` 命令：
 
 ```sh
-T=$(demi browser tab new) && demi browser open $T http://localhost:5173 && demi browser screenshot $T | demi file view
-demi device shell --device windows 'cargo test'
-demi agent spawn --profile research --description "Compare pricing pages" < brief.md
+T=$(jush browser tab new) && jush browser open $T http://localhost:5173 && jush browser screenshot $T | jush file view
+jush device shell --device windows 'cargo test'
+jush agent spawn --profile research --description "Compare pricing pages" < brief.md
 ```
 
 - **可组合**：命令可以用管道串联，一步完成通常需要多次工具调用的事。
@@ -118,7 +118,7 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
 - **为长任务而生**：命令在后台运行，完成后汇报。
 
 > [!NOTE]
-> **计划中**：为 Demi 服务器提供 OpenAPI，让你自己的程序也能使用它的对话、Agent 和云端沙箱。
+> **计划中**：为 Jush 服务器提供 OpenAPI，让你自己的程序也能使用它的对话、Agent 和云端沙箱。
 
 ## 架构
 
@@ -127,7 +127,7 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
         │  HTTPS + WebSocket
         ▼
   ┌──────────────────────────┐   HTTPS   ┌────────────────────┐
-  │ Demi server              │──────────▶│ Model providers    │
+  │ Jush server              │──────────▶│ Model providers    │
   │ users, conversations,    │           └────────────────────┘
   │ agents                   │
   └──────────────────────────┘
@@ -149,11 +149,11 @@ demi agent spawn --profile research --description "Compare pricing pages" < brie
 
 ## 对比
 
-Demi 与 OpenHands、Orca、T3 Code、DeepSeek Harness、opencode、Pi、herdr 的逐项对比，见 [Demi 对比](docs/comparison.zh-CN.md)。
+Jush 与 OpenHands、Orca、T3 Code、DeepSeek Harness、opencode、Pi、herdr 的逐项对比，见 [Jush 对比](docs/comparison.zh-CN.md)。
 
 ## 文档
 
-- [设计文档](docs/README.md)：Demi 各部分的工作原理
+- [设计文档](docs/README.md)：Jush 各部分的工作原理
 - [参与贡献](CONTRIBUTING.md)：开发环境、检查项，以及如何添加模型提供方
 - [安全](SECURITY.md)：漏洞报告方式与数据存储说明
 
@@ -161,4 +161,4 @@ Demi 与 OpenHands、Orca、T3 Code、DeepSeek Harness、opencode、Pi、herdr �
 
 ## 许可证
 
-Demi 采用 [Apache License 2.0](LICENSE) 发布。
+Jush 采用 [Apache License 2.0](LICENSE) 发布。

@@ -66,8 +66,8 @@
   },
   "page": {
     "cloud": "Nuvem",
-    "startSentence": "Inicie o Demi no dispositivo:",
-    "noAutostart": "Este dispositivo não inicia o Demi sozinho depois de reiniciar.",
+    "startSentence": "Inicie o Jush no dispositivo:",
+    "noAutostart": "Este dispositivo não inicia o Jush sozinho depois de reiniciar.",
     "connection": "Conexão",
     "route": "Rota",
     "p2p": "P2P",
@@ -133,7 +133,7 @@
     "pair": "Parear dispositivo",
     "invalidCode": "Este código não está disponível. Cole o código mais recente do runner.",
     "rateLimited": "Tentativas demais. Aguarde um minuto antes de tentar novamente.",
-    "unavailable": "Não foi possível acessar o Demi. Verifique sua conexão e tente novamente."
+    "unavailable": "Não foi possível acessar o Jush. Verifique sua conexão e tente novamente."
   },
   "revoke": {
     "title": "Revogar este dispositivo?",
@@ -153,7 +153,7 @@
   "autostart": {
     "noSystemd": "Este sistema não executa o systemd.",
     "noUserManager": "O gerenciador de usuário do systemd não responde: {error}",
-    "notWritten": "O Demi não conseguiu salvar {path}: {error}",
+    "notWritten": "O Jush não conseguiu salvar {path}: {error}",
     "lingerOff": "Ele só inicia quando {user} entra. Para iniciá-lo quando o computador ligar, execute:",
     "refused": "O Windows recusou a tarefa agendada e o item de inicialização: {error}",
     "unusableName": "O nome da pasta de instalação, {name}, não pode nomear um item de inicialização.",

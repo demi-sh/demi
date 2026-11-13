@@ -161,8 +161,8 @@ check-cfg = [
     "cfg(wasi_runner)",
 ]
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "Standard input and output are the invocation's instead of raw descriptors 0 and 1",
     "The splice path runs only where uucore::pipes::zero_copy allows, so tee under an owner's control no longer grows its standard output, the shell's pipe, to 1 MiB before splice turns out to be off",

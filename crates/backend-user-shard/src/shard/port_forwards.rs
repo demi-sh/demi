@@ -2,7 +2,7 @@
 //!
 //! The module serves:
 //!
-//! - what Settings › Port Forwarding and `demi device forward` read and change;
+//! - what Settings › Port Forwarding and `jush device forward` read and change;
 //! - what each runner is told of the forwards it is an end of, and what the
 //!   Listen On runners announce of them;
 //! - the backend's part in a connection: the relay's pipes from one runner to the
@@ -63,16 +63,16 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_backend_database::StorageError;
-use demi_backend_database::devices::DeviceRecord;
-use demi_backend_database::port_forwards::{PortForwardChange, PortForwardRecord, PortForwardRefusal};
-use demi_backend_page_sync::Part;
-use demi_runner_client::{DirectAnswer, ForwardEvent, Link, PeerEvent};
-use demi_runner_protocol::direct::{CONNECT_TIMEOUT, DialRefusal, Introduced, OfferRefusal};
-use demi_runner_protocol::forward::{DEADLINE, Forward, ForwardRunState};
-use demi_runner_protocol::pairs::PairRoute;
-use demi_web_api_protocol::ids::{DeviceId, PortForwardId};
-use demi_web_api_protocol::port_forwards::{PortForwardDto, PortForwardPatch};
+use jush_backend_database::StorageError;
+use jush_backend_database::devices::DeviceRecord;
+use jush_backend_database::port_forwards::{PortForwardChange, PortForwardRecord, PortForwardRefusal};
+use jush_backend_page_sync::Part;
+use jush_runner_client::{DirectAnswer, ForwardEvent, Link, PeerEvent};
+use jush_runner_protocol::direct::{CONNECT_TIMEOUT, DialRefusal, Introduced, OfferRefusal};
+use jush_runner_protocol::forward::{DEADLINE, Forward, ForwardRunState};
+use jush_runner_protocol::pairs::PairRoute;
+use jush_web_api_protocol::ids::{DeviceId, PortForwardId};
+use jush_web_api_protocol::port_forwards::{PortForwardDto, PortForwardPatch};
 use tokio_util::sync::CancellationToken;
 
 use super::Shard;
@@ -153,7 +153,7 @@ impl Shard {
         }
     }
 
-    /// `POST /port-forwards` and `demi device forward add`: a forward from its
+    /// `POST /port-forwards` and `jush device forward add`: a forward from its
     /// defaults with `patch` over them, listening by default on the first
     /// of the user's devices as the devices list orders them, or on the
     /// Cloud, which every user has, for one who has no device yet.
@@ -186,7 +186,7 @@ impl Shard {
         Ok(self.forward_dto(stored))
     }
 
-    /// `DELETE /port-forwards/:id` and `demi device forward remove`: its
+    /// `DELETE /port-forwards/:id` and `jush device forward remove`: its
     /// listener closes and its connections end.
     pub async fn remove_port_forward(&self, id: PortForwardId) -> Result<(), PortForwardError> {
         let removed = self

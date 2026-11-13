@@ -23,11 +23,11 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use bytes::Bytes;
-use demi_runner_protocol::{
+use jush_runner_protocol::{
     values::DeviceToken,
     wire::{self, PIPE_CONNECTION_ROUTE, PIPE_LANE_CREDIT, PipeLaneRefusal, PipeLaneTarget, STREAM_PIPE_MESSAGE_BYTES},
 };
-use demi_shared_lanes::{Assembly, Frame, LANE_PIECE_BYTES, Message as LaneMessage, pieces};
+use jush_shared_lanes::{Assembly, Frame, LANE_PIECE_BYTES, Message as LaneMessage, pieces};
 use futures_util::{SinkExt as _, StreamExt as _};
 use tokio::sync::{Semaphore, mpsc, watch};
 use tokio_tungstenite::tungstenite::{
@@ -161,7 +161,7 @@ impl Lanes {
         // Out of open files, the connection waits for one (`crates/command-sdk/src/descriptors.rs`).
         let never = CancellationToken::new();
         let (socket, _) = reconnecting(|| async {
-            let connecting = demi_command_sdk::descriptors::retry(&never, || async {
+            let connecting = jush_command_sdk::descriptors::retry(&never, || async {
                 self.backend
                     .websocket(request.clone(), config)
                     .await

@@ -24,11 +24,11 @@ use axum::http::header::{
 };
 use axum::http::{HeaderMap, HeaderValue, Method, StatusCode};
 use axum::response::{IntoResponse, Response};
-use demi_backend_database::accounts::TokenHash;
-use demi_backend_device_access::transfer::{Download, DownloadPath, DownloadRequest};
-use demi_shared_types::{HTML_SANDBOX, html_view_media_type};
-use demi_web_api_protocol::files::{HtmlRequest, HtmlUrl};
-use demi_web_api_protocol::ids::ConversationId;
+use jush_backend_database::accounts::TokenHash;
+use jush_backend_device_access::transfer::{Download, DownloadPath, DownloadRequest};
+use jush_shared_types::{HTML_SANDBOX, html_view_media_type};
+use jush_web_api_protocol::files::{HtmlRequest, HtmlUrl};
+use jush_web_api_protocol::ids::ConversationId;
 use percent_encoding::{AsciiSet, CONTROLS, utf8_percent_encode};
 
 use super::AppState;
@@ -247,7 +247,7 @@ pub(super) async fn headers(mut response: Response) -> Response {
 fn not_found() -> ApiError {
     ApiError::new(
         StatusCode::NOT_FOUND,
-        demi_web_api_protocol::error::ErrorCode::NotFound,
+        jush_web_api_protocol::error::ErrorCode::NotFound,
         "No such file",
     )
 }

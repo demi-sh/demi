@@ -29,7 +29,7 @@
     "clearDraft": "下書きを消去できませんでした",
     "recallMessage": "メッセージを取り消せませんでした",
     "connectionLost": "接続が切断されました",
-    "connectionLostMessage": "Demi がリクエストを受信できていない可能性があります。再接続後にチャットを確認してください。",
+    "connectionLostMessage": "Jush がリクエストを受信できていない可能性があります。再接続後にチャットを確認してください。",
     "requestNotAccepted": "チャットがリクエストを受け付けませんでした。",
     "fieldsNotUpdated": "一部の項目は更新されませんでした。",
     "readFileWatch": "ファイル監視のメッセージを読み取れませんでした",

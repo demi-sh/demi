@@ -138,8 +138,8 @@ default-features = false
 version = "0.62.2"
 optional = true
 
-[package.metadata.demi]
-maintainer = "demi-runner"
+[package.metadata.jush]
+maintainer = "jush-runner"
 patches = [
     "A job object's wait ends when its last process has ended, not at the first message its completion port gets, such as a process starting or the leader ending; a wait that fails, as on a closed port, returns its error instead of looping on it",
     "An import only Linux uses moves into the function that uses it, so other systems build without a warning",

@@ -17,7 +17,7 @@ use std::{collections::VecDeque, time::Duration};
 use bytes::Bytes;
 use tokio::time::Instant;
 
-use demi_live_view_protocol::{ChunkAck, SourceId};
+use jush_live_view_protocol::{ChunkAck, SourceId};
 
 use crate::{
     frames,

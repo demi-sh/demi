@@ -4,19 +4,19 @@ import { t } from './locales/text'
 import { conversationTitle } from '../agent/conversation-title'
 import { computed, nextTick, ref, useId, watch } from 'vue'
 import { Archive, CircleArrowUp, FolderPlus, MonitorSmartphone, Search, Settings, SquarePen } from '@lucide/vue'
-import { appOverlayStore } from '@demicodes/web-ui/overlay/appOverlay'
-import { closeContextMenu, shownContextMenu, type ContextMenuDeclaration } from '@demicodes/web-ui/ui/context-menu'
-import IconButton from '@demicodes/web-ui/ui/IconButton.vue'
-import IndeterminateSpinner from '@demicodes/web-ui/ui/IndeterminateSpinner.vue'
-import type { Action } from '@demicodes/web-ui/ui/operations'
-import Tooltip from '@demicodes/web-ui/ui/Tooltip.vue'
-import RegionStatus from '@demicodes/web-ui/ui/RegionStatus.vue'
-import ScrollArea from '@demicodes/web-ui/ui/ScrollArea.vue'
-import Fold from '@demicodes/web-ui/ui/Fold.vue'
-import { focusedByKeyboard } from '@demicodes/web-ui/ui/active-row'
-import { focusByPage } from '@demicodes/web-ui/ui/focus-by-page'
-import { FOLD_MS } from '@demicodes/web-ui/ui/fold'
-import { usePhone } from '@demicodes/web-ui/ui/phone'
+import { appOverlayStore } from '@jush-ai/web-ui/overlay/appOverlay'
+import { closeContextMenu, shownContextMenu, type ContextMenuDeclaration } from '@jush-ai/web-ui/ui/context-menu'
+import IconButton from '@jush-ai/web-ui/ui/IconButton.vue'
+import IndeterminateSpinner from '@jush-ai/web-ui/ui/IndeterminateSpinner.vue'
+import type { Action } from '@jush-ai/web-ui/ui/operations'
+import Tooltip from '@jush-ai/web-ui/ui/Tooltip.vue'
+import RegionStatus from '@jush-ai/web-ui/ui/RegionStatus.vue'
+import ScrollArea from '@jush-ai/web-ui/ui/ScrollArea.vue'
+import Fold from '@jush-ai/web-ui/ui/Fold.vue'
+import { focusedByKeyboard } from '@jush-ai/web-ui/ui/active-row'
+import { focusByPage } from '@jush-ai/web-ui/ui/focus-by-page'
+import { FOLD_MS } from '@jush-ai/web-ui/ui/fold'
+import { usePhone } from '@jush-ai/web-ui/ui/phone'
 import { copyId } from '../infra/copy-id'
 import type {
   ListLoad,
@@ -649,7 +649,7 @@ function selectProjectConversations(project: SidebarProject): void {
     <div class="flex h-11 shrink-0 items-center px-2">
       <span
         class="min-w-0 flex-1 truncate pl-2.5 text-chrome font-medium leading-5 text-fg-emphasis phone:pl-3 phone:text-[17px] phone:font-semibold phone:leading-normal"
-      >demi</span>
+      >jush</span>
       <SidebarToggle placement="sidebar" />
     </div>
     <div v-if="workspaces?.length" class="shrink-0 px-2 pb-1.5">

@@ -79,7 +79,7 @@ pub(crate) fn answer(parsed: &Parsed, stdout: &mut impl Write, stderr: &mut impl
     let _unwritten = match parsed {
         Parsed::Run(_) => Ok(()),
         Parsed::Help => stdout.write_all(HELP.as_bytes()),
-        Parsed::Version => writeln!(stdout, "nohup (Demi)"),
+        Parsed::Version => writeln!(stdout, "nohup (Jush)"),
         Parsed::Usage(message) => {
             writeln!(stderr, "nohup: {message}").and_then(|()| writeln!(stderr, "{TRY_HELP}"))
         }

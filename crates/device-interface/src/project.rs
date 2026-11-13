@@ -8,7 +8,7 @@
 //! Windows `C:\Users\alex\app` walks up to `C:\`, and its `.git` is
 //! `C:\Users\alex\app\.git`.
 
-use demi_device_paths::DevicePaths;
+use jush_device_paths::DevicePaths;
 
 use crate::{DeviceFile, DeviceRead};
 

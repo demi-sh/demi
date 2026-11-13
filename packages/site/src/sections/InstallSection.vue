@@ -4,7 +4,7 @@
 // bottom-left corner, under the empty space beside and below the content.
 import { BookOpenIcon } from '@lucide/vue'
 import CommandBox from '@/components/CommandBox.vue'
-import DemiLogo from '@/components/DemiLogo.vue'
+import JushLogo from '@/components/JushLogo.vue'
 import GitHubMark from '@/components/GitHubMark.vue'
 import RequirementsNote from '@/components/RequirementsNote.vue'
 import { DOCS, LICENSE, REPOSITORY } from '@/links'
@@ -28,7 +28,7 @@ import pier2x from '@/assets/pier-2x.webp'
       loading="lazy"
     />
     <h2 class="section-title">Up and running in minutes.</h2>
-    <p class="section-lede">Install Demi on your own server with one command.</p>
+    <p class="section-lede">Install Jush on your own server with one command.</p>
     <div class="box">
       <img class="otter" loading="lazy" :src="otter" alt="" width="240" height="232" />
       <CommandBox />
@@ -42,7 +42,7 @@ import pier2x from '@/assets/pier-2x.webp'
 
   <footer class="footer">
     <div class="row">
-      <DemiLogo class="brand" />
+      <JushLogo class="brand" />
       <a :href="DOCS">Docs</a>
       <a :href="REPOSITORY">GitHub</a>
       <a :href="LICENSE">License</a>

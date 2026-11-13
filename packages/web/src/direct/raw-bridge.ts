@@ -14,7 +14,7 @@ import { rawAnswer, type RawRequest } from './raw'
 
 /** A request the worker hands the page. */
 const rawRequestSchema = z.object({
-  type: z.literal('demi-direct-raw'),
+  type: z.literal('jush-direct-raw'),
   url: z.string(),
   range: z.string().nullable(),
   ifNoneMatch: z.string().nullable(),

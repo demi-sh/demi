@@ -1,4 +1,4 @@
-//! What `demi image` does:
+//! What `jush image` does:
 //!
 //! 1. It reads the call's prompt and, for an edit, its images from the device the
 //!    command runs on.
@@ -12,11 +12,11 @@
 
 use std::io::Cursor;
 
-use demi_device_interface::RpcInvocation;
-use demi_plugin_interface::{ImageAsk, PluginError, PluginPort};
-use demi_plugin_media::{decode_args, fits, models, parse_aspect, prompt, read_images, refused, required_model};
-use demi_shared_types::MediaKind;
-use demi_shared_types::whole_image;
+use jush_device_interface::RpcInvocation;
+use jush_plugin_interface::{ImageAsk, PluginError, PluginPort};
+use jush_plugin_media::{decode_args, fits, models, parse_aspect, prompt, read_images, refused, required_model};
+use jush_shared_types::MediaKind;
+use jush_shared_types::whole_image;
 use image::{DynamicImage, GenericImageView as _, ImageFormat};
 
 use crate::commands::{EditArgs, Format, GenerateArgs, ModelsArgs};
@@ -172,7 +172,7 @@ async fn make(invocation: &RpcInvocation, port: &PluginPort, ask: ImageAsk, form
         said.push_str(&format!(", {account}"));
     }
     said.push_str(")\n");
-    let command = format!("demi {}", invocation.path.join(" "));
+    let command = format!("jush {}", invocation.path.join(" "));
     if let Some(aspect) = aspect
         && !fits(aspect, width, height)
     {

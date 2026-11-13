@@ -1,4 +1,4 @@
-import type { CommandReport } from '@demicodes/protocol'
+import type { CommandReport } from '@jush-ai/protocol'
 import { inject, provide, type InjectionKey } from 'vue'
 import type { CommandEndMark } from './command-end'
 import { t } from './locales/text'

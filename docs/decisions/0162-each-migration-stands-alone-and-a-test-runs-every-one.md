@@ -93,7 +93,7 @@ The control steps that use today's code get their own:
 The history of the conversation databases whose rows held whole blocks,
 and the conversion of such a database into a new file (`convert.rs`), are
 removed, since no server holds one. A database of that form is refused as
-one of any version outside the history is: `demi-server` names it and stops
+one of any version outside the history is: `jush-server` names it and stops
 the upgrade before anything changes. With the conversion go its hard links
 in an upgrade's snapshot, so every database the snapshot keeps is a copy.
 
@@ -155,7 +155,7 @@ of a column no index covers, which only that text holds too.
   [sqlx](https://github.com/launchbadge/sqlx/tree/main/sqlx-macros-core/src/migrate.rs)
   keep one file per migration, ordered by its number.
 
-Demi keeps its version as the digest of the schema's text rather than a
+Jush keeps its version as the digest of the schema's text rather than a
 step's number, so the history stays a list of the schemas themselves, and
 it adds the comparison with a new database, which none of them makes.
 

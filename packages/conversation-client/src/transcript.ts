@@ -11,7 +11,7 @@ import type {
   TranscriptPatch,
   Version,
   Versions,
-} from '@demicodes/protocol'
+} from '@jush-ai/protocol'
 
 /**
  * A node's latest page as the client reads it: its blocks from `start`, the

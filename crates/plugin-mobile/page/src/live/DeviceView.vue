@@ -14,7 +14,7 @@ import {
   wheelInput,
   type DeviceDownload,
   prefersReducedMotion,
-} from '@demicodes/plugin-sdk'
+} from '@jush-ai/plugin-sdk'
 import { quartersBetween, type DeviceSession } from './session'
 import type { LiveFrame } from '../generated/plugin'
 import { RESTING, areaPoint, devicePoint, frameRoom, placeInFrame, placeScreen, poseAt, poseBetween, poseTransform, turnedBox, turnedFrame, unposed, type Placement, type Size, type TurnPose } from './view'

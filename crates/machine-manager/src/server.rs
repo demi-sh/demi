@@ -22,11 +22,11 @@ use std::{
     rc::Rc,
 };
 
-use demi_machine_manager_protocol::{
+use jush_machine_manager_protocol::{
     DeviceId, MAX_LINE_BYTES, MachineCall, MachineRequest, MachineResponse, ManagerEvent, RuntimeOffer,
     decode_request, WIRE_VERSION, encode_line,
 };
-use demi_shared_types::LogLine;
+use jush_shared_types::LogLine;
 use futures_util::StreamExt;
 use tokio::{
     io::AsyncWriteExt,

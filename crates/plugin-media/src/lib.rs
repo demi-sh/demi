@@ -43,7 +43,7 @@
 //!
 //! Every option goes to the vendor as asked, even where the vendor is known to
 //! ignore it, in the field its API has for it. The result is compared with what
-//! was asked. A vendor that starts to honour an option needs no change in Demi,
+//! was asked. A vendor that starts to honour an option needs no change in Jush,
 //! and a result that differs adds a warning and still succeeds.
 //!
 //! The bytes go to stdout, one file per call.

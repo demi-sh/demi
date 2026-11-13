@@ -28,20 +28,20 @@ use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::time::Duration;
 
-use demi_backend_database::devices::ManagedMachine;
+use jush_backend_database::devices::ManagedMachine;
 use futures_util::FutureExt as _;
 use tokio::sync::Notify;
 
-use demi_backend_blobs::blobs::UserBlobs;
-use demi_runner_client::{DirectoryFile, DeviceSubscriber, Link, Look, LookAt, RemoteDevice, WeakLink};
+use jush_backend_blobs::blobs::UserBlobs;
+use jush_runner_client::{DirectoryFile, DeviceSubscriber, Link, Look, LookAt, RemoteDevice, WeakLink};
 use bytes::{Bytes, BytesMut};
 use futures_util::StreamExt;
-use demi_device_interface::{ByteRange, FileKind, Device as _, DeviceError, DeviceErrorKind, DeviceFs as _};
-use demi_runner_protocol::wire::FileHash;
-use demi_plugin_interface::{DeviceDirectory, PluginId};
-use demi_device_interface::{EntryKind, DeviceEntry, DeviceFile, DeviceRead};
-use demi_shared_types::{B64Bytes, ReadAt};
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, WorkspaceId};
+use jush_device_interface::{ByteRange, FileKind, Device as _, DeviceError, DeviceErrorKind, DeviceFs as _};
+use jush_runner_protocol::wire::FileHash;
+use jush_plugin_interface::{DeviceDirectory, PluginId};
+use jush_device_interface::{EntryKind, DeviceEntry, DeviceFile, DeviceRead};
+use jush_shared_types::{B64Bytes, ReadAt};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, WorkspaceId};
 use tokio_util::sync::CancellationToken;
 
 use crate::DeviceShard;
@@ -368,7 +368,7 @@ async fn sync_directories(
     blobs: &UserBlobs,
 ) -> Result<usize, String> {
     let paths = device.identity().paths;
-    let base = |plugin: &PluginId| paths.join(home, &format!(".demi/plugins/{plugin}"));
+    let base = |plugin: &PluginId| paths.join(home, &format!(".jush/plugins/{plugin}"));
     let listed: Vec<LookAt> = sets
         .iter()
         .map(|(plugin, _)| LookAt {

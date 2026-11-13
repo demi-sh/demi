@@ -166,6 +166,6 @@ carries an explanation under it.
 * Bad, because a run started by another system's call can now make or change
   automations once its conversation holds Manage Automations.
 * Modules touched: the automations' protocol, storage (with the migration of
-  today's automations to one task each) and scheduler, `demi automation`'s
+  today's automations to one task each) and scheduler, `jush automation`'s
   commands, the delivery of a run's message, and the Automations page in the
   gallery and the product.

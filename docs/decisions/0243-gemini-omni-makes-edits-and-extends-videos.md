@@ -6,14 +6,14 @@ status: accepted, superseded in part by 0259 and 0260
 
 ## Problem
 
-A Gemini API key makes no video in Demi. Its video role asks Veo with
+A Gemini API key makes no video in Jush. Its video role asks Veo with
 `…/models/<model>:predictLongRunning`, and the Gemini API shut Veo down:
-Google now lists no model with that method, so `demi video models` lists
+Google now lists no model with that method, so `jush video models` lists
 none for the key. The one video model the key may call, Gemini Omni Flash
 (`gemini-omni-1.1-flash`), answers through the Interactions API
 (`POST …/interactions`) instead.
 
-Omni also edits and extends a video, which no `demi video` command can ask
+Omni also edits and extends a video, which no `jush video` command can ask
 for: `generate` takes images but no video. An agent asked to "make the
 boat in boat.mp4 red" or "make it ten seconds longer" has no way to say it.
 
@@ -24,10 +24,10 @@ boat in boat.mp4 red" or "make it ten seconds longer" has no way to say it.
 Two commands join `generate`, each taking the video to change:
 
 ```text
-demi video edit "Make the boat red. Keep everything else the same." \
+jush video edit "Make the boat red. Keep everything else the same." \
   --model gemini-omni-1.1-flash --video boat.mp4 > red-boat.mp4
 
-demi video extend "The boat drifts out of frame to the right." \
+jush video extend "The boat drifts out of frame to the right." \
   --model gemini-omni-1.1-flash --video boat.mp4 > longer-boat.mp4
 ```
 
@@ -54,11 +54,11 @@ demi video extend "The boat drifts out of frame to the right." \
   13 s 640×360 MP4 with sound from gemini-omni-1.1-flash (Google), extending its job v1_ChdTb3VyY2U, $0.45
   ```
 
-- `demi video models` shows whether a model edits and extends, and the
+- `jush video models` shows whether a model edits and extends, and the
   longest source it takes, from the catalog's new `video.edits`,
   `video.extends` and `video.maxSourceSeconds`.
 
-### A video Demi made is continued, not sent again
+### A video Jush made is continued, not sent again
 
 Google keeps each Omni job, an interaction, for 55 days on a paid key and
 one day on a free one, and continues it by its id
@@ -139,7 +139,7 @@ The options map as follows:
 | `--audio`, `--no-audio` | unsent: Omni always makes sound, and the prompt asks for silence |
 | `--seed` | unsent: Omni takes none |
 
-The roles' declaration is the one text Demi adds to a prompt: it is the
+The roles' declaration is the one text Jush adds to a prompt: it is the
 field Google's API has for an image's role, and without it Omni guesses
 the role of each image from the prompt's words.
 
@@ -223,11 +223,11 @@ computer outside it.
   mode, `edit-video` or `extend-video`
   ([xAI video editing](https://docs.x.ai/developers/model-capabilities/video/editing),
   [xAI video extension](https://docs.x.ai/developers/model-capabilities/video/extension)).
-  Demi takes the same split as two commands, as `demi image` has `edit`
+  Jush takes the same split as two commands, as `jush image` has `edit`
   beside `generate`.
 - OpenAI's Videos API and LiteLLM's `video_remix` continue a video by the
   id of its job ([LiteLLM videos](https://docs.litellm.ai/docs/videos)).
-  Demi continues by the id too, but finds it from the file, since an agent
+  Jush continues by the id too, but finds it from the file, since an agent
   keeps files and not ids.
 - Google's guide streams or polls an interaction and declares image roles
   in the prompt ([Gemini Omni](https://ai.google.dev/gemini-api/docs/omni)).

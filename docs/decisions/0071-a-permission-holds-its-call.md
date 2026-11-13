@@ -10,7 +10,7 @@ permission.
 
 ## Problem
 
-An agent runs `demi automation create …`, which needs the user's
+An agent runs `jush automation create …`, which needs the user's
 permission, and a card asks the user. The user is reading something else
 and answers after a minute. Thirty seconds in, the call returns to the
 model with the command still running and a line that it waits for the
@@ -43,7 +43,7 @@ return the call itself, a send now included: it arrives after that
 result.
 
 ```text
-  $ demi automation create …        waiting for your permission
+  $ jush automation create …        waiting for your permission
   [Allow] [Deny]
                                     the user sends "use 9 am instead"
   exit 1  the user denied this conversation permission to create an

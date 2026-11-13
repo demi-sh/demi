@@ -30,12 +30,12 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use axum::body::Bytes;
-use demi_backend_database::accounts::TokenHash;
-use demi_shared_types::{RequestId, Timestamp};
-use demi_web_api_protocol::auth::UserDto;
-use demi_web_api_protocol::sessions::SessionId;
-use demi_web_api_protocol::connection::LANE_CREDIT;
-use demi_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
+use jush_backend_database::accounts::TokenHash;
+use jush_shared_types::{RequestId, Timestamp};
+use jush_web_api_protocol::auth::UserDto;
+use jush_web_api_protocol::sessions::SessionId;
+use jush_web_api_protocol::connection::LANE_CREDIT;
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, UserId};
 use tokio::sync::{mpsc, oneshot};
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;

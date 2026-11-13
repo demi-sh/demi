@@ -6,20 +6,20 @@
  * operation's answer, as the relay's route would give it, unless it sends
  * the operation to the relay (`busy`, `too_large`).
  */
-import type { Read } from '@demicodes/web-ui/files/file-cache'
-import type { FileReads } from '@demicodes/web-ui/files/kept-source'
-import type { FileSearchEvent, FileText, FileUploadOptions } from '@demicodes/web-ui/files/types'
-import type { OpenUserStream, StreamBytes, UserStream, UserStreamHandlers } from '@demicodes/web-ui/plugins/streams'
-import { LiveFrameSplitter, frameKind } from '@demicodes/web-ui/live/frames'
-import { REFUSED_FRAME } from '@demicodes/web-ui/live/link'
-import { LIVE_ACK_FRAME, type StreamWatched } from '@demicodes/protocol'
-import type { WatchLink } from '@demicodes/web-ui/files/watch-channel'
-import { reconnectNow } from '@demicodes/web-ui/transport/liveness'
+import type { Read } from '@jush-ai/web-ui/files/file-cache'
+import type { FileReads } from '@jush-ai/web-ui/files/kept-source'
+import type { FileSearchEvent, FileText, FileUploadOptions } from '@jush-ai/web-ui/files/types'
+import type { OpenUserStream, StreamBytes, UserStream, UserStreamHandlers } from '@jush-ai/web-ui/plugins/streams'
+import { LiveFrameSplitter, frameKind } from '@jush-ai/web-ui/live/frames'
+import { REFUSED_FRAME } from '@jush-ai/web-ui/live/link'
+import { LIVE_ACK_FRAME, type StreamWatched } from '@jush-ai/protocol'
+import type { WatchLink } from '@jush-ai/web-ui/files/watch-channel'
+import { reconnectNow } from '@jush-ai/web-ui/transport/liveness'
 import { relayWatchLink, watchReceiver, watchText, type OpenConversationWatchLink } from '../conversation/file-watch'
 import { ApiError } from '../api/client'
 import { fileBrowserEntry, fileBrowserError } from '../api/files'
 import { searchEvents } from '../api/file-search'
-import { errorCodeSchema } from '@demicodes/protocol'
+import { errorCodeSchema } from '@jush-ai/protocol'
 import {
   listedSchema,
   openedSchema,
@@ -35,7 +35,7 @@ import { ChannelFailed, ChannelRefused, relayAnswers, type DirectPeer, type Oper
 
 /**
  * The relay's answer to a refusal of the runner's: the same code, status
- * and words, and the ETag and `X-Demi-Read-At` the relay's answer carries
+ * and words, and the ETag and `X-Jush-Read-At` the relay's answer carries
  * for a file that is not text or too large to read as text.
  */
 export function relayError(refused: ChannelRefused): ApiError {
@@ -45,7 +45,7 @@ export function relayError(refused: ChannelRefused): ApiError {
   if (version)
     headers.set('etag', version)
   if (readAt)
-    headers.set('x-demi-read-at', `${readAt.epoch}.${readAt.number}`)
+    headers.set('x-jush-read-at', `${readAt.epoch}.${readAt.number}`)
   return new ApiError(refused.status, code.success ? code.data : null, refused.message, null, null, headers)
 }
 

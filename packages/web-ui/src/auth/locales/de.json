@@ -23,9 +23,9 @@
     "locked": "Zu viele fehlgeschlagene Anmeldungen. Versuche es in {time} erneut."
   },
   "setup": {
-    "title": "Demi einrichten",
-    "message": "Erstelle das Hauptkonto, das Demi verwaltet.",
-    "taken": "Demi ist bereits eingerichtet. Melde dich mit dem Hauptkonto an.",
+    "title": "Jush einrichten",
+    "message": "Erstelle das Hauptkonto, das Jush verwaltet.",
+    "taken": "Jush ist bereits eingerichtet. Melde dich mit dem Hauptkonto an.",
     "name": "Name",
     "email": "E-Mail-Adresse",
     "password": "Passwort",
@@ -53,7 +53,7 @@
     "passwordMessage": "Bestätige deine Identität, um den Passkey hinzuzufügen.",
     "password": "Passwort",
     "readyTitle": "Passkey bereit",
-    "readyMessage": "Dein Passwort-Manager hat bereits einen Passkey für Demi."
+    "readyMessage": "Dein Passwort-Manager hat bereits einen Passkey für Jush."
   },
   "unlock": {
     "ios": "Melde dich mit Face ID oder Touch ID statt mit deinem Passwort an.",

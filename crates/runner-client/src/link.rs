@@ -37,19 +37,19 @@ use std::{
 };
 
 use bytes::Bytes;
-use demi_command_protocol::{ArtifactLocation, CommandContext, PackageDescriptor, ResidentSequence};
-use demi_device_interface::{
+use jush_command_protocol::{ArtifactLocation, CommandContext, PackageDescriptor, ResidentSequence};
+use jush_device_interface::{
     DeviceError, DeviceErrorKind, DeviceIdentity, DeviceKey, JobCaller, ProcessEnd, ProcessOutput,
     RpcError, RpcInvocation, RpcPort, SpawnError, SpawnErrorKind,
 };
-use demi_runner_protocol::direct::{DialRefusal, Introduced, OfferRefusal, StunUrl};
-use demi_runner_protocol::forward::{Forward, ForwardRunState};
-use demi_runner_protocol::wire::{LinkedWorktree, 
+use jush_runner_protocol::direct::{DialRefusal, Introduced, OfferRefusal, StunUrl};
+use jush_runner_protocol::forward::{Forward, ForwardRunState};
+use jush_runner_protocol::wire::{LinkedWorktree, 
     self, ArtifactOwner, FileRead, FsResult, GitResult, DeviceArtifact, DeviceDownload, DeviceLogLine, Inbound, Outbound,
     Read, ReadAt,
 };
-use demi_shared_gates::GateLease;
-use demi_shared_types::{BlobRef, StreamKind};
+use jush_shared_gates::GateLease;
+use jush_shared_types::{BlobRef, StreamKind};
 use futures_util::{Sink, SinkExt, Stream, StreamExt, future::LocalBoxFuture};
 use tokio::sync::{mpsc, oneshot, watch};
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
@@ -155,7 +155,7 @@ pub trait LinkPolicy {
     /// message, which may follow their change, as a move does.
     fn worktrees(&self, directory: String, worktrees: Vec<LinkedWorktree>);
 
-    /// The runner measured what Demi keeps on the device, on its own or for
+    /// The runner measured what Jush keeps on the device, on its own or for
     /// a request (`crates/runner/src/storage.rs`). The policy keeps the
     /// report before a request's caller reads it.
     fn storage_measured(&self, report: wire::StorageReport);
@@ -478,7 +478,7 @@ pub(crate) enum Answer {
     Direct(DirectAnswer),
     /// The answer to a request the device made, but for its body.
     Http(HttpHead),
-    /// What Demi keeps on the device after a storage request.
+    /// What Jush keeps on the device after a storage request.
     Storage(wire::StorageReport),
     Done,
 }
@@ -489,7 +489,7 @@ pub(crate) enum Answer {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HttpHead {
     pub status: u16,
-    pub headers: Vec<demi_runner_protocol::device_requests::HttpHeader>,
+    pub headers: Vec<jush_runner_protocol::device_requests::HttpHeader>,
 }
 
 /// A request the backend makes for the user from the device, as
@@ -499,7 +499,7 @@ pub struct HttpRequest {
     /// An `http` or `https` URL, as the device resolves its host.
     pub url: String,
     pub method: String,
-    pub headers: Vec<demi_runner_protocol::device_requests::HttpHeader>,
+    pub headers: Vec<jush_runner_protocol::device_requests::HttpHeader>,
 }
 
 /// What the runner says of a page's peer besides its answer
@@ -1094,7 +1094,7 @@ impl Link {
             .map(|_| ())
     }
 
-    /// Removes what `action` names from the device and measures what Demi
+    /// Removes what `action` names from the device and measures what Jush
     /// keeps there then, which takes a walk of every file.
     pub async fn storage(&self, action: wire::StorageAction) -> Result<wire::StorageReport, DeviceError> {
         match self.call(Expected::Storage, |id| Inbound::Storage { id, action }).await? {
@@ -1103,7 +1103,7 @@ impl Link {
         }
     }
 
-    /// Tells the runner the rules its user set for what Demi keeps on their
+    /// Tells the runner the rules its user set for what Jush keeps on their
     /// devices.
     pub fn set_storage_rules(&self, rules: wire::StorageRules) -> Result<(), DeviceError> {
         self.send(&Inbound::StorageRules { rules })

@@ -6,7 +6,7 @@
 //! the asked shape is sent.
 
 use bytes::Bytes;
-use demi_provider_common::{
+use jush_provider_common::{
     images::{ImageMaker, ImageRequest, MadeImage, openai, read_data_answer},
     media::{MediaAnswer, MediaCall, MediaCredential, MediaFailure, MediaMaker, MediaModelInfo, MediaVendor, subscription_models},
     media_catalog::{Catalog, MediaKind, Subscription},
@@ -63,7 +63,7 @@ impl MediaMaker for CodexProvider {
     /// every listing route.
     fn models<'a>(
         &'a self,
-        _: &'a demi_provider_common::ProviderHttp,
+        _: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
     ) -> BoxFuture<'a, Result<Vec<MediaModelInfo>, MediaFailure>> {
         Box::pin(std::future::ready(Ok(subscription_models(catalog, Subscription::Chatgpt, MediaKind::Image))))
@@ -79,7 +79,7 @@ impl MediaMaker for CodexProvider {
 impl ImageMaker for CodexProvider {
     fn make<'a>(
         &'a self,
-        http: &'a demi_provider_common::ProviderHttp,
+        http: &'a jush_provider_common::ProviderHttp,
         catalog: &'a Catalog,
         request: ImageRequest,
     ) -> BoxFuture<'a, MediaAnswer<MadeImage>> {

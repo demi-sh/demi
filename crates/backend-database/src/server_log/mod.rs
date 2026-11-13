@@ -1,4 +1,4 @@
-//! The log: every line `DEMI_LOG` selects of the backend's, every line of each
+//! The log: every line `JUSH_LOG` selects of the backend's, every line of each
 //! device's runner and of each page, as a row of `log.sqlite` in the data directory, which whoever
 //! diagnoses reads with `sqlite3` (`docs/delivery/diagnosis.md`).
 //!
@@ -6,7 +6,7 @@
 //!   backend `tracing` events --- layer ---+
 //!   a runner's `log_lines` frames --------+--> queue --> writer thread --> log.sqlite
 //!   a page's `POST /log` lines -----------+     (4096)    commits every 200 ms,
-//!      (only the levels DEMI_LOG selects          trims by batches
+//!      (only the levels JUSH_LOG selects          trims by batches
 //!       for the target `page`)
 //! ```
 //!
@@ -34,8 +34,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc;
 use std::time::Duration;
 
-use demi_shared_types::log_layer::LineLayer;
-use demi_shared_types::{DeviceLogLine, LogLevel, LogLine, LogOrigin};
+use jush_shared_types::log_layer::LineLayer;
+use jush_shared_types::{DeviceLogLine, LogLevel, LogLine, LogOrigin};
 use tracing::Level;
 use tracing_subscriber::filter::Targets;
 
@@ -43,7 +43,7 @@ use tracing_subscriber::filter::Targets;
 /// without waiting; one the queue has no room for is dropped and counted.
 pub type ServerLogLayer = LineLayer<Box<dyn Fn(LogLine) + Send + Sync>>;
 
-/// The target `DEMI_LOG` names the page's lines by, as `info,page=debug` does.
+/// The target `JUSH_LOG` names the page's lines by, as `info,page=debug` does.
 pub const PAGE_TARGET: &str = "page";
 
 /// The database's file in the data directory.
@@ -62,8 +62,8 @@ pub struct Limits {
     pub max_bytes: u64,
 }
 
-impl From<demi_web_api_protocol::storage::LogRetention> for Limits {
-    fn from(retention: demi_web_api_protocol::storage::LogRetention) -> Self {
+impl From<jush_web_api_protocol::storage::LogRetention> for Limits {
+    fn from(retention: jush_web_api_protocol::storage::LogRetention) -> Self {
         Self {
             keep: Duration::from_secs(u64::from(retention.keep_days) * 24 * 60 * 60),
             max_bytes: retention.max_bytes,
@@ -88,7 +88,7 @@ enum Message {
 /// Starts the log of the data directory `data_dir`: the writer thread, and
 /// the layer that goes into the process's `tracing` subscriber.
 ///
-/// `filter` is `DEMI_LOG`: a page's lines are stored at the levels it selects
+/// `filter` is `JUSH_LOG`: a page's lines are stored at the levels it selects
 /// for the target [`PAGE_TARGET`], as the backend's own are for theirs.
 ///
 /// The log opens before the database that holds its limits, so it trims
@@ -175,7 +175,7 @@ impl ServerLogWriter {
         })
         .await;
         if !matches!(closed, Ok(Ok(()))) {
-            eprintln!("demi-backend: the server log's writer failed");
+            eprintln!("jush-backend: the server log's writer failed");
         }
     }
 }
@@ -186,7 +186,7 @@ impl ServerLogWriter {
 pub struct ServerLog {
     path: PathBuf,
     sink: Option<Sink>,
-    /// What `DEMI_LOG` selects, which a page's lines are held to.
+    /// What `JUSH_LOG` selects, which a page's lines are held to.
     filter: Option<Arc<Targets>>,
 }
 
@@ -272,7 +272,7 @@ impl ServerLog {
     /// Stores the lines of a page's `POST /log`, which the route has
     /// checked and given their page, user and origin.
     ///
-    /// A line below the level `DEMI_LOG` selects for [`PAGE_TARGET`] is not
+    /// A line below the level `JUSH_LOG` selects for [`PAGE_TARGET`] is not
     /// stored, as a backend event below it is not: a page writes `debug` lines
     /// for every scroll, which the log keeps only when asked.
     pub fn store_page(&self, lines: Vec<LogLine>) {

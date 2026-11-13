@@ -66,8 +66,8 @@
   },
   "page": {
     "cloud": "Nube",
-    "startSentence": "Inicia Demi en el dispositivo:",
-    "noAutostart": "Este dispositivo no iniciará Demi por sí solo después de reiniciarse.",
+    "startSentence": "Inicia Jush en el dispositivo:",
+    "noAutostart": "Este dispositivo no iniciará Jush por sí solo después de reiniciarse.",
     "connection": "Conexión",
     "route": "Ruta",
     "p2p": "P2P",
@@ -133,7 +133,7 @@
     "pair": "Vincular dispositivo",
     "invalidCode": "Este código no está disponible. Pega el código más reciente del runner.",
     "rateLimited": "Demasiados intentos. Espera un minuto antes de volver a intentarlo.",
-    "unavailable": "No se pudo acceder a Demi. Revisa tu conexión y vuelve a intentarlo."
+    "unavailable": "No se pudo acceder a Jush. Revisa tu conexión y vuelve a intentarlo."
   },
   "revoke": {
     "title": "¿Revocar este dispositivo?",
@@ -153,7 +153,7 @@
   "autostart": {
     "noSystemd": "Este sistema no ejecuta systemd.",
     "noUserManager": "El administrador de usuario de systemd no responde: {error}",
-    "notWritten": "Demi no pudo guardar {path}: {error}",
+    "notWritten": "Jush no pudo guardar {path}: {error}",
     "lingerOff": "Solo se inicia cuando {user} inicia sesión. Para iniciarlo cuando se inicie la computadora, ejecuta:",
     "refused": "Windows rechazó la tarea programada y el elemento de inicio: {error}",
     "unusableName": "El nombre de la carpeta de instalación, {name}, no puede nombrar un elemento de inicio.",

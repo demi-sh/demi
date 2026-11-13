@@ -24,7 +24,7 @@ pub use uploads::{UPLOADS_AT_ONCE, UploadBody, causes};
 
 use bytes::Bytes;
 use crate::backend::Backend;
-use demi_runner_protocol::{values::DeviceToken, wire::{self, PipePath}};
+use jush_runner_protocol::{values::DeviceToken, wire::{self, PipePath}};
 use futures_util::{Stream, StreamExt, stream::BoxStream};
 use std::{io, sync::Arc, time::Duration};
 use tokio::sync::{mpsc, watch};
@@ -114,7 +114,7 @@ impl PipeClient {
             .http2_keep_alive_timeout(PING_ANSWER)
             .build()
             .map_err(io::Error::other)?;
-        let downloads = demi_shared_artifacts::download_client_through(|builder| backend.http(builder))
+        let downloads = jush_shared_artifacts::download_client_through(|builder| backend.http(builder))
             .map_err(io::Error::other)?;
         let lanes = Arc::new(lanes::Lanes::new(backend, &origin, token.clone(), connect_timeout)?);
         Ok(Self {
@@ -162,7 +162,7 @@ impl PipeClient {
         // Out of open files, the connection waits for one (`crates/command-sdk/src/descriptors.rs`).
         let response = tokio::select! {
             _ = cancel.cancelled() => return Err(cancelled()),
-            response = reconnecting(|| demi_command_sdk::descriptors::retry(&cancel, || async {
+            response = reconnecting(|| jush_command_sdk::descriptors::retry(&cancel, || async {
                 let request = self.request(reqwest::Method::GET, path).map_err(Attempt::Refused)?;
                 request.send().await.map_err(Attempt::of)
             })) => expect_ok(response?).await?,
@@ -192,7 +192,7 @@ impl PipeClient {
         tokio::select! {
             _ = cancel.cancelled() => Err(cancelled()),
             result = async {
-                let mut backoff = demi_command_sdk::descriptors::Backoff::default();
+                let mut backoff = jush_command_sdk::descriptors::Backoff::default();
                 let mut lost_since = None;
                 let response = loop {
                     let request = self.request(reqwest::Method::PUT, path)?;
@@ -201,7 +201,7 @@ impl PipeClient {
                         // Out of open files, the connection waits for one
                         // (`crates/command-sdk/src/descriptors.rs`). Only an attempt that read none
                         // of the body can be made again.
-                        Err(error) if body.unread() && demi_command_sdk::descriptors::exhausted(&error) => {
+                        Err(error) if body.unread() && jush_command_sdk::descriptors::exhausted(&error) => {
                             backoff.wait().await;
                         }
                         // A connection that failed before the body went is
@@ -336,23 +336,23 @@ impl PipeClient {
             }
             headers
         };
-        let download = demi_shared_artifacts::Download {
+        let download = jush_shared_artifacts::Download {
             limit: offer.size,
             headers: &headers,
-            ..demi_shared_artifacts::Download::new(url.as_str())
+            ..jush_shared_artifacts::Download::new(url.as_str())
         };
-        let expected = demi_shared_artifacts::Digest {
+        let expected = jush_shared_artifacts::Digest {
             size: offer.size,
             sha256: offer.sha256.clone(),
         };
         let written = async {
-            let received = demi_shared_artifacts::download(&self.downloads, download, staging, cancel, |held, _| progress(held)).await?;
+            let received = jush_shared_artifacts::download(&self.downloads, download, staging, cancel, |held, _| progress(held)).await?;
             received.verify(staging, &expected, output, cancel).await
         }
         .await;
-        demi_shared_artifacts::discard(staging).await;
+        jush_shared_artifacts::discard(staging).await;
         written.map_err(|error| match error {
-            demi_shared_artifacts::Error::Io(error) => error,
+            jush_shared_artifacts::Error::Io(error) => error,
             error => io::Error::other(error.to_string()),
         })
     }

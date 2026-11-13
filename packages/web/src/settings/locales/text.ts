@@ -1,4 +1,4 @@
-import { defineText } from '@demicodes/web-ui/i18n/text'
+import { defineText } from '@jush-ai/web-ui/i18n/text'
 import de from './de.json'
 import en from './en.json'
 import es419 from './es-419.json'

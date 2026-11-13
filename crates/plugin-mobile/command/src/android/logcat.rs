@@ -8,7 +8,7 @@
 //! the time in seconds since the epoch, the user id, the process and the
 //! thread, the level's letter, and the tag before the message.
 
-use demi_command_package_mobile_protocol::mobile::{LogEntry, LogLevel};
+use jush_command_package_mobile_protocol::mobile::{LogEntry, LogLevel};
 
 /// The entry of `line`; none for the lines logcat adds itself, such as the
 /// start of a buffer.

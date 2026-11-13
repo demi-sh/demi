@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch, type Component } from 'vue'
 import { useElementSize, useEventListener, usePreferredReducedMotion } from '@vueuse/core'
-import { clamp } from '@demicodes/utils'
+import { clamp } from '@jush-ai/utils'
 import ResizeHandle from '../ui/ResizeHandle.vue'
 import { startPointerDrag } from '../ui/pointer-drag'
 import { resizeWindowRect, type WindowEdges, type WindowRect } from '../ui/floating-window'

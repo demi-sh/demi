@@ -100,7 +100,7 @@ panel or a live view's corners.
 - `TabKind.pinned`: the kind is its window's one view, such as Files, there
   in every conversation and never saved.
 - `create_tab`'s `index`: the tab's place among its window's tabs.
-- `demi browser show` and every other command that shows a tab: its window
+- `jush browser show` and every other command that shows a tab: its window
   comes to the front, as their descriptions already say.
 
 ### Older data
@@ -130,7 +130,7 @@ browser put in place: the window came to the front and two
   `ISerializedEditorGroupModel` in
   `src/vs/workbench/common/editor/editorGroupModel.ts`). Closing the active
   editor shows the most recent one (`workbench.editor.focusRecentEditorAfterClose`).
-  Demi keeps the same, for one window in front rather than a recent order of
+  Jush keeps the same, for one window in front rather than a recent order of
   windows, which its taskbar's order stands for.
 
 ## Alternatives

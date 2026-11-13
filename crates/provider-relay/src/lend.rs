@@ -5,11 +5,11 @@
 //! conversation's session keeps it with its state, and names it in each of
 //! its requests; the borrower never hears of it, nor of the account's
 //! switches and quota. A failure crosses as its code alone, as its type
-//! says (`demi_provider_common::ProviderFailure`), and is logged here
+//! says (`jush_provider_common::ProviderFailure`), and is logged here
 //! whole.
 
-use demi_provider_common::{CallEvent, ErrorCode, ProviderEvent, ProviderFailure, ProviderRuntime};
-use demi_shared_types::AgentAccount;
+use jush_provider_common::{CallEvent, ErrorCode, ProviderEvent, ProviderFailure, ProviderRuntime};
+use jush_shared_types::AgentAccount;
 use futures_util::{Sink, SinkExt as _, Stream, StreamExt as _};
 use tokio_util::sync::CancellationToken;
 

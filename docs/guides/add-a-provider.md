@@ -1,13 +1,13 @@
 # Add a provider
 
-This guide adds a provider crate: the code that connects Demi to one more
+This guide adds a provider crate: the code that connects Jush to one more
 inference service. The crate implements the provider contract
 (`crates/provider-common/src/lib.rs`). Read that first, because this guide
 shows where each of its rules lands in code instead of restating them.
 
 Before you write a crate, check whether the service needs one:
 
-- A service that speaks a wire Demi already reads (OpenAI Responses or Chat
+- A service that speaks a wire Jush already reads (OpenAI Responses or Chat
   Completions, Anthropic Messages, Gemini `generateContent`) is an entry of that
   family with its own base URL (`crates/provider-common/src/endpoint.rs`).
 - A vendor that models.dev lists with a supported client package appears in the
@@ -253,7 +253,7 @@ Add your family there. Then:
 
 ## Check it
 
-Demi keeps no provider tests ([Testing](../delivery/testing.md)). Check your
+Jush keeps no provider tests ([Testing](../delivery/testing.md)). Check your
 provider on the running product during acceptance, against the real vendor
 and by hand:
 

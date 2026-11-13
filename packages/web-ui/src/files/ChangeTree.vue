@@ -10,7 +10,7 @@ import GitStatusLetter from './GitStatusLetter.vue'
 import Tree from './Tree.vue'
 import { changeTreeRows, type ChangeTreeFile, type ChangeTreeRow } from './changes'
 import { gitMark } from './git-status'
-import { baseName } from '@demicodes/utils'
+import { baseName } from '@jush-ai/utils'
 import type { SentenceText } from '../ui/ui-text'
 import { t } from './locales/text'
 

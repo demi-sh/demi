@@ -21,7 +21,7 @@
 use std::future::Future;
 use std::time::Duration;
 
-use demi_shared_gates::GateState;
+use jush_shared_gates::GateState;
 use futures_util::future::LocalBoxFuture;
 use tokio::time::Instant;
 use tokio_util::task::TaskTracker;

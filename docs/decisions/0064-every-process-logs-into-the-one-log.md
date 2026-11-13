@@ -15,7 +15,7 @@ the systemd journal of its server, and `log.sqlite` has nothing of why.
 
 ## Decision
 
-Every process of Demi writes the lines 0060 defines, and they reach
+Every process of Jush writes the lines 0060 defines, and they reach
 `log.sqlite`.
 
 - **A command package's service** (the `command` process of a `plugin-*`
@@ -75,7 +75,7 @@ None.
   structured logging writes JSON lines there
   ([structured logging](https://kubernetes.io/docs/concepts/cluster-administration/system-logs/#structured-logging)).
 
-Demi does the same for its services, through the runner that already reads
+Jush does the same for its services, through the runner that already reads
 their standard error.
 
 ## Alternatives

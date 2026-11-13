@@ -4,9 +4,9 @@
 
 use std::{collections::HashMap, rc::Rc, time::Duration};
 
-use demi_conversation_lane_protocol::{AgentEntry, CacheChart, ClientContent, ClientFrame, ServerFrame};
-use demi_agent_tools::DeviceResolver;
-use demi_shared_types::{NodeId, PictureFailure, SessionPhase};
+use jush_conversation_lane_protocol::{AgentEntry, CacheChart, ClientContent, ClientFrame, ServerFrame};
+use jush_agent_tools::DeviceResolver;
+use jush_shared_types::{NodeId, PictureFailure, SessionPhase};
 use futures_util::future::LocalBoxFuture;
 
 use crate::{

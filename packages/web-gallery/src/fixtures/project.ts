@@ -1,8 +1,8 @@
-import { baseName, delay } from '@demicodes/utils'
-import type { ChangeFile, ChangeSetSource, ChangeSides, WorkingTreeChange } from '@demicodes/web-ui/files/changes'
+import { baseName, delay } from '@jush-ai/utils'
+import type { ChangeFile, ChangeSetSource, ChangeSides, WorkingTreeChange } from '@jush-ai/web-ui/files/changes'
 import { diffLineCounts } from './diff-counts'
-import { DeviceFiles } from '@demicodes/web-ui/files/file-cache'
-import { keptChangeSet, type ContentReads } from '@demicodes/web-ui/files/kept-source'
+import { DeviceFiles } from '@jush-ai/web-ui/files/file-cache'
+import { keptChangeSet, type ContentReads } from '@jush-ai/web-ui/files/kept-source'
 import {
   assetFile,
   createMemoryFileSource,
@@ -11,9 +11,9 @@ import {
   textFile,
   type MemoryDirectory,
   type MemoryFileSource,
-} from '@demicodes/web-ui/files/memory-source'
-import { FileBrowserError } from '@demicodes/web-ui/files/types'
-import { WatchChannel } from '@demicodes/web-ui/files/watch-channel'
+} from '@jush-ai/web-ui/files/memory-source'
+import { FileBrowserError } from '@jush-ai/web-ui/files/types'
+import { WatchChannel } from '@jush-ai/web-ui/files/watch-channel'
 
 /**
  * The demo project behind the conversation's windows: the project the login-test
@@ -41,7 +41,7 @@ export const QUOTED_CODE = {
     text: `use std::env;
 use std::process::ExitCode;
 
-/// The port the backend listens on unless \`DEMI_PORT\` names another.
+/// The port the backend listens on unless \`JUSH_PORT\` names another.
 const DEFAULT_PORT: u16 = 3300;
 
 #[derive(Debug)]
@@ -51,7 +51,7 @@ struct Config {
 }
 
 fn config() -> Result<Config, String> {
-    let port = match env::var("DEMI_PORT") {
+    let port = match env::var("JUSH_PORT") {
         Ok(value) => value.parse().map_err(|_| format!("not a port: {value}"))?,
         Err(_) => DEFAULT_PORT,
     };
@@ -65,7 +65,7 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         }
         Err(message) => {
-            eprintln!("demi: {message}");
+            eprintln!("jush: {message}");
             ExitCode::from(2)
         }
     }
@@ -78,7 +78,7 @@ fn main() -> ExitCode {
 # Starts the backend and the web front end, and stops both on Ctrl-C.
 set -euo pipefail
 
-port="\${DEMI_PORT:-3300}"
+port="\${JUSH_PORT:-3300}"
 cd "$(dirname "$0")/.."
 
 cleanup() {
@@ -86,7 +86,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cargo run --bin demi -- --port "$port" &
+cargo run --bin jush -- --port "$port" &
 backend=$!
 for attempt in {1..30}; do
   curl -sf "http://127.0.0.1:$port/health" > /dev/null && break
@@ -163,14 +163,14 @@ describe('session cookie', () => {
 `
 
 const readme = `---
-title: demi
+title: jush
 tags: [agents, cloud]
 ---
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/lockup-dark.svg">
-    <img alt="demi" src="assets/lockup-light.svg" height="48">
+    <img alt="jush" src="assets/lockup-light.svg" height="48">
   </picture>
 </p>
 
@@ -182,7 +182,7 @@ tags: [agents, cloud]
 
 <p align="center"><img src="assets/photo.png" width="240" alt="The test pattern"></p>
 
-# demi
+# jush
 
 Conversations that run commands on Cloud or your own machines.
 
@@ -251,7 +251,7 @@ function lockupSvg(ink: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
   <rect x="4" y="6" width="48" height="48" rx="12" fill="#3b82f6"/>
   <circle cx="28" cy="30" r="11" fill="#ffffff"/>
-  <text x="64" y="44" font-family="system-ui, sans-serif" font-size="40" font-weight="700" fill="${ink}">demi</text>
+  <text x="64" y="44" font-family="system-ui, sans-serif" font-size="40" font-weight="700" fill="${ink}">jush</text>
 </svg>
 `
 }
@@ -269,7 +269,7 @@ function badgeSvg(label: string, value: string, color: string): string {
 }
 
 const packageJson = `{
-  "name": "demi",
+  "name": "jush",
   "private": true,
   "projects": ["packages/*"],
   "scripts": {
@@ -403,7 +403,7 @@ function tree(): MemoryDirectory {
         'agent-messages.md', 'package-boundaries.md', 'session-storage-and-naming.md',
         'tool-rendering-spec.md', 'web-authentication.md', 'web-integration.md',
       ]),
-      'demi-next': dir(files('docs/demi-next', [
+      'jush-next': dir(files('docs/jush-next', [
         'backend.md', 'overview.md', 'product.md', 'roadmap.md', 'runner.md',
         'sessions-and-targets.md', 'storage.md', 'web-application.md',
       ])),
@@ -501,7 +501,7 @@ function slotTree(): MemoryDirectory {
         'session.ts': textFile(`export * from './cookie'\n`, at),
       }),
     }),
-    'README.md': textFile('# Demi\n\nThis checkout renames the session cookie.\n', at),
+    'README.md': textFile('# Jush\n\nThis checkout renames the session cookie.\n', at),
   })
 }
 
@@ -651,7 +651,7 @@ const changeSides: Record<string, ChangedSides> = {
     original: '# getting-started\n\nInstall bun, then run the dev server.\n',
     modified: '# getting-started\n\nInstall bun, then run the dev server.\n\nThe session cookie is named `session`.\n',
   },
-  'docs/demi-next/web-application.md': generatedChange('docs/demi-next/web-application.md', 40, 6),
+  'docs/jush-next/web-application.md': generatedChange('docs/jush-next/web-application.md', 40, 6),
   'packages/web-ui/src/agent/Work.vue': generatedChange('packages/web-ui/src/agent/Work.vue', 96, 7),
   'packages/web-ui/src/agent/work-windows.ts': generatedChange('packages/web-ui/src/agent/work-windows.ts', 60, 8),
   'packages/web-ui/src/agent/blocks/FileChangePills.vue': generatedChange('packages/web-ui/src/agent/blocks/FileChangePills.vue', 84, 9),
@@ -662,7 +662,7 @@ const changeSides: Record<string, ChangedSides> = {
   'packages/agent/src/tools.ts': generatedChange('packages/agent/src/tools.ts', 90, 13),
   'scripts/release.ts': { status: 'D ', kind: 'deleted', original: generated('scripts/release.ts', 36, 14), modified: '' },
   // A script become a symlink: its content on each side is the script, then the link's target.
-  'bin/demi': { status: ' T', kind: 'modified', original: launcherScript, modified: '../packages/cli/dist/demi' },
+  'bin/jush': { status: ' T', kind: 'modified', original: launcherScript, modified: '../packages/cli/dist/jush' },
   '.github/workflows/ci.yml': generatedChange('.github/workflows/ci.yml', 24, 15),
   'package.json': { status: 'UU', kind: 'modified', original: packageJson.replace('"typecheck": "tsgo --noEmit"', '"typecheck": "tsc --noEmit"'), modified: packageJson },
   'assets/logo.svg': { status: ' M', kind: 'modified', original: logoSvgBefore, modified: logoSvg },

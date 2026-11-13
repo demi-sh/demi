@@ -9,7 +9,7 @@ status: proposed
 On a laptop without Chrome, Alex opens a page in the browser panel. The panel
 shows "Starting the browser…" with a spinner, then "Couldn't open this page.
 The browser couldn't start." with Retry. The agent fails the same way: its
-first `demi browser tab new` fails, it runs `demi browser install`, and it
+first `jush browser tab new` fails, it runs `jush browser install`, and it
 tries again a minute and a half later. Signing in to Claude Code, or installing
 it in Settings, shows a spinner for the whole of the CLI's download, which can
 take minutes on a slow link.
@@ -42,9 +42,9 @@ The browser panel, while the Host downloads Chrome or the browser's program:
   nothing downloads, so the label never moves.
 - A tab the user opens in the panel on a Host without Chrome installs Chrome
   and then opens its page, instead of failing.
-- An agent's `demi browser tab new` or `demi browser content fetch` on a Host
+- An agent's `jush browser tab new` or `jush browser content fetch` on a Host
   without Chrome installs it first and prints the install's progress lines on
-  standard error, as `demi browser install` prints them on standard output.
+  standard error, as `jush browser install` prints them on standard output.
   The command's own timeout starts once Chrome is in place.
 - The mobile panel, while its stream waits for the Host to download the
   plugin's program, says "Downloading…" with the sizes in place of
@@ -86,7 +86,7 @@ The browser panel, while the Host downloads Chrome or the browser's program:
   tied to the invocation, so a cancelled command stops it.
 - The Claude Code machine belongs to the instance's master, so a user's pages
   do not see its device. While the backend installs the CLI there, it watches
-  that machine's downloads of `demi.claude-code` and reports them as a new
+  that machine's downloads of `jush.claude-code` and reports them as a new
   `StartStage::Download`. The backend carries them as `download` on
   `CliInstall::Installing` and on a pending login. Both are null before the
   first report.

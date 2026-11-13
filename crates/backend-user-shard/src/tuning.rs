@@ -5,7 +5,7 @@
 
 use std::time::Duration;
 
-/// When Demi reclaims what a conversation uses on a device, one idle window
+/// When Jush reclaims what a conversation uses on a device, one idle window
 /// for the conversation's release and for a Cloud's stop (`crates/backend-user-shard/src/lifecycle/mod.rs`).
 /// Tests shorten the times.
 #[derive(Debug, Clone, Copy)]
@@ -54,11 +54,11 @@ pub struct ConversationTuning {
 impl Default for ConversationTuning {
     fn default() -> Self {
         Self {
-            outbox_steps: demi_agent_server::ServerConfig::default().outbox_steps,
+            outbox_steps: jush_agent_server::ServerConfig::default().outbox_steps,
             titles: true,
             search_interval: Duration::from_secs(2),
-            call_window_ms: demi_agent_server::ServerConfig::default().call_window_ms,
-            silence: demi_agent_server::ServerConfig::default().session.silence,
+            call_window_ms: jush_agent_server::ServerConfig::default().call_window_ms,
+            silence: jush_agent_server::ServerConfig::default().session.silence,
         }
     }
 }
@@ -137,7 +137,7 @@ impl Default for RunnerTuning {
             hello_deadline: Duration::from_secs(30),
             claim_lifetime: Duration::from_secs(10 * 60),
             claims_per_minute: 10,
-            ping: Some(demi_runner_client::PING_INTERVAL),
+            ping: Some(jush_runner_client::PING_INTERVAL),
             probe: Duration::from_secs(5),
             updating: Duration::from_secs(2 * 60),
             returning: Duration::from_secs(10),

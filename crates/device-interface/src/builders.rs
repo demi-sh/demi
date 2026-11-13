@@ -5,7 +5,7 @@
 
 use std::{future::Future, marker::PhantomData, rc::Rc};
 
-use demi_command_declarations::{
+use jush_command_declarations::{
     BringsDevice, Category, Group, Leaf, LeafKind, LeafOutput, NativeOperation, Node, Schema, StdinRead,
     command_schema_settings,
 };

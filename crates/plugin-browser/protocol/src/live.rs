@@ -6,15 +6,15 @@
 
 use std::sync::LazyLock;
 
-use demi_shared_types::{MAX_SAFE_INTEGER, Nullable};
+use jush_shared_types::{MAX_SAFE_INTEGER, Nullable};
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::rust::unwrap_or_skip;
 
-use demi_shared_types::DecodeError;
+use jush_shared_types::DecodeError;
 
-use demi_live_view_protocol::{
+use jush_live_view_protocol::{
     LiveHeartbeat, LiveHello, LiveKeyframe, LiveNotice, LiveRelease, ModuleMessage,
     ViewerInput,
 };
@@ -258,7 +258,7 @@ pub enum LiveViewerMessage {
 impl LiveViewerMessage {
     /// Decodes a control frame's payload from the page.
     pub fn decode(payload: &[u8]) -> Result<Self, DecodeError> {
-        demi_shared_types::decode_slice(payload)
+        jush_shared_types::decode_slice(payload)
     }
 }
 

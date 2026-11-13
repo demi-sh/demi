@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Component } from 'vue'
-import { disabledTooltip } from '@demicodes/web-ui/ui/disabled'
-import { useIconPx } from '@demicodes/web-ui/ui/icon-metrics'
-import Tooltip from '@demicodes/web-ui/ui/Tooltip.vue'
-import { pressOnKey } from '@demicodes/web-ui/ui/button-events'
+import { disabledTooltip } from '@jush-ai/web-ui/ui/disabled'
+import { useIconPx } from '@jush-ai/web-ui/ui/icon-metrics'
+import Tooltip from '@jush-ai/web-ui/ui/Tooltip.vue'
+import { pressOnKey } from '@jush-ai/web-ui/ui/button-events'
 import type { SentenceText, TitleText } from '../ui/ui-text'
 
 /**
