@@ -140,6 +140,12 @@ impl ProductPort for ShardPort {
         Box::pin(async move { super::media::media_models(&*self.shard()?, kind).await })
     }
 
+    fn directories_changed(&self) {
+        if let Ok(shard) = self.shard() {
+            (&*shard as &dyn DeviceShard).install_everywhere();
+        }
+    }
+
     fn devices(&self) -> LocalBoxFuture<'_, Result<Vec<DeviceName>, PortFailure>> {
         Box::pin(async move {
             let shard = self.shard()?;

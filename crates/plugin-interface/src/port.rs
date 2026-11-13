@@ -394,8 +394,8 @@ pub struct DeviceDirectory {
     /// 1 to 64 lowercase letters, digits and hyphens, unique in the set.
     pub name: String,
     pub files: Vec<DirectoryFile>,
-    /// The workspace whose conversations' jobs install it; none for every
-    /// job's.
+    /// The workspace whose conversations' devices receive it; none for every
+    /// device's.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub workspace: Option<WorkspaceId>,
 }

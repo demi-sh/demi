@@ -4,11 +4,13 @@
 //!
 //! - Reads of a conversation's primary device, or of a command job's device, in the
 //!   form that never wakes it.
-//! - The plugins' directories, which each job of the user's installs before it
-//!   starts, once per runner connection.
+//! - The plugins' directories, which each device of the user receives in the
+//!   background, once per runner connection, set and workspaces using it.
 //!
 //! A plugin never writes a device: it names the directories its user needs and
-//! device access installs them.
+//! device access installs them, apart from any command: a command never waits
+//! for them or fails with them, and a skill not there yet is a path that does
+//! not exist for that moment.
 //!
 //! - A directory that exists is complete. The runner writes it beside the final
 //!   one, read-only, and renames it into place, so a crash leaves at most a
@@ -18,12 +20,17 @@
 //!   underneath it, and the model was already told the new paths.
 //! - A new connection checks again, so a Cloud's new boot is covered and a
 //!   directory the user deleted by hand comes back.
-//! - A job never waits for a directory it does not need, and a conversation
-//!   that runs no job installs nothing, so one that only talks never wakes its
-//!   Cloud for a plugin's files.
+//! - Nothing wakes a device for a plugin's files: one that is offline
+//!   receives them when it connects.
 
 use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap};
+use std::rc::Rc;
+use std::time::Duration;
+
+use demi_backend_database::devices::ManagedMachine;
+use futures_util::FutureExt as _;
+use tokio::sync::Notify;
 
 use demi_backend_blobs::blobs::UserBlobs;
 use demi_runner_client::{DirectoryFile, DeviceSubscriber, Link, Look, LookAt, RemoteDevice, WeakLink};
@@ -38,7 +45,7 @@ use demi_web_api_protocol::ids::{ConversationId, DeviceId, WorkspaceId};
 use tokio_util::sync::CancellationToken;
 
 use crate::DeviceShard;
-use crate::access::{Attention, ConversationDevice, DeviceAccessError, Refusal, Waits};
+use crate::access::{Attention, DeviceAccessError, Refusal, Waits};
 
 /// The device directories of the user's plugins: every plugin with its set,
 /// an empty one for a plugin the user has off, whose directories a device
@@ -48,19 +55,28 @@ pub type DirectorySets = Vec<(PluginId, Vec<DeviceDirectory>)>;
 /// What the shard remembers of its users' devices' directories.
 #[derive(Default)]
 pub struct PluginInstalls {
-    /// Per device, the connection its device was last brought to the user's
-    /// set on, and that set's revision; a new connection checks again.
-    synced: RefCell<HashMap<DeviceId, (WeakLink, String)>>,
-    /// One installation at a time, so two never share a temporary
-    /// directory.
-    turn: tokio::sync::Mutex<()>,
+    devices: RefCell<HashMap<DeviceId, Installer>>,
+}
+
+/// A device's installation, one pass at a time, so two never share a
+/// temporary directory.
+#[derive(Default)]
+struct Installer {
+    /// The connection the device was last brought to the sets on, and their
+    /// revision; a new connection checks again.
+    synced: Option<(WeakLink, String)>,
+    /// Whether a task passes over the device now.
+    running: bool,
+    /// A wake for that task: a set or the device's connection changed.
+    wake: Rc<Notify>,
 }
 
 impl PluginInstalls {
     fn synced(&self, device: &DeviceId, link: &Link, revision: &str) -> bool {
-        self.synced
+        self.devices
             .borrow()
             .get(device)
+            .and_then(|installer| installer.synced.as_ref())
             .is_some_and(|(synced, at)| synced.is(link) && at == revision)
     }
 }
@@ -178,76 +194,179 @@ impl dyn DeviceShard + '_ {
             .map_err(|error| ReadFilesError::from(DeviceAccessError::Device(error)))?;
         Ok((access.device, subscriber))
     }
+}
 
-    /// Brings `device`, admitted as `admitted` for a job of `conversation`, to the
-    /// user's directory sets, once per runner connection, set and workspace.
-    ///
-    /// 1. It lists every plugin's directory on the device with one request.
-    /// 2. It removes what the sets no longer name with one more request.
-    /// 3. It writes each directory the job's conversation needs that is
-    ///    missing with one request each: those of every job and those of the
-    ///    conversation's workspace. Another workspace's stay as they are.
-    ///
-    /// A failure fails the job.
-    pub(crate) async fn install_directories(
-        &self,
-        conversation: &ConversationId,
-        device: &DeviceId,
-        admitted: &ConversationDevice,
-    ) -> Result<(), DeviceError> {
-        let Some(link) = self.devices().link(device) else {
-            // The job's own start reports the connection's end.
-            return Ok(());
-        };
-        let sets = self
-            .directory_sets()
-            .await
-            .map_err(|error| DeviceError::failed(None, error))?;
-        let workspace = self
-            .control()
-            .conversation(conversation.clone())
-            .await
-            .map_err(|error| DeviceError::failed(None, error.to_string()))?
-            .map(|record| record.workspace);
-        let revision = format!(
-            "{}for {}",
-            revision_of(&sets),
-            workspace.as_ref().map_or("", WorkspaceId::as_str)
-        );
-        let installs = self.plugin_installs();
-        if installs.synced(device, &link, &revision) {
-            return Ok(());
-        }
-        let _turn = installs.turn.lock().await;
-        if installs.synced(device, &link, &revision) {
-            return Ok(());
-        }
-        let home = admitted.home.as_deref().ok_or_else(|| {
-            DeviceError::failed(
-                None,
-                "the device reported no home directory for the plugins' files",
-            )
-        })?;
-        sync_directories(&admitted.device, home, &sets, workspace.as_ref(), &self.blobs()).await?;
-        installs
-            .synced
-            .borrow_mut()
-            .insert(device.clone(), (link.downgrade(), revision));
-        Ok(())
+/// How many directories a pass writes on a device at once: more only queue
+/// on the device's one connection, where a write that has not started runs
+/// out of the time its reply has (`crates/runner-client/src/remote_device.rs`).
+const WRITES_AT_ONCE: usize = 8;
+
+/// The pause before a device whose pass failed is brought to its set again,
+/// doubled after each failure up to the last.
+const FIRST_RETRY: Duration = Duration::from_secs(5);
+const LAST_RETRY: Duration = Duration::from_secs(300);
+
+impl dyn DeviceShard + '_ {
+    /// Brings `device` to the user's directory sets in the background, unless
+    /// it is there already on its current connection, when it connects or a
+    /// set changes: a pass waiting to try again after a failure goes at once.
+    pub fn install_on(&self, device: &DeviceId) {
+        self.wake_installer(device, true);
     }
+
+    /// [`Self::install_on`] each device whose runner is connected, after a
+    /// set changed.
+    pub fn install_everywhere(&self) {
+        for (device, _) in self.devices().links() {
+            self.install_on(&device);
+        }
+    }
+
+    /// Checks that `device` holds the user's directory sets as a
+    /// conversation is about to use it, when a message arrives or a command
+    /// starts there, which never waits for it: a pass waiting to try again
+    /// after a failure keeps its pause.
+    pub fn check_installed(&self, device: &DeviceId) {
+        self.wake_installer(device, false);
+    }
+
+    /// [`Self::check_installed`] each device whose runner is connected.
+    pub fn check_installed_everywhere(&self) {
+        for (device, _) in self.devices().links() {
+            self.check_installed(&device);
+        }
+    }
+
+    /// Starts `device`'s installer unless it runs, and, when `now`, ends the
+    /// pause of one that waits to try again.
+    fn wake_installer(&self, device: &DeviceId, now: bool) {
+        let installs = self.plugin_installs();
+        let wake = {
+            let mut devices = installs.devices.borrow_mut();
+            let installer = devices.entry(device.clone()).or_default();
+            if installer.running {
+                if now {
+                    installer.wake.notify_one();
+                }
+                return;
+            }
+            installer.running = true;
+            installer.wake.clone()
+        };
+        let shard = self.this();
+        let device = device.clone();
+        self.tasks()
+            .spawn_local(async move { install_until_done(shard, device, wake).await });
+    }
+}
+
+/// Passes over `device` until one brings it to the sets, it goes offline or
+/// the shard closes; a failed pass is tried again after a pause, or at the
+/// next wake.
+async fn install_until_done(shard: Rc<dyn DeviceShard>, device: DeviceId, wake: Rc<Notify>) {
+    let mut pause = FIRST_RETRY;
+    loop {
+        // A wake before this pass is one it answers.
+        let _ = wake.notified().now_or_never();
+        match pass(&*shard, &device).await {
+            Ok(()) => pause = FIRST_RETRY,
+            Err(error) => {
+                tracing::warn!(
+                    event = "plugin_directories.pass_failed",
+                    device_id = %device,
+                    %error,
+                    retry_ms = pause.as_millis() as u64,
+                    "the plugins' directories were not all installed on a device; it tries again"
+                );
+                tokio::select! {
+                    () = tokio::time::sleep(pause) => {}
+                    () = wake.notified() => {}
+                    () = shard.closed() => break,
+                }
+                pause = (pause * 2).min(LAST_RETRY);
+                continue;
+            }
+        }
+        // A wake during the pass may have come for a set it did not see.
+        if wake.notified().now_or_never().is_none() {
+            break;
+        }
+    }
+    if let Some(installer) = shard.plugin_installs().devices.borrow_mut().get_mut(&device) {
+        installer.running = false;
+    }
+}
+
+/// Brings `device` to the user's directory sets once per runner connection,
+/// set and workspaces using it:
+///
+/// 1. It lists every plugin's directory on the device with one request.
+/// 2. It removes what the sets no longer name with one more request.
+/// 3. It writes each directory missing that a command on the device may
+///    read, every conversation's and those of the workspaces whose
+///    conversations run on the device, [`WRITES_AT_ONCE`] at a time.
+///
+/// A device that is offline, or the Claude Code machine, which runs no
+/// command, passes at once. A directory that fails leaves the others to go
+/// on, and fails the pass.
+async fn pass(shard: &dyn DeviceShard, device: &DeviceId) -> Result<(), String> {
+    let Some(link) = shard.devices().link(device) else {
+        return Ok(());
+    };
+    let record = shard
+        .control()
+        .device(device.clone())
+        .await
+        .map_err(|error| error.to_string())?;
+    if record.is_none_or(|record| record.machine == Some(ManagedMachine::ClaudeCode)) {
+        return Ok(());
+    }
+    let sets = shard.directory_sets().await?;
+    let workspaces = shard
+        .control()
+        .device_workspaces(device.clone())
+        .await
+        .map_err(|error| error.to_string())?;
+    let revision = revision_of(&sets, &workspaces);
+    let installs = shard.plugin_installs();
+    if installs.synced(device, &link, &revision) {
+        return Ok(());
+    }
+    let Some(remote) = shard.devices().device_access(device).await else {
+        return Ok(());
+    };
+    let home = shard
+        .devices()
+        .home(device)
+        .ok_or("the device reported no home directory for the plugins' files")?;
+    let started = std::time::Instant::now();
+    // A failed pass is logged by its caller, with what failed and was written.
+    let written = sync_directories(&remote, &home, &sets, &workspaces, &shard.blobs()).await?;
+    tracing::info!(
+        event = "plugin_directories.installed",
+        device_id = %device,
+        written,
+        ms = started.elapsed().as_millis() as u64,
+        "a device was brought to the plugins' directories"
+    );
+    if let Some(installer) = installs.devices.borrow_mut().get_mut(device) {
+        installer.synced = Some((link.downgrade(), revision));
+    }
+    Ok(())
 }
 
 /// Brings the plugins' directories on `device` to `sets`: every plugin's
 /// directory listed with one request, what no set names removed with one,
-/// and each directory missing that a job of `workspace` needs, every job's
-/// and the workspace's own, written with one, all at once.
+/// and each directory missing that every conversation or one of
+/// `workspaces` reads written with one, [`WRITES_AT_ONCE`] at a time.
+/// Answers how many it wrote, or why one or more failed.
 async fn sync_directories(
     device: &RemoteDevice,
     home: &str,
     sets: &DirectorySets,
-    workspace: Option<&WorkspaceId>,
+    workspaces: &[WorkspaceId],
     blobs: &UserBlobs,
-) -> Result<(), DeviceError> {
+) -> Result<usize, String> {
     let paths = device.identity().paths;
     let base = |plugin: &PluginId| paths.join(home, &format!(".demi/plugins/{plugin}"));
     let listed: Vec<LookAt> = sets
@@ -260,7 +379,7 @@ async fn sync_directories(
     let found = if listed.is_empty() {
         Vec::new()
     } else {
-        device.look(&listed).await?.0
+        device.look(&listed).await.map_err(|error| error.message)?.0
     };
     let mut removed = Vec::new();
     let mut missing = Vec::new();
@@ -268,13 +387,8 @@ async fn sync_directories(
         let present: Vec<String> = match look {
             Look::Directory(entries) => entries.into_iter().map(|entry| entry.name).collect(),
             Look::Missing => Vec::new(),
-            Look::Unreadable(error) => return Err(error),
-            Look::File { .. } | Look::Other => {
-                return Err(DeviceError::failed(
-                    None,
-                    format!("{} is not a directory", base(plugin)),
-                ));
-            }
+            Look::Unreadable(error) => return Err(error.message),
+            Look::File { .. } | Look::Other => return Err(format!("{} is not a directory", base(plugin))),
         };
         let wanted: Vec<(String, &DeviceDirectory)> = set
             .iter()
@@ -290,19 +404,49 @@ async fn sync_directories(
         missing.extend(
             wanted
                 .into_iter()
-                .filter(|(_, directory)| directory.workspace.is_none() || directory.workspace.as_ref() == workspace)
+                .filter(|(_, directory)| directory.workspace.as_ref().is_none_or(|workspace| workspaces.contains(workspace)))
                 .filter(|(name, _)| !present.contains(name))
                 .map(|(name, directory)| (paths.join(&base(plugin), &name), directory)),
         );
     }
-    if !removed.is_empty() {
-        device.remove_all(&removed).await?;
+    let (mut written, mut failed) = (0, 0);
+    // One that cannot be removed, such as a directory a process still uses,
+    // keeps no other directory from being written.
+    if !removed.is_empty()
+        && let Err(error) = device.remove_all(&removed).await
+    {
+        failed += 1;
+        tracing::warn!(
+            event = "plugin_directory.remove_failed",
+            paths = removed.len(),
+            error = %error.message,
+            "plugin directories no set names were not all removed from a device"
+        );
     }
-    let installs = missing
-        .into_iter()
-        .map(|(path, directory)| async move { install(device, blobs, &path, directory).await });
-    futures_util::future::try_join_all(installs).await?;
-    Ok(())
+    let mut writes = futures_util::stream::iter(missing)
+        .map(|(path, directory)| async move {
+            let written = install(device, blobs, &path, directory).await;
+            (path, written)
+        })
+        .buffer_unordered(WRITES_AT_ONCE);
+    while let Some((path, outcome)) = writes.next().await {
+        match outcome {
+            Ok(()) => written += 1,
+            Err(error) => {
+                failed += 1;
+                tracing::warn!(
+                    event = "plugin_directory.install_failed",
+                    path,
+                    error = %error.message,
+                    "a plugin's directory was not written on a device"
+                );
+            }
+        }
+    }
+    if failed > 0 {
+        return Err(format!("{failed} of the plugins' changes failed, and {written} directories were written"));
+    }
+    Ok(written)
 }
 
 /// Writes `directory` at `path` with one request: its files read-only,
@@ -452,12 +596,17 @@ fn not_running(error: &DeviceError) -> bool {
     )
 }
 
-/// The revision of the user's sets, which a device is brought to once per
-/// connection: each plugin with the names its device directory holds and the
-/// workspace each is for, since a directory that moves to another workspace
-/// keeps its name.
-fn revision_of(sets: &DirectorySets) -> String {
+/// The revision of the user's sets for a device that `workspaces` use, which
+/// a device is brought to once per connection: each plugin with the names its
+/// device directory holds and the workspace each is for, since a directory
+/// that moves to another workspace keeps its name.
+fn revision_of(sets: &DirectorySets, workspaces: &[WorkspaceId]) -> String {
     let mut revision = String::new();
+    for workspace in workspaces {
+        revision.push_str(workspace.as_str());
+        revision.push(' ');
+    }
+    revision.push('\n');
     for (plugin, set) in sets {
         revision.push_str(plugin.as_str());
         for directory in set {

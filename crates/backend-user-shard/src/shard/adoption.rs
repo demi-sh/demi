@@ -12,6 +12,7 @@ use std::rc::Rc;
 
 use axum::extract::ws::Message;
 use demi_backend_database::StorageError;
+use demi_backend_device_access::DeviceShard;
 use demi_backend_database::devices::{DeviceChange, DeviceRecord, DeviceRemoval, FirstHome};
 use demi_backend_page_sync::Part;
 use demi_plugin_host::Lost;
@@ -372,8 +373,9 @@ impl Shard {
                 },
             );
         // What its conversations keep of its files is searched again on the
-        // new connection.
+        // new connection, and it receives the plugins' directories.
         self.project_files().online(device);
+        (&**self as &dyn DeviceShard).install_on(device);
         let access = Some(serving.device_access());
         let device = device.clone();
         let reported = async move {

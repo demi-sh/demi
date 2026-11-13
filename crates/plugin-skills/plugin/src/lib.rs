@@ -42,14 +42,15 @@
 //!
 //! # devices
 //!
-//! A Global skill that is on is installed on each device the user's jobs run
-//! on, and a workspace's on each device its conversations' jobs run on, so a
-//! device keeps the files of every skill that is on, whatever their size; the
-//! user turns off what a device should not keep.
+//! A Global skill that is on is installed on each device of the user, and a
+//! workspace's on each device its conversations run on, so a device keeps the
+//! files of every skill that is on, whatever their size; the user turns off
+//! what a device should not keep. A device receives them in the background,
+//! and no command waits for them.
 //!
 //! A skill's path in the catalog is its directory on a device, the same on every
 //! device, so a target switch changes no path: the new device receives the
-//! directory when its first job needs it.
+//! directory once the conversation runs there.
 //!
 //! The plugin writes to no device and never blocks the shard thread.
 //!

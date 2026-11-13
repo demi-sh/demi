@@ -1023,21 +1023,13 @@ async fn run_on_device(
                 .conversations()
                 .slot(conversation)
                 .hold_job(target.device.clone(), true, None, withdrawal.clone());
-            // A detach of the device that committed since the admission, or
-            // that comes while the directories install, ends the call here,
-            // before the job starts.
+            // A detach of the device that committed since the admission ends
+            // the call here, before the job starts.
             shard
                 .reaches(conversation, &target.device, &withdrawal)
                 .await
                 .map_err(|error| error.message)?;
-            shard
-                .install_directories(conversation, &target.device, admitted)
-                .await
-                .map_err(|error| error.message)?;
-            shard
-                .reaches(conversation, &target.device, &withdrawal)
-                .await
-                .map_err(|error| error.message)?;
+            shard.check_installed(&target.device);
             let start = JobStart {
                 id: demi_runner_client::RemoteDevice::job_id(),
                 script,

@@ -150,6 +150,8 @@ pub trait DeviceShard {
     fn claims(&self) -> &PendingClaims;
     /// Every task the shard spawns, which its close waits for.
     fn tasks(&self) -> &TaskTracker;
+    /// Resolves once the shard starts closing.
+    fn closed(&self) -> tokio_util::sync::WaitForCancellationFuture<'_>;
     /// The shard as the user's Cloud sees it, whose admission an operation
     /// on the Cloud takes.
     fn cloud_shard(&self) -> &(dyn CloudShard + 'static);
@@ -162,8 +164,8 @@ pub trait DeviceShard {
     /// Starts the conversation's idle watch unless one runs, as each device
     /// admission does (`crates/backend-user-shard/src/lifecycle/mod.rs`).
     fn track_idle(&self, conversation: &ConversationId);
-    /// The device directories of the user's plugins, which each job installs
-    /// before it starts.
+    /// The device directories of the user's plugins, which each device
+    /// receives in the background (`plugin_files.rs`).
     fn directory_sets(&self) -> LocalBoxFuture<'_, Result<DirectorySets, String>>;
     /// What the shard remembers of its devices' directories.
     fn plugin_installs(&self) -> &PluginInstalls;

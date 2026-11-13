@@ -87,6 +87,10 @@ impl DeviceShard for Shard {
         &self.tasks
     }
 
+    fn closed(&self) -> tokio_util::sync::WaitForCancellationFuture<'_> {
+        Shard::closed(self)
+    }
+
     fn cloud_shard(&self) -> &(dyn CloudShard + 'static) {
         Shard::cloud_shard(self)
     }
