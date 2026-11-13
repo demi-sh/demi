@@ -28,11 +28,12 @@
 export type RowReading = [key: string, top: number, height: number]
 
 /**
- * A block of a row's text near the view's top, such as a paragraph or a list
- * item: an id that names the same block from frame to frame, how far its top
- * stands below the view's top, and its height.
+ * A block of a row's text in view, such as a paragraph or a list item: an id
+ * that names the same block from frame to frame, how far its top stands
+ * below the view's top, its height, and the index of its row among the
+ * frame's rows.
  */
-export type BlockReading = [id: number, top: number, height: number]
+export type BlockReading = [id: number, top: number, height: number, row: number]
 
 /** What one painted frame showed. */
 export interface Frame {
@@ -49,7 +50,7 @@ export interface Frame {
   /** Whether the list's Scroll to Bottom control is shown. */
   scrollToBottom: boolean
   rows: RowReading[]
-  /** The first blocks from the view's top down, `BLOCKS` of them at most. */
+  /** The blocks in view, from its top down. */
   blocks: BlockReading[]
   /**
    * How far the control the reader last opened or folded something with
@@ -115,14 +116,6 @@ export interface Watching extends Recording {
   stop(): Recording
 }
 
-/**
- * How many blocks a frame reads from the view's top down. The reader's place
- * is told by the first block two frames share, and a row that streams draws
- * its last block anew: six blocks reach past the one or two a frame replaces,
- * and cost little to read.
- */
-export const BLOCKS = 6
-
 /** The name the page keeps the watch under. */
 export const WATCH = '__demiTranscriptWatch'
 
@@ -132,7 +125,7 @@ export const WATCH = '__demiTranscriptWatch'
  * `actedMs` is how long a control the reader opened or folded something with
  * is followed.
  */
-export function probe(which: number, name: string, blocksPerFrame: number, actedMs: number): void {
+export function probe(which: number, name: string, actedMs: number): void {
   const TEXT = 'p, li, pre, table, h1, h2, h3, h4, h5, h6, blockquote, img, hr'
   /** The keys a browser scrolls a focused scroller by; Space is handled apart, since it also presses a control. */
   const SCROLL_KEYS = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']
@@ -171,6 +164,28 @@ export function probe(which: number, name: string, blocksPerFrame: number, acted
       }
     }
     return null
+  }
+  /**
+   * Whether `element` stands in a scroll area of its row's own, such as a
+   * command's output: the reader scrolls it inside the row, which moves its
+   * blocks and not the row. Kept per element, since an element keeps its
+   * ancestors.
+   */
+  const scrolled = new WeakMap<Element, boolean>()
+  const inOwnScroller = (row: HTMLElement, element: Element): boolean => {
+    let known = scrolled.get(element)
+    if (known === undefined) {
+      known = false
+      for (let at = element.parentElement; at && at !== row; at = at.parentElement) {
+        const overflow = getComputedStyle(at).overflowY
+        if (overflow === 'auto' || overflow === 'scroll') {
+          known = true
+          break
+        }
+      }
+      scrolled.set(element, known)
+    }
+    return known
   }
   /** The id of the block `element` of `row`: by its place in the row and how its text begins, since a row that streams draws its blocks anew. */
   const idOf = (row: HTMLElement, element: Element): number => {
@@ -329,7 +344,9 @@ export function probe(which: number, name: string, blocksPerFrame: number, acted
       const at = row.getBoundingClientRect()
       rows.push([row.dataset['rowKey'] ?? '', round1(at.top - view.top), round1(at.height)])
       box ??= row.parentElement
-      if (blocks.length >= blocksPerFrame || at.bottom <= view.top || at.top >= view.bottom) {
+      // Every block in view: the reader's place is the first two frames
+      // share, and a block anywhere in it may move against its row.
+      if (at.bottom <= view.top || at.top >= view.bottom) {
         continue
       }
       const text = row.querySelectorAll(TEXT)
@@ -338,10 +355,14 @@ export function probe(which: number, name: string, blocksPerFrame: number, acted
         if (stands.height === 0 || stands.bottom <= view.top) {
           continue
         }
-        if (stands.top >= view.bottom || blocks.length >= blocksPerFrame) {
+        if (stands.top >= view.bottom) {
           break
         }
-        blocks.push([idOf(row, element), round1(stands.top - view.top), round1(stands.height)])
+        // What the row clips away, as a folded row's content, shows nowhere.
+        if (stands.top >= at.bottom || stands.bottom <= at.top || inOwnScroller(row, element)) {
+          continue
+        }
+        blocks.push([idOf(row, element), round1(stands.top - view.top), round1(stands.height), rows.length - 1])
       }
     }
     const stands = box?.getBoundingClientRect()

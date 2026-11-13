@@ -21,7 +21,7 @@ import { readState } from '../state'
 import { Failure, webBase, type Tool } from '../tool'
 import { writer, type Writer } from '../transcript/content'
 import { PLANTED } from '../transcript/planted'
-import { BLOCKS, probe, WATCH, type Recording, type Watching } from '../transcript/probe'
+import { probe, WATCH, type Recording, type Watching } from '../transcript/probe'
 import { ACTED_MS, judge, type Violation } from '../transcript/rules'
 import { SCENES } from '../transcript/scenes'
 import type { EmulateOptions } from './emulate'
@@ -103,7 +103,7 @@ export interface Played {
  */
 function probeScript(which: number): string {
   const name = JSON.stringify(WATCH)
-  return `if (window.top === window) { window[${name}]?.stop(); (${probe.toString()})(${which}, ${name}, ${BLOCKS}, ${ACTED_MS}) }`
+  return `if (window.top === window) { window[${name}]?.stop(); (${probe.toString()})(${which}, ${name}, ${ACTED_MS}) }`
 }
 
 /** Loads `page` anew with the probe started before any script of the page runs, and answers its watch. */

@@ -9,7 +9,8 @@
 //   following the end   the end stays in view; no row moves down
 //   reading             the block at the view's top stays where it is,
 //                       and is there again when the reader comes back
-//   scrolling           the rows go the way the reader scrolls
+//   scrolling           the rows go the way the reader scrolls, as one:
+//                       no row or block moves against those around it
 //   opened a row        the row's top stays where it was
 //   folded a row        the control they folded it with stays where it was
 //   always              no blank in the view; the Scroll to Bottom control
@@ -25,7 +26,7 @@ import { AT_END_PX, BOTTOM_THRESHOLD_PX } from '@demicodes/web-ui/composables/sc
 import { FOLD_MS } from '@demicodes/web-ui/ui/fold'
 import type { Frame, Input, Recording } from './probe'
 
-export type Rule = 'end-left' | 'moved-down' | 'place-moved' | 'pulled-back' | 'control-moved' | 'blank' | 'scroll-to-bottom'
+export type Rule = 'end-left' | 'moved-down' | 'place-moved' | 'pulled-back' | 'moved-apart' | 'control-moved' | 'blank' | 'scroll-to-bottom'
 
 /** One breach of a rule, over the frames that showed it without a pause. */
 export interface Violation {
@@ -402,6 +403,10 @@ export function judge(recording: Recording, spec: Spec = SPEC): Violation[] {
         if (way !== 0 && leaves && shift !== null && shift * way > MOVED_PX) {
           breach('pulled-back', frame, Math.abs(shift), `the rows moved ${px(shift)} against the reader's scroll ${way > 0 ? 'down' : 'up'}`)
         }
+        const torn = movedApart(before, frame)
+        if (torn) {
+          breach('moved-apart', frame, torn.by, torn.what)
+        }
       } else if (acting) {
         lagging = 0
         const row = frame.actedRow
@@ -523,6 +528,56 @@ function movedDown(before: Frame, frame: Frame): { key: string, by: number } | n
     if (stands !== undefined && stands - top > MOVED_PX && stands - top > (worst?.by ?? 0)) {
       worst = { key, by: stands - top }
     }
+  }
+  return worst
+}
+
+/**
+ * The row or block in view that moved furthest against what stands around
+ * it between two frames: a row against the row above it, which takes it
+ * along by as much as it grew or shrank, or a block inside its row by more
+ * than the row grew or shrank. A scroll moves them all as one, so a move of
+ * one against the others is the list's own, such as a slide that runs on.
+ */
+function movedApart(before: Frame, frame: Frame): { by: number, what: string } | null {
+  // A list whose text wraps anew is laid out anew.
+  if (frame.cw !== before.cw) {
+    return null
+  }
+  const was = new Map(before.rows.map((row) => [row[0], row]))
+  const order = new Map([...before.rows].sort((a, b) => a[1] - b[1]).map((row, index) => [row[0], index]))
+  const inView = (top: number, height: number) => top + height > 0 && top < frame.ch
+  let worst: { by: number, what: string } | null = null
+  const worse = (by: number, what: string) => {
+    if (Math.abs(by) > MOVED_PX && Math.abs(by) > (worst?.by ?? 0)) {
+      worst = { by: Math.abs(by), what }
+    }
+  }
+  const rows = [...frame.rows].sort((a, b) => a[1] - b[1])
+  for (let index = 1; index < rows.length; index += 1) {
+    const [key, top, height] = rows[index]!
+    const [aboveKey, aboveTop, aboveHeight] = rows[index - 1]!
+    const then = was.get(key)
+    const aboveThen = was.get(aboveKey)
+    // A row that came or went between them leaves the two no measure of each other.
+    if (!then || !aboveThen || !inView(top, height) || order.get(key) !== order.get(aboveKey)! + 1) {
+      continue
+    }
+    const by = (top - then[1]) - (aboveTop - aboveThen[1]) - (aboveHeight - aboveThen[2])
+    worse(by, `the row ${key} moved ${px(by)} against the row above it while the reader scrolled`)
+  }
+  const blocks = new Map(before.blocks.map((block) => [block[0], block]))
+  for (const [id, top, height, index] of frame.blocks) {
+    const then = blocks.get(id)
+    const row = frame.rows[index]
+    const rowThen = then && before.rows[then[3]]
+    if (!then || !row || !rowThen || rowThen[0] !== row[0] || !inView(top, height)) {
+      continue
+    }
+    const moved = (top - row[1]) - (then[1] - rowThen[1])
+    const grew = row[2] - rowThen[2]
+    const by = moved - Math.min(Math.max(moved, Math.min(0, grew)), Math.max(0, grew))
+    worse(by, `a block of the row ${row[0]} moved ${px(by)} inside it while the reader scrolled`)
   }
   return worst
 }

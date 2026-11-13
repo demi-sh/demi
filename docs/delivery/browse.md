@@ -358,8 +358,8 @@ and the same rules judge any list that carries the hooks, however it is
 built. In each frame it reads the following:
 
 - Where each row stands in the view, and how tall it is
-- The first blocks of text from the view's top down, such as paragraphs and
-  list items, each named the same from frame to frame
+- Every block of text in view, such as a paragraph or a list item, each
+  named the same from frame to frame
 - The scroller's position and size
 - Whether the Scroll to Bottom control is shown
 - Which conversation's list it is
@@ -389,6 +389,7 @@ whether the list follows its end is one of the things judged.
 | Follows the end | No row in view moves down, unless the view got taller or the dock shorter by as much | `moved-down` |
 | Reads above the end | The block at the view's top stands where it stood, and stands there again when the reader comes back to the conversation | `place-moved` |
 | Scrolls | The rows go the way the scroll goes | `pulled-back` |
+| Scrolls | The rows and their text move as one: a row moves with the row above it, which takes it along by as much as it grew or shrank, and a block of text moves inside its row by no more than the row grew or shrank | `moved-apart` |
 | Opened a row | The row's top stands where it stood | `control-moved` |
 | Folded a row | The control they folded it with stands where it stood | `control-moved` |
 | Any | No part of the view taller than a line shows no row | `blank` |
@@ -405,6 +406,12 @@ The rules have the following limits:
 
 - A list the recording first sees above its end is taken for one the reader
   reads. The rules cannot tell that it should have opened at its end.
+- `moved-apart` sees a move of some rows or blocks against the others. All
+  the rows in view sliding together it cannot tell from the reader's scroll.
+  It holds while the reader's hand is on the list: a wheel's turn, a finger
+  or a held pointer, and a flick's momentum. Blocks in a scroll area of their
+  row's own, such as a command's output, are not read, since the reader
+  scrolls them inside the row.
 - After the reader opens or folds a row, the list follows its end or not by
   where that left it, a moment later. There the Scroll to Bottom control
   tells the rules which, and they hold the list to it from then on.

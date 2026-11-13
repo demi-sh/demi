@@ -402,6 +402,52 @@ export const SCENES: Scene[] = [
     },
   },
   {
+    name: 'scroll-long-conversation',
+    about: 'A long conversation of short turns and turns of work is opened afresh, and the reader scrolls it to its start and back with a trackpad.',
+    play: async (lab) => {
+      for (let turn = 0; turn < 6; turn++) {
+        await answered(lab, 1)
+      }
+      for (let turn = 0; turn < 4; turn++) {
+        await lab.demi.model.answers(work(lab, 2 + lab.text.pick(4), 6 + lab.text.pick(8), 0))
+        await lab.demi.message(lab.text.sentence())
+      }
+      // The page opens it as one it holds nothing of, and reads its latest
+      // blocks first: few enough here that the earlier ones arrive as a page
+      // of their own once the first show, as in a transcript of thousands.
+      // The page's copies on disk go too, or it would open from them; the
+      // next scene starts from a new conversation, which has none.
+      const first = /\/transcript\?latest=true&blocks=/
+      let cut = 0
+      await lab.page.route(first, (route) => {
+        cut += 1
+        return route.continue({ url: route.request().url().replace(/blocks=\d+/, 'blocks=12') })
+      })
+      let seen
+      try {
+        await lab.cdp.send('Storage.clearDataForOrigin', { origin: new URL(lab.page.url()).origin, storageTypes: 'indexeddb' })
+        seen = await lab.cold()
+        await seen.shown()
+      } finally {
+        await lab.page.unroute(first)
+      }
+      if (cut === 0) {
+        throw new Error('The page opened the conversation without reading its latest blocks, so its earlier blocks never came as a page of their own')
+      }
+      await seen.still(500)
+      await lab.point()
+      // A trackpad's turns: many small ones, a frame or two apart.
+      for (const way of [-1, 1]) {
+        for (let turn = 0; turn < 160; turn++) {
+          await lab.page.mouse.wheel(0, way * 60)
+          await lab.page.waitForTimeout(24)
+        }
+        await seen.still(400)
+      }
+      return seen.stop()
+    },
+  },
+  {
     name: 'back-to-reading-place',
     about: 'The reader reads the earlier answer, opens another conversation from the sidebar and comes back.',
     play: async (lab) => {
