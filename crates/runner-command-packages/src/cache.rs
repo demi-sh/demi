@@ -902,7 +902,10 @@ impl ArtifactCache {
             };
             let read = tokio::fs::read(entry.path()).await;
             match read.map(|bytes| serde_json::from_slice::<LineRecord>(&bytes)) {
-                Ok(Ok(record)) => records.push((sha256.to_owned(), record)),
+                Ok(Ok(record)) => {
+                    let record = self.renamed(&entry.path(), sha256, record).await;
+                    records.push((sha256.to_owned(), record));
+                }
                 Ok(Err(error)) => tracing::warn!(
                     event = "artifact_cache.record_failed",
                     entry = %entry.path().display(),
@@ -920,6 +923,45 @@ impl ArtifactCache {
             }
         }
         Ok(records)
+    }
+
+    /// `record` as the product's names now say it, written back once: a
+    /// record from before the product took the name Jush names its package
+    /// `demi.<name>`, and its path where the installation was, which a move
+    /// to `~/.jush` or a Cloud's home of `/home/jush` changed. The path is
+    /// taken from the entry's digest on, under this cache's root. It goes
+    /// with the other migrations when the history starts again at the first
+    /// formal release.
+    async fn renamed(&self, file: &Path, sha256: &str, mut record: LineRecord) -> LineRecord {
+        let Some(name) = record.package.strip_prefix("demi.") else {
+            return record;
+        };
+        record.package = format!("jush.{name}");
+        let mut parts = record.path.components();
+        if parts.by_ref().any(|part| part.as_os_str() == sha256) {
+            // A file's entry ends at its digest, and joining an empty rest
+            // would end its path with a separator.
+            let rest = parts.as_path();
+            record.path = match rest.as_os_str().is_empty() {
+                true => self.root.join(sha256),
+                false => self.root.join(sha256).join(rest),
+            };
+        }
+        let publication = Publication {
+            mode: Mode::Replace,
+            permissions: Permissions::Private,
+            durable: true,
+        };
+        let written = match serde_json::to_vec(&record) {
+            Ok(bytes) => jush_shared_artifacts::publish_bytes(file, &bytes, publication)
+                .await
+                .map_err(|error| error.to_string()),
+            Err(error) => Err(error.to_string()),
+        };
+        if let Err(error) = written {
+            tracing::warn!(event = "artifact_cache.record_failed", entry = %file.display(), cause = "unwritable", %error, "an artifact's record keeps its earlier names on disk");
+        }
+        record
     }
 
     fn line_record(&self, sha256: &str) -> PathBuf {
