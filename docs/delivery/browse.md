@@ -20,9 +20,9 @@ await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible()
 JS
 Backend   http://127.0.0.1:3320  ready in 71 s
 Web       http://127.0.0.1:3323  signed in as developer@example.test
-timeline  /…/demi-slots/2/.cache/browse/shots/timeline-0ms.png     painted at -30 ms
-timeline  /…/demi-slots/2/.cache/browse/shots/timeline-100ms.png   painted at 85 ms
-timeline  /…/demi-slots/2/.cache/browse/shots/timeline-1500ms.png  painted at 1484 ms
+timeline  /…/jush-slots/2/.cache/browse/shots/timeline-0ms.png     painted at -30 ms
+timeline  /…/jush-slots/2/.cache/browse/shots/timeline-100ms.png   painted at 85 ms
+timeline  /…/jush-slots/2/.cache/browse/shots/timeline-1500ms.png  painted at 1484 ms
 Page      http://127.0.0.1:3323/chat/c-1 · "Reload check — Jush"
 Focus     button "Stop"
 ```
@@ -458,7 +458,7 @@ in them, `keep`, the network settings and the logs stay as they were. A call
 starts the browser again when it crashed or hung: its process does not answer,
 or a page of it does not let the tool attach.
 
-The slot comes from the working directory: slot *n* for `../demi-slots/n`, slot
+The slot comes from the working directory: slot *n* for `../jush-slots/n`, slot
 0 for the user's own checkout.
 
 For a person at a shell, `bun browse up`, `bun browse down`, `bun browse stop`
