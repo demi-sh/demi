@@ -649,7 +649,7 @@ function selectProjectConversations(project: SidebarProject): void {
     <div class="flex h-11 shrink-0 items-center px-2">
       <span
         class="min-w-0 flex-1 truncate pl-2.5 text-chrome font-medium leading-5 text-fg-emphasis phone:pl-3 phone:text-[17px] phone:font-semibold phone:leading-normal"
-      >jush</span>
+      >Jush</span>
       <SidebarToggle placement="sidebar" />
     </div>
     <div v-if="workspaces?.length" class="shrink-0 px-2 pb-1.5">
