@@ -33,7 +33,7 @@ impl builtins::Command for PwdCommand {
             cwd = cwd.canonicalize()?.into();
         }
 
-        writeln!(context.stdout(), "{}", cwd.to_string_lossy())?;
+        writeln!(context.stdout(), "{}", brush_core::bytes::from_os(cwd.as_os_str()))?;
 
         Ok(ExecutionResult::success())
     }

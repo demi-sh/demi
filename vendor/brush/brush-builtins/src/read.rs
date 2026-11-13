@@ -115,7 +115,8 @@ impl builtins::Command for ReadCommand {
         let timeout = self.timeout_in_seconds.map(Duration::from_secs_f64);
 
         // Perform the read operation (potentially with timeout).
-        let read_result = self.read_line(input_stream, context.stderr(), timeout)?;
+        let utf8 = context.shell.utf8_locale();
+        let read_result = self.read_line(input_stream, context.stderr(), timeout, utf8)?;
 
         // Determine whether to skip IFS splitting (for -N option).
         let skip_ifs_splitting = self.return_after_n_chars_no_delimiter.is_some();
@@ -296,14 +297,13 @@ struct InputReader {
     input: brush_core::openfiles::OpenFile,
     /// Optional deadline for timeout.
     deadline: Option<Instant>,
-    /// Single-byte read buffer.
-    ///
-    /// TODO(utf-8): This only handles ASCII correctly. Multi-byte UTF-8 characters
-    /// will be read as separate bytes and incorrectly interpreted. To fix this,
-    /// we would need to buffer up to 4 bytes and decode incrementally using
-    /// `std::str::from_utf8`. Note that bash's `-n` counts bytes, not Unicode
-    /// codepoints, so the fix needs to preserve that behavior.
+    /// Single-byte read buffer: input is read a byte at a time, so that `read`
+    /// takes nothing past its delimiter from a pipe it shares with the next
+    /// command.
     buffer: [u8; 1],
+    /// Whether the shell's locale is UTF-8, where a character is a UTF-8
+    /// sequence; in another a character is a byte.
+    utf8: bool,
     /// Terminal mode guard - kept alive for RAII cleanup on drop.
     /// The guard restores original terminal settings when dropped, even though
     /// we don't access the field directly after construction.
@@ -311,16 +311,19 @@ struct InputReader {
     /// The leading underscore suppresses the "unused field" warning while making
     /// it explicit this field exists solely for its `Drop` implementation.
     _term_mode: Option<brush_core::terminal::AutoModeGuard>,
+    /// Whether the input is a terminal, whose control characters are keys:
+    /// from a pipe or a file every byte is data, as bash reads it.
+    terminal: bool,
 }
 
 /// Events that can occur when reading input.
 enum InputEvent {
-    /// A regular character was read.
-    Char(char),
+    /// A regular character was read, as its bytes.
+    Char(Vec<u8>),
     /// End of file was reached.
     Eof,
-    /// The read operation timed out.
-    Timeout,
+    /// The read operation timed out, with the bytes of a character it cut.
+    Timeout(Vec<u8>),
     /// Ctrl+C was pressed.
     CtrlC,
     /// Ctrl+D was pressed.
@@ -333,11 +336,14 @@ impl InputReader {
         input: brush_core::openfiles::OpenFile,
         timeout: Option<Duration>,
         term_mode: Option<brush_core::terminal::AutoModeGuard>,
+        utf8: bool,
     ) -> Self {
         Self {
             input,
             deadline: timeout.map(|t| Instant::now() + t),
             buffer: [0; 1],
+            utf8,
+            terminal: term_mode.is_some(),
             _term_mode: term_mode,
         }
     }
@@ -349,42 +355,86 @@ impl InputReader {
     }
 
     /// Reads the next input event, handling timeout and control characters.
+    ///
+    /// In a UTF-8 locale a character is read whole, as bash's `read` reads
+    /// it: a byte that starts none is a character of its own, and a sequence
+    /// broken by a byte that cannot continue it ends with that byte, so
+    /// nothing read is lost.
     fn read_event(&mut self) -> Result<InputEvent, brush_core::Error> {
-        // Check timeout before attempting read.
+        let first = match self.read_byte()? {
+            Byte::Read(byte) => byte,
+            Byte::Eof => return Ok(InputEvent::Eof),
+            Byte::Timeout => return Ok(InputEvent::Timeout(Vec::new())),
+        };
+        let continuations = match first {
+            _ if !self.utf8 => 0,
+            0xC2..=0xDF => 1,
+            0xE0..=0xEF => 2,
+            0xF0..=0xF4 => 3,
+            _ => 0,
+        };
+        let mut character = vec![first];
+        for index in 0..continuations {
+            // The second byte's range depends on the first, so that every
+            // sequence read whole is UTF-8.
+            let range = match (index, first) {
+                (0, 0xE0) => 0xA0..=0xBF,
+                (0, 0xED) => 0x80..=0x9F,
+                (0, 0xF0) => 0x90..=0xBF,
+                (0, 0xF4) => 0x80..=0x8F,
+                _ => 0x80..=0xBF,
+            };
+            match self.read_byte()? {
+                Byte::Read(byte) => {
+                    character.push(byte);
+                    if !range.contains(&byte) {
+                        break;
+                    }
+                }
+                Byte::Eof => break,
+                Byte::Timeout => return Ok(InputEvent::Timeout(character)),
+            }
+        }
+
+        // Map a terminal's control characters to events.
+        Ok(match character.as_slice() {
+            [byte] if self.terminal && char::from(*byte) == CTRL_C => InputEvent::CtrlC,
+            [byte] if self.terminal && char::from(*byte) == CTRL_D => InputEvent::CtrlD,
+            _ => InputEvent::Char(character),
+        })
+    }
+
+    /// Reads one byte, waiting no longer than the deadline.
+    fn read_byte(&mut self) -> Result<Byte, brush_core::Error> {
         if let Some(deadline) = self.deadline {
             let remaining = deadline.saturating_duration_since(Instant::now());
             if remaining.is_zero() {
-                return Ok(InputEvent::Timeout);
+                return Ok(Byte::Timeout);
             }
 
             // Poll for input with remaining timeout.
             match brush_core::sys::poll::poll_for_input(&self.input, remaining) {
                 Ok(true) => { /* Data available, proceed. */ }
-                Ok(false) => return Ok(InputEvent::Timeout),
+                Ok(false) => return Ok(Byte::Timeout),
                 Err(e) => return Err(e.into()),
             }
         }
-
         let n = self.input.read(&mut self.buffer)?;
-        if n == 0 {
-            return Ok(InputEvent::Eof);
-        }
-
-        let ch = self.buffer[0] as char;
-
-        // Map control characters to events.
-        Ok(match ch {
-            CTRL_C => InputEvent::CtrlC,
-            CTRL_D => InputEvent::CtrlD,
-            _ => InputEvent::Char(ch),
-        })
+        Ok(if n == 0 { Byte::Eof } else { Byte::Read(self.buffer[0]) })
     }
+}
+
+/// What reading one byte of input gave.
+enum Byte {
+    Read(u8),
+    Eof,
+    Timeout,
 }
 
 /// Configuration for line reading behavior.
 struct LineReaderConfig {
-    /// Character that terminates input (None for -N mode).
-    delimiter: Option<char>,
+    /// Character that terminates input, as its bytes (None for -N mode).
+    delimiter: Option<Vec<u8>>,
     /// Maximum characters to read (for -n or -N).
     char_limit: Option<usize>,
     /// Whether to process backslash escapes (false for -r mode).
@@ -404,8 +454,14 @@ fn read_line_with_reader(
     reader: &mut InputReader,
     config: &LineReaderConfig,
 ) -> Result<ReadResult, brush_core::Error> {
-    let mut line = String::new();
+    // The bytes read, which become the shell's text once the line ends
+    // (`bytes::decode`), as in `$(...)`.
+    let mut line: Vec<u8> = Vec::new();
+    // The characters in `line`, which `-n` and `-N` count.
+    let mut chars = 0;
     let mut pending_backslash = false;
+    let text = |line: Vec<u8>| brush_core::bytes::decode(&line);
+    let backslash = [BACKSLASH as u8];
 
     loop {
         let event = reader.read_event()?;
@@ -416,19 +472,20 @@ fn read_line_with_reader(
                 return Ok(ReadResult::Eof(if line.is_empty() {
                     None
                 } else {
-                    Some(line)
+                    Some(text(line))
                 }));
             }
 
-            InputEvent::Timeout => {
+            InputEvent::Timeout(cut) => {
                 // Include pending backslash on timeout (different from EOF).
                 if pending_backslash {
-                    line.push(BACKSLASH);
+                    line.extend_from_slice(&backslash);
                 }
+                line.extend_from_slice(&cut);
                 return Ok(ReadResult::TimedOut(if line.is_empty() {
                     None
                 } else {
-                    Some(line)
+                    Some(text(line))
                 }));
             }
 
@@ -442,7 +499,7 @@ fn read_line_with_reader(
                 return Ok(if line.is_empty() && !pending_backslash {
                     ReadResult::Eof(None)
                 } else {
-                    ReadResult::Line(line)
+                    ReadResult::Line(text(line))
                 });
             }
 
@@ -453,49 +510,51 @@ fn read_line_with_reader(
                         pending_backslash = false;
 
                         // Backslash-delimiter is line continuation.
-                        if let Some(delim) = config.delimiter
-                            && ch == delim
-                        {
+                        if config.delimiter.as_ref() == Some(&ch) {
                             continue; // Line continuation.
                         }
 
                         // For other chars, add char literally (backslash consumed).
-                        line.push(ch);
+                        line.extend_from_slice(&ch);
+                        chars += 1;
 
                         // Check character limit (based on output length).
                         if let Some(limit) = config.char_limit
-                            && line.len() >= limit
+                            && chars >= limit
                         {
-                            return Ok(ReadResult::Line(line));
+                            return Ok(ReadResult::Line(text(line)));
                         }
                         continue;
                     }
 
-                    if ch == BACKSLASH {
+                    if ch == backslash {
                         pending_backslash = true;
                         continue;
                     }
                 }
 
                 // Check for delimiter.
-                if let Some(delim) = config.delimiter
-                    && ch == delim
-                {
-                    return Ok(ReadResult::Line(line));
+                if config.delimiter.as_ref() == Some(&ch) {
+                    return Ok(ReadResult::Line(text(line)));
                 }
 
-                // Ignore non-whitespace control characters.
-                if ch.is_ascii_control() && !ch.is_ascii_whitespace() {
+                // A terminal's other control characters are ignored; from
+                // anything else only NUL is, as bash drops it.
+                if let [byte] = ch.as_slice()
+                    && (*byte == 0
+                        || reader.terminal && byte.is_ascii_control() && !byte.is_ascii_whitespace())
+                {
                     continue;
                 }
 
-                line.push(ch);
+                line.extend_from_slice(&ch);
+                chars += 1;
 
                 // Check character limit (based on output length).
                 if let Some(limit) = config.char_limit
-                    && line.len() >= limit
+                    && chars >= limit
                 {
-                    return Ok(ReadResult::Line(line));
+                    return Ok(ReadResult::Line(text(line)));
                 }
             }
         }
@@ -514,6 +573,7 @@ impl ReadCommand {
         input_file: brush_core::openfiles::OpenFile,
         mut stderr_file: impl std::io::Write,
         timeout: Option<Duration>,
+        utf8: bool,
     ) -> Result<ReadResult, brush_core::Error> {
         let term_mode = self.setup_terminal_settings(&input_file)?;
 
@@ -525,17 +585,23 @@ impl ReadCommand {
             }
         }
 
-        // Determine delimiter based on options.
+        // Determine delimiter based on options: the first character of `-d`'s
+        // argument, its first byte outside a UTF-8 locale.
         let delimiter = if self.return_after_n_chars_no_delimiter.is_some() {
             None
         } else if let Some(delimiter_str) = &self.delimiter {
             if delimiter_str.is_empty() {
-                Some(NUL_DELIMITER)
+                Some(vec![NUL_DELIMITER as u8])
+            } else if utf8 {
+                delimiter_str
+                    .chars()
+                    .next()
+                    .map(|c| brush_core::bytes::encode(c.encode_utf8(&mut [0; 4])).into_owned())
             } else {
-                delimiter_str.chars().next()
+                brush_core::bytes::encode(delimiter_str).first().map(|byte| vec![*byte])
             }
         } else {
-            Some(DEFAULT_DELIMITER)
+            Some(vec![DEFAULT_DELIMITER as u8])
         };
 
         let char_limit = self
@@ -543,7 +609,7 @@ impl ReadCommand {
             .or(self.return_after_n_chars);
 
         // Create the input reader.
-        let mut reader = InputReader::new(input_file, timeout, term_mode);
+        let mut reader = InputReader::new(input_file, timeout, term_mode, utf8);
 
         // Handle -t 0 special case: just check if input is available without reading.
         if timeout == Some(Duration::ZERO) {

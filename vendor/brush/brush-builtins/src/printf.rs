@@ -27,7 +27,7 @@ impl builtins::Command for PrintfCommand {
         context: brush_core::ExecutionContext<'_, SE>,
     ) -> Result<ExecutionResult, Self::Error> {
         let invocation = invocation(&context)?;
-        let utf8 = utf8_locale(context.shell);
+        let utf8 = context.shell.utf8_locale();
         let status;
         if let Some(variable_name) = &self.output_variable {
             // Format to a u8 vector.
@@ -39,10 +39,8 @@ impl builtins::Command for PrintfCommand {
                 ControlFlow::Break(ended) => return Ok(ended.into()),
             };
 
-            // Convert to a string.
-            let result_str = String::from_utf8(result).map_err(|_| {
-                brush_core::ErrorKind::PrintfInvalidUsage("invalid UTF-8 output".into())
-            })?;
+            // The shell's text, holding the bytes that are no UTF-8.
+            let result_str = brush_core::bytes::decode(&result);
 
             // Assign to the selected variable.
             expansion::assign_to_named_parameter(
@@ -53,7 +51,10 @@ impl builtins::Command for PrintfCommand {
             )
             .await?;
         } else {
-            let mut stdout = context.stdout();
+            // The bytes formatting gives, which are no text: the stream itself.
+            let mut stdout = context
+                .try_fd(brush_core::openfiles::OpenFiles::STDOUT_FD)
+                .ok_or_else(|| std::io::Error::other("standard output not available"))?;
             status = match run_in(invocation, &context, || {
                 format(self.format_and_args.as_slice(), utf8, &mut stdout)
             })? {
@@ -101,7 +102,10 @@ fn invocation<SE: brush_core::ShellExtensions>(
             .env()
             .iter_exported()
             .filter(|(_, variable)| variable.value().is_set())
-            .map(|(name, variable)| (name.clone(), variable.value().to_cow_str(shell).into_owned()))
+            .map(|(name, variable)| {
+                let value = brush_core::bytes::to_os(&variable.value().to_cow_str(shell)).into_owned();
+                (name.into(), value)
+            })
             .collect(),
         descriptors: std::collections::BTreeMap::new(),
         stdin: stream(0)?,
@@ -143,25 +147,21 @@ fn run_in<SE: brush_core::ShellExtensions>(
     std::panic::resume_unwind(ended)
 }
 
-/// Whether the shell's locale is UTF-8, as the first of `LC_ALL`, `LC_CTYPE` and `LANG` that is
-/// set and not empty names it; with none, the locale is `C`, one byte a character.
-fn utf8_locale<SE: brush_core::ShellExtensions>(shell: &brush_core::Shell<SE>) -> bool {
-    ["LC_ALL", "LC_CTYPE", "LANG"]
-        .iter()
-        .find_map(|name| shell.env().get_str(name, shell).filter(|value| !value.is_empty()))
-        .is_some_and(|locale| {
-            let locale = locale.to_ascii_lowercase();
-            locale.contains("utf-8") || locale.contains("utf8")
-        })
-}
-
 fn format(
     format_and_args: &[String],
     utf8: bool,
     writer: impl Write,
 ) -> Result<(), brush_core::Error> {
+    // uucore formats bytes: the format and the arguments as the bytes they
+    // stand for (`bytes::encode`), so a held byte is one byte to `%c`, `%.1s`
+    // and a width.
     match format_and_args {
-        [fmt, args @ ..] => format_via_uucore(fmt, args.iter(), utf8, writer),
+        [fmt, args @ ..] => format_via_uucore(
+            &brush_core::bytes::encode(fmt),
+            args.iter().map(|arg| brush_core::bytes::to_os(arg).into_owned()),
+            utf8,
+            writer,
+        ),
         // Handle case with no format string (we shouldn't be able to get here since clap will
         // fail parsing when the format string is missing)
         [] => Err(ErrorKind::PrintfInvalidUsage("missing operand".into()).into()),
@@ -169,7 +169,7 @@ fn format(
 }
 
 fn format_via_uucore(
-    format_string: &str,
+    format_string: &[u8],
     args: impl Iterator<Item = impl Into<OsString>>,
     utf8: bool,
     mut writer: impl Write,
@@ -193,10 +193,10 @@ fn format_via_uucore(
             // %q quotes as bash's does, with backslashes in the shell's locale
             // (bash-completion reads them), where uucore quotes as GNU's printf does.
             if let format::FormatItem::Spec(format::Spec::QuotedString { position }) = item {
-                let word = format_args_wrapper.next_string(*position).to_string_lossy();
+                let word = brush_core::bytes::from_os(format_args_wrapper.next_string(*position));
                 let quoted =
                     escape::quote_if_needed_in(&word, escape::QuoteMode::BackslashEscape, utf8);
-                write!(writer, "{quoted}")?;
+                writer.write_all(&brush_core::bytes::encode(&quoted))?;
                 continue;
             }
             let control_flow = item
@@ -229,10 +229,9 @@ fn format_via_uucore(
 }
 
 fn parse_format_string(
-    format_string: &str,
+    format_string: &[u8],
 ) -> Result<Vec<format::FormatItem<format::EscapedChar>>, brush_core::Error> {
-    let format_items: Result<Vec<_>, _> =
-        format::parse_spec_and_escape(format_string.as_bytes()).collect();
+    let format_items: Result<Vec<_>, _> = format::parse_spec_and_escape(format_string).collect();
 
     // Observe any errors we encountered along the way.
     let format_items = format_items
@@ -252,7 +251,7 @@ mod tests {
         args: impl Iterator<Item = impl Into<OsString>>,
     ) -> Result<String> {
         let mut result = vec![];
-        format_via_uucore(format_string, args, true, &mut result)?;
+        format_via_uucore(format_string.as_bytes(), args, true, &mut result)?;
 
         Ok(String::from_utf8(result)?)
     }

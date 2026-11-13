@@ -18,7 +18,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use uucore::{context_eprintln, context_println};
+use uucore::context_eprintln;
+#[cfg(windows)]
+use uucore::context_println;
 
 /// Runs `which` for the arguments `args`, its own name first.
 pub fn uumain(args: Vec<OsString>) -> i32 {
@@ -56,7 +58,13 @@ pub fn uumain(args: Vec<OsString>) -> i32 {
             status = 1;
         } else if !silent {
             for line in found {
-                context_println!("{}", line.to_string_lossy());
+                // The path's own bytes, as the system's `which` prints them.
+                let mut bytes = uucore::os_str_as_bytes_lossy(&line).into_owned();
+                bytes.push(b'\n');
+                use uucore::context::io::Write as _;
+                if uucore::context::io::stdout().write_all(&bytes).is_err() {
+                    uucore::context::exit(1);
+                }
             }
         }
     }

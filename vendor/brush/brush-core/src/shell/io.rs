@@ -67,7 +67,8 @@ impl<SE: extensions::ShellExtensions> crate::Shell<SE> {
         if let Some(trace_file) = trace_file
             && let Ok(mut trace_file) = trace_file.try_clone()
         {
-            let _ = writeln!(trace_file, "{prefix}{}", command.as_ref());
+            let line = std::format!("{prefix}{}\n", command.as_ref());
+            let _ = trace_file.write_all(&crate::bytes::encode(&line));
         }
     }
 

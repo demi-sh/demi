@@ -457,7 +457,7 @@ fn ansi_c_quote(s: &str, ascii_only: bool) -> String {
             '\'' => result.push_str("\\'"),
             // Each byte of the character, as the shell reads `\ooo` in `$'…'`.
             c if needs_ansi_c_quoting(c, ascii_only) => {
-                for byte in c.encode_utf8(&mut [0; 4]).bytes() {
+                for byte in crate::bytes::encode(c.encode_utf8(&mut [0; 4])).iter() {
                     result.push_str(std::format!("\\{byte:03o}").as_str());
                 }
             }
@@ -500,9 +500,10 @@ const fn needs_escaping(c: char) -> bool {
 }
 
 /// Whether `c` is no printable character, which only ANSI C quoting writes visibly: a control
-/// character, and in a locale of one byte a character any beyond ASCII.
+/// character, a byte that is no UTF-8 (`bytes::byte_char`), and in a locale of one byte a
+/// character any beyond ASCII.
 fn needs_ansi_c_quoting(c: char, ascii_only: bool) -> bool {
-    c.is_control() || (ascii_only && !c.is_ascii())
+    c.is_control() || (ascii_only && !c.is_ascii()) || crate::bytes::char_byte(c).is_some()
 }
 
 /// Whether `c`, after `before` (none at the start of the word), starts an expansion or a

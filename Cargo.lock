@@ -9447,7 +9447,6 @@ dependencies = [
  "regex",
  "rustix",
  "tempfile",
- "terminal_size",
  "textwrap",
  "uucore",
 ]

@@ -233,7 +233,7 @@ pub(crate) fn init_well_known_vars(
                 shell
                     .directory_stack()
                     .iter()
-                    .map(|p| p.to_string_lossy().to_string())
+                    .map(|p| crate::bytes::from_os(p.as_os_str()).into_owned())
                     .collect::<Vec<_>>()
                     .into()
             },
@@ -521,7 +521,7 @@ pub(crate) fn init_well_known_vars(
     // we inherited an out-of-sync version of the variable. Future updates
     // will be handled by set_working_dir().
     //
-    let pwd = shell.working_dir().to_string_lossy().to_string();
+    let pwd = crate::bytes::from_os(shell.working_dir().as_os_str()).into_owned();
     let mut pwd_var = ShellVariable::new(pwd);
     pwd_var.export();
     shell.env_mut().set_global("PWD", pwd_var)?;

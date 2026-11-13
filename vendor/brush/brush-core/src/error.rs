@@ -185,6 +185,11 @@ pub enum ErrorKind {
     #[error("bad substitution: {0}")]
     BadSubstitution(String),
 
+    /// A substring's length that ends it before it starts, or is negative
+    /// for an array's elements.
+    #[error("{0}: substring expression < 0")]
+    NegativeSubstringLength(String),
+
     /// An error occurred while creating a child process.
     #[error("failed to create child process")]
     ChildCreationFailure,

@@ -65,6 +65,9 @@ pub struct Pattern {
     enable_extended_globbing: bool,
     multiline: bool,
     case_insensitive: bool,
+    /// Whether the shell's locale is UTF-8, where a named class such as
+    /// `[:alpha:]` holds every letter, not only ASCII's.
+    utf8: bool,
 }
 
 impl Default for Pattern {
@@ -74,6 +77,7 @@ impl Default for Pattern {
             enable_extended_globbing: false,
             multiline: true,
             case_insensitive: false,
+            utf8: true,
         }
     }
 }
@@ -145,6 +149,13 @@ impl Pattern {
     #[must_use]
     pub const fn set_case_insensitive(mut self, value: bool) -> Self {
         self.case_insensitive = value;
+        self
+    }
+
+    /// Sets whether the shell's locale is UTF-8 (`Shell::utf8_locale`).
+    #[must_use]
+    pub const fn set_utf8(mut self, value: bool) -> Self {
+        self.utf8 = value;
         self
     }
 
@@ -262,7 +273,7 @@ impl Pattern {
             match named.and_then(|named| map_path(Path::new(&named)).map(|mapped| (named, mapped))) {
                 Some((named, mapped)) => {
                     components.remove(0);
-                    let listed = sys::fs::normalize_path_separators(&mapped.to_string_lossy())
+                    let listed = sys::fs::normalize_path_separators(&crate::bytes::from_os(mapped.as_os_str()))
                         .trim_end_matches('/')
                         .to_owned();
                     remapped = Some((named, listed));
@@ -277,7 +288,7 @@ impl Pattern {
             // also uses `/` on Windows (to avoid `PathBuf::push` drive-letter
             // semantics) — if we left `\` here, the strip_prefix below would
             // miss on Windows and leave results as absolute paths.
-            let working_dir_str = working_dir.to_string_lossy();
+            let working_dir_str = crate::bytes::from_os(working_dir.as_os_str());
             let mut working_dir_str =
                 sys::fs::normalize_path_separators(&working_dir_str).into_owned();
             if !working_dir_str.ends_with('/') {
@@ -307,7 +318,8 @@ impl Pattern {
             for current_path in current_paths {
                 let subpattern = Self::from(&component)
                     .set_extended_globbing(self.enable_extended_globbing)
-                    .set_case_insensitive(self.case_insensitive);
+                    .set_case_insensitive(self.case_insensitive)
+                    .set_utf8(self.utf8);
 
                 let subpattern_starts_with_dot = subpattern
                     .pieces
@@ -318,13 +330,13 @@ impl Pattern {
                     || subpattern_starts_with_dot;
 
                 let matches_dotfile_policy = |dir_entry: &std::fs::DirEntry| {
-                    !dir_entry.file_name().to_string_lossy().starts_with('.') || allow_dot_files
+                    !crate::bytes::from_os(&dir_entry.file_name()).starts_with('.') || allow_dot_files
                 };
 
                 let regex = subpattern.to_regex(true, true)?;
                 let matches_regex = |dir_entry: &std::fs::DirEntry| {
                     regex
-                        .is_match(dir_entry.file_name().to_string_lossy().as_ref())
+                        .is_match(crate::bytes::from_os(&dir_entry.file_name()).as_ref())
                         .unwrap_or(false)
                 };
 
@@ -357,7 +369,7 @@ impl Pattern {
                 // prefix so that `prefix_to_remove` (already normalized to
                 // use `/`) matches paths that may contain a mix of `\` and
                 // `/` on Windows.
-                let path_str = path.to_string_lossy();
+                let path_str = crate::bytes::from_os(path.as_os_str());
                 let normalized = sys::fs::normalize_path_separators(&path_str);
                 let mut path_ref: &str = normalized.as_ref();
 
@@ -447,7 +459,7 @@ impl Pattern {
 
         tracing::debug!(target: trace_categories::PATTERN, "pattern: '{self:?}' => regex: '{regex_str}'");
 
-        let re = regex::compile_regex(regex_str, self.case_insensitive, self.multiline)?;
+        let re = regex::compile_regex(regex_str, self.case_insensitive, self.multiline, self.utf8)?;
         Ok(re)
     }
 

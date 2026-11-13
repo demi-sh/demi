@@ -340,4 +340,9 @@ patches = [
     "command -v and type name the system's file of a program the host runs itself where there is one (Shell::host_stands_in_for)",
     "break and continue outside a loop warn and return 0, as bash's do, where upstream ended the script (autoconf's configure ends a block with a break that is in no loop)",
     "local and return word their errors as bash does: local: can only be used in a function, return: can only `return' from a function or sourced script",
+    "read reads a character whole in a UTF-8 locale (Shell::utf8_locale), and a byte a character in another, as bash's does: `-n` and `-N` count characters, `-d` ends at its argument's first character, and the line's bytes become text once it ends (brush_core::bytes::decode); upstream took each byte for a character, so 中 read as three Latin-1 characters; a timeout applies to every byte",
+    "printf asks the shell whether its locale is UTF-8 (Shell::utf8_locale)",
+    "echo -e, mapfile, printf -v and read keep the bytes that are no UTF-8 (brush_core::bytes), where upstream made them U+FFFD or failed; mapfile's and read's -d take the byte a held byte stands for; pwd, dirs, command -v, type and hash print a path's own bytes",
+    "printf formats the bytes its format and arguments stand for and writes them to its standard output itself, so a byte that is no UTF-8 is one byte to %c, %.1s and a width, as bash's",
+    "read takes control characters for keys only from a terminal: from a pipe or a file every byte but NUL is data, as bash reads it, where upstream ended at ^C or ^D and dropped ESC, DEL and the others",
 ]

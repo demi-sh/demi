@@ -54,7 +54,7 @@ impl builtins::Command for HashCommand {
                         writeln!(
                             context.stdout(),
                             "builtin hash -p {} {name}",
-                            path.to_string_lossy()
+                            brush_core::bytes::from_os(path.as_os_str())
                         )?;
                     } else {
                         let mut prefix = String::new();
@@ -67,7 +67,7 @@ impl builtins::Command for HashCommand {
                         writeln!(
                             context.stdout(),
                             "{prefix}{}",
-                            path.to_string_lossy().as_ref()
+                            brush_core::bytes::from_os(path.as_os_str())
                         )?;
                     }
                 } else {

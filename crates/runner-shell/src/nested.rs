@@ -280,11 +280,13 @@ pub(crate) async fn run(invocation: Invocation, options: Options) -> Result<u8, 
         builtins,
         attributes,
     } = invocation;
-    let mut stderr = fds
-        .get(&2)
-        .map(OpenFile::try_clone)
-        .transpose()?
-        .ok_or_else(|| io::Error::other("closed descriptor 2"))?;
+    // The shell's text, with the bytes it holds written as bytes.
+    let mut stderr = brush_core::bytes::ByteWriter::new(
+        fds.get(&2)
+            .map(OpenFile::try_clone)
+            .transpose()?
+            .ok_or_else(|| io::Error::other("closed descriptor 2"))?,
+    );
     let invalid = options
         .named
         .iter()
@@ -436,7 +438,7 @@ pub(crate) async fn run(invocation: Invocation, options: Options) -> Result<u8, 
         input.read_to_end(&mut text)?;
         let result = shell
             .run_string_incrementally(
-                &String::from_utf8_lossy(&text),
+                &brush_core::bytes::decode(&text),
                 &SourceInfo::default(),
                 &shell.default_exec_params(),
             )
@@ -566,10 +568,21 @@ pub(crate) fn start(
     let stderr = context.stderr.clone();
     let program = args.first().cloned().unwrap_or_default();
     let name = shell_named(&program).unwrap_or(BASH);
+    // What the utility gives as the shell's text.
     let words: Vec<String> = args
         .iter()
         .skip(1)
-        .map(|arg| arg.to_string_lossy().into_owned())
+        .map(|arg| brush_core::bytes::from_os(arg).into_owned())
+        .collect();
+    let env = context
+        .env
+        .iter()
+        .map(|(name, value)| {
+            (
+                brush_core::bytes::from_os(name).into_owned(),
+                brush_core::bytes::from_os(value).into_owned(),
+            )
+        })
         .collect();
     let work = move || {
         let options = match parse(&words) {
@@ -601,7 +614,7 @@ pub(crate) fn start(
             name,
             builtins: crate::interpreter::job_builtins(&scope),
             scope: scope.clone(),
-            env: context.env.clone(),
+            env,
             cwd: context.cwd.clone(),
             fds,
             attributes: brush_core::execution_host::ChildAttributes {

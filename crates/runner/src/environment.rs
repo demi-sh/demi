@@ -54,7 +54,9 @@ const LOGIN_SHELL: std::time::Duration = std::time::Duration::from_secs(10);
 /// [`login_environment`].
 pub fn print(mark: &str) -> std::io::Result<()> {
     use std::io::Write as _;
-    let env: BTreeMap<String, String> = std::env::vars().collect();
+    // As a job's shell reads it, a value that is no UTF-8 included, where
+    // `std::env::vars` fails at one.
+    let env: BTreeMap<String, String> = demi_runner_shell::device_environment().collect();
     let json = serde_json::to_string(&env).map_err(std::io::Error::other)?;
     let mut stdout = std::io::stdout().lock();
     write!(stdout, "{mark}{json}{mark}")?;
@@ -105,7 +107,7 @@ pub async fn login_environment(
             .args(arguments)
             .arg(script)
             .env_clear()
-            .envs(own)
+            .envs(own.iter().map(|(name, value)| (name, demi_runner_shell::bytes::to_os(value))))
             .env(RESOLVING, "1")
             .stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::piped())

@@ -9,7 +9,7 @@
 // file that was distributed with this source code.
 
 use crate::sed::command::{
-    Address, CharacterMode, Command, CommandData, ParsedTransliteration, ProcessingContext,
+    Address, CaseChange, CharacterMode, Command, CommandData, ParsedTransliteration, ProcessingContext,
     RegexMode, ReplacementPart, ReplacementTemplate, Substitution, Transliteration,
 };
 use crate::sed::delimited_parser::{
@@ -27,10 +27,7 @@ use std::mem;
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use terminal_size::{Width, terminal_size};
 use uucore::error::{UResult, USimpleError};
-
-const DEFAULT_OUTPUT_WIDTH: usize = 60;
 
 const ERR_ADDRESS_0_USAGE: &str =
     "address 0 can only be used with ~step, a second regular expression, or a read command";
@@ -843,11 +840,13 @@ fn compile_regex(
     Ok(Some(compiled))
 }
 
-/// Compile a regular expression replacement string according to character mode.
+/// Compile a regular expression replacement string according to character
+/// mode; `posix` reads GNU's changes of case as the letters, as `--posix` does.
 pub fn compile_replacement(
     lines: &mut ScriptLineProvider,
     line: &mut ScriptCharProvider,
     character_mode: CharacterMode,
+    posix: bool,
 ) -> UResult<ReplacementTemplate> {
     let mut parts = Vec::new();
     let mut literal = Vec::new();
@@ -893,6 +892,21 @@ pub fn compile_replacement(
                             line.advance();
                         }
 
+                        // GNU's changes of case, which --posix reads as the letters.
+                        c @ ('U' | 'L' | 'E' | 'u' | 'l') if !posix => {
+                            if !literal.is_empty() {
+                                parts.push(ReplacementPart::Literal(std::mem::take(&mut literal)));
+                            }
+                            parts.push(ReplacementPart::Case(match c {
+                                'U' => CaseChange::Upper,
+                                'L' => CaseChange::Lower,
+                                'E' => CaseChange::Keep,
+                                'u' => CaseChange::UpperNext,
+                                _ => CaseChange::LowerNext,
+                            }));
+                            line.advance();
+                        }
+
                         // Literal delimiter
                         v if v == delimiter => {
                             literal.push(line.current_byte());
@@ -920,7 +934,9 @@ pub fn compile_replacement(
                     if !literal.is_empty() {
                         parts.push(ReplacementPart::Literal(literal));
                     }
-                    return Ok(ReplacementTemplate::new(parts));
+                    let mut template = ReplacementTemplate::new(parts);
+                    template.character_mode = character_mode;
+                    return Ok(template);
                 }
 
                 '&' => {
@@ -986,7 +1002,7 @@ fn compile_subst_command(
     )?;
     let mut subst = Box::new(Substitution::default());
 
-    subst.replacement = compile_replacement(lines, line, context.character_mode)?;
+    subst.replacement = compile_replacement(lines, line, context.character_mode, context.posix)?;
     compile_subst_flags(lines, line, &mut subst, context.posix, context.sandbox)?;
 
     if pattern.is_empty() && (subst.ignore_case || subst.multiline) {
@@ -1320,22 +1336,13 @@ fn compile_label_command(
     Ok(CommandHandling::Continue)
 }
 
-/// Return the width of the command's terminal or a default.
-fn output_width() -> usize {
-    if let Some((Width(w), _)) = terminal_size() {
-        w as usize
-    } else {
-        DEFAULT_OUTPUT_WIDTH
-    }
-}
-
 /// Compile commands that take a number as an argument.
 // Handles l q Q
 fn compile_number_command(
     lines: &mut ScriptLineProvider,
     line: &mut ScriptCharProvider,
     cmd: &mut Command,
-    _context: &mut ProcessingContext,
+    context: &mut ProcessingContext,
 ) -> UResult<CommandHandling> {
     line.advance(); // Skip the command character
     line.eat_spaces(); // Skip any leading whitespace
@@ -1348,8 +1355,9 @@ fn compile_number_command(
             'q' | 'Q' => {
                 cmd.data = CommandData::Number(0);
             }
+            // `-l`'s length, 70 by default, as GNU's; never the terminal's.
             'l' => {
-                cmd.data = CommandData::Number(output_width());
+                cmd.data = CommandData::Number(context.length);
             }
             _ => panic!("invalid number-expecting command"),
         },
@@ -2503,7 +2511,7 @@ mod tests {
         lines: &mut ScriptLineProvider,
         line: &mut ScriptCharProvider,
     ) -> UResult<ReplacementTemplate> {
-        compile_replacement(lines, line, CharacterMode::Utf8)
+        compile_replacement(lines, line, CharacterMode::Utf8, false)
     }
 
     #[test]
@@ -2586,7 +2594,7 @@ mod tests {
     #[test]
     fn test_compile_replacement_escape_byte_mode() {
         let (mut lines, mut chars) = make_providers("/\\xE9/");
-        let template = compile_replacement(&mut lines, &mut chars, CharacterMode::Byte).unwrap();
+        let template = compile_replacement(&mut lines, &mut chars, CharacterMode::Byte, false).unwrap();
 
         assert_eq!(template.parts.len(), 1);
         assert!(matches!(&template.parts[0], ReplacementPart::Literal(s) if s == b"\xE9"));
@@ -2595,7 +2603,7 @@ mod tests {
     #[test]
     fn test_compile_replacement_escape_utf8_mode() {
         let (mut lines, mut chars) = make_providers("/\\xE9/");
-        let template = compile_replacement(&mut lines, &mut chars, CharacterMode::Utf8).unwrap();
+        let template = compile_replacement(&mut lines, &mut chars, CharacterMode::Utf8, false).unwrap();
 
         assert_eq!(template.parts.len(), 1);
         assert!(matches!(

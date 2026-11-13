@@ -44,13 +44,11 @@ impl Printer {
         mut out: impl Write,
         print_error_message: bool,
     ) {
-        let result = write!(
-            out,
-            "{}{}",
-            file_info.path().to_string_lossy(),
-            self.delimiter
-        )
-        .and_then(|()| out.flush());
+        // The path's own bytes, as GNU's find prints a name that is no UTF-8.
+        let result = out
+            .write_all(&uucore::os_str_as_bytes_lossy(file_info.path().as_os_str()))
+            .and_then(|()| write!(out, "{}", self.delimiter))
+            .and_then(|()| out.flush());
         if let Err(e) = result {
             if e.kind() == uucore::context::io::ErrorKind::BrokenPipe {
                 uucore::context::process::exit(0);

@@ -385,11 +385,14 @@ fn format_non_link_file_type(file_type: FileType) -> char {
     }
 }
 
+/// What `directive` prints for `file_info`; a name is its own bytes, as GNU's
+/// find prints one that is no UTF-8.
 fn format_directive<'entry>(
     file_info: &'entry WalkEntry,
     directive: &FormatDirective,
-) -> Result<Cow<'entry, str>, Box<dyn Error>> {
+) -> Result<Cow<'entry, [u8]>, Box<dyn Error>> {
     let meta = || file_info.metadata();
+    let name = |name: &'entry std::ffi::OsStr| uucore::os_str_as_bytes_lossy(name);
 
     // NOTE ON QUOTING:
     // GNU find's man page claims that several directives that print names (like
@@ -400,7 +403,7 @@ fn format_directive<'entry>(
     let res: Cow<'entry, str> = match directive {
         FormatDirective::AccessTime(tf) => tf.apply(meta()?.accessed()?)?,
 
-        FormatDirective::Basename => file_info.file_name().to_string_lossy(),
+        FormatDirective::Basename => return Ok(name(file_info.file_name())),
 
         FormatDirective::Blocks { large_blocks } => {
             #[cfg(unix)]
@@ -448,7 +451,7 @@ fn format_directive<'entry>(
             None => "".into(),
             Some(p) if p == Path::new("/") => "".into(),
             Some(p) if p == Path::new("") => ".".into(),
-            Some(parent) => parent.to_string_lossy(),
+            Some(parent) => return Ok(name(parent.as_os_str())),
         },
 
         #[cfg(not(unix))]
@@ -492,17 +495,21 @@ fn format_directive<'entry>(
 
         FormatDirective::Path {
             strip_starting_point,
-        } => file_info
-            .path()
-            .strip_prefix(if *strip_starting_point {
-                get_starting_point(file_info)
-            } else {
-                Path::new("")
-            })
-            // safe to unwrap: the prefix is derived *from* the path to begin
-            // with, so it cannot be invalid.
-            .unwrap()
-            .to_string_lossy(),
+        } => {
+            return Ok(name(
+                file_info
+                    .path()
+                    .strip_prefix(if *strip_starting_point {
+                        get_starting_point(file_info)
+                    } else {
+                        Path::new("")
+                    })
+                    // safe to unwrap: the prefix is derived *from* the path to begin
+                    // with, so it cannot be invalid.
+                    .unwrap()
+                    .as_os_str(),
+            ))
+        }
 
         FormatDirective::Permissions(PermissionsFormat::Symbolic) => {
             uucore::fs::display_permissions(meta()?, true).into()
@@ -535,14 +542,16 @@ fn format_directive<'entry>(
             }
         }
 
-        FormatDirective::StartingPoint => get_starting_point(file_info).to_string_lossy(),
+        FormatDirective::StartingPoint => {
+            return Ok(name(get_starting_point(file_info).as_os_str()))
+        }
 
         FormatDirective::SymlinkTarget => {
             if file_info.path_is_symlink() {
-                fs::read_link(file_info.path())?
-                    .to_string_lossy()
-                    .into_owned()
-                    .into()
+                let target = fs::read_link(file_info.path())?;
+                return Ok(Cow::Owned(
+                    uucore::os_str_as_bytes_lossy(target.as_os_str()).into_owned(),
+                ));
             } else {
                 "".into()
             }
@@ -579,7 +588,10 @@ fn format_directive<'entry>(
         }
     };
 
-    Ok(res)
+    Ok(match res {
+        Cow::Borrowed(text) => Cow::Borrowed(text.as_bytes()),
+        Cow::Owned(text) => Cow::Owned(text.into_bytes()),
+    })
 }
 
 /// This matcher prints information about its files to stdout, following GNU
@@ -608,17 +620,18 @@ impl Printf {
                     justify,
                 } => match format_directive(file_info, directive) {
                     Ok(content) => {
-                        if let Some(width) = width {
-                            match justify {
-                                Justify::Left => {
-                                    write!(out, "{content:<width$}").unwrap();
-                                }
-                                Justify::Right => {
-                                    write!(out, "{content:>width$}").unwrap();
-                                }
+                        // The width counts bytes, as C's printf, which GNU's
+                        // find formats with, does.
+                        let padding = " ".repeat(width.unwrap_or(0).saturating_sub(content.len()));
+                        match justify {
+                            Justify::Left => {
+                                out.write_all(&content).unwrap();
+                                write!(out, "{padding}").unwrap();
                             }
-                        } else {
-                            write!(out, "{content}").unwrap();
+                            Justify::Right => {
+                                write!(out, "{padding}").unwrap();
+                                out.write_all(&content).unwrap();
+                            }
                         }
                     }
                     Err(e) => {

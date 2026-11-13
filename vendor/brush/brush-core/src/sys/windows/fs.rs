@@ -303,7 +303,7 @@ pub fn push_path_for_pattern(path: &mut PathBuf, component: &str) {
     if needs_sep {
         buf.push("/");
     }
-    buf.push(component);
+    buf.push(crate::bytes::to_os(component));
 }
 
 /// Normalizes path separators for shell output.

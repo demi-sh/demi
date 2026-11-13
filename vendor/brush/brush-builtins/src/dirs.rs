@@ -80,7 +80,7 @@ impl builtins::Command for DirsCommand {
                     write!(context.stdout(), "{i:2}  ")?;
                 }
 
-                let mut dir_str = dir.to_string_lossy().to_string();
+                let mut dir_str = brush_core::bytes::from_os(dir.as_os_str()).into_owned();
 
                 if !self.tilde_long {
                     dir_str = context.shell.tilde_shorten(dir_str);

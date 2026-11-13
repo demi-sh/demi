@@ -113,6 +113,136 @@ pub enum ReplacementPart {
     Literal(Vec<u8>), // Normal text
     WholeMatch,       // &
     Group(u32),       // \1 to \9
+    Case(CaseChange), // \U, \L, \E, \u, \l
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+/// A GNU change of case in a replacement: what follows is cased until the
+/// next change, or its next character alone is.
+pub enum CaseChange {
+    Upper,     // \U
+    Lower,     // \L
+    Keep,      // \E
+    UpperNext, // \u
+    LowerNext, // \l
+}
+
+#[derive(Clone, Copy)]
+enum Case {
+    Upper,
+    Lower,
+}
+
+/// A `\u` or `\l` not yet used: `carried` once it has waited past an empty
+/// group, after which it waits no longer.
+#[derive(Clone, Copy)]
+struct Next {
+    case: Case,
+    carried: bool,
+}
+
+/// A replacement's text as it is appended, cased as its `CaseChange`s say,
+/// as GNU sed's `str_append_modified`: `\U` and `\L` hold until `\E` or
+/// another of them, which also drops a `\u` or `\l` not yet used; `\u` and
+/// `\l` case the first character of the next text appended, and wait past
+/// one empty group. A character changes only to one character, as
+/// `towupper` does (`ß` stays). In a UTF-8 locale a byte that is no UTF-8
+/// stays as it is and uses up a `\u` or `\l`, and with neither `\U` nor `\L`
+/// the rest of the text stays too; from a NUL on the text stays as it is.
+struct Cased {
+    out: Vec<u8>,
+    mode: Option<Case>,
+    next: Option<Next>,
+    character_mode: CharacterMode,
+}
+
+impl Cased {
+    fn new(character_mode: CharacterMode) -> Self {
+        Self {
+            out: Vec::new(),
+            mode: None,
+            next: None,
+            character_mode,
+        }
+    }
+
+    fn change(&mut self, change: CaseChange) {
+        match change {
+            CaseChange::Upper => (self.mode, self.next) = (Some(Case::Upper), None),
+            CaseChange::Lower => (self.mode, self.next) = (Some(Case::Lower), None),
+            CaseChange::Keep => (self.mode, self.next) = (None, None),
+            CaseChange::UpperNext => self.next = Some(Next { case: Case::Upper, carried: false }),
+            CaseChange::LowerNext => self.next = Some(Next { case: Case::Lower, carried: false }),
+        }
+    }
+
+    /// Appends a group's text: an empty one leaves a `\u` or `\l` for the
+    /// next part, once.
+    fn push_group(&mut self, text: &[u8]) {
+        if text.is_empty() {
+            self.next = self
+                .next
+                .filter(|next| !next.carried)
+                .map(|next| Next { carried: true, ..next });
+            return;
+        }
+        self.push(text);
+    }
+
+    fn push(&mut self, text: &[u8]) {
+        if text.is_empty() {
+            return;
+        }
+        let mut first = self.next.take().map(|next| next.case);
+        if self.mode.is_none() && first.is_none() {
+            self.out.extend_from_slice(text);
+            return;
+        }
+        if self.character_mode == CharacterMode::Byte {
+            for &byte in text {
+                let byte = match first.take().or(self.mode) {
+                    Some(Case::Upper) => byte.to_ascii_uppercase(),
+                    Some(Case::Lower) => byte.to_ascii_lowercase(),
+                    None => byte,
+                };
+                self.out.push(byte);
+            }
+            return;
+        }
+        let mut offset = 0;
+        for chunk in text.utf8_chunks() {
+            for c in chunk.valid().chars() {
+                if c == '\0' {
+                    self.out.extend_from_slice(&text[offset..]);
+                    return;
+                }
+                let cased = match first.take().or(self.mode) {
+                    Some(Case::Upper) => single(c.to_uppercase()).unwrap_or(c),
+                    Some(Case::Lower) => single(c.to_lowercase()).unwrap_or(c),
+                    None => c,
+                };
+                self.out
+                    .extend_from_slice(cased.encode_utf8(&mut [0; 4]).as_bytes());
+                offset += c.len_utf8();
+            }
+            let invalid = chunk.invalid();
+            if !invalid.is_empty() {
+                first = None;
+                if self.mode.is_none() {
+                    self.out.extend_from_slice(&text[offset..]);
+                    return;
+                }
+                self.out.extend_from_slice(invalid);
+                offset += invalid.len();
+            }
+        }
+    }
+}
+
+/// The one character `chars` holds, if it holds one.
+fn single(mut chars: impl Iterator<Item = char>) -> Option<char> {
+    let c = chars.next()?;
+    chars.next().is_none().then_some(c)
 }
 
 // The maximum value allowed in regex quantifier
@@ -130,6 +260,7 @@ pub enum RegexMode {
 pub struct ReplacementTemplate {
     pub parts: Vec<ReplacementPart>,
     pub max_group_number: usize, // Highest used group number (e.g. 8 for \8)
+    pub character_mode: CharacterMode, // What a change of case reads as a character
 }
 
 impl Default for ReplacementTemplate {
@@ -154,6 +285,7 @@ impl ReplacementTemplate {
         Self {
             parts,
             max_group_number: max_group_number.try_into().unwrap(),
+            character_mode: CharacterMode::default(),
         }
     }
 
@@ -163,7 +295,7 @@ impl ReplacementTemplate {
     ///    template.apply_captures(&command, caps) });
     /// Returns an error if a backreference in the template was not matched by the RE.
     pub fn apply_captures(&self, command: &Command, caps: &Captures) -> UResult<Vec<u8>> {
-        let mut result = Vec::new();
+        let mut result = Cased::new(self.character_mode);
 
         // Invalid group numbers may end here through (unkown at compile time)
         // reused REs.
@@ -179,40 +311,42 @@ impl ReplacementTemplate {
 
         for part in &self.parts {
             match part {
-                ReplacementPart::Literal(s) => result.extend_from_slice(s),
+                ReplacementPart::Literal(s) => result.push(s),
 
                 ReplacementPart::WholeMatch => {
-                    result
-                        .extend_from_slice(caps.get(0)?.map(|m| m.as_bytes()).unwrap_or_default());
+                    result.push_group(caps.get(0)?.map(|m| m.as_bytes()).unwrap_or_default());
                 }
 
                 ReplacementPart::Group(n) => {
                     let i: usize = (*n).try_into().unwrap();
-                    result
-                        .extend_from_slice(caps.get(i)?.map(|m| m.as_bytes()).unwrap_or_default());
+                    result.push_group(caps.get(i)?.map(|m| m.as_bytes()).unwrap_or_default());
                 }
+
+                ReplacementPart::Case(change) => result.change(*change),
             }
         }
 
-        Ok(result)
+        Ok(result.out)
     }
 
     /// Apply the template to the given RE single match.
     pub fn apply_match(&self, m: &Match) -> Vec<u8> {
-        let mut result = Vec::new();
+        let mut result = Cased::new(self.character_mode);
 
         for part in &self.parts {
             match part {
-                ReplacementPart::Literal(s) => result.extend_from_slice(s),
+                ReplacementPart::Literal(s) => result.push(s),
 
-                ReplacementPart::WholeMatch => result.extend_from_slice(m.as_bytes()),
+                ReplacementPart::WholeMatch => result.push_group(m.as_bytes()),
 
                 ReplacementPart::Group(_) => {
                     panic!("unexpected Regex group replacement")
                 }
+
+                ReplacementPart::Case(change) => result.change(*change),
             }
         }
-        result
+        result.out
     }
 }
 

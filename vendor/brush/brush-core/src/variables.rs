@@ -278,7 +278,7 @@ impl ShellVariable {
                             base.clear();
                             base.push_str(int_value.to_string().as_str());
                         } else {
-                            base.push_str(suffix.as_str());
+                            crate::bytes::append(base, suffix.as_str());
                             Self::apply_value_transforms(base, treat_as_int, update_transform);
                         }
                         Ok(())
@@ -407,7 +407,7 @@ impl ShellVariable {
                         .to_string();
                     } else {
                         new_value = existing_value.to_owned();
-                        new_value.push_str(value.as_str());
+                        crate::bytes::append(&mut new_value, value.as_str());
                     }
 
                     arr.insert(key, new_value);
@@ -430,7 +430,7 @@ impl ShellVariable {
                         .to_string();
                     } else {
                         new_value = existing_value.to_owned();
-                        new_value.push_str(value.as_str());
+                        crate::bytes::append(&mut new_value, value.as_str());
                     }
 
                     arr.insert(array_index, new_value.clone());
@@ -1073,7 +1073,7 @@ impl From<String> for ShellValue {
 
 impl From<OsString> for ShellValue {
     fn from(value: OsString) -> Self {
-        Self::String(value.to_string_lossy().into_owned())
+        Self::String(crate::bytes::from_os(&value).into_owned())
     }
 }
 
