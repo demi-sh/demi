@@ -167,18 +167,16 @@ impl dyn DeviceShard + '_ {
                 "the conversation's device changed; the command did not run",
             ));
         }
-        let admitted_device = admitted.device.clone();
         // The admission is the job's until it ends, unless a move away from
         // its offline device leaves the job to that device's runner.
         let _held = self
             .conversations()
             .slot(id)
             .hold_job(device.clone(), follows, Some(admitted), withdrawal.clone());
-        // A detach that committed since the admission, or does while the job
-        // installs its directories, ends it here, before it starts.
+        // A detach that committed since the admission ends it here, before
+        // it starts.
         self.reaches(id, &device, &withdrawal).await?;
-        self.install_directories(id, &device, &admitted_device).await?;
-        self.reaches(id, &device, &withdrawal).await?;
+        self.check_installed(&device);
         job.await;
         Ok(())
     }

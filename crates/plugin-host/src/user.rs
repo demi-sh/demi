@@ -131,6 +131,10 @@ pub trait ProductPort {
     /// The user's paired devices, each with whether its runner is connected.
     fn devices(&self) -> LocalBoxFuture<'_, Result<Vec<DeviceName>, PortFailure>>;
 
+    /// The plugins' device directories changed, which each connected device
+    /// receives in the background.
+    fn directories_changed(&self);
+
     /// The commit `url`'s default branch points to, as the user's paired
     /// device `device` reads it with its own `git`.
     fn device_git_head<'a>(&'a self, device: &'a DeviceId, url: &'a str) -> LocalBoxFuture<'a, Result<String, PortFailure>>;
@@ -716,6 +720,7 @@ impl Shared {
             .collect();
         current[plugin] = directories;
         self.directories.replace(Some(current));
+        self.product.directories_changed();
         Ok(paths)
     }
 }
@@ -878,6 +883,7 @@ impl UserPlugins {
         }
         let switched = std::mem::take(&mut *self.0.switched.borrow_mut());
         switched.cancel();
+        self.0.product.directories_changed();
         self.0.changes.plugins_changed();
         self.0
             .changes.plugin_changed(registered.id().as_str().to_owned());
@@ -1115,8 +1121,8 @@ impl UserPlugins {
     }
 
     /// Every plugin's device directories for the user, which device access
-    /// installs before a job: a plugin the user has off has none, so a device
-    /// loses its directories at its next installation.
+    /// installs on each device in the background: a plugin the user has off
+    /// has none, so a device loses its directories at its next installation.
     pub async fn directories(&self) -> Result<Vec<(PluginId, Vec<DeviceDirectory>)>, StoreError> {
         let enabled = self.enabled().await?;
         let directories = self.0.directories().await?;

@@ -1058,6 +1058,37 @@ impl AttachedDevice {
 }
 
 impl ControlService {
+    /// The workspaces whose conversations run on `device`, as their primary
+    /// device, the Cloud's included, or an attached one; an archived
+    /// conversation runs nowhere.
+    pub async fn device_workspaces(&self, device: DeviceId) -> Result<Vec<WorkspaceId>, StorageError> {
+        self.call(move |connection, _| {
+            let mut statement = connection.prepare_cached(
+                "SELECT DISTINCT workspace_id FROM conversations
+                 WHERE user_id = (SELECT user_id FROM devices WHERE id = ?1)
+                   AND archived_at IS NULL
+                   AND (target_device_id = ?1
+                        OR id IN (SELECT conversation_id FROM conversation_devices WHERE device_id = ?1)
+                        OR (target_kind = 'cloud' AND EXISTS (
+                              SELECT 1 FROM devices
+                              WHERE devices.id = ?1 AND devices.user_id = conversations.user_id
+                                AND devices.kind = 'managed' AND devices.machine = 'cloud')))
+                 ORDER BY workspace_id",
+            )?;
+            let mut rows = statement.query(params![device.as_str()])?;
+            let mut workspaces = Vec::new();
+            while let Some(row) = rows.next()? {
+                workspaces.push(decode(
+                    "conversations",
+                    "workspace_id",
+                    WorkspaceId::try_from(row.get::<_, String>(0)?),
+                )?);
+            }
+            Ok(workspaces)
+        })
+        .await
+    }
+
     /// The conversation's attached devices, first attached first.
     pub async fn attached_devices(
         &self,

@@ -97,6 +97,7 @@ use crate::sync::etag_of;
 use crate::shard::{Lane, LaneClose, LaneEnd, LaneMessage, LaneReader, Shard};
 use demi_backend_device_access::remote_files::{RemoteFile, RemoteFileRefusal};
 use demi_backend_device_access::root_of;
+use demi_backend_device_access::DeviceShard;
 
 /// The close code of a lane whose page fell a full outbox behind; the page
 /// reconnects and adopts the running tree.
@@ -671,6 +672,9 @@ impl Shard {
                     self.deny(conversation, held).await;
                 }
                 if let (true, Some((message, attachments))) = (taken, sent) {
+                    // The plugins' directories reach the devices it may use
+                    // while the model reads the message.
+                    (self as &dyn DeviceShard).check_installed_everywhere();
                     tracing::info!(
                         event = "message.accepted",
                         %conversation,
