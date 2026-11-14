@@ -13,13 +13,25 @@ use super::{LOCAL_MAX_MESSAGE_SIZE, SctpError as Error, SctpTransport};
 ///
 /// For WebRTC, we never want to give up retransmitting init and data packets.
 /// The connectivity is in ICE, and SCTP should not give up until ICE gives up.
-pub(super) fn webrtc_transport_config(transport: SctpTransport) -> Arc<TransportConfig> {
+pub(super) fn webrtc_transport_config(
+    local_max_message_size: u32,
+    transport: SctpTransport,
+) -> Arc<TransportConfig> {
+    let max_receive_message_size = if local_max_message_size == 0 {
+        u32::MAX
+    } else {
+        local_max_message_size
+    };
+    // SCTP delivers whole messages, so reassembly needs room for one message.
+    // Retain the default 1 MiB receive budget unless the message limit is larger.
+    let max_receive_buffer_size = max_receive_message_size.max(1024 * 1024);
     Arc::new(
         transport
             .apply(TransportConfig::default())
             .with_max_init_retransmits(None)
             .with_max_data_retransmits(None)
-            .with_max_receive_message_size(LOCAL_MAX_MESSAGE_SIZE),
+            .with_max_receive_buffer_size(max_receive_buffer_size)
+            .with_max_receive_message_size(max_receive_message_size),
     )
 }
 
@@ -62,7 +74,7 @@ pub struct SctpInitData {
 impl Default for SctpInitData {
     fn default() -> Self {
         SctpInitData {
-            transport: webrtc_transport_config(SctpTransport::default()),
+            transport: webrtc_transport_config(LOCAL_MAX_MESSAGE_SIZE, SctpTransport::default()),
             local_init: None,
             remote_init: None,
         }
@@ -148,9 +160,13 @@ impl SctpInitData {
     /// Build a `ClientConfig` from this data, consuming it.
     ///
     /// Only used internally by [`super::RtcSctp::init()`] to feed sctp-proto.
-    pub(crate) fn into_client_config(self) -> ClientConfig {
+    pub(crate) fn into_client_config(
+        self,
+        local_max_message_size: u32,
+        transport: SctpTransport,
+    ) -> ClientConfig {
         let mut config = ClientConfig::new();
-        config.transport = self.transport;
+        config.transport = webrtc_transport_config(local_max_message_size, transport);
         match (self.local_init, self.remote_init) {
             (Some(local), Some(remote)) => {
                 config = config.with_snap(local.into(), remote.into());

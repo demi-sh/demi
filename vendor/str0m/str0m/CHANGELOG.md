@@ -1,5 +1,48 @@
 # Unreleased
 
+# 0.25.0
+
+  * Reject SDP with conflicting RTX apt values instead of panicking #1113
+  * Avoid rescanning idle connections on repeated output polls #1011
+  * Replace BWE `set_desired_bitrate` with `set_bitrate(minimum, desired)` (breaking) #1109
+  * Drain NullPacer queues without a timeout after every send #1112
+  * Align BWE probing with libwebrtc bd3d2d3150 #1108
+  * Parse valid SDP without building combine's easy errors, about 6x faster #1118
+  * List a negotiated RED before its primary codec so libwebrtc sends redundant audio #1117
+  * Find the first TWCC send record of a feedback report by binary search #1116
+  * Fix bursty pacing with a persistent send queue #1115
+  * Bump dimpl to 0.9.0 and raise MSRV to Rust 1.89 (breaking) #1110
+  * Remove the fixed video reordering timeout setting (breaking) #1078
+  * Wait for NACK recovery and a complete successor before expiring incomplete video frames #1078
+  * Write SDP that str0m can read back when it rejects every m-line #1101
+  * Check every m-line for SDP consistency and accept rejected m-lines without payload types #1100
+  * Expose H264 NAL unit detection for single NAL, STAP-A, and FU-A payloads #1099
+  * Reject remote SDP that gives two m-lines the same mid #1097
+  * Never give two m-lines in one offer the same mid #1092
+  * Preserve VP8 picture ids across 7/15-bit width changes and keep VP8 counters in RTP order #1096
+  * Remove SDP `merge()`; applications must track queued negotiation changes (breaking) #1095
+  * Expose dimpl crypto providers for AWS-LC-RS and Apple CommonCrypto #1094
+  * Extend VP9 picture ids in `Vp9CodecExtra` to 64 bits, fixing frames dropped after wrap-around (breaking) #1091
+  * Include authenticated early RTX padding in TWCC feedback and ingress loss accounting #1086
+  * Make the SCTP receive message size configurable for data channels #1083
+  * Reduce RTX receive memory use with a 128-position sequence window #1089
+  * Rate-limit SRTP/SRTCP decryption warnings #1088
+  * Send pending keyframe and REMB requests without waiting for unrelated timers #1081
+  * Bump dimpl to 0.8.0 and sctp-proto to 0.10.7; return accepted DTLS write byte counts (breaking) #1080
+  * Preserve filler data NAL units when sending H264, H265, and H266 video #1079
+  * Support single-channel AMR-WB audio in octet-aligned and bandwidth-efficient modes #995
+  * Match SDP fmtp parameter names case-insensitively #1077
+  * Tolerate spaces and a trailing semicolon in fmtp parameters #1076
+  * Handle STUN MESSAGE-INTEGRITY as the first attribute and prevent integrity verification panics #1073
+  * Bump dimpl to 0.7.6 and sctp-proto to 0.10.6 #1075
+  * Round BWE send timestamps to milliseconds to reduce recovery-burst fragmentation #1074
+  * Support SHA-1 remote DTLS fingerprints via the crypto provider (breaking) #1072
+  * Prevent accumulated rounding error in TWCC receive timing #1071
+  * Pace per-packet NACK retries by receive-side RTT and fix DLRR RTT routing #1070
+  * Send on a nominated ICE pair only after its check succeeds #1066
+  * Stop NACK timer wakeups for paused streams after pending retries #1064
+  * Fix RTCP receiver report loss fraction wraparound #1065
+
 # 0.24.1
 
   * Make the SCTP send buffer limit configurable and fix polling stack overflow #1062
