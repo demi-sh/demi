@@ -15,6 +15,7 @@ pub mod error_handling;
 pub mod fast_io;
 pub mod fast_regex;
 pub mod in_place;
+pub mod named_reader;
 pub mod named_writer;
 pub mod processor;
 pub mod script_char_provider;
@@ -246,8 +247,10 @@ pub fn uu_app() -> Command {
                 .short_alias('r')
                 .help("Use extended regular expressions.")
                 .action(clap::ArgAction::SetTrue),
+            // As in GNU sed, a value may begin with `-`.
             arg!(-e --expression <SCRIPT> "Add script to executed commands.")
                 .value_parser(clap::value_parser!(std::ffi::OsString))
+                .allow_hyphen_values(true)
                 .action(clap::ArgAction::Append),
             // Access with .get_many::<PathBuf>("file")
             Arg::new("script-file")
@@ -255,27 +258,36 @@ pub fn uu_app() -> Command {
                 .long("script-file")
                 .help("Specify script file.")
                 .value_parser(clap::value_parser!(PathBuf))
+                .allow_hyphen_values(true)
                 .action(clap::ArgAction::Append),
             Arg::new("follow-symlinks")
                 .long("follow-symlinks")
                 .help("Follow symlinks when processing in place.")
                 .action(clap::ArgAction::SetTrue),
             // Access with .get_one::<String>("in-place")
+            // The SUFFIX must be attached, as in GNU sed.
             Arg::new("in-place")
                 .short('i')
                 .long("in-place")
                 .help("Edit files in place, making a backup if SUFFIX is supplied.")
+                .value_name("SUFFIX")
                 .num_args(0..=1)
                 .require_equals(true)
                 .default_missing_value(""),
             // Access with .get_one::<u32>("line-length")
             arg!(-l --length <NUM> "Specify the 'l' command line-wrap length.")
+                .allow_hyphen_values(true)
                 .value_parser(clap::value_parser!(u32)),
             arg!(-n --quiet "Suppress automatic printing of pattern space.").aliases(["silent"]),
             arg!(--posix "Disable non-POSIX extensions."),
             arg!(-s --separate "Consider files as separate rather than as a long stream."),
             arg!(--sandbox "Operate in a sandbox by disabling e/r/w commands."),
             arg!(-u --unbuffered "Load minimal input data and flush output buffers regularly."),
+            Arg::new("uutil-extensions")
+                .short('U')
+                .long("uutil-extensions")
+                .help("Enable incompatible extensions.")
+                .action(clap::ArgAction::SetTrue),
             Arg::new("null-data")
                 .short('z')
                 .long("null-data")
@@ -422,25 +434,28 @@ fn build_context(matches: &ArgMatches) -> UResult<ProcessingContext> {
         sandbox: matches.get_flag("sandbox"),
         unbuffered: matches.get_flag("unbuffered"),
         null_data: matches.get_flag("null-data"),
+        uutil_extensions: matches.get_flag("uutil-extensions"),
 
         // Environment
         character_mode: character_mode_for_locale(&locale)?,
 
         // Other context
-        input_name: "<stdin>".to_string(),
+        input_name: PathBuf::from("-"),
         line_number: 0,
         last_address: false,
         last_line: false,
         last_file: false,
         stop_processing: false,
+        quit_silently: false,
         saved_regex: None,
         input_action: None,
         hold: ByteSpace {
             content: Vec::new(),
             has_newline: true,
         },
-        parsed_block_nesting: 0,
+        open_blocks: Vec::new(),
         label_to_command_map: HashMap::new(),
+        named_readers: HashMap::new(),
         range_commands: Vec::new(),
         substitution_made: false,
         append_elements: Vec::new(),
@@ -568,6 +583,7 @@ mod tests {
         assert!(!ctx.sandbox);
         assert!(!ctx.unbuffered);
         assert!(!ctx.null_data);
+        assert!(!ctx.uutil_extensions);
     }
 
     #[test]
@@ -585,6 +601,7 @@ mod tests {
             "-s",
             "--sandbox",
             "-u",
+            "-U",
             "-z",
         ]);
 
@@ -603,6 +620,7 @@ mod tests {
         assert!(ctx.sandbox);
         assert!(ctx.unbuffered);
         assert!(ctx.null_data);
+        assert!(ctx.uutil_extensions);
     }
 
     #[test]
@@ -611,15 +629,6 @@ mod tests {
         let ctx = build_context(&matches).unwrap();
 
         assert!(ctx.regex_extended);
-    }
-
-    #[test]
-    fn test_in_place_with_suffix() {
-        let matches = test_matches(&["-i", ".bak"]);
-        let ctx = build_context(&matches).unwrap();
-
-        assert!(ctx.in_place);
-        assert_eq!(ctx.in_place_suffix, Some(".bak".to_string()));
     }
 
     #[test]

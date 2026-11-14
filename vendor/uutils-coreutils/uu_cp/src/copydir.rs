@@ -2,7 +2,9 @@
 //
 // For the full copyright and license information, please view the LICENSE
 // file that was distributed with this source code.
+
 // spell-checker:ignore TODO canonicalizes direntry pathbuf symlinked IRWXO IRWXG
+
 //! Recursively copy the contents of a directory.
 //!
 //! See the [`copy_directory`] function for more information.
@@ -119,23 +121,29 @@ struct Context<'a> {
     root: &'a Path,
 }
 
+// True if the path ends with a dot component (e.g. ".", "./", "dir/.").
+fn ends_with_curdir(path: &Path) -> bool {
+    let mut bytes = path.as_os_str().as_encoded_bytes();
+    while let [rest @ .., b'/' | b'\\'] = bytes {
+        bytes = rest;
+    }
+    bytes == b"." || bytes.ends_with(b"/.") || bytes.ends_with(b"\\.")
+}
+
 impl<'a> Context<'a> {
     fn new(root: &'a Path, target: &'a Path) -> io::Result<Self> {
-        let current_dir = env::current_dir()?;
+        let current_dir = if root.is_absolute() {
+            PathBuf::new()
+        } else {
+            env::current_dir()?
+        };
         let root_path = current_dir.join(root);
         let target_is_file = target.context_is_file();
-        let root_parent =
-            if target.context_exists() && !root.as_os_str().as_encoded_bytes().ends_with(b"/.") {
-                root_path.parent().map(ToOwned::to_owned)
-            } else if root == Path::new(".") && target.context_is_dir() {
-                // Special case: when copying current directory (.) to an existing directory,
-                // we don't want to use the parent path as root_parent because we want to
-                // copy the contents of the current directory directly into the target directory,
-                // not create a subdirectory with the current directory's name.
-                None
-            } else {
-                Some(root_path)
-            };
+        let root_parent = if target.context_exists() && !ends_with_curdir(root) {
+            root_path.parent().map(ToOwned::to_owned)
+        } else {
+            Some(root_path)
+        };
         Ok(Self {
             current_dir,
             root_parent,
@@ -223,17 +231,6 @@ impl Entry {
                 .components()
                 .next_back()
                 .and_then(|stripped| descendant.strip_prefix(stripped).ok())
-            {
-                descendant = stripped.to_path_buf();
-            }
-        } else if context.root == Path::new(".") && context.target.context_is_dir() {
-            // Special case: when copying current directory (.) to an existing directory,
-            // strip the current directory name from the descendant path to avoid creating
-            // an extra level of nesting. For example, if we're in /home/user/source_dir
-            // and copying . to /home/user/dest_dir, we want to copy source_dir/file.txt
-            // to dest_dir/file.txt, not dest_dir/source_dir/file.txt.
-            if let Some(current_dir_name) = context.current_dir.file_name()
-                && let Ok(stripped) = descendant.strip_prefix(current_dir_name)
             {
                 descendant = stripped.to_path_buf();
             }

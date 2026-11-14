@@ -13,7 +13,7 @@
 edition = "2024"
 rust-version = "1.88.0"
 name = "uucore"
-version = "0.11.0"
+version = "0.12.0"
 build = "build.rs"
 autolib = false
 autobins = false
@@ -40,15 +40,15 @@ all-features = true
 [features]
 backup-control = []
 benchmark = [
-    "divan",
     "itertools",
     "tempfile",
 ]
-buf-copy = []
+buf-copy = ["pipes"]
 checksum = [
-    "quoting-style",
-    "sum",
     "base64-simd",
+    "quoting-style",
+    "rustix/fs",
+    "sum",
 ]
 colors = []
 default = ["signals"]
@@ -59,7 +59,11 @@ encoding = [
     "z85",
     "base64-simd",
 ]
-entries = ["libc"]
+entries = [
+    "libc",
+    "rustix/fs",
+    "rustix/process",
+]
 extendedbigdecimal = [
     "bigdecimal",
     "num-traits",
@@ -81,12 +85,14 @@ format = [
 fs = [
     "dunce",
     "libc",
+    "rustix/fs",
     "windows-sys",
 ]
 fsext = [
     "libc",
     "windows-sys",
     "bstr",
+    "wide",
 ]
 fsxattr = [
     "xattr",
@@ -105,7 +111,10 @@ i18n-collator = [
     "i18n-common",
     "icu_collator",
 ]
-i18n-common = ["icu_locale"]
+i18n-common = [
+    "icu_locale",
+    "windows-sys",
+]
 i18n-datetime = [
     "i18n-common",
     "icu_calendar",
@@ -119,7 +128,10 @@ i18n-decimal = [
     "icu_provider",
 ]
 lines = []
-mode = ["libc"]
+mode = [
+    "libc",
+    "rustix/process",
+]
 openssl = ["dep:openssl"]
 parser = [
     "parser-num",
@@ -138,24 +150,39 @@ parser-size = [
 perms = [
     "entries",
     "libc",
+    "safe-traversal",
     "walkdir",
 ]
-pipes = ["fs"]
+pipes = [
+    "fs",
+    "rustix/pipe",
+]
 proc-info = [
     "tty",
     "walkdir",
 ]
 process = [
     "libc",
+    "nix/user",
+    "rustix/process",
     "windows-sys",
 ]
 quoting-style = ["i18n-common"]
 ranges = []
 ringbuffer = []
-safe-copy = []
-safe-traversal = ["libc"]
+safe-copy = ["rustix/fs"]
+safe-traversal = [
+    "libc",
+    "nix/fs",
+    "nix/dir",
+    "nix/user",
+]
 selinux = ["dep:selinux"]
-signals = []
+signals = [
+    "nix/fs",
+    "nix/signal",
+    "nix/poll",
+]
 smack = ["xattr"]
 sum = [
     "digest",
@@ -178,9 +205,10 @@ update-control = ["parser"]
 uptime = [
     "jiff",
     "libc",
-    "windows-sys",
-    "utmpx",
+    "rustix/time",
     "utmp-classic",
+    "utmpx",
+    "windows-sys",
 ]
 utf8 = []
 utmpx = [
@@ -221,10 +249,6 @@ optional = true
 version = "1.5.1"
 optional = true
 
-[dependencies.bstr]
-version = "1.9.1"
-optional = true
-
 [dependencies.clap]
 version = "4.5"
 features = [
@@ -250,11 +274,6 @@ optional = true
 [dependencies.digest]
 version = "0.11.0"
 optional = true
-
-[dependencies.divan]
-version = "5.0.0"
-optional = true
-package = "codspeed-divan-compat"
 
 [dependencies.dunce]
 version = "1.0.4"
@@ -344,11 +363,6 @@ optional = true
 version = "0.2.19"
 optional = true
 
-[dependencies.openssl]
-version = "0.10"
-features = ["vendored"]
-optional = true
-
 [dependencies.os_display]
 version = "0.1.3"
 
@@ -357,15 +371,8 @@ version = "2.1.1"
 
 [dependencies.rustix]
 version = "1.1.4"
-features = [
-    "param",
-    "use-libc-auxv",
-    "time",
-    "fs",
-    "net",
-    "pipe",
-    "process",
-]
+optional = true
+default-features = false
 
 [dependencies.sha1]
 version = "0.11.0"
@@ -413,7 +420,7 @@ version = "0.5"
 optional = true
 
 [dependencies.uucore_procs]
-version = "0.11.0"
+version = "0.12.0"
 
 [dependencies.z85]
 version = "3.0.5"
@@ -426,6 +433,26 @@ version = "3.15.0"
 version = "0.6"
 optional = true
 
+[target.'cfg(any(target_os = "linux", target_os = "android", target_os = "cygwin"))'.dependencies.bstr]
+version = "1.9.1"
+features = ["std"]
+optional = true
+default-features = false
+
+[target.'cfg(any(target_vendor = "apple", target_os = "cygwin", target_os = "freebsd", target_os = "linux", target_os = "netbsd"))'.dependencies.dns-lookup]
+version = "4.0.0"
+optional = true
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies.openssl]
+version = "0.10"
+features = ["vendored"]
+optional = true
+
+[target.'cfg(target_env = "msvc")'.dependencies.openssl]
+version = "0.10"
+features = ["aws-lc"]
+optional = true
+
 [target.'cfg(target_os = "linux")'.dependencies.procfs]
 version = "0.18"
 optional = true
@@ -434,21 +461,9 @@ optional = true
 version = "0.1.6"
 optional = true
 
-[target."cfg(unix)".dependencies.dns-lookup]
-version = "4.0.0"
-optional = true
-
 [target."cfg(unix)".dependencies.nix]
 version = "0.31.3"
-features = [
-    "dir",
-    "fs",
-    "poll",
-    "signal",
-    "uio",
-    "user",
-    "zerocopy",
-]
+optional = true
 default-features = false
 
 [target."cfg(unix)".dependencies.time]
@@ -478,7 +493,10 @@ features = [
     "Win32_Security",
     "Win32_Storage_FileSystem",
     "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_NetworkManagement_WNet",
     "Win32_System_Console",
+    "Win32_System_Diagnostics_Debug",
     "Win32_System_IO",
     "Win32_System_Ioctl",
     "Win32_System_JobObjects",
@@ -566,21 +584,21 @@ patches = [
     "build.rs embeds the locales of uucore's siblings, the utilities: as a path dependency each is uu_<util> and embedded under its name, without a watch; as a registry unpack each is uu_<util>-<version>, and the consumer's Cargo.lock is watched. Upstream matched only the versioned name, so a path dependency embedded no utility's messages and printed message ids, and the watch rebuilt uucore and every utility whenever the lock file changed",
     "The generated embedded_locales.rs includes each locale file with include_str! of its absolute path instead of copying its text, and build.rs no longer watches the files: rustc's dep-info names them, so Cargo compares them by checksum when the build asks for that, where a rerun-if-changed watch is compared by mtime and reran the script, and rebuilt uucore and every utility, after every fresh checkout",
     "Messages are looked up per utility: each utility's strings are parsed once and kept by its name (UTIL_FLUENT), and a thread's localizer is the last utility's it ran, set up again when it runs another (LOCALIZER); upstream kept the first utility's strings for the whole process and the first localizer for the thread's life, so a second utility in one process printed message ids",
-    "A child program that names one of the embedding owner's utilities runs that utility in the owner's process (Control::utility, Control::run_utility, UtilityRun), with the command's arguments, directory, environment and streams; context::process::Stdio keeps what a stream is (inherit, null, piped or a file) so the utility gets the same, and Child::id is none for such a child",
+    "A child program that names one of the embedding owner's utilities runs that utility in the owner's process (Control::utility, Control::run_utility, UtilityRun), with the command's arguments, directory, environment and streams; context::process::Stdio keeps what a stream is (inherit, null, piped or a file) so the utility gets the same, and Child::id is none for such a child; context::process::Command::system starts the system's own program even when its name is one of the owner's utilities",
     "Owners, metadata, file systems and extended attributes are asked for at paths resolved against the invocation's directory: perms (get_metadata, chown, the walk of chown -R), fsext::statfs and fsxattr's path functions",
-    "chown words a failure to change an owner as GNU's does, without the operating system's error number",
     "fsxattr::remove_xattrs (added) removes a file's extended attributes but those the system protects, for cp's copy made by macOS's clonefile(2), which carries the source's",
     "A child program a utility waits for ends in its own time once the invocation's work is to stop, and is killed only once the owner's Control::check_processes fails, as when its job kills its processes; before, Child::wait killed it as soon as the work was to stop",
     "A write through uucore::context to a pipe whose reader has gone ends the invocation with 141 and nothing on stderr, as SIGPIPE ends a GNU program in a shell, except while it unwinds already; before, each utility saw EPIPE and printed its own Broken pipe message with status 1 or 2, and diff panicked",
     "A walk checks the invocation's cancellation at each entry it reads (context::fs::ReadDir, added, and safe_traversal's DirFd::read_dir), so a walk that prints nothing, such as du -s or rm -r, stops at its next entry",
     "error::io_message (added) words an io error as GNU's tools do, the wording UIoError's display uses, so a utility that words its errors itself words them the same",
     "The mode module, plain parsing, is built on Windows too, for a shell's symbolic umask and chmod's mode",
-    "On Windows: fs::portable_mode (added) is the Unix mode a file stands for, which display_permissions shows, as ls -l does, and stat and chmod -v use; fsext::statfs and its StatFs (added) report a volume's clusters, serial number, name length and kind, named by the Linux magic number GNU's stat names; pretty_filetype names a file's kind; FsMeta is no longer Unix-only",
+    "On Windows fs::portable_mode (added) is the Unix mode a file stands for, which display_permissions shows, as ls -l does",
     "pipes::zero_copy (added) says whether the splice paths run, which they do not under an owner's control; splice_unbounded_auto then falls back before it grows its destination to 1 MiB, so cat and tail write into the shell's pipe at the size it has, and the writer meets EPIPE once its reader has gone, as with a 64 KiB pipe; before, cat's output up to 1 MiB fit and it ended with 0 under a head that had stopped reading",
     "context::join (added) joins a name below a path as GNU's utilities print it, with / on every system and the given part as written; context::fs::read_dir's entries carry the directory as the utility named it joined with each name (context::fs::DirEntry), not the resolved directory, and fs::normalize_path joins with it, so ls -R, du, rm -v and chmod -R print GNU's paths; on Windows /dev/zero resolves to the null device (context::zero_device), and a file opened as /dev/zero reads zeros; /dev/null is the host's to map (Control::map_path)",
     "A host may read a path otherwise than the system does (Control::map_path, asked by context::resolve), such as /tmp and /c/… on Windows, as in Git Bash, so a file a utility writes there is one Git's utilities read",
     "The process feature builds with the context's Child, whose id is none for a utility the owner runs: signalling such a child fails as signalling a process that is gone does; on Windows the feature is not built, since its code signals processes by handle, which the context's Child lacks",
     "On Windows the null device has the metadata of an empty regular file, as in Git Bash (context::fs::metadata, symlink_metadata, exists), as do the PathExt and FileKindExt queries, FileInformation and canonicalize, so cp and install read it as a source and copy it to an empty file, and mv refuses it (context::is_null_device), where upstream stat failed with `Incorrect function`",
     "fs::volume_path_name reads its path against the job's directory (context::resolve), so cp sizes a copy by the job's volume",
+    "fs::replace_link, upstream's atomic replacement of a link, reads the destination and a hard link's target against the job's directory (context::resolve), opens the destination's literal parent read against it, so a job directory that is itself a symlink (/tmp on macOS) is not refused by O_NOFOLLOW, and records the replaced link as the destination's edit; on Windows a relative symlink target is a directory link by what it names from the link's directory",
     "context::link_target (added) names the path a symlink's relative text points to, relative to the link's directory, not the job's; on Windows a program named with a separator (`./bin/tool.exe`) is read against the job's directory by context::process::Command::new, where Windows looked in the process's",
 ]

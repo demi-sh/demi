@@ -81,6 +81,9 @@ pub struct Command {
     stdin: Option<Stdio>,
     stdout: Option<Stdio>,
     stderr: Option<Stdio>,
+    /// Whether the program is the system's own even when its name is one of
+    /// the embedding owner's utilities (`Command::system`).
+    system: bool,
 }
 
 impl Command {
@@ -131,6 +134,7 @@ impl Command {
         super::check_cancelled();
         let control = super::control();
         if let Some(control) = &control
+            && !self.system
             && let Some(name) = control.utility(self.inner.command().get_program())
         {
             return self.run_utility(control.as_ref(), name);
@@ -241,6 +245,19 @@ impl Command {
             stdin: None,
             stdout: None,
             stderr: None,
+            system: false,
+        }
+    }
+
+    /// A command that starts the system's own `program`, such as
+    /// `/bin/chmod`, even when its name is one of the embedding owner's
+    /// utilities, which `new` would run in its place: for a utility that
+    /// hands on what only the system's program does, and would otherwise
+    /// start itself again without end.
+    pub fn system(program: impl AsRef<OsStr>) -> Self {
+        Self {
+            system: true,
+            ..Self::new(program)
         }
     }
 

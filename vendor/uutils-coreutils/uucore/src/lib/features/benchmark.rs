@@ -8,8 +8,6 @@
 //! This module provides shared functionality for benchmarking utilities,
 //! including test data generation and binary execution helpers.
 
-use crate::context::FileKindExt as _;
-use crate::context::PathExt as _;
 use crate::context::fs::File;
 use crate::context::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -322,6 +320,8 @@ pub mod binary_data {
 
 /// Filesystem utilities for benchmarking
 pub mod fs_utils {
+    use crate::context::FileKindExt as _;
+    use crate::context::PathExt as _;
     use crate::context::fs;
     use std::path::Path;
 

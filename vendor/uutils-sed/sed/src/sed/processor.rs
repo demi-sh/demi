@@ -9,8 +9,8 @@
 // file that was distributed with this source code.
 
 use crate::sed::command::{
-    Address, AppendElement, CharacterMode, Command, CommandData, InputAction, ProcessingContext,
-    Transliteration,
+    Address, AppendElement, CharacterMode, Command, CommandData, InputAction, NextLine,
+    ProcessingContext, Transliteration,
 };
 use crate::sed::delimited_parser::os_string_from_bytes;
 use crate::sed::error_handling::{ScriptLocation, input_runtime_error};
@@ -26,7 +26,6 @@ use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::rc::Rc;
 use uucore::context::io::{self, IsTerminal, Read};
-use uucore::display::Quotable;
 use uucore::error::{UResult, set_exit_code, strip_errno};
 
 /// Return the specified command variant or panic.
@@ -124,12 +123,20 @@ fn applies(
             }
         } else if let Some(addr1) = &command.addr1 {
             // See if latch must start.
-            if match_address(addr1, reader, pattern, context, &command.location)? {
+            let starts = match addr1 {
+                // Numeric start already passed (block, d, n, branch): start once here.
+                Address::Line(n) if linenum > *n => {
+                    !command.range_started && !matches!(addr2, Address::Line(m) if *m < linenum)
+                }
+                _ => match_address(addr1, reader, pattern, context, &command.location)?,
+            };
+            if starts {
+                command.range_started = true;
                 match addr2 {
                     Address::Line(n) if linenum >= *n => {
                         context.last_address = true;
                     }
-                    Address::RelLine(n) if *n == 0 => {
+                    Address::RelLine(0) | Address::StepMatch(0) | Address::StepEnd(0) => {
                         context.last_address = true;
                     }
                     _ => {
@@ -397,7 +404,9 @@ fn substitute(
 
         // Write to file if needed.
         if let Some(ref writer) = sub.write_file {
-            writer.borrow_mut().write_line_bytes(pattern.as_bytes())?;
+            writer
+                .borrow_mut()
+                .write_line_bytes(pattern.as_bytes(), pattern.is_newline_terminated())?;
         }
         context.substitution_made = true;
     }
@@ -465,7 +474,7 @@ fn flush_appends(output: &mut OutputBuffer, context: &mut ProcessingContext) -> 
     for elem in &context.append_elements {
         match elem {
             AppendElement::Text(text) => {
-                output.write_bytes(text.as_ref())?;
+                output.write_raw(text.as_ref())?;
             }
             AppendElement::Path(path) => {
                 output.copy_file(path)?;
@@ -536,24 +545,48 @@ impl ListLine {
     }
 }
 
-/// List the passed pattern space in unambiguous form.
-fn list(output: &mut OutputBuffer, line: &IOChunk, max_width: usize) -> UResult<()> {
+/// What `l` writes for a character beyond ASCII with `--uutil-extensions` in
+/// a character locale: its code point in hex.
+fn readable_char(ch: char) -> Cow<'static, str> {
+    if ch.is_ascii() {
+        return readable_ascii_byte(ch as u8);
+    }
+    if (ch as u32) <= 0xFFFF {
+        Cow::Owned(format!("\\u{:04X}", ch as u32))
+    } else {
+        Cow::Owned(format!("\\U{:08X}", ch as u32))
+    }
+}
+
+/// List the passed pattern space in unambiguous form; with `unicode`, a
+/// pattern space that is UTF-8 lists each character beyond ASCII by its code
+/// point.
+fn list(
+    output: &mut OutputBuffer,
+    line: &IOChunk,
+    max_width: usize,
+    unicode: bool,
+) -> UResult<()> {
     // Special case for an empty pattern space
     if line.is_empty() {
-        if line.is_newline_terminated() {
-            output.write_str("$\n")?;
-        }
+        output.write_str("$\n")?;
         return Ok(());
     }
 
     let mut list_line = ListLine::new(max_width);
 
-    // Byte by byte in every locale, as GNU sed lists: a character beyond
-    // ASCII is its bytes in octal, `中` as `\344\270\255`, and a newline of
-    // the pattern space is `\n`.
-    for &byte in line.as_bytes() {
-        let out_str = readable_ascii_byte(byte);
-        list_line.write_item(output, &out_str)?;
+    if let Some(text) = line.as_str().ok().filter(|_| unicode) {
+        for ch in text.chars() {
+            list_line.write_item(output, &readable_char(ch))?;
+        }
+    } else {
+        // Byte by byte, as GNU sed lists: a character beyond ASCII is its
+        // bytes in octal, `中` as `\344\270\255`, and a newline of the
+        // pattern space is `\n`.
+        for &byte in line.as_bytes() {
+            let out_str = readable_ascii_byte(byte);
+            list_line.write_item(output, &out_str)?;
+        }
     }
 
     list_line.finish(output)
@@ -605,12 +638,13 @@ fn process_file(
         // Set the script command from which to start.
         let mut current: Option<Rc<RefCell<Command>>> =
             if let Some(action) = context.input_action.take() {
-                // Continue processing the `N` command.
-                let mut combined_lines = action.prepend;
-                combined_lines.push(b'\n');
-                combined_lines.extend_from_slice(pattern.as_bytes());
+                // Continue processing the `N` or `n` command.
+                if let NextLine::Append(mut combined_lines) = action.next_line {
+                    combined_lines.push(b'\n');
+                    combined_lines.extend_from_slice(pattern.as_bytes());
 
-                pattern.set_to_bytes(combined_lines, pattern.is_newline_terminated());
+                    pattern.set_to_bytes(combined_lines, pattern.is_newline_terminated());
+                }
                 action.next_command
             } else {
                 // Start from the script top.
@@ -689,10 +723,16 @@ fn process_file(
                     }
                     CommandData::Text(cmd_bytes) => {
                         let shell_out = shell_stdout(cmd_bytes.to_vec(), &command, context)?;
-                        output.write_bytes(&shell_out)?;
+                        output.write_raw(&shell_out)?;
                     }
                     _ => panic!("invalid 'e' command data"),
                 },
+                'F' => {
+                    // Output current input file name.
+                    let mut bytes = context.input_name.as_os_str().as_encoded_bytes().to_vec();
+                    bytes.push(b'\n');
+                    output.write_bytes(&bytes)?;
+                }
                 'g' => {
                     // Replace pattern with the contents of the hold space.
                     pattern.set_to_bytes(context.hold.content.clone(), context.hold.has_newline);
@@ -722,10 +762,22 @@ fn process_file(
                 }
                 'l' => {
                     let width = *extract_variant!(command, Number);
-                    list(output, &pattern, width)?;
+                    let unicode = context.uutil_extensions
+                        && context.character_mode != CharacterMode::Byte;
+                    list(output, &pattern, width, unicode)?;
                 }
                 'n' => {
-                    break;
+                    // Print the pattern space and continue with the next
+                    // command once the next line is read, as `N` does.
+                    if !context.quiet {
+                        write_chunk(output, context, &pattern)?;
+                    }
+                    flush_appends(output, context)?;
+                    context.input_action = Some(InputAction {
+                        next_command: command.next.clone(),
+                        next_line: NextLine::Replace,
+                    });
+                    continue 'lines;
                 }
                 'N' => {
                     flush_appends(output, context)?;
@@ -735,7 +787,7 @@ fn process_file(
                     // to perform when the next line is read.
                     context.input_action = Some(InputAction {
                         next_command: command.next.clone(),
-                        prepend: pattern.as_bytes().to_vec(),
+                        next_line: NextLine::Append(pattern.as_bytes().to_vec()),
                     });
                     continue 'lines;
                 }
@@ -764,8 +816,20 @@ fn process_file(
                         i32::try_from(*extract_variant!(command, Number)).unwrap_or(i32::MAX),
                     );
                     context.stop_processing = true;
+                    context.quit_silently = true;
                     context.quiet = true;
+                    // Like GNU sed, discard text queued by `a`, `r` and `R`.
+                    context.append_elements.clear();
                     break;
+                }
+                'R' => {
+                    // Queue the file's next line for output at end of cycle.
+                    let reader = extract_variant!(command, NamedReader);
+                    if let Some(line) = reader.borrow_mut().next_line() {
+                        context
+                            .append_elements
+                            .push(AppendElement::Text(line.into()));
+                    }
                 }
                 'r' => {
                     // Copy the file to standard output at a later point.
@@ -811,7 +875,24 @@ fn process_file(
                 'w' => {
                     // Append the pattern space to the specified file.
                     let writer = extract_variant!(command, NamedWriter);
-                    writer.borrow_mut().write_line_bytes(pattern.as_bytes())?;
+                    writer
+                        .borrow_mut()
+                        .write_line_bytes(pattern.as_bytes(), pattern.is_newline_terminated())?;
+                }
+                'W' => {
+                    // Append only the first line of the pattern space.
+                    let writer = extract_variant!(command, NamedWriter);
+                    let pattern_bytes = pattern.as_bytes();
+                    let (first_line, found_newline) =
+                        match pattern_bytes.iter().position(|&b| b == b'\n') {
+                            // A slice including the newline
+                            Some(pos) => (&pattern_bytes[..=pos], true),
+                            None => (pattern_bytes, false),
+                        };
+                    writer.borrow_mut().write_line_bytes(
+                        first_line,
+                        !found_newline && pattern.is_newline_terminated(),
+                    )?;
                 }
                 'x' => {
                     // Exchange the contents of the pattern and hold spaces.
@@ -854,17 +935,20 @@ fn process_file(
         flush_appends(output, context)?;
 
         if context.stop_processing {
-            output.flush_pending_newline()?;
+            if !context.quit_silently {
+                output.flush_pending_newline()?;
+            }
             break;
         }
     }
 
-    // Handle any N command remains.
+    // Handle any n or N command remains.
+    // Take them even with -n, so that they do not carry over to the next file.
     if context.separate
-        && !context.quiet
         && let Some(action) = context.input_action.take()
+        && let NextLine::Append(mut pending) = action.next_line
+        && !context.quiet
     {
-        let mut pending = action.prepend;
         pending.push(b'\n');
         output.write_bytes(&pending)?;
         if context.unbuffered {
@@ -880,13 +964,10 @@ fn reset_latched_address_ranges(range_commands: &mut [Rc<RefCell<Command>>]) {
     for cmd_rc in range_commands.iter() {
         let mut cmd = cmd_rc.borrow_mut();
 
-        cmd.start_line =
-            // Check for address-spec line 0 pre-latch extension.
-            if let Some(addr1) = &cmd.addr1 && matches!(addr1, Address::Line(0)) {
-                Some(0)
-            } else {
-                None
-            };
+        // Check for address-spec line 0 pre-latch extension.
+        let pre_latched = matches!(cmd.addr1, Some(Address::Line(0)));
+        cmd.start_line = if pre_latched { Some(0) } else { None };
+        cmd.range_started = pre_latched;
     }
 }
 
@@ -931,7 +1012,7 @@ pub fn process_all_files(
             context.hold.has_newline = true;
         }
 
-        context.input_name = path.quote().to_string();
+        context.input_name = path.clone();
         process_file(commands.clone(), &mut reader, output, context)?;
 
         // Handle any N command remains.
@@ -939,8 +1020,8 @@ pub fn process_all_files(
             && !context.separate
             && !context.quiet
             && let Some(action) = context.input_action.take()
+            && let NextLine::Append(mut pending) = action.next_line
         {
-            let mut pending = action.prepend;
             pending.push(b'\n');
             output.write_bytes(&pending)?;
         }
@@ -1035,5 +1116,47 @@ mod tests {
         let mut written = String::new();
         file.read_to_string(&mut written).unwrap();
         assert_eq!(written, "abc$\n");
+    }
+
+    #[test]
+    fn test_execute_read_line_command_queues_next_line() {
+        use crate::sed::command::CommandData;
+        use crate::sed::named_reader::NamedReader;
+        use std::io::Write;
+        use tempfile::NamedTempFile;
+
+        // File whose successive lines the `R` command reads.
+        let mut read_file = NamedTempFile::new().unwrap();
+        read_file.write_all(b"first\nsecond\n").unwrap();
+
+        // Single input line to drive one processing cycle.
+        let mut input_file = NamedTempFile::new().unwrap();
+        input_file.write_all(b"x\n").unwrap();
+
+        // One `R` command with no address, so it always applies.
+        let reader = NamedReader::new(read_file.path().to_path_buf());
+        let command = Rc::new(RefCell::new(Command {
+            code: 'R',
+            data: CommandData::NamedReader(reader),
+            ..Command::default()
+        }));
+
+        let mut out_file = tempfile().unwrap();
+        let mut output = OutputBuffer::new(Box::new(out_file.try_clone().unwrap()));
+        let mut line_reader = LineReader::open(&input_file.path().to_path_buf()).unwrap();
+
+        let mut context = ProcessingContext {
+            quiet: true, // Suppress auto-print so only the appended line shows.
+            ..ProcessingContext::default()
+        };
+
+        process_file(Some(command), &mut line_reader, &mut output, &mut context).unwrap();
+        output.flush().unwrap();
+
+        // The `R` arm queued the file's first line, which flush_appends wrote.
+        out_file.seek(SeekFrom::Start(0)).unwrap();
+        let mut written = String::new();
+        out_file.read_to_string(&mut written).unwrap();
+        assert_eq!(written, "first\n");
     }
 }

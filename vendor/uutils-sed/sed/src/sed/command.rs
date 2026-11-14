@@ -10,6 +10,7 @@
 
 use crate::sed::error_handling::{ScriptLocation, runtime_error};
 use crate::sed::fast_regex::{Captures, Match, Regex};
+use crate::sed::named_reader::NamedReader;
 use crate::sed::named_writer::NamedWriter;
 use crate::sed::script_char_provider::ScriptCharProvider;
 use crate::sed::script_line_provider::ScriptLineProvider;
@@ -38,10 +39,11 @@ pub struct ProcessingContext {
     pub sandbox: bool,
     pub unbuffered: bool,
     pub null_data: bool,
+    pub uutil_extensions: bool,
 
     // Other context
-    /// Currently processed input file name (not script) in quoted form
-    pub input_name: String,
+    /// Currently processed input file name (not script)
+    pub input_name: PathBuf,
     /// Current input line number
     pub line_number: usize,
     /// True if this is the last address of a range
@@ -52,6 +54,8 @@ pub struct ProcessingContext {
     pub last_file: bool,
     /// Stop processing further input.
     pub stop_processing: bool,
+    /// Stop without writing a missing final newline (`Q`).
+    pub quit_silently: bool,
     /// Whether sed operates on bytes or UTF-8 characters
     pub character_mode: CharacterMode,
     /// Previously compiled RE, saved for reuse when specifying an empty RE
@@ -62,10 +66,13 @@ pub struct ProcessingContext {
     pub input_action: Option<InputAction>,
     /// Hold space
     pub hold: ByteSpace,
-    /// Nesting of { } at compile time
-    pub parsed_block_nesting: usize,
+    /// Location of each `{` still open at compile time, innermost last
+    pub open_blocks: Vec<ScriptLocation>,
     /// Command associated with each label
     pub label_to_command_map: HashMap<String, Rc<RefCell<Command>>>,
+    /// Shared `R` readers keyed by file path, so that all `R` commands naming
+    /// the same file advance a single cursor, matching GNU sed.
+    pub named_readers: HashMap<PathBuf, Rc<RefCell<NamedReader>>>,
     /// Commands with a (latchable and resetable) address range
     pub range_commands: Vec<Rc<RefCell<Command>>>,
     /// True if a substitution was made as specified in the t command
@@ -463,6 +470,7 @@ pub struct Command {
     pub addr2: Option<Address>,             // End address
     pub non_select: bool,                   // True if '!'
     pub start_line: Option<usize>,          // Start line number (or None if unlatched)
+    pub range_started: bool,                // True once the range has been entered
     pub data: CommandData,                  // Command-specific data
     pub next: Option<Rc<RefCell<Command>>>, // Pointer to next command
     pub location: ScriptLocation,           // Command's definition location
@@ -476,6 +484,7 @@ impl Default for Command {
             addr2: None,
             non_select: false,
             start_line: None,
+            range_started: false,
             data: CommandData::None,
             next: None,
             location: ScriptLocation::default(),
@@ -501,6 +510,7 @@ pub enum CommandData {
     BranchTarget(Option<Rc<RefCell<Command>>>), // Commands for 'b', 't', 'T', '{'
     Label(Option<String>),                      // Label name for 'b', 't', 'T', ':'
     Path(PathBuf),                              // File path for 'r'
+    NamedReader(Rc<RefCell<NamedReader>>),      // Successive file lines for 'R'
     NamedWriter(Rc<RefCell<NamedWriter>>),      // File output for 'w'
     Number(usize),                              // Number for 'l', 'q', 'Q' (GNU)
     Substitution(Box<Substitution>),            // Substitute command 's'
@@ -520,8 +530,17 @@ pub enum SpaceFlag {
 pub struct InputAction {
     /// Next command to execute (rather than commands from start)
     pub next_command: Option<Rc<RefCell<Command>>>,
-    /// Data to prepend to the read contents
-    pub prepend: Vec<u8>,
+    /// How the read line becomes the pattern space
+    pub next_line: NextLine,
+}
+
+#[derive(Debug, Clone)]
+/// How a line read by `n` or `N` becomes the pattern space
+pub enum NextLine {
+    /// Replace the pattern space with the line (`n`)
+    Replace,
+    /// Append the line, after a newline, to these contents (`N`)
+    Append(Vec<u8>),
 }
 
 #[cfg(test)]

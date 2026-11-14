@@ -26,7 +26,7 @@ serde_json.workspace = true
 # WebRTC data channels, sans IO: ICE, DTLS and SCTP. Its aws-lc-rs crypto is
 # the one provider the workspace builds.
 thiserror.workspace = true
-str0m = { version = "0.24.1", default-features = false, features = ["aws-lc-rs"] }
+str0m = { version = "0.25.0", default-features = false, features = ["aws-lc-rs"] }
 tokio.workspace = true
 tokio-util.workspace = true
 tracing.workspace = true

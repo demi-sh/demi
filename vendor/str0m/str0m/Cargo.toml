@@ -11,9 +11,9 @@
 
 [package]
 edition = "2024"
-rust-version = "1.85.0"
+rust-version = "1.89.0"
 name = "str0m"
-version = "0.24.1"
+version = "0.25.0"
 authors = [
     "Martin Algesten <martin@algesten.se>",
     "Hugo Tunius <h@tunius.se>",
@@ -90,7 +90,7 @@ version = "1"
 version = "4.6.6"
 
 [dependencies.dimpl]
-version = "0.7.4"
+version = "0.9.0"
 default-features = false
 
 [dependencies.drv]
@@ -101,44 +101,44 @@ optional = true
 version = "2.0.1"
 
 [dependencies.is]
-version = "0.11.1"
+version = "0.12.0"
 default-features = false
 
 [dependencies.sctp-proto]
-version = "0.10.5"
+version = "0.10.8"
 
 [dependencies.serde]
 version = "1.0.152"
 features = ["derive"]
 
 [dependencies.str0m-aws-lc-rs]
-version = "0.6.0"
+version = "0.7.0"
 optional = true
 
 [dependencies.str0m-openssl]
-version = "0.6.0"
+version = "0.7.0"
 optional = true
 
 [dependencies.str0m-proto]
-version = "0.7.0"
+version = "0.8.0"
 features = ["dtls"]
 default-features = false
 
 [dependencies.str0m-rust-crypto]
-version = "0.6.0"
+version = "0.7.0"
 optional = true
 
 [dependencies.subtle]
 version = "2.0.0"
 
 [dependencies.time]
-version = "0.3"
+version = "0.3.47"
 
 [dependencies.tracing]
 version = "0.1.37"
 
 [dev-dependencies.netem]
-version = "0.4.0"
+version = "0.5.0"
 package = "str0m-netem"
 
 [dev-dependencies.pcap-file]
@@ -157,7 +157,7 @@ version = "3.6.2"
 version = "1.0"
 
 [dev-dependencies.str0m-rust-crypto]
-version = "0.6.0"
+version = "0.7.0"
 
 [dev-dependencies.systemstat]
 version = "0.2.2"
@@ -176,16 +176,16 @@ features = [
 version = "2"
 
 [target.'cfg(target_vendor = "apple")'.dependencies.str0m-apple-crypto]
-version = "0.6.0"
+version = "0.7.0"
 optional = true
 
 [target."cfg(windows)".dependencies.str0m-wincrypto]
-version = "0.8.1"
+version = "0.9.0"
 optional = true
 
 [package.metadata.jush]
 maintainer = "jush-runner-direct"
 patches = [
-    "RtcConfig takes the SCTP association's retransmission timeouts and a floor for its congestion window (set_sctp_rto, set_sctp_congestion_window_floor), passed to sctp-proto's TransportConfig, so a live view's peer runs without SCTP's congestion window (upstream through 0.24.1 fixes the transport config)",
+    "RtcConfig takes the SCTP association's retransmission timeouts and a floor for its congestion window (set_sctp_rto, set_sctp_congestion_window_floor), passed to sctp-proto's TransportConfig, so a live view's peer runs without SCTP's congestion window (upstream through 0.25.0 sets only the message size)",
     "The release's tests, examples, CI files and logo are left out",
 ]

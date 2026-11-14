@@ -4,8 +4,10 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+pub mod error;
 pub mod matchers;
 
+use error::ParseError;
 use matchers::{Follow, WalkEntry};
 use std::cell::RefCell;
 use std::error::Error;
@@ -29,10 +31,15 @@ pub struct Config {
     today_start: bool,
     no_leaf_dirs: bool,
     follow: Follow,
-    new_paths: Option<Vec<String>>,
     files0_argument: Option<String>,
     /// macOS's `-E`: `-regex` reads extended regular expressions.
     bsd_extended_regex: bool,
+    /// Whether the expression uses -ok or -okdir, which prompt on stderr and
+    /// read the answer from stdin when there is no terminal.
+    interactive_exec: bool,
+    /// Shared by every action that writes to standard output, so that a
+    /// failed write is reported only once.
+    stdout_errors: matchers::StdoutErrors,
 }
 
 impl Default for Config {
@@ -51,8 +58,9 @@ impl Default for Config {
             // a compatibility item for GNU findutils.
             no_leaf_dirs: false,
             follow: Follow::Never,
-            new_paths: None, // This option exclusively for -files0-from argument.
-            files0_argument: None, //This option also is used for file0-from
+            files0_argument: None, // This option exclusively for -files0-from argument.
+            interactive_exec: false,
+            stdout_errors: matchers::StdoutErrors::default(),
             bsd_extended_regex: false,
         }
     }
@@ -150,9 +158,65 @@ impl Dependencies for StandardDependencies {
 struct ParsedInfo {
     matcher: Box<dyn self::matchers::Matcher>,
     paths: Vec<OsString>,
+    /// Starting points supplied via `-files0-from`, read lazily so that an
+    /// endless or very large input (e.g. `-files0-from /dev/urandom`) does not
+    /// have to fit in memory.
+    files0_paths: Option<Files0Paths>,
     config: Config,
 }
 
+/// Iterator over the NUL-separated starting points of `-files0-from`.
+///
+/// <https://www.gnu.org/software/findutils/manual/html_node/find_html/Starting-points.html>
+struct Files0Paths {
+    reader: Box<dyn BufRead>,
+}
+
+impl Files0Paths {
+    /// Open the source named by `-files0-from`; `-` means standard input.
+    fn open(name: &str) -> Result<Self, Box<dyn Error>> {
+        let reader: Box<dyn BufRead> = if name == "-" {
+            Box::new(BufReader::new(io::stdin()))
+        } else {
+            let file = uucore::context::fs::File::open(name)
+                .map_err(|e| format!("cannot open '{}' for reading: {}", name, e))?;
+            Box::new(BufReader::new(file))
+        };
+        Ok(Self { reader })
+    }
+}
+
+impl Iterator for Files0Paths {
+    type Item = Result<OsString, Box<dyn Error>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let mut buffer = Vec::new();
+            match self.reader.read_until(0, &mut buffer) {
+                Err(e) => return Some(Err(e.into())),
+                Ok(0) => return None,
+                Ok(_) => {}
+            }
+            // A trailing separator terminates the name; without one we are at
+            // EOF and the bytes read are still a name.
+            if buffer.last() == Some(&0) {
+                buffer.pop();
+            }
+            if buffer.is_empty() {
+                // Skip it so as to avoid a file not found error.
+                uucore::context_eprintln!("{}: invalid zero-length file name", program_name());
+                continue;
+            }
+            // A name's own bytes, as GNU's find takes one that is no UTF-8.
+            return Some(
+                uucore::os_string_from_vec(buffer)
+                    .map_err(|error| -> Box<dyn Error> { error.to_string().into() }),
+            );
+        }
+    }
+}
+
+/// Function to generate a `ParsedInfo` from the strings supplied on the command-line.
 #[cfg(test)]
 fn parse_args(args: &[&str]) -> Result<ParsedInfo, Box<dyn Error>> {
     let raw: Vec<&OsStr> = args.iter().map(OsStr::new).collect();
@@ -216,10 +280,25 @@ fn parse_raw_args(args: &[&str], raw: &[&OsStr]) -> Result<ParsedInfo, Box<dyn E
     if paths.is_empty() && i == paths_start {
         paths.push(".".into());
     }
-    let matcher = matchers::build_top_level_matcher(&args[i..], &mut config)?;
-    if let Some(new_paths) = &config.new_paths {
+    // The matcher builder only sees the expression part of the command line, so
+    // any argument index it reports has to be moved back to where that part
+    // started.
+    let matcher = matchers::build_top_level_matcher(&args[i..], &mut config)
+        .map_err(|e| ParseError::shift(e, i))?;
+    let mut files0_paths = None;
+    if let Some(name) = &config.files0_argument {
         if paths.len() == 1 && paths[0] == "." {
-            paths = new_paths.iter().map(OsString::from).collect();
+            // Both would read stdin, so the starting points and the answers to
+            // the prompts would compete for the same bytes.  GNU find rejects
+            // the combination rather than producing arbitrary results.
+            if name == "-" && config.interactive_exec {
+                return Err(From::from(
+                    "option -files0-from reading from standard input cannot be combined \
+                     with -ok, -okdir",
+                ));
+            }
+            files0_paths = Some(Files0Paths::open(name)?);
+            paths.clear();
         } else {
             return Err(From::from(format!(
                 "extra operand '{}'\nfile operands cannot be combined with -files0-from",
@@ -230,6 +309,7 @@ fn parse_raw_args(args: &[&str], raw: &[&OsStr]) -> Result<ParsedInfo, Box<dyn E
     Ok(ParsedInfo {
         matcher,
         paths,
+        files0_paths,
         config,
     })
 }
@@ -241,6 +321,13 @@ fn process_dir(
     matcher: &dyn matchers::Matcher,
     quit: &mut bool,
 ) -> i32 {
+    // No depth can be both >= min_depth and <= max_depth when min_depth exceeds
+    // max_depth, so nothing matches — the same as GNU find. `WalkDir` would
+    // otherwise still yield the max-depth entries, so short-circuit here.
+    if config.min_depth > config.max_depth {
+        return 0;
+    }
+
     let root = uucore::context::resolve(dir);
     let mut walkdir = WalkDir::new(&root)
         .contents_first(config.depth_first)
@@ -322,9 +409,16 @@ fn do_find(args: &[&str], raw: &[&OsStr], deps: &dyn Dependencies) -> Result<i32
         return Ok(0);
     }
 
+    let paths: Box<dyn Iterator<Item = Result<OsString, Box<dyn Error>>>> =
+        match paths_and_matcher.files0_paths {
+            Some(files0_paths) => Box::new(files0_paths),
+            None => Box::new(paths_and_matcher.paths.into_iter().map(Ok)),
+        };
+
     let mut ret = 0;
     let mut quit = false;
-    for path in paths_and_matcher.paths {
+    for path in paths {
+        let path = path?;
         let dir_ret = process_dir(
             &path,
             &paths_and_matcher.config,
@@ -442,9 +536,26 @@ Actions:
 fn print_version(deps: &dyn Dependencies) -> Result<(), io::Error> {
     writeln!(
         &mut deps.get_output().borrow_mut(),
-        "find (Rust) {}",
+        "find {}",
         env!("CARGO_PKG_VERSION")
     )
+}
+
+/// The name `find` was invoked as, for prefixing its messages: the base name
+/// of argv[0], without the `.exe` that Windows executables carry.
+pub fn program_name() -> &'static str {
+    let name = uucore::util_name();
+    let path = std::path::Path::new(name);
+    if cfg!(windows)
+        && path
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("exe"))
+    {
+        if let Some(stem) = path.file_stem().and_then(std::ffi::OsStr::to_str) {
+            return stem;
+        }
+    }
+    name
 }
 
 /// Does all the work for find.
@@ -461,7 +572,17 @@ pub fn find_main<S: AsRef<OsStr>>(args: &[S], deps: &dyn Dependencies) -> i32 {
     match do_find(&args[1..], &raw[1..], deps) {
         Ok(ret) => ret,
         Err(e) => {
-            writeln!(&mut stderr(), "find: {e}").unwrap();
+            // `do_find` was handed argv without the program name.
+            let e = ParseError::shift(e, 1);
+            // Only at a terminal or with `UUTILS_DIAG=always`, so captured
+            // output (the GNU and bfs suites) keeps the single GNU line.
+            let rendered = uucore::diagnostics::enabled()
+                && e.downcast_ref::<ParseError>()
+                    .is_some_and(|parse_error| parse_error.render(&args));
+            // The report heads itself with the same line.
+            if !rendered {
+                writeln!(&mut stderr(), "{}: {e}", program_name()).unwrap();
+            }
             1
         }
     }
@@ -490,7 +611,7 @@ mod tests {
     #[cfg(windows)]
     /// Windows-only bodge for converting between path separators.
     pub fn fix_up_slashes(path: &str) -> String {
-        path.replace("/", "\\")
+        path.replace('/', "\\")
     }
 
     #[cfg(not(windows))]
@@ -534,6 +655,7 @@ mod tests {
         }
 
         /// Queue a response to be returned by the next call to confirm().
+        #[cfg(unix)]
         pub fn push_confirm_response(&self, response: bool) {
             self.confirm_responses.borrow_mut().push_back(response);
         }
@@ -704,6 +826,29 @@ mod tests {
                  ./test_data/depth/f0\n"
             )
         );
+    }
+
+    #[test]
+    fn find_mindepth_greater_than_maxdepth() {
+        // -mindepth greater than -maxdepth can never be satisfied, so find
+        // outputs nothing, matching GNU find (issue #778).
+        let deps = FakeDependencies::new();
+
+        let rc = find_main(
+            &[
+                "find",
+                &fix_up_slashes("./test_data/depth"),
+                "-sorted",
+                "-mindepth",
+                "2",
+                "-maxdepth",
+                "1",
+            ],
+            &deps,
+        );
+
+        assert_eq!(rc, 0);
+        assert_eq!(deps.get_output_as_string(), "");
     }
 
     #[test]

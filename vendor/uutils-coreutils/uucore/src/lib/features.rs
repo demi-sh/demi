@@ -2,6 +2,7 @@
 //
 // For the full copyright and license information, please view the LICENSE
 // file that was distributed with this source code.
+
 // features ~ feature-gated modules (core/bundler file)
 //
 // spell-checker:ignore (features) extendedbigdecimal logind
@@ -35,7 +36,7 @@ pub mod extendedbigdecimal;
 pub mod fast_inc;
 #[cfg(feature = "format")]
 pub mod format;
-#[cfg(all(feature = "fs", not(target_os = "haiku")))]
+#[cfg(feature = "fs")]
 pub mod fs;
 #[cfg(feature = "fsext")]
 pub mod fsext;
@@ -75,10 +76,7 @@ pub mod version_cmp;
 pub mod entries;
 #[cfg(all(unix, feature = "perms"))]
 pub mod perms;
-#[cfg(all(
-    any(target_os = "linux", target_os = "android"),
-    any(feature = "pipes", feature = "buf-copy")
-))]
+#[cfg(all(feature = "pipes", any(target_os = "linux", target_os = "android")))]
 pub mod pipes;
 #[cfg(all(target_os = "linux", feature = "proc-info"))]
 pub mod proc_info;
@@ -87,6 +85,7 @@ pub mod process;
 #[cfg(all(unix, feature = "safe-copy"))]
 pub mod safe_copy;
 #[cfg(all(
+    feature = "safe-traversal",
     unix,
     not(any(target_os = "aix", target_os = "hurd", target_os = "redox"))
 ))]
@@ -109,6 +108,7 @@ pub mod selinux;
         target_os = "android",
         target_os = "cygwin",
         target_os = "freebsd",
+        target_os = "hurd",
         target_os = "illumos",
         target_os = "linux",
         target_os = "netbsd",
@@ -123,12 +123,14 @@ pub mod smack;
 #[cfg(feature = "feat_systemd_logind")]
 pub mod systemd_logind;
 #[cfg(all(
-    unix,
-    not(target_os = "android"),
-    not(target_os = "fuchsia"),
-    not(target_os = "openbsd"),
-    not(target_os = "redox"),
-    feature = "utmpx"
+    feature = "utmpx",
+    any(
+        target_vendor = "apple",
+        target_os = "cygwin",
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "netbsd"
+    )
 ))]
 pub mod utmpx;
 // ** windows-only

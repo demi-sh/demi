@@ -13,7 +13,14 @@ use uucore::error::{ClapErrorWrapper, UClapError, UError, UResult};
 
 use crate::{find::matchers::RegexType, updatedb::DbFormat};
 
+#[cfg(not(windows))]
+pub const DEFAULT_DB_PATH: &str = "/usr/local/var/locatedb";
+
+#[cfg(windows)]
+pub const DEFAULT_DB_PATH: &str = r"C:\ProgramData\locatedb";
+
 #[derive(Debug)]
+
 pub struct Config {
     all: bool,
     basename: bool,
@@ -195,13 +202,8 @@ impl TryFrom<ArgMatches> for ParsedInfo {
             basename: value.get_flag("basename"),
             db: value
                 .get_one::<String>("database")
-                .map(String::as_str)
-                // `database` has a default value, so this is only reached if clap
-                // somehow omits it; fall back to an empty (non-openable) path.
-                .unwrap_or_default()
-                .split(':')
-                .map(PathBuf::from)
-                .collect(),
+                .map_or_else(Vec::new, |s| crate::split_paths(s.as_ref()).collect()),
+
             mode: value
                 .get_many::<Id>("mode")
                 .unwrap_or_default()
@@ -289,7 +291,7 @@ fn uu_app() -> Command {
                 .short('d')
                 .long("database")
                 .env("LOCATE_PATH")
-                .default_value("/usr/local/var/locatedb")
+                .default_value(DEFAULT_DB_PATH)
                 .action(ArgAction::Set),
         )
         .arg(
@@ -495,22 +497,6 @@ impl DbReader {
     }
 }
 
-/// Decode a raw database entry into a path.
-///
-/// On Unix a path is an arbitrary byte string, so the bytes are used verbatim. On other
-/// platforms paths aren't raw bytes; the database stores UTF-8 text (find emits paths via
-/// `Path::to_string_lossy`), so it is decoded lossily back into a path.
-#[cfg(unix)]
-fn bytes_to_path(bytes: &[u8]) -> PathBuf {
-    use std::os::unix::ffi::OsStrExt;
-    PathBuf::from(std::ffi::OsStr::from_bytes(bytes))
-}
-
-#[cfg(not(unix))]
-fn bytes_to_path(bytes: &[u8]) -> PathBuf {
-    PathBuf::from(String::from_utf8_lossy(bytes).into_owned())
-}
-
 /// Whether `path` currently exists on disk.
 ///
 /// With `follow_symlinks` (the `-L`/`--follow` default) a symlink is resolved, so a broken
@@ -532,7 +518,7 @@ fn match_entry(entry: &CStr, config: &Config, patterns: &Patterns) -> bool {
     #[cfg(not(windows))]
     const GLOB_METACHARS: &str = r"*?[]\";
 
-    let buf = bytes_to_path(entry.to_bytes());
+    let buf = crate::bytes_to_path(entry.to_bytes());
     let name = if config.basename {
         let Some(path) = buf.file_name() else {
             return false;
@@ -564,13 +550,11 @@ fn match_entry(entry: &CStr, config: &Config, patterns: &Patterns) -> bool {
         } else {
             patterns.all_match(entry.as_ref())
         }
+    } else if has_metachars {
+        // TODO: parse metacharacters
+        false
     } else {
-        if has_metachars {
-            // TODO: parse metacharacters
-            false
-        } else {
-            patterns.any_match(entry.as_ref())
-        }
+        patterns.any_match(entry.as_ref())
     };
 
     // existence is always checked against the full path, even in `--basename` mode

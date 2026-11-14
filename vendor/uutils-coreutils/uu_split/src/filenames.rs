@@ -2,7 +2,9 @@
 //
 // For the full copyright and license information, please view the LICENSE
 // file that was distributed with this source code.
+
 // spell-checker:ignore zaaa zaab stype
+
 //! Compute filenames from a given index.
 //!
 //! The [`FilenameIterator`] yields filenames for use with ``split``.
@@ -392,6 +394,7 @@ mod tests {
             start: 0,
             auto_widening: false,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_aa.txt");
@@ -411,6 +414,7 @@ mod tests {
             start: 0,
             auto_widening: false,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_00.txt");
@@ -430,6 +434,7 @@ mod tests {
             start: 0,
             auto_widening: true,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_aa.txt");
@@ -450,6 +455,7 @@ mod tests {
             start: 0,
             auto_widening: true,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_00.txt");
@@ -470,6 +476,7 @@ mod tests {
             start: 5,
             auto_widening: true,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_05.txt");
@@ -485,6 +492,7 @@ mod tests {
             start: 9,
             auto_widening: true,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_09.txt");
@@ -500,6 +508,7 @@ mod tests {
             start: 999,
             auto_widening: false,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_999.txt");
@@ -511,6 +520,7 @@ mod tests {
             start: 1000,
             auto_widening: false,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix);
         assert!(it.is_err());
@@ -521,6 +531,7 @@ mod tests {
             start: 0xfff,
             auto_widening: false,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let mut it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix).unwrap();
         assert_eq!(it.next().unwrap(), "chunk_fff.txt");
@@ -532,6 +543,7 @@ mod tests {
             start: 0x1000,
             auto_widening: false,
             additional: ".txt".into(),
+            skip_existing: false,
         };
         let it = FilenameIterator::new(std::ffi::OsStr::new("chunk_"), &suffix);
         assert!(it.is_err());
@@ -548,6 +560,7 @@ mod tests {
             start: 0,
             auto_widening: false,
             additional: std::ffi::OsString::from_vec(vec![0xFE]),
+            skip_existing: false,
         };
 
         let mut it = FilenameIterator::new(OsStr::from_bytes(b"p\xFF"), &suffix)

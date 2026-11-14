@@ -89,7 +89,7 @@ pub fn input_runtime_error<T>(
         format!(
             "{}: {}:{} error: {}",
             location.description,
-            context.input_name,
+            context.input_name.display(),
             context.line_number,
             msg.to_string()
         ),

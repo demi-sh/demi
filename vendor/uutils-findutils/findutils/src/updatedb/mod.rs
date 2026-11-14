@@ -9,6 +9,8 @@ use uucore::error::{strip_errno, UResult, USimpleError};
 
 use crate::find::{find_main, Dependencies};
 
+pub use crate::locate::DEFAULT_DB_PATH;
+
 // TODO: the `localuser` and `netuser` arguments are accepted but not yet honored; handling them
 // will likely involve splitting the find logic into two calls.
 pub struct Config {
@@ -73,8 +75,7 @@ impl From<ArgMatches> for Config {
             output: value
                 .get_one::<PathBuf>("output")
                 .cloned()
-                // FIXME: the default should be platform-dependent
-                .unwrap_or_else(|| PathBuf::from("/usr/local/var/locatedb")),
+                .unwrap_or_else(|| PathBuf::from(DEFAULT_DB_PATH)),
         }
     }
 }
@@ -136,6 +137,7 @@ fn uu_app() -> Command {
                 .long("output")
                 .require_equals(true)
                 .value_parser(value_parser!(PathBuf))
+                .default_value(DEFAULT_DB_PATH)
                 .action(ArgAction::Set),
         )
         .arg(
@@ -256,7 +258,16 @@ impl Dependencies for CapturedDependencies {
 }
 
 fn do_updatedb(args: &[&str]) -> UResult<()> {
-    let matches = uu_app().try_get_matches_from(args)?;
+    let matches = match uu_app().try_get_matches_from(args) {
+        Ok(m) => m,
+        Err(e) => match e.kind() {
+            clap::error::ErrorKind::DisplayHelp | clap::error::ErrorKind::DisplayVersion => {
+                print!("{e}");
+                return Ok(());
+            }
+            _ => return Err(uucore::error::UClapError::with_exit_code(e, 1).into()),
+        },
+    };
     let config = Config::from(matches);
 
     // offload most of the logic to find. Build the argument list as discrete tokens rather than
@@ -348,12 +359,12 @@ fn do_updatedb(args: &[&str]) -> UResult<()> {
     let frcoder = Frcoder::new(output.as_slice(), config.db_format);
     writer
         .write_all(&frcoder.generate_header())
-        .map_err(&write_err)?;
+        .map_err(write_err)?;
     for v in frcoder {
-        writer.write_all(v.as_slice()).map_err(&write_err)?;
+        writer.write_all(v.as_slice()).map_err(write_err)?;
     }
 
-    writer.flush().map_err(&write_err)?;
+    writer.flush().map_err(write_err)?;
 
     Ok(())
 }
