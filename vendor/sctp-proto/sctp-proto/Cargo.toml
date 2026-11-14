@@ -13,7 +13,7 @@
 edition = "2024"
 rust-version = "1.85"
 name = "sctp-proto"
-version = "0.10.6"
+version = "0.10.8"
 authors = [
     "Rain Liu <yliu@webrtc.rs>",
     "Martin Algesten<martin@algesten.se>",
@@ -70,7 +70,7 @@ version = "1.5.0"
 [package.metadata.jush]
 maintainer = "jush-runner-direct"
 patches = [
-    "An incoming stream reset sends no reciprocal reset for a stream the application already reset with stop() or close() unless that reset failed; its own request completes the Finished, at once when already answered with success. The redundant request kept a just reused id's new generation unwritable, so the runner could not acknowledge a data channel the browser reopened on it (upstream through 0.10.6)",
-    "TransportConfig::with_congestion_window_floor sets the least the congestion window and the slow start threshold ever are, at start, in fast recovery and after a T3-rtx timeout, so a sender that paces itself, such as a live view's, runs without SCTP's congestion control while its loss recovery stays (upstream through 0.10.6 has no such setting)",
+    "An incoming stream reset sends no reciprocal reset for a stream the application already reset with stop() or close() unless that reset failed; its own request completes the Finished, at once when already answered with success. The redundant request kept a just reused id's new generation unwritable, so the runner could not acknowledge a data channel the browser reopened on it (upstream through 0.10.8). A local reset still held for its DATA's acknowledgement is that stream's one reset too: the peer's request does not replace it with a reciprocal, as upstream's test of that simultaneous close expects, so the test sends the held reset before answering it. Upstream's drop of a held reset for a stream that gets a reciprocal is gone: with the patch only a later generation, which a peer reusing the id early opened, gets a reciprocal, and the held reset still owes the earlier generation's Finished",
+    "TransportConfig::with_congestion_window_floor sets the least the congestion window and the slow start threshold ever are, at start, in fast recovery and after a T3-rtx timeout, so a sender that paces itself, such as a live view's, runs without SCTP's congestion control while its loss recovery stays (upstream through 0.10.8 has no such setting)",
     "The release's tests, benchmarks, examples and CI files are left out",
 ]

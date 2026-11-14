@@ -100,6 +100,16 @@ impl Default for TransportConfig {
 }
 
 impl TransportConfig {
+    /// Set the receive storage budget across all streams, including reset-deferred DATA.
+    ///
+    /// Reads deliver complete messages only. If this budget is exhausted with no
+    /// readable message and no TSN gaps that can still be filled, the association
+    /// fails with [`crate::AssociationError::ReceiveBufferExhausted`] and sends an
+    /// Out Of Resource ABORT. No partial message is delivered. This can happen
+    /// when a message exceeds the budget or multiple incomplete messages share it.
+    /// Messages retained on stopped read halves also consume this budget until reset.
+    /// Complete messages on readable streams apply ordinary receive-window backpressure.
+    /// The maximum receive-message size remains an independent limit.
     pub fn with_max_receive_buffer_size(mut self, value: u32) -> Self {
         self.max_receive_buffer_size = value;
         self
@@ -181,13 +191,16 @@ impl TransportConfig {
         self
     }
 
-    /// Set the SCTP source port used when initiating an association.
-    /// A zero port is rejected by [`crate::Endpoint::connect`].
+    /// Set the least the congestion window and the slow start threshold
+    /// ever are, in bytes: at start, in fast recovery and after a T3-rtx
+    /// timeout. Defaults to 0, RFC 4960's congestion control.
     pub fn with_congestion_window_floor(mut self, value: u32) -> Self {
         self.congestion_window_floor = value;
         self
     }
 
+    /// Set the SCTP source port used when initiating an association.
+    /// A zero port is rejected by [`crate::Endpoint::connect`].
     pub fn with_local_port(mut self, value: u16) -> Self {
         self.local_port = value;
         self
