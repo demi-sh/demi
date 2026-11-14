@@ -72,7 +72,8 @@ use jush_backend_database::StorageError;
 use jush_backend_database::conversation_index::{ConversationRecord, ExecutionTarget};
 use jush_backend_database::devices::DeviceRecord;
 use jush_agent_tools::duration;
-use jush_backend_database::projects::TypedDirectory;
+use jush_backend_database::Selection;
+use jush_backend_database::projects::{DirectoryNamed, TypedDirectory};
 use jush_runner_client::{Admission, Link, RemoteDevice, WeakLink, Withdrawal};
 use jush_backend_runners::file_gate::{FileGate, FileLease};
 use jush_device_interface::{Device as _, DeviceError, DeviceErrorKind, DeviceFs};
@@ -81,7 +82,7 @@ use jush_shared_gates::{ActivityGate, GateLease, Purpose, SerialGate};
 use jush_web_api_protocol::devices::DeviceKind;
 use jush_web_api_protocol::error::ErrorCode;
 use futures_util::future::LocalBoxFuture;
-use jush_web_api_protocol::ids::{ConversationId, DeviceId};
+use jush_web_api_protocol::ids::{ConversationId, DeviceId, ProjectId};
 use futures_util::future::join_all;
 use tokio::sync::Notify;
 use tokio_util::sync::CancellationToken;
@@ -1022,12 +1023,21 @@ impl dyn DeviceShard + '_ {
             Some(_) if agent => (self.devices().home(&device.id).unwrap_or_default(), None, true),
             Some(other) if other.role != DeviceRole::Primary => (other.path, None, false),
             _ => {
-                let typed = match &target {
-                    ExecutionTarget::Cloud { path, .. } => Some(TypedDirectory::Cloud(path.clone())),
-                    ExecutionTarget::Project { project_id, .. } => {
+                let typed = match (&target, &record.target) {
+                    (ExecutionTarget::Cloud { path, .. }, _) => Some(TypedDirectory::Cloud(path.clone())),
+                    // The work starts in the worktree, whose spelling is the
+                    // worktree's, never its project's.
+                    (
+                        ExecutionTarget::Project { project_id, path, .. },
+                        Selection::Project { worktree: Some(_), .. },
+                    ) => Some(TypedDirectory::Worktree {
+                        project: project_id.clone(),
+                        path: path.clone(),
+                    }),
+                    (ExecutionTarget::Project { project_id, .. }, _) => {
                         Some(TypedDirectory::Project(project_id.clone()))
                     }
-                    ExecutionTarget::Device { .. } => None,
+                    (ExecutionTarget::Device { .. }, _) => None,
                 };
                 (target.path().to_owned(), typed, true)
             }
@@ -1101,6 +1111,13 @@ impl dyn DeviceShard + '_ {
     /// replaces what the user typed (`ControlService::name_directory`).
     /// Answers the name when it replaced the typed one.
     ///
+    /// A worktree's project has its own directory named too, so a project
+    /// follows its folder whichever of its conversations works first. A
+    /// project whose directory is the worktree's, which no project's may be,
+    /// takes instead the directory of the repository the device reported as
+    /// listing the worktree. A directory the device does not find is left as
+    /// stored, and a failure to name it is logged, never the work's.
+    ///
     /// A directory the device cannot make fails this use with the reason its
     /// runner words. A device whose runner is away is not asked: the operation
     /// fails offline as it would.
@@ -1121,18 +1138,72 @@ impl dyn DeviceShard + '_ {
         }
         let canonical = remote.directory(&selected.root, true).await?;
         slot.remember_directory(device, [&selected.root, &canonical], &link);
-        if canonical == selected.root {
-            return Ok(None);
+        let mut named = DirectoryNamed::default();
+        // The worktree first: a project named into another takes its
+        // conversations, which the worktree's naming finds by their project.
+        if canonical != selected.root {
+            named.merge(
+                self.control()
+                    .name_directory(conversation.clone(), typed.clone(), canonical.clone())
+                    .await?,
+            );
         }
-        let named = self
-            .control()
-            .name_directory(conversation.clone(), typed.clone(), canonical.clone())
-            .await?;
+        if let TypedDirectory::Worktree { project, .. } = typed {
+            match self.name_worktree_project(conversation, project, selected, &canonical, remote).await {
+                Ok(project) => named.merge(project),
+                Err(error) => tracing::warn!(
+                    event = "project_directory.unnamed",
+                    %error,
+                    "a worktree's project directory could not be named"
+                ),
+            }
+        }
         if named.conversations.is_empty() {
             return Ok(None);
         }
+        let renamed = named.conversations.contains(conversation) && canonical != selected.root;
         self.directory_named(conversation, named);
-        Ok(Some(canonical))
+        Ok(renamed.then_some(canonical))
+    }
+
+    /// Names the directory of the project of the worktree at `worktree`, as
+    /// [`first_use`](Self::first_use) says.
+    async fn name_worktree_project(
+        &self,
+        conversation: &ConversationId,
+        project: &ProjectId,
+        selected: &Selected,
+        worktree: &str,
+        remote: &RemoteDevice,
+    ) -> Result<DirectoryNamed, DeviceAccessError> {
+        let Some(stored) = self.control().project(project.clone()).await? else {
+            return Ok(DirectoryNamed::default());
+        };
+        let candidates = if stored.path == worktree {
+            self.control()
+                .repositories_of_worktree(
+                    selected.device.id.clone(),
+                    vec![worktree.to_owned(), selected.root.clone()],
+                )
+                .await?
+        } else {
+            vec![stored.path.clone()]
+        };
+        for candidate in &candidates {
+            let directory = match remote.directory(candidate, false).await {
+                Ok(directory) => directory,
+                Err(error) if is_missing(&error) => continue,
+                Err(error) => return Err(error.into()),
+            };
+            if directory == stored.path || directory == worktree {
+                return Ok(DirectoryNamed::default());
+            }
+            return Ok(self
+                .control()
+                .name_directory(conversation.clone(), TypedDirectory::Project(project.clone()), directory)
+                .await?);
+        }
+        Ok(DirectoryNamed::default())
     }
 
     /// The devices the user's conversation `id` reaches, which the web app's device
@@ -1276,4 +1347,9 @@ impl dyn DeviceShard + '_ {
         devices.extend(control.managed_device(self.user().clone()).await?.map(|device| device.id));
         Ok(devices)
     }
+}
+
+/// Whether `error` says the path is not a directory there.
+fn is_missing(error: &DeviceError) -> bool {
+    matches!(&error.kind, DeviceErrorKind::Failed { code } if matches!(code.as_deref(), Some("ENOENT" | "ENOTDIR")))
 }

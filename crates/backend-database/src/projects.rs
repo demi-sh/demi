@@ -330,8 +330,29 @@ pub struct DirectoryNamed {
 pub enum TypedDirectory {
     /// A project's, whose conversations all share it.
     Project(ProjectId),
+    /// A linked worktree of a project's repository at `path`, which the
+    /// conversations that work in it share; the project's own directory is
+    /// another, which only its own naming changes.
+    Worktree { project: ProjectId, path: String },
     /// A directory of the Cloud that is the conversation's own selection.
     Cloud(String),
+}
+
+impl DirectoryNamed {
+    /// What `self` and `other` changed together.
+    pub fn merge(&mut self, other: Self) {
+        for conversation in other.conversations {
+            if !self.conversations.contains(&conversation) {
+                self.conversations.push(conversation);
+            }
+        }
+        self.projects |= other.projects;
+        for conversation in other.saved {
+            if !self.saved.contains(&conversation) {
+                self.saved.push(conversation);
+            }
+        }
+    }
 }
 
 impl ControlService {
@@ -342,6 +363,8 @@ impl ControlService {
     /// - A project whose canonical directory is another project's goes into
     ///   that project, its conversations with it, since one directory is one
     ///   project.
+    /// - The conversations that work in a project's worktree take its
+    ///   spelling for the worktree; the project keeps its directory.
     /// - A conversation of the Cloud takes the spelling for its directory.
     ///
     /// A directory that is the device's home stays as typed, which is no
@@ -371,6 +394,34 @@ impl ControlService {
                     )?;
                     super::conversation_index::advance_context(&transaction, &conversation)?;
                     DirectoryNamed { conversations: vec![conversation], projects: false, saved: Vec::new() }
+                }
+                TypedDirectory::Worktree { project, path } => {
+                    let Some(project) = project_by_id(&transaction, &project)? else {
+                        return Ok(DirectoryNamed::default());
+                    };
+                    let Some(device) = device_in(&transaction, &project.device)? else {
+                        return Ok(DirectoryNamed::default());
+                    };
+                    let canonical = device.platform.paths().trimmed(&canonical).to_owned();
+                    if canonical == path {
+                        return Ok(DirectoryNamed::default());
+                    }
+                    let inside: Vec<ConversationId> = transaction
+                        .prepare_cached(
+                            "SELECT id FROM conversations WHERE target_project_id = ?1 AND target_worktree_path = ?2",
+                        )?
+                        .query_map(params![project.id.as_str(), path], |row| row.get::<_, String>(0))?
+                        .map(|id| decode("conversations", "id", ConversationId::try_from(id?.as_str())))
+                        .collect::<Result<_, _>>()?;
+                    transaction.execute(
+                        "UPDATE conversations SET target_worktree_path = ?3
+                         WHERE target_project_id = ?1 AND target_worktree_path = ?2",
+                        params![project.id.as_str(), path, canonical],
+                    )?;
+                    for member in &inside {
+                        super::conversation_index::advance_context(&transaction, member)?;
+                    }
+                    DirectoryNamed { conversations: inside, projects: false, saved: Vec::new() }
                 }
                 TypedDirectory::Project(id) => {
                     let Some(project) = project_by_id(&transaction, &id)? else {
@@ -461,6 +512,32 @@ pub struct WorktreesStored {
 }
 
 impl ControlService {
+    /// The directories on `device` whose repository lists a linked worktree
+    /// at one of `spellings`, the directory as stored and as named now, as
+    /// the device last reported them, each once.
+    pub async fn repositories_of_worktree(
+        &self,
+        device: DeviceId,
+        spellings: Vec<String>,
+    ) -> Result<Vec<String>, StorageError> {
+        self.call(move |connection, _| {
+            let mut statement = connection.prepare_cached(
+                "SELECT path FROM directory_worktrees WHERE device_id = ?1 AND worktree_path = ?2 ORDER BY rowid",
+            )?;
+            let mut directories = Vec::new();
+            for spelling in &spellings {
+                for directory in statement.query_map(params![device.as_str(), spelling], |row| row.get::<_, String>(0))? {
+                    let directory = directory?;
+                    if !directories.contains(&directory) {
+                        directories.push(directory);
+                    }
+                }
+            }
+            Ok(directories)
+        })
+        .await
+    }
+
     /// Keeps `worktrees` as the linked worktrees of the repository at
     /// `directory` on `device`, as its runner reported them for a project
     /// there, in place of what it kept; a directory that is no project's in
