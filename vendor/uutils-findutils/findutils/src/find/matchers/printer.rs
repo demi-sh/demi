@@ -7,7 +7,7 @@
 use uucore::context::fs::File;
 use uucore::context::io::{stderr, Write};
 
-use super::{Matcher, MatcherIO, WalkEntry};
+use super::{Matcher, MatcherIO, StdoutErrors, WalkEntry};
 
 pub enum PrintDelimiter {
     Newline,
@@ -27,6 +27,7 @@ impl std::fmt::Display for PrintDelimiter {
 pub struct Printer {
     delimiter: PrintDelimiter,
     output_file: Option<File>,
+    stdout_errors: StdoutErrors,
 }
 
 impl Printer {
@@ -34,34 +35,36 @@ impl Printer {
         Self {
             delimiter,
             output_file,
+            stdout_errors: StdoutErrors::default(),
         }
     }
 
-    fn print(
-        &self,
-        file_info: &WalkEntry,
-        matcher_io: &mut MatcherIO,
-        mut out: impl Write,
-        print_error_message: bool,
-    ) {
+    pub fn with_stdout_errors(mut self, stdout_errors: StdoutErrors) -> Self {
+        self.stdout_errors = stdout_errors;
+        self
+    }
+
+    fn print(&self, file_info: &WalkEntry, matcher_io: &mut MatcherIO, mut out: impl Write) {
         // The path's own bytes, as GNU's find prints a name that is no UTF-8.
         let result = out
             .write_all(&uucore::os_str_as_bytes_lossy(file_info.path().as_os_str()))
             .and_then(|()| write!(out, "{}", self.delimiter))
             .and_then(|()| out.flush());
         if let Err(e) = result {
+            if self.output_file.is_none() {
+                self.stdout_errors.handle(&e, matcher_io);
+                return;
+            }
             if e.kind() == uucore::context::io::ErrorKind::BrokenPipe {
                 uucore::context::process::exit(0);
             }
-            if print_error_message {
-                writeln!(
-                    &mut stderr(),
-                    "Error writing {:?} for {}",
-                    file_info.path().to_string_lossy(),
-                    e
-                )
-                .unwrap();
-            }
+            writeln!(
+                &mut stderr(),
+                "Error writing {:?} for {}",
+                file_info.path().to_string_lossy(),
+                e
+            )
+            .unwrap();
             matcher_io.set_exit_code(1);
         }
     }
@@ -70,13 +73,12 @@ impl Printer {
 impl Matcher for Printer {
     fn matches(&self, file_info: &WalkEntry, matcher_io: &mut MatcherIO) -> bool {
         if let Some(file) = &self.output_file {
-            self.print(file_info, matcher_io, file, true);
+            self.print(file_info, matcher_io, file);
         } else {
             self.print(
                 file_info,
                 matcher_io,
                 &mut *matcher_io.deps.get_output().borrow_mut(),
-                false,
             );
         }
         true
@@ -130,6 +132,6 @@ mod tests {
         let deps = FakeDependencies::new();
 
         assert!(matcher.matches(&abbbc, &mut deps.new_matcher_io()));
-        assert!(deps.get_output_as_string().is_empty());
+        assert_eq!(deps.get_output_as_string(), "");
     }
 }

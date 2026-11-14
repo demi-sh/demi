@@ -18,6 +18,7 @@ use crate::sed::delimited_parser::{
 };
 use crate::sed::error_handling::{ScriptLocation, compilation_error, semantic_error};
 use crate::sed::fast_regex::Regex;
+use crate::sed::named_reader::NamedReader;
 use crate::sed::named_writer::NamedWriter;
 use crate::sed::script_char_provider::ScriptCharProvider;
 use crate::sed::script_line_provider::{ScriptLineProvider, ScriptValue};
@@ -73,6 +74,11 @@ pub fn compile(
     #[cfg(any())]
     dbg!(&result);
 
+    // Like GNU sed, point at the innermost `{` left open.
+    if let Some(location) = context.open_blocks.last() {
+        return semantic_error(location, "unmatched `{'");
+    }
+
     // Link branch commands to the target label commands.
     populate_label_map(result.clone(), context)?;
     populate_range_commands(result.clone(), context);
@@ -81,9 +87,6 @@ pub fn compile(
     // Link the ends of command blocks to their following commands.
     // This converts the tree into a graph, so it must be the last
     // conversion that traverses the structure as a tree.
-    if context.parsed_block_nesting > 0 {
-        return Err(USimpleError::new(1, "unmatched `{'"));
-    }
     patch_block_endings(result.clone());
 
     Ok(result)
@@ -351,7 +354,7 @@ fn compile_address_range(
         let is_step_match = line.current() == '~'; // E.g. 0~2: Pick even-numbered lines
         line.advance();
         line.eat_spaces();
-        let is_step_end = if line.current() == '~' {
+        let is_step_end = if !line.eol() && line.current() == '~' {
             // E.g. /foo/,~10: Start at foo, include all lines until multiple of 10 is reached.
             line.advance();
             line.eat_spaces();
@@ -365,39 +368,46 @@ fn compile_address_range(
             return compilation_error(lines, line, "~step is invalid in POSIX mode");
         }
 
-        // Look for second address.
-        if !line.eol() {
-            let addr2 = compile_address(lines, line, context)?;
-            // Set step_n to the number specified in the (required numeric) address.
-            let step_n = if is_step_match || is_step_end {
-                match addr2 {
-                    Address::Line(n) => n,
-                    _ => {
-                        return compilation_error(
-                            lines,
-                            line,
-                            "~step can only be specified through numeric values",
-                        );
-                    }
-                }
-            } else {
-                0 // dummy, not used
-            };
-
-            if is_line0 && !matches!(addr2, Address::Re(_)) && !is_step_match {
-                return compilation_error(lines, line, ERR_ADDRESS_0_USAGE);
-            }
-
-            // If needed, transform Address::Line into Address::Step*.
-            cmd.addr2 = if is_step_match {
-                Some(Address::StepMatch(step_n))
-            } else if is_step_end {
-                Some(Address::StepEnd(step_n))
-            } else {
-                Some(addr2)
-            };
-            n_addr += 1;
+        // Look for second address; a missing ~step counts as 0.
+        let has_addr2 = !line.eol() && (is_address_char(line.current()) || line.current() == '+');
+        if !(has_addr2 || is_step_match || is_step_end) {
+            return compilation_error(lines, line, "unexpected `,'");
         }
+        let addr2 = if has_addr2 {
+            compile_address(lines, line, context)?
+        } else {
+            Address::Line(0)
+        };
+        // Set step_n to the number specified in the (required numeric) address.
+        let step_n = if is_step_match || is_step_end {
+            match addr2 {
+                Address::Line(n) => n,
+                _ => {
+                    return compilation_error(
+                        lines,
+                        line,
+                        "~step can only be specified through numeric values",
+                    );
+                }
+            }
+        } else {
+            0 // dummy, not used
+        };
+
+        // Address 0 needs a regex end or a positive ~step (0~0 selects no line).
+        if is_line0 && !matches!(addr2, Address::Re(_)) && !(is_step_match && step_n > 0) {
+            return compilation_error(lines, line, ERR_ADDRESS_0_USAGE);
+        }
+
+        // If needed, transform Address::Line into Address::Step*.
+        cmd.addr2 = if is_step_match {
+            Some(Address::StepMatch(step_n))
+        } else if is_step_end {
+            Some(Address::StepEnd(step_n))
+        } else {
+            Some(addr2)
+        };
+        n_addr += 1;
     }
 
     // Zero-address read command check
@@ -494,7 +504,7 @@ fn compile_address(
             let number = parse_number(lines, line, true)?.unwrap();
             Ok(Address::Line(number))
         }
-        _ => panic!("invalid context address"),
+        _ => compilation_error(lines, line, "expected context address"),
     }
 }
 
@@ -1051,6 +1061,10 @@ fn compile_trans_command(
 ) -> UResult<CommandHandling> {
     line.advance(); // move past 'y'
 
+    if line.eol() {
+        return compilation_error(lines, line, "unterminated `y' command");
+    }
+
     let delimiter = line.current();
     if delimiter == '\0' || delimiter == '\\' {
         return compilation_error(
@@ -1214,10 +1228,9 @@ fn compile_end_group_command(
     _cmd: &mut Command,
     context: &mut ProcessingContext,
 ) -> UResult<CommandHandling> {
-    if context.parsed_block_nesting == 0 {
+    if context.open_blocks.pop().is_none() {
         return compilation_error(lines, line, "unexpected `}'");
     }
-    context.parsed_block_nesting -= 1;
     line.advance();
     line.eat_spaces();
     parse_command_ending(lines, line)?;
@@ -1270,6 +1283,28 @@ fn compile_read_file_command(
     Ok(CommandHandling::Continue)
 }
 
+// Handles R
+fn compile_read_line_command(
+    lines: &mut ScriptLineProvider,
+    line: &mut ScriptCharProvider,
+    cmd: &mut Command,
+    context: &mut ProcessingContext,
+) -> UResult<CommandHandling> {
+    if context.sandbox {
+        return compilation_error(lines, line, ERR_SANDBOX);
+    }
+    let path = read_file_path(lines, line)?;
+    // Reuse a reader keyed by path so all `R` commands on the same file share
+    // one cursor (see `ProcessingContext::named_readers`).
+    let reader = context
+        .named_readers
+        .entry(path.clone())
+        .or_insert_with(|| NamedReader::new(path))
+        .clone();
+    cmd.data = CommandData::NamedReader(reader);
+    Ok(CommandHandling::Continue)
+}
+
 // Handles w
 fn compile_write_file_command(
     lines: &mut ScriptLineProvider,
@@ -1294,7 +1329,7 @@ fn compile_block_command(
     context: &mut ProcessingContext,
 ) -> UResult<CommandHandling> {
     line.advance(); // move past '{'
-    context.parsed_block_nesting += 1;
+    context.open_blocks.push(cmd.location.clone());
     let block_body = compile_sequence(lines, line, context)?;
     cmd.data = CommandData::BranchTarget(block_body);
     Ok(CommandHandling::Continue)
@@ -1772,6 +1807,14 @@ fn get_cmd_spec(
             n_addr: 2,
             handler: compile_execute_command,
         }),
+        'F' if !posix => Ok(CommandSpec {
+            n_addr: 2,
+            handler: compile_empty_command,
+        }),
+        'R' if !posix => Ok(CommandSpec {
+            n_addr: 2,
+            handler: compile_read_line_command,
+        }),
         'r' => Ok(CommandSpec {
             n_addr: if posix { 1 } else { 2 },
             handler: compile_read_file_command,
@@ -1783,6 +1826,10 @@ fn get_cmd_spec(
         'T' if !posix => Ok(CommandSpec {
             n_addr: 2,
             handler: compile_label_command,
+        }),
+        'W' if !posix => Ok(CommandSpec {
+            n_addr: 2,
+            handler: compile_write_file_command,
         }),
         'w' => Ok(CommandSpec {
             n_addr: 2,
@@ -2473,9 +2520,10 @@ mod tests {
 
         assert!(matches!(cmd.addr1, Some(Address::Line(1))));
 
-        assert_eq!(cmd.location.line_number, 1);
-        assert_eq!(cmd.location.column_number, 1);
-        assert_eq!(cmd.location.input_name.as_ref(), "<script argument 1>");
+        assert_eq!(
+            cmd.location.description.as_ref(),
+            "-e expression #1, char 1"
+        );
 
         assert!(cmd.next.is_none());
     }
@@ -2490,16 +2538,18 @@ mod tests {
         let cmd = binding.borrow();
 
         assert_eq!(cmd.code, 'l');
-        assert_eq!(cmd.location.line_number, 1);
-        assert_eq!(cmd.location.column_number, 1);
-        assert_eq!(cmd.location.input_name.as_ref(), "<script argument 1>");
+        assert_eq!(
+            cmd.location.description.as_ref(),
+            "-e expression #1, char 1"
+        );
 
         let binding2 = cmd.next.clone().unwrap();
         let cmd2 = binding2.borrow();
         assert_eq!(cmd2.code, 'q');
-        assert_eq!(cmd2.location.line_number, 1);
-        assert_eq!(cmd2.location.column_number, 3);
-        assert_eq!(cmd2.location.input_name.as_ref(), "<script argument 1>");
+        assert_eq!(
+            cmd2.location.description.as_ref(),
+            "-e expression #1, char 3"
+        );
 
         assert!(cmd2.next.is_none());
     }
@@ -3151,6 +3201,31 @@ mod tests {
         let err =
             compile_read_file_command(&mut lines, &mut chars, &mut cmd, &mut context).unwrap_err();
         assert!(err.to_string().contains(ERR_SANDBOX));
+    }
+
+    // compile_read_line_command (R)
+    #[test]
+    fn test_compile_read_line_command_rejected_under_sandbox() {
+        let (mut lines, mut chars) = make_providers("R input.txt");
+        let mut cmd = Command::default();
+        let mut context = ctx();
+        context.sandbox = true;
+
+        let err =
+            compile_read_line_command(&mut lines, &mut chars, &mut cmd, &mut context).unwrap_err();
+        assert!(err.to_string().contains(ERR_SANDBOX));
+    }
+
+    #[test]
+    fn test_compile_read_line_command_sets_named_reader() {
+        let (mut lines, mut chars) = make_providers("R input.txt");
+        let mut cmd = Command::default();
+        let mut context = ctx();
+
+        let handling =
+            compile_read_line_command(&mut lines, &mut chars, &mut cmd, &mut context).unwrap();
+        assert!(matches!(handling, CommandHandling::Continue));
+        assert!(matches!(cmd.data, CommandData::NamedReader(_)));
     }
 
     // compile_write_file_command

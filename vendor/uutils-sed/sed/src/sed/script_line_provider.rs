@@ -46,7 +46,12 @@ enum State {
         input_name: String,       // Input description (path or script string)
         line_number: usize,       // Current line number
     },
-    Done, // All scripts have been processed
+    // All scripts have been processed; keeps the last position for errors
+    // raised at the end of the script.
+    Done {
+        input_name: String,
+        line_number: usize,
+    },
 }
 
 impl ScriptLineProvider {
@@ -88,16 +93,18 @@ impl ScriptLineProvider {
     /// Return the currently processed script line number.
     pub fn get_line_number(&self) -> usize {
         match &self.state {
-            State::Active { line_number, .. } => *line_number,
-            _ => 0,
+            State::Active { line_number, .. } | State::Done { line_number, .. } => *line_number,
+            State::NotStarted => 0,
         }
     }
 
     /// Return the currently processed script descriptive name.
     pub fn get_input_name(&self) -> &str {
         match &self.state {
-            State::Active { input_name, .. } => input_name.as_str(),
-            _ => "",
+            State::Active { input_name, .. } | State::Done { input_name, .. } => {
+                input_name.as_str()
+            }
+            State::NotStarted => "",
         }
     }
 
@@ -129,7 +136,7 @@ impl ScriptLineProvider {
                         return Ok(Some(line));
                     }
                 }
-                State::Done => {
+                State::Done { .. } => {
                     return Ok(None);
                 }
             };
@@ -144,7 +151,10 @@ impl ScriptLineProvider {
     fn advance_source(&mut self, next_index: usize) -> UResult<()> {
         self.consumed = 0;
         if next_index >= self.sources.len() {
-            self.state = State::Done;
+            self.state = State::Done {
+                input_name: self.get_input_name().to_string(),
+                line_number: self.get_line_number(),
+            };
             return Ok(());
         }
 
@@ -187,7 +197,14 @@ impl fmt::Debug for State {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             State::NotStarted => f.debug_struct("NotStarted").finish(),
-            State::Done => f.debug_struct("Done").finish(),
+            State::Done {
+                input_name,
+                line_number,
+            } => f
+                .debug_struct("Done")
+                .field("input_name", input_name)
+                .field("line_number", line_number)
+                .finish(),
             State::Active {
                 index,
                 input_name,

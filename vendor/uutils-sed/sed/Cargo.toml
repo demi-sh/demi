@@ -13,7 +13,7 @@
 edition = "2024"
 rust-version = "1.88"
 name = "sed"
-version = "0.2.0"
+version = "0.3.0"
 build = "build.rs"
 autolib = false
 autobins = false
@@ -34,6 +34,14 @@ keywords = [
 categories = ["command-line-utilities"]
 license = "MIT"
 repository = "https://github.com/uutils/sed"
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/{ version }/{ name }-{ target }.{ archive-suffix }"
+bin-dir = "{ name }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "txz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
 
 [features]
 default = ["feat_common_core"]
@@ -99,16 +107,11 @@ version = "0.16.1"
 features = ["terminal_size"]
 
 [dependencies.uucore]
-version = "0.11.0"
+version = "0.12.0"
 features = ["libc"]
 
 [dev-dependencies.assert_fs]
 version = "1.1.3"
-
-[dev-dependencies.chrono]
-version = "0.4.37"
-features = ["clock"]
-default-features = false
 
 [dev-dependencies.ctor]
 version = "1.0.0"
@@ -133,14 +136,17 @@ version = "0.10.0"
 version = "1.10.4"
 
 [dev-dependencies.sha2]
-version = "0.11"
+version = "0.11.0"
+features = ["alloc"]
+default-features = false
 
 [dev-dependencies.tempfile]
 version = "3.10.1"
 
 [dev-dependencies.uucore]
-version = "0.10.0"
+version = "0.12.0"
 features = [
+    "diagnostics",
     "libc",
     "entries",
     "process",
@@ -149,7 +155,7 @@ features = [
 ]
 
 [dev-dependencies.uutests]
-version = "0.10.0"
+version = "0.12.0"
 
 [build-dependencies.phf_codegen]
 version = "0.14.0"
@@ -203,6 +209,9 @@ priority = -1
 level = "allow"
 priority = -1
 
+[profile.dist]
+inherits = "release"
+
 [profile.release]
 lto = true
 codegen-units = 7
@@ -218,19 +227,18 @@ maintainer = "jush-runner"
 patches = [
     "fancy-regex 0.19, the version the runner links, in place of 0.18",
     "Paths resolve against the shell job's working directory, and an in-place edit is recorded as the job's edit (`crates/command-sdk/src/edits.rs`)",
-    "-i reads an attached suffix as GNU's getopt does, `-i.bak` and `-ni.bak` back up with .bak, and `-i` alone backs up nothing; upstream's optional value took the script after `-i` as the suffix, and clap's require_equals alone refused `-i.bak` (attached_in_place)",
+    "-i reads an attached suffix as GNU's getopt does, `-i.bak` and `-ni.bak` back up with .bak, and `-i` alone backs up nothing; upstream's optional value took the script after `-i` as the suffix, and clap's require_equals alone refused `-i.bak` (attached_in_place, which takes the place of upstream's gnu_in_place_args, since it also reads macOS's forms)",
     "On macOS the options of its own sed are read: the operand after a bare `-i` is BSD's suffix when it is empty (`sed -i '' s/a/b/ f`), or starts with `.` and enough operands follow for the script and a file (`sed -i .bak s/a/b/ f`, `sed -e X -i .bak f`), while `sed -e X -i .env` still edits .env; `-I` is `-i`; and `-l` is BSD's line-buffered output, a flag without a value",
     "The e and w commands' shells start through uucore::context, and a long script checks the job's cancellation",
     "Files, streams, the environment, printing and exit go through uucore::context, so a run embedded in a shell job uses the job's working directory, environment, standard streams and cancellation, and exit ends only the utility",
     "The release's tests, benchmarks, examples and CI files are left out",
     "build.rs watches no file, only PROFILE (rerun-if-env-changed): it reads only the features, PROFILE and the package's name, which Cargo already fingerprints, and a change to build.rs rebuilds the script, which reruns it; without any rerun-if line Cargo reran it whenever any file of the package was newer than its last run, and a rerun-if-changed watch is compared by mtime, so either reran it, and rebuilt sed, after every fresh checkout",
-    "Messages are GNU sed 4.9's: a script's errors name -e expression #N, char C or file F line L, and say unknown command, unterminated `s' command, unterminated `y' command, unterminated address regex, unknown option to `s', missing command, extra characters after command and the like; an input file that cannot be read is named as can't read <file>: <reason>, the other files are still processed and the status is 2; no script prints the usage to standard error with status 1; -i without a file fails with no input files and status 4",
-    "-i takes each file separately, as GNU sed's does, and `s` at the end of a script fails instead of indexing past it",
+    "Messages are GNU sed 4.9's: a script's errors name -e expression #N, char C or file F line L, and say unknown command, unterminated `s' command, unterminated `y' command, unterminated address regex, unknown option to `s', missing command, extra characters after command and the like; an input file that cannot be read is named as can't read <file>: <reason>, the other files are still processed and the status is 2; no script prints the usage to standard error with status 1; -i without a file fails with no input files and status 4; upstream's own messages, input:line:column: error: with the script line drawn below, are left out with their uucore diagnostics and unicode-width dependencies",
     "A delimiter that is `&` ends the replacement of `s` as GNU sed's does, where upstream read it as the whole match (autoconf's config.status writes s&@var@&value&)",
     "A backslash before a character with no meaning in the replacement of `s` gives the character, as GNU sed's does (`\\'` is `'`, which libtool's quoting writes), where upstream kept the backslash",
     "A POSIX bracket expression is read as one: a `[` or a backslash in it is itself (`[[]`, `[^][]`, `[\\]`), where upstream ended it at the wrong `]` or let the regex engine read escapes in it; `\\n` and `\\t` in it are GNU sed's newline and tab",
     "An escaped `$` or `^` in a pattern takes the regex path, where upstream's literal path unescaped it and read the `$` of `\\$` as the end of the line (libtool's quoting matches \\\\\\$)",
     "The replacement of `s` takes GNU's changes of case, `\\U`, `\\L`, `\\E`, `\\u` and `\\l` (ReplacementPart::Case), as GNU's str_append_modified applies them, which upstream read as the letters; --posix reads them as the letters",
-    "`l` lists the pattern space byte by byte in every locale, a byte beyond ASCII in octal and a newline as \\n, as GNU sed does, where upstream wrote a character beyond ASCII as \\uXXXX, failed at one that was no UTF-8 and ended the line at a newline; `l` without a length wraps at `-l`'s, 70 by default, and a length of 0 never wraps, where upstream took the terminal's width, which an embedded run reads from its owner's",
+    "`l` writes a newline of the pattern space as \\n, as GNU sed does, where upstream ends the listed line there; with --uutil-extensions a pattern space that is no UTF-8 is listed byte by byte, where upstream failed; `l` without a length wraps at `-l`'s, 70 by default, and a length of 0 never wraps, where upstream took the terminal's width, which an embedded run reads from its owner's, so the terminal_size dependency is left out",
     "A script or a file operand that is no UTF-8 is taken (OsString), the script with U+FFFD for such a byte, where upstream's clap refused the whole command",
 ]

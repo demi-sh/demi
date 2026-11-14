@@ -2,7 +2,8 @@
 //
 // For the full copyright and license information, please view the LICENSE
 // file that was distributed with this source code.
-// spell-checker:ignore reflink ftruncate pwrite fiemap lseek nofollow
+
+// spell-checker:ignore reflink ftruncate fiemap lseek nofollow
 
 use uucore::context::PathExt as _;
 use rustix::fs::{SeekFrom, ftruncate, ioctl_ficlone, seek};

@@ -57,8 +57,6 @@ use uucore::update_control;
 pub use uucore::{backup_control::BackupMode, update_control::UpdateMode};
 use uucore::{format_usage, prompt_yes, show};
 
-use fs_extra::dir::get_size as dir_get_size;
-
 use crate::error::MvError;
 
 /// Options contains all the possible behaviors and flags for mv.
@@ -648,8 +646,8 @@ pub fn mv(files: &[OsString], opts: &Options) -> UResult<()> {
         return move_files_into_dir(&paths, &PathBuf::from(name), opts);
     }
 
-    match paths.len() {
-        2 => handle_two_paths(&paths[0], &paths[1], opts),
+    match paths.as_slice() {
+        [path0, path1] => handle_two_paths(path0, path1, opts),
         _ => handle_multiple_paths(&paths, opts),
     }
 }
@@ -1095,7 +1093,7 @@ fn rename_symlink_fallback(from: &Path, to: &Path) -> io::Result<()> {
         Ok(()) => {}
         Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
             #[cfg(not(target_os = "redox"))]
-            create_symlink_replace(&path_symlink_points_to, to)?;
+            uucore::fs::replace_link(&path_symlink_points_to, to, true)?;
             #[cfg(target_os = "redox")]
             {
                 fs::remove_file(to)?;
@@ -1111,75 +1109,6 @@ fn rename_symlink_fallback(from: &Path, to: &Path) -> io::Result<()> {
     let _ = preserve_ownership(from, to);
     fs::remove_file(from)
 }
-
-/// Create a symlink at `to`, atomically replacing any existing entry via
-/// a temp-name + `renameat(2)` so observers never see `to` missing.
-///
-/// Mirrors GNU's `force_symlinkat` in `force-link.c`: open the parent
-/// directory once and operate via `*at` syscalls so a concurrent rename
-/// of the parent cannot redirect the operation, and pick the temp name
-/// from `/dev/urandom` so it is unguessable to other users in that
-/// directory.
-#[cfg(all(unix, not(target_os = "redox")))]
-fn create_symlink_replace(target: &Path, to: &Path) -> io::Result<()> {
-    use io::Read;
-    use rustix::fs::{AtFlags, CWD, Mode, OFlags, openat, renameat, symlinkat, unlinkat};
-    use std::ffi::OsStr;
-    use std::os::unix::ffi::OsStrExt;
-
-    // GNU's template is `CuXXXXXX`: a 2-char prefix plus 6 random chars
-    // drawn from a 62-char alphabet. Modulo bias on a 256→62 mapping is
-    // ~3% per slot — irrelevant for an 8-char unguessability budget.
-    const ALPHABET: &[u8; 62] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    // The parent is the job's, not the process's, and the literal one: with
-    // the job's own directory a symlink (`/tmp` on macOS), a parent resolved
-    // first would end in it and O_NOFOLLOW would refuse it.
-    let parent = to
-        .parent()
-        .filter(|p| !p.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
-    let parent = uucore::context::resolve(parent);
-    let basename = to
-        .file_name()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid destination path"))?;
-
-    let dir_fd = openat(
-        CWD,
-        &parent,
-        OFlags::DIRECTORY | OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW,
-        Mode::empty(),
-    )?;
-
-    let mut urandom = fs::File::open("/dev/urandom")?;
-
-    for _ in 0..32 {
-        let mut tmp_bytes = *b"Cu------";
-        let mut raw = [0u8; 6];
-        urandom.read_exact(&mut raw)?;
-        for (slot, byte) in tmp_bytes[2..].iter_mut().zip(raw) {
-            *slot = ALPHABET[(byte as usize) % ALPHABET.len()];
-        }
-        let tmp = OsStr::from_bytes(&tmp_bytes);
-
-        match symlinkat(target, &dir_fd, tmp) {
-            Ok(()) => {
-                if let Err(e) = renameat(&dir_fd, tmp, &dir_fd, basename) {
-                    let _ = unlinkat(&dir_fd, tmp, AtFlags::empty());
-                    return Err(io::Error::from(e));
-                }
-                return Ok(());
-            }
-            Err(e) if e == rustix::io::Errno::EXIST => {}
-            Err(e) => return Err(io::Error::from(e)),
-        }
-    }
-    Err(io::Error::new(
-        io::ErrorKind::AlreadyExists,
-        "could not allocate a unique temp name in destination directory",
-    ))
-}
-
 #[cfg(windows)]
 fn rename_symlink_fallback(from: &Path, to: &Path) -> io::Result<()> {
     let path_symlink_points_to = fs::read_link(from)?;
@@ -1215,8 +1144,7 @@ fn rename_dir_fallback(
     #[cfg(unix)] hardlink_scanner: Option<&HardlinkGroupScanner>,
 ) -> io::Result<()> {
     // We remove the destination directory if it exists to match the
-    // behavior of `fs::rename`. As far as I can tell, `fs_extra`'s
-    // `move_dir` would otherwise behave differently.
+    // behavior of `fs::rename`.
     if to.context_exists() {
         fs::remove_dir_all(to)?;
     }
@@ -1226,7 +1154,7 @@ fn rename_dir_fallback(
     //    If finding the total size fails for whatever reason,
     //    the progress bar wont be shown for this file / dir.
     //    (Move will probably fail due to permission error later?)
-    let total_size = dir_get_size(uucore::context::resolve(from)).ok();
+    let total_size = display_manager.and_then(|_| get_dir_size(&uucore::context::resolve(from)).ok());
 
     let progress_bar = match (display_manager, total_size) {
         (Some(display_manager), Some(total_size)) => {
@@ -1298,6 +1226,24 @@ fn create_dir_fail_closed(path: &Path) -> io::Result<()> {
             e
         }
     })
+}
+
+fn get_dir_size(path: &Path) -> io::Result<u64> {
+    let metadata = path.symlink_metadata()?;
+
+    if !metadata.is_dir() {
+        return Ok(metadata.len());
+    }
+
+    let mut size = 0;
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        size += entry.metadata()?.len();
+        if entry.file_type()?.is_dir() {
+            size += get_dir_size(&entry.path())?;
+        }
+    }
+    Ok(size)
 }
 
 fn copy_dir_contents(
@@ -1675,42 +1621,15 @@ fn prompt_overwrite(to: &Path, cached_mode: Option<u32>) -> io::Result<()> {
 /// Checks if a file can be deleted by attempting to open it with delete permissions.
 #[cfg(windows)]
 fn can_delete_file(path: &Path) -> bool {
-    use {std::os::windows::ffi::OsStrExt as _, std::ptr::null, std::ptr::null_mut};
-
-    use windows_sys::Win32::{
-        Foundation::{CloseHandle, INVALID_HANDLE_VALUE},
-        Storage::FileSystem::{
-            CreateFileW, DELETE, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_DELETE, FILE_SHARE_READ,
-            FILE_SHARE_WRITE, OPEN_EXISTING,
-        },
-    };
+    use std::fs::OpenOptions;
+    use std::os::windows::fs::OpenOptionsExt;
+    use windows_sys::Win32::Storage::FileSystem::DELETE;
 
     // The path is the job's, not the process's.
-    let wide_path = uucore::context::resolve(path)
-        .as_os_str()
-        .encode_wide()
-        .chain([0])
-        .collect::<Vec<u16>>();
-
-    let handle = unsafe {
-        CreateFileW(
-            wide_path.as_ptr(),
-            DELETE,
-            FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-            null(),
-            OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
-            null_mut(),
-        )
-    };
-
-    if handle == INVALID_HANDLE_VALUE {
-        return false;
-    }
-
-    unsafe { CloseHandle(handle) };
-
-    true
+    OpenOptions::new()
+        .access_mode(DELETE)
+        .open(uucore::context::resolve(path))
+        .is_ok()
 }
 
 #[cfg(not(windows))]
