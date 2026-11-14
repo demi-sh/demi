@@ -139,6 +139,6 @@ check-cfg = [
 maintainer = "jush-runner"
 patches = [
     "Files, streams, the environment, printing and exit go through uucore::context, so a run embedded in a shell job uses the job's working directory, environment, standard streams and cancellation, and exit ends only the utility",
-    "On macOS what only its own chmod does, access control lists (-E, -C, -I, -N and the modes +a, -a#, +ai, =a#), is done by /bin/chmod, in the job's directory and with its streams",
+    "On macOS what only its own chmod does, access control lists (-E, -C, -I, -N and the modes +a, -a, -a#, +ai, =a#), is done by /bin/chmod, in the job's directory and with its streams, started as the system's program (uucore::context::process::Command::system), since by its name it is the embedded chmod, which would start itself again without end",
     "chmod -R reads a directory's entries at the job's path (uucore::context::fs::read_dir)",
 ]

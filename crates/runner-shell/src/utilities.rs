@@ -23,7 +23,9 @@
 //! - runs a utility of these named by its file name in the runner ([`named`]),
 //!   as the shell would, a path such as `/usr/bin/sed` or `/bin/bash`
 //!   included;
-//! - runs any other program as the system does.
+//! - runs any other program as the system does, and so the system's own
+//!   program a utility hands on to by name (macOS's `/bin/chmod` for an ACL),
+//!   which would otherwise start the same utility again.
 //!
 //! On Windows `/dev/null` and `/dev/zero` are devices for operands too, and
 //! `/tmp` is the temporary folder (`%TMP%`, else `%TEMP%`) and `/c/…` is
